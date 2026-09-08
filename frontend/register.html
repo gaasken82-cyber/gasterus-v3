@@ -2,166 +2,131 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daftar Akun Baru — GASTERUS V3</title>
-  <meta name="description" content="Daftar akun resmi Gasterus v3 gratis. Proses cepat 1 menit langsung bisa pasang Togel 4D dan taruhan Sportsbook.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Daftar Akun Baru — GASTERUS</title>
+  <meta name="description" content="Daftar akun resmi Gasterus gratis. Proses cepat 1 menit.">
 
-  <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Modular Stylesheets -->
-  <link rel="stylesheet" href="/css/tokens.css">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/layout.css">
-  <link rel="stylesheet" href="/css/components.css">
-  <link rel="stylesheet" href="/css/animations.css">
-  <link rel="stylesheet" href="/css/mobile.css">
-  <link rel="stylesheet" href="/css/pages/register.css">
+  <link rel="stylesheet" href="css/mobile-blue.css">
 </head>
-<body>
+<body class="page-register">
+  <div class="site">
 
-  <!-- Top Header Navigation -->
-  <header class="app-header">
-    <div class="container">
-      <a href="/index.html" class="brand-logo">
-        GASTERUS <span class="logo-badge">V3</span>
-      </a>
+    <!-- Header -->
+    <header class="brand-bar">
+      <h1 class="brand-title">GASTERUS</h1>
+      <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
+    </header>
 
-      <div class="header-actions">
-        <a href="/index.html" class="btn btn-secondary btn-sm">← Kembali ke Home</a>
+    <!-- Register Title -->
+    <div class="reg-title">Register</div>
+    <div class="reg-divider"></div>
+
+    <!-- Register Form -->
+    <form class="reg-form" id="register-form">
+
+      <div class="reg-field">
+        <label class="reg-label">Username <span>*</span></label>
+        <input class="reg-input" type="text" id="reg-username" name="username" placeholder="Username" required autocomplete="username">
       </div>
-    </div>
-  </header>
 
-  <main class="app-main">
-    <div class="container register-container">
-      <div class="register-card fade-in">
-        <div style="text-align: center; margin-bottom: var(--space-6);">
-          <span class="badge badge-warning" style="margin-bottom: var(--space-2);">FORMULIR PENDAFTARAN</span>
-          <h1 style="font-size: 1.85rem;">Buat Akun Member Baru</h1>
-          <p style="font-size: 0.9rem;">Pastikan data rekening bank terisi dengan benar untuk kelancaran deposit & penarikan dana.</p>
-        </div>
+      <div class="reg-field">
+        <label class="reg-label">Password <span>*</span></label>
+        <input class="reg-input" type="password" id="reg-password" name="password" placeholder="Password" required autocomplete="new-password">
+      </div>
 
-        <form id="register-form">
-          <!-- Step 1: Kredensial Akun -->
-          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: var(--space-3); color: var(--text-gold);">
-            1. Informasi Kredensial Akun
-          </div>
+      <div class="reg-field">
+        <label class="reg-label">Konfirmasi Password <span>*</span></label>
+        <input class="reg-input" type="password" id="reg-password-confirm" name="passwordConfirm" placeholder="Konfirmasi Password" required autocomplete="new-password">
+      </div>
 
-          <div class="form-group">
-            <label class="form-label" for="reg-username">Username <span style="color: var(--status-danger);">*</span></label>
-            <input type="text" id="reg-username" name="username" class="form-control" placeholder="Contoh: hoki99 (3-12 huruf/angka)" required autocomplete="username">
-            <div id="username-status" style="font-size: 0.75rem; margin-top: 3px;"></div>
-          </div>
+      <div class="reg-field">
+        <label class="reg-label">Email <span>*</span></label>
+        <input class="reg-input" type="email" id="reg-email" name="email" placeholder="Alamat email anda" required autocomplete="email">
+      </div>
 
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label" for="reg-password">Kata Sandi <span style="color: var(--status-danger);">*</span></label>
-              <input type="password" id="reg-password" name="password" class="form-control" placeholder="Min. 8 karakter (huruf & angka)" required autocomplete="new-password">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="reg-password-confirm">Ulangi Kata Sandi <span style="color: var(--status-danger);">*</span></label>
-              <input type="password" id="reg-password-confirm" name="passwordConfirm" class="form-control" placeholder="Ketik ulang kata sandi" required autocomplete="new-password">
-            </div>
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label" for="reg-email">Alamat Email <span style="color: var(--status-danger);">*</span></label>
-              <input type="email" id="reg-email" name="email" class="form-control" placeholder="emailanda@gmail.com" required autocomplete="email">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="reg-phone">Nomor Kontak / WhatsApp</label>
-              <input type="tel" id="reg-phone" name="phone" class="form-control" placeholder="08xxxxxxxxxx" autocomplete="tel">
-            </div>
-          </div>
-
-          <!-- Step 2: Data Perbankan -->
-          <div style="font-weight: 700; font-size: 0.95rem; margin-top: var(--space-6); margin-bottom: var(--space-3); color: var(--text-gold);">
-            2. Rekening Penarikan & Deposit
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="reg-bank-name">Pilih Bank / e-Wallet <span style="color: var(--status-danger);">*</span></label>
-            <select id="reg-bank-name" name="bankName" class="form-control" required>
-              <option value="">-- Pilih Bank / E-Wallet --</option>
-              <option value="BCA">BCA (Bank Central Asia)</option>
-              <option value="MANDIRI">MANDIRI</option>
-              <option value="BNI">BNI (Bank Negara Indonesia)</option>
-              <option value="BRI">BRI (Bank Rakyat Indonesia)</option>
-              <option value="CIMB">CIMB NIAGA</option>
-              <option value="PERMATA">BANK PERMATA</option>
-              <option value="DANAMON">BANK DANAMON</option>
-              <option value="DANA">DANA (E-Wallet)</option>
-              <option value="OVO">OVO (E-Wallet)</option>
-              <option value="GOPAY">GOPAY (E-Wallet)</option>
-              <option value="LINKAJA">LINKAJA (E-Wallet)</option>
-            </select>
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label" for="reg-account-name">Nama Pemilik Rekening <span style="color: var(--status-danger);">*</span></label>
-              <input type="text" id="reg-account-name" name="accountName" class="form-control" placeholder="Sesuai buku tabungan / e-wallet" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="reg-account-number">Nomor Rekening / HP <span style="color: var(--status-danger);">*</span></label>
-              <input type="text" id="reg-account-number" name="accountNumber" class="form-control" placeholder="Nomor rekening aktif" required>
-            </div>
-          </div>
-
-          <!-- Step 3: Keamanan & Referral -->
-          <div style="font-weight: 700; font-size: 0.95rem; margin-top: var(--space-6); margin-bottom: var(--space-3); color: var(--text-gold);">
-            3. Verifikasi Keamanan
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label">Kode Verifikasi Keamanan <span style="color: var(--status-danger);">*</span></label>
-              <div class="captcha-box">
-                <div class="captcha-svg-wrapper" id="captcha-container">
-                  <!-- Dynamic SVG -->
-                </div>
-                <button type="button" id="btn-refresh-captcha" class="btn-refresh-captcha">
-                  ↻ Ganti
-                </button>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="reg-captcha-code">Masukkan Kode Di Atas <span style="color: var(--status-danger);">*</span></label>
-              <input type="text" id="reg-captcha-code" name="captchaCode" class="form-control" placeholder="5 karakter huruf/angka" required maxlength="6" style="text-transform: uppercase;">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="reg-referral-code">Kode Referral (Opsional)</label>
-            <input type="text" id="reg-referral-code" name="referralCode" class="form-control" placeholder="Jika ada kode ajakan teman">
-          </div>
-
-          <div style="font-size: 0.8rem; color: var(--text-secondary); margin-block: var(--space-4);">
-            Dengan menekan tombol pendaftaran di bawah ini, Anda menyatakan telah berusia 18 tahun ke atas dan menyetujui seluruh <a href="/rules.html">Syarat & Ketentuan</a> yang berlaku.
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-lg btn-block">
-            Daftar Akun Sekarang
-          </button>
-        </form>
-
-        <div style="text-align: center; margin-top: var(--space-6); font-size: 0.9rem; color: var(--text-secondary);">
-          Sudah memiliki akun? <a href="/index.html" style="color: var(--brand-primary); font-weight: 600;">Masuk di sini</a>
+      <div class="reg-field">
+        <label class="reg-label">No. Telp/HP <span>*</span></label>
+        <div class="reg-phone-wrap">
+          <span class="reg-phone-prefix">+62</span>
+          <input type="tel" id="reg-phone" name="phone" placeholder="Nomor telepon anda" autocomplete="tel">
         </div>
       </div>
-    </div>
-  </main>
 
-  <footer class="app-footer">
-    <div class="container footer-bottom">
-      &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
-    </div>
-  </footer>
+      <div class="reg-field">
+        <label class="reg-label">Referral</label>
+        <span class="reg-referral-value">-</span>
+        <input type="hidden" name="referralCode" id="reg-referral" value="">
+      </div>
 
-  <script type="module" src="/js/register.js"></script>
+      <!-- Pengaturan Bank Section -->
+      <div class="reg-section-title">Pengaturan Bank</div>
+      <div class="reg-divider"></div>
+
+      <div class="reg-field">
+        <label class="reg-label">Nama Bank <span>*</span></label>
+        <select class="reg-input" id="reg-bank-name" name="bankName" required>
+          <option value="BCA">BCA</option>
+          <option value="MANDIRI">MANDIRI</option>
+          <option value="BNI">BNI</option>
+          <option value="BRI">BRI</option>
+          <option value="CIMB">CIMB NIAGA</option>
+          <option value="PERMATA">BANK PERMATA</option>
+          <option value="DANAMON">BANK DANAMON</option>
+          <option value="DANA">DANA</option>
+          <option value="OVO">OVO</option>
+          <option value="GOPAY">GOPAY</option>
+          <option value="LINKAJA">LINKAJA</option>
+        </select>
+      </div>
+
+      <div class="reg-field">
+        <label class="reg-label">Nama Rekening <span>*</span></label>
+        <input class="reg-input" type="text" id="reg-account-name" name="accountName" placeholder="Nama rekening anda" required>
+      </div>
+
+      <div class="reg-field">
+        <label class="reg-label">Nomor Rekening <span>*</span></label>
+        <input class="reg-input" type="text" id="reg-account-number" name="accountNumber" placeholder="Nomor rekening" required>
+      </div>
+
+      <!-- Captcha -->
+      <div class="reg-field">
+        <label class="reg-label">Captcha <span>*</span></label>
+        <div style="flex:1">
+          <div class="reg-captcha-row">
+            <div class="reg-captcha-img" id="captcha-container">
+              <!-- Dynamic SVG -->
+            </div>
+            <button type="button" class="reg-captcha-refresh" id="btn-refresh-captcha">↻</button>
+          </div>
+          <input class="reg-input" type="text" id="reg-captcha-code" name="captchaCode" placeholder="Captcha" required maxlength="6" style="text-transform: uppercase;">
+        </div>
+      </div>
+
+      <!-- Checkboxes -->
+      <label class="reg-checkbox">
+        <input type="checkbox" checked> Saya bersedia menerima email promosi gasterus.fun
+      </label>
+      <label class="reg-checkbox">
+        <input type="checkbox" required> Saya setuju dengan <a href="rules.html">peraturan yang berlaku</a>
+      </label>
+
+      <!-- Submit Button (di dalam form agar form.querySelector('button[type="submit"]') tidak null) -->
+      <button type="submit" class="btn-register-submit">Daftar</button>
+
+    </form>
+
+    <!-- Footer -->
+    <footer>
+      <div>&copy; Copyright 2014 - 2026 GASTERUS. All Rights Reserved.</div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="js/register.js"></script>
 </body>
 </html>

@@ -9,114 +9,95 @@
   <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Modular Stylesheets -->
-  <link rel="stylesheet" href="/css/tokens.css">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/layout.css">
-  <link rel="stylesheet" href="/css/components.css">
-  <link rel="stylesheet" href="/css/animations.css">
-  <link rel="stylesheet" href="/css/mobile.css">
-  <link rel="stylesheet" href="/css/pages/member.css">
+  <link rel="stylesheet" href="css/mobile-blue.css">
 </head>
-<body>
+<body class="page-member">
+  <div class="site">
 
-  <!-- Header -->
-  <header class="app-header">
-    <div class="container">
-      <a href="/index.html" class="brand-logo">
-        GASTERUS <span class="logo-badge">V3</span>
-      </a>
+    <!-- Header -->
+    <header class="brand-bar">
+      <h1 class="brand-title">GASTERUS</h1>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <a class="btn-livechat" href="deposit.html">Deposit</a>
+        <button type="button" class="btn-action-logout btn-livechat" style="background:linear-gradient(180deg,#ef4444 0%,#b91c1c 100%); border-color:#f87171;">Keluar</button>
+      </div>
+    </header>
 
-      <nav class="nav-menu" aria-label="Member Navigation">
-        <a href="/member.html" class="nav-link active">Togel Pools</a>
-        <a href="/sportsbook.html" class="nav-link">Sportsbook</a>
-        <a href="/bet-history.html" class="nav-link">Riwayat Taruhan</a>
-        <a href="/deposit.html" class="nav-link">Deposit</a>
-        <a href="/withdraw.html" class="nav-link">Withdraw</a>
-      </nav>
+    <!-- User Bar: Nama + Saldo + Refresh -->
+    <div class="member-user-bar">
+      <div class="member-user-info">
+        <div class="user-name"><span class="user-display-name">Member</span></div>
+        <div class="user-balance">Balance: IDR. <span class="user-display-balance">0</span></div>
+      </div>
+      <button type="button" class="btn-refresh-balance" onclick="location.reload()">↻ Refresh</button>
+    </div>
 
-      <div class="header-actions">
-        <div class="balance-pill">
-          <span style="font-size: 0.75rem; color: var(--text-secondary);">Saldo Rp</span>
-          <span class="balance-amount user-display-balance">0</span>
-        </div>
-        <button type="button" class="btn btn-secondary btn-sm btn-action-logout">Keluar</button>
+    <!-- 2 Baris Kategori Game -->
+    <div class="member-cat-row-1">
+      <a class="member-cat-card active" href="member.html"><span style="font-size:20px;">🎰</span>Semua</a>
+      <a class="member-cat-card" href="sportsbook.html"><span style="font-size:20px;">⚽</span>Sports</a>
+      <a class="member-cat-card" href="market-play.html"><span style="font-size:20px;">🎯</span>Togel</a>
+      <a class="member-cat-card" href="number-history.html"><span style="font-size:20px;">🏆</span>Result</a>
+      <a class="member-cat-card" href="promotion.html"><span style="font-size:20px;">🎁</span>Promo<span class="cat-badge-new">NEW</span></a>
+    </div>
+    <div class="member-cat-row-2">
+      <a class="member-cat-card" href="bet-history.html"><span style="font-size:20px;">📜</span>Riwayat</a>
+      <a class="member-cat-card" href="deposit.html"><span style="font-size:20px;">💳</span>Deposit</a>
+      <a class="member-cat-card" href="withdraw.html"><span style="font-size:20px;">💸</span>Withdraw</a>
+      <a class="member-cat-card" href="referral.html"><span style="font-size:20px;">👥</span>Referral</a>
+    </div>
+
+    <!-- Search Bar Game -->
+    <div class="res-search">
+      <input type="text" placeholder="Cari" aria-label="Cari Game">
+    </div>
+
+    <!-- Link Alternatif + QR APK -->
+    <div class="official-apk-card">
+      <div class="official-apk-left">
+        <div style="font-family:'Outfit',sans-serif;font-weight:900;color:#ffffff;">LINK ALTERNATIF & APK</div>
+        <a href="./" style="color:#38bdf8;font-size:12px;font-weight:700;text-decoration:none;">✓ gasterus.fun</a>
+        <a href="./" style="color:#38bdf8;font-size:12px;font-weight:700;text-decoration:none;">✓ gasterus.net</a>
+        <a href="./" style="color:#38bdf8;font-size:12px;font-weight:700;text-decoration:none;">✓ gasterus.org</a>
+      </div>
+      <div class="official-apk-right">
+        <div style="font-size:9px;font-weight:900;color:#071120;margin-bottom:4px;">APK</div>
+        <div style="width:40px;height:40px;background:#e2e8f0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;">📲</div>
       </div>
     </div>
-  </header>
 
-  <main class="app-main">
-    <div class="container">
-      <!-- Member Profile Header Card -->
-      <div class="member-header-card fade-in">
-        <div class="user-profile-info">
-          <div class="user-avatar" id="user-avatar-initial">U</div>
-          <div class="user-welcome">
-            <h2>Halo, <span class="user-display-name">Member</span>!</h2>
-            <p style="color: var(--text-secondary);">ID Akun Terverifikasi • Tingkat VIP Silver</p>
-          </div>
-        </div>
+    <!-- Provider Header + Tab -->
+    <div class="provider-header-bar">
+      <span>PROVIDER GAME</span>
+      <a class="btn-lobby" href="member.html">LOBBY</a>
+    </div>
 
-        <div class="wallet-box">
-          <div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary);">Total Saldo Utama</div>
-            <div class="wallet-balance-num">Rp <span class="user-display-balance">0</span></div>
-          </div>
-          <div class="wallet-actions">
-            <a href="/deposit.html" class="btn btn-primary btn-sm">+ Deposit</a>
-            <a href="/withdraw.html" class="btn btn-outline btn-sm">Tarik Dana</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Category Filter Tabs -->
-      <div class="game-category-tabs">
-        <button type="button" class="game-tab active">Semua Pasaran Togel</button>
-        <a href="/sportsbook.html" class="game-tab">Sportsbook Sepakbola</a>
-        <a href="/bet-history.html" class="game-tab">Riwayat Invoice & Taruhan</a>
-        <a href="/referral.html" class="game-tab">Komisi Referral</a>
-      </div>
-
-      <!-- Active Markets Grid -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-        <h3 style="font-size: 1.25rem;">Pasaran Resmi Yang Tersedia</h3>
-        <span style="font-size: 0.85rem; color: var(--text-secondary);"><span class="live-indicator"></span> Realtime Update</span>
-      </div>
-
+    <!-- Konten Dinamis: Pasaran Togel (diisi member.js) -->
+    <div style="padding:0 10px 8px;">
       <div class="member-market-grid" id="member-markets-container">
         <!-- Markets populated by JS -->
       </div>
     </div>
-  </main>
 
-  <!-- Mobile Bottom Nav -->
-  <nav class="mobile-bottom-nav">
-    <a href="/member.html" class="mobile-nav-item active">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path></svg>
-      <span>Togel</span>
-    </a>
-    <a href="/sportsbook.html" class="mobile-nav-item">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM4.37 11.23a6.002 6.002 0 010-2.46l2.39 1.23-2.39 1.23z"></path></svg>
-      <span>Sports</span>
-    </a>
-    <a href="/bet-history.html" class="mobile-nav-item">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path></svg>
-      <span>Invoice</span>
-    </a>
-    <a href="/deposit.html" class="mobile-nav-item">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"></path></svg>
-      <span>Deposit</span>
-    </a>
-  </nav>
-
-  <footer class="app-footer">
-    <div class="container footer-bottom">
-      &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
+    <!-- Grid Provider -->
+    <div class="provider-grid">
+      <a class="provider-card" href="#"><span style="font-size:22px;">🎰</span><span style="font-weight:800;color:#ffffff;font-size:12px;">PRAGMATIC</span></a>
+      <a class="provider-card" href="#"><span style="font-size:22px;">🎰</span><span style="font-weight:800;color:#ffffff;font-size:12px;">PG SOFT</span></a>
+      <a class="provider-card" href="#"><span style="font-size:22px;">🎰</span><span style="font-weight:800;color:#ffffff;font-size:12px;">HABANERO</span></a>
+      <a class="provider-card" href="#"><span style="font-size:22px;">🎰</span><span style="font-weight:800;color:#ffffff;font-size:12px;">MICROGAMING</span></a>
+      <a class="provider-card" href="#"><span style="font-size:22px;">🎰</span><span style="font-weight:800;color:#ffffff;font-size:12px;">JOKER</span></a>
+      <a class="provider-card" href="#"><span style="font-size:22px;">🎰</span><span style="font-weight:800;color:#ffffff;font-size:12px;">CQ9</span></a>
     </div>
-  </footer>
 
-  <script type="module" src="/js/member.js"></script>
+    <!-- Footer -->
+    <footer>
+      <div>&copy; Copyright 2014 - 2026 GASTERUS. All Rights Reserved.</div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="js/member.js"></script>
 </body>
 </html>

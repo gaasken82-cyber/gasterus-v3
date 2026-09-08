@@ -9,123 +9,129 @@
   <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Modular Stylesheets -->
-  <link rel="stylesheet" href="/css/tokens.css">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/layout.css">
-  <link rel="stylesheet" href="/css/components.css">
-  <link rel="stylesheet" href="/css/animations.css">
-  <link rel="stylesheet" href="/css/mobile.css">
-  <link rel="stylesheet" href="/css/pages/transaction.css">
+  <link rel="stylesheet" href="css/mobile-blue.css">
 </head>
-<body>
+<body class="page-deposit">
+  <div class="site">
 
-  <header class="app-header">
-    <div class="container">
-      <a href="/member.html" class="brand-logo">
-        GASTERUS <span class="logo-badge">V3</span>
-      </a>
+    <!-- Header -->
+    <header class="brand-bar">
+      <h1 class="brand-title">GASTERUS</h1>
+      <a class="btn-livechat" href="member.html">← Member Area</a>
+    </header>
 
-      <div class="header-actions">
-        <a href="/member.html" class="btn btn-secondary btn-sm">← Member Area</a>
+    <!-- User Bar: Nama + Saldo + Refresh -->
+    <div class="member-user-bar">
+      <div class="member-user-info">
+        <div class="user-name"><span class="user-display-name">Member</span></div>
+        <div class="user-balance">Balance: IDR. <span class="user-display-balance">0</span></div>
       </div>
+      <button type="button" class="btn-refresh-balance" onclick="location.reload()">↻ Refresh</button>
     </div>
-  </header>
 
-  <main class="app-main">
-    <div class="container tx-container">
-      <div class="tx-card fade-in">
-        <div style="text-align: center; margin-bottom: var(--space-6);">
-          <span class="badge badge-success" style="margin-bottom: var(--space-2);">DEPOSIT INSTAN</span>
-          <h1 style="font-size: 1.75rem;">Isi Saldo Akun</h1>
-          <p style="font-size: 0.85rem;">Transfer dana ke rekening tujuan di bawah, lalu kirimkan formulir konfirmasi ini.</p>
+    <!-- Judul Halaman Kasir -->
+    <div class="deposit-page-title">KASIR — DEPOSIT SALDO</div>
+
+    <!-- 3 Tab Kasir -->
+    <div class="deposit-tabs-grid">
+      <a class="deposit-tab-item active" href="deposit.html"><span style="font-size:18px;">💰</span>Deposit</a>
+      <a class="deposit-tab-item" href="withdraw.html"><span style="font-size:18px;">💸</span>Withdraw</a>
+      <a class="deposit-tab-item" href="bet-history.html"><span style="font-size:18px;">📜</span>Riwayat</a>
+    </div>
+
+    <form id="deposit-form">
+      <!-- Kotak Rekening Tujuan -->
+      <div class="deposit-quick-box">
+        <div class="deposit-row">
+          <span class="label">Rekening</span><span class="separator">:</span>
+          <select id="payment-method-select" name="paymentMethodId">
+            <option value="1">BCA - 8201-9238-11 (PT GASTERUS JAYA)</option>
+            <option value="2">MANDIRI - 1370-0283-9182 (PT GASTERUS JAYA)</option>
+            <option value="3">QRIS INSTAN 24 JAM (Semua Bank / E-Wallet)</option>
+          </select>
         </div>
 
-        <form id="deposit-form">
-          <div class="form-group">
-            <label class="form-label" for="payment-method-select">Pilih Rekening Tujuan Transfer</label>
-            <select id="payment-method-select" name="paymentMethodId" class="form-control">
-              <option value="1">BCA - 8201-9238-11 (PT GASTERUS JAYA)</option>
-              <option value="2">MANDIRI - 1370-0283-9182 (PT GASTERUS JAYA)</option>
-              <option value="3">QRIS INSTAN 24 JAM (Semua Bank / E-Wallet)</option>
-            </select>
-          </div>
-
-          <!-- Destination Bank Card -->
-          <div class="bank-destination-box">
-            <div class="bank-detail-row">
-              <span style="color: var(--text-secondary);">Nama Bank:</span>
-              <strong id="dest-bank-name">BCA</strong>
-            </div>
-            <div class="bank-detail-row">
-              <span style="color: var(--text-secondary);">Nomor Rekening:</span>
-              <div>
-                <strong id="dest-bank-account" style="font-family: var(--font-mono); color: var(--text-gold);">8201-9238-11</strong>
-                <span class="copy-pill" onclick="navigator.clipboard.writeText(document.getElementById('dest-bank-account').textContent); alert('Nomor rekening disalin!');">Salin</span>
-              </div>
-            </div>
-            <div class="bank-detail-row">
-              <span style="color: var(--text-secondary);">Nama Penerima:</span>
-              <strong id="dest-account-holder">PT GASTERUS JAYA</strong>
-            </div>
-          </div>
-
-          <!-- Amount Input -->
-          <div class="form-group">
-            <label class="form-label" for="deposit-amount-input">Nominal Transfer (Rp) <span style="color: var(--status-danger);">*</span></label>
-            <input type="number" id="deposit-amount-input" name="amount" class="form-control" placeholder="Contoh: 50000" min="10000" step="10000" required style="font-size: 1.15rem; font-weight: 700;">
-          </div>
-
-          <!-- Quick Presets -->
-          <div class="nominal-preset-grid">
-            <button type="button" class="preset-btn" data-value="25000">Rp 25.000</button>
-            <button type="button" class="preset-btn" data-value="50000">Rp 50.000</button>
-            <button type="button" class="preset-btn" data-value="100000">Rp 100.000</button>
-            <button type="button" class="preset-btn" data-value="250000">Rp 250.000</button>
-            <button type="button" class="preset-btn" data-value="500000">Rp 500.000</button>
-            <button type="button" class="preset-btn" data-value="1000000">Rp 1.000.000</button>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="deposit-note">Catatan / 4 Digit Terakhir Rekening Pengirim</label>
-            <input type="text" id="deposit-note" name="note" class="form-control" placeholder="Opsional (membantu proses verifikasi lebih cepat)">
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top: var(--space-4);">
-            Kirim Konfirmasi Deposit
-          </button>
-        </form>
-      </div>
-
-      <!-- History Card -->
-      <div class="card">
-        <h3 style="font-size: 1.1rem; margin-bottom: var(--space-4);">Riwayat Pengajuan Deposit Terakhir</h3>
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Waktu</th>
-                <th>Nominal</th>
-                <th>Status</th>
-                <th>Keterangan</th>
-              </tr>
-            </thead>
-            <tbody id="tx-history-tbody">
-              <!-- Dynamically rendered -->
-            </tbody>
-          </table>
+        <div class="deposit-row">
+          <span class="label">Nama Bank</span><span class="separator">:</span>
+          <strong id="dest-bank-name">BCA</strong>
         </div>
+        <div class="deposit-row">
+          <span class="label">No. Rekening</span><span class="separator">:</span>
+          <strong id="dest-bank-account">8201-9238-11</strong>
+          <span class="copy-pill" onclick="navigator.clipboard.writeText(document.getElementById('dest-bank-account').textContent); alert('Nomor rekening disalin!');">Salin</span>
+        </div>
+        <div class="deposit-row">
+          <span class="label">Penerima</span><span class="separator">:</span>
+          <strong id="dest-account-holder">PT GASTERUS JAYA</strong>
+        </div>
+        <button type="button" class="btn-qris-green">✓ QRIS — Bayar Instan 24 Jam</button>
+      </div>
+
+      <!-- Kartu Putih QRIS -->
+      <div class="qris-white-card">
+        <div class="title-brand">GASTERUS OFFICIAL</div>
+        <div class="sub-user">Deposit via QRIS — All Bank / E-Wallet</div>
+        <div class="badge-trust">🔒 100% AMAN &amp; TERENKRIPSI</div>
+        <div class="qris-logo-wrap">
+          <img src="assets/mobile-bank-logos/qris.svg" alt="QRIS">
+        </div>
+        <label for="deposit-amount-input">NOMINAL DEPOSIT (RP) *</label>
+        <input type="number" id="deposit-amount-input" name="amount" class="amount-input" placeholder="Contoh: 50000" min="10000" step="10000" required>
+
+        <div class="qris-preset-grid">
+          <button type="button" class="preset-btn preset-pill-btn" data-value="25000">Rp 25.000</button>
+          <button type="button" class="preset-btn preset-pill-btn" data-value="50000">Rp 50.000</button>
+          <button type="button" class="preset-btn preset-pill-btn" data-value="100000">Rp 100.000</button>
+          <button type="button" class="preset-btn preset-pill-btn" data-value="250000">Rp 250.000</button>
+          <button type="button" class="preset-btn preset-pill-btn" data-value="500000">Rp 500.000</button>
+          <button type="button" class="preset-btn preset-pill-btn" data-value="1000000">Rp 1.000.000</button>
+        </div>
+
+        <label for="deposit-note">CATATAN / 4 DIGIT REKENING PENGIRIM</label>
+        <input type="text" id="deposit-note" name="note" class="amount-input" placeholder="Opsional (mempercepat verifikasi)">
+
+        <button type="submit" class="btn-qris-submit" style="margin-top:12px;">Kirim Konfirmasi Deposit</button>
+      </div>
+    </form>
+
+    <!-- Catatan Cara Deposit -->
+    <div class="deposit-note-box">
+      <h4>CARA DEPOSIT</h4>
+      <ol>
+        <li>Pilih rekening tujuan transfer pada kotak di atas.</li>
+        <li>Transfer sesuai nominal yang Anda isi (minimal Rp 10.000).</li>
+        <li>Klik Kirim Konfirmasi Deposit, lalu tunggu proses verifikasi admin.</li>
+      </ol>
+    </div>
+
+    <!-- Riwayat -->
+    <div class="deposit-history-box">
+      <h3>RIWAYAT PENGAJUAN DEPOSIT TERAKHIR</h3>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Nominal</th>
+              <th>Status</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody id="tx-history-tbody">
+            <!-- Dynamically rendered -->
+          </tbody>
+        </table>
       </div>
     </div>
-  </main>
 
-  <footer class="app-footer">
-    <div class="container footer-bottom">
-      &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
-    </div>
-  </footer>
+    <!-- Footer -->
+    <footer>
+      <div>&copy; Copyright 2014 - 2026 GASTERUS. All Rights Reserved.</div>
+    </footer>
+
+  </div>
 
   <script type="module">
     import { initDeposit } from '/js/transaction.js';

@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/css/mobile-blue.css">
+  <link rel="stylesheet" href="css/mobile-blue.css">
 </head>
 <body class="page-home">
   <div class="site">
@@ -61,7 +61,7 @@
     <!-- 6. Login Form Direct Area -->
     <section class="login-section">
       <div class="login-title">Silahkan login untuk mulai bermain</div>
-      <form id="loginForm" onsubmit="event.preventDefault(); window.location.href='/member.html';">
+      <form id="loginForm" onsubmit="event.preventDefault(); window.location.href='member.html';">
         <div class="inp-wrap">
           <span class="inp-icon">👤</span>
           <input id="username" type="text" autocomplete="username" minlength="3" maxlength="40" placeholder="Username" required>
@@ -76,14 +76,13 @@
         </label>
         <button class="btn-login" type="submit">Log in</button>
       </form>
-      <button class="btn-daftar" type="button" onclick="window.location.href='/register.html';">Daftar</button>
+      <button class="btn-daftar" type="button" onclick="window.location.href='register.html';">Daftar</button>
     </section>
 
     <!-- 7. Search Area & Domain Box -->
     <section class="search-section">
       <div class="sec-label">Cari Gasterus Disini</div>
       <div class="search-domain-row">
-        <button class="btn-burger-square" type="button" onclick="alert('Menu navigasi siap digunakan.');">☰</button>
         <a class="domain-pill" href="./">
           <span class="domain-pill-icon">🔍</span>
           <span class="domain-pill-text">WWW.GASTERUS.FUN</span>
@@ -314,7 +313,7 @@
           </div>
         </div>
       </div>
-      <button class="btn-more" id="showMoreBtn" type="button" onclick="window.location.href='/number-history.html';">Show More Results</button>
+      <button class="btn-more" id="showMoreBtn" type="button" onclick="window.location.href='number-history.html';">Show More Results</button>
     </section>
 
     <!-- 10. Bank Status -->
