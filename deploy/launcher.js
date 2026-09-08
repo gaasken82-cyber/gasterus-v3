@@ -81,9 +81,6 @@ if(bool('WORKER_ENABLED',true))start('worker',coreDir,['src/worker.js'],{HOST:'1
 start('member',deployDir,['member-server.js'],{...internalCommon,PORT:String(MEMBER_INTERNAL_PORT)});
 start('admin',adminDir,['server.js'],{...internalCommon,PORT:String(ADMIN_INTERNAL_PORT)});
 await Promise.all([waitReady(`http://127.0.0.1:${MEMBER_INTERNAL_PORT}/ready`),waitReady(`http://127.0.0.1:${ADMIN_INTERNAL_PORT}/ready`)]);
-// Health monitor disabled on free tier
-if(bool('HEALTH_MONITOR_ENABLED',false))start('health-monitor',opsDir,['scripts/health-loop.js'],{CORE_INTERNAL_URL:coreUrl},false);
-// Backup scheduler disabled on free tier (already false by default)
-if(bool('BACKUP_ENABLED',false))start('backup-scheduler',opsDir,['scripts/backup-loop.js'],{},false);
+console.log(JSON.stringify({service:'asean777-launcher',version:'6.9.0.5',status:'all-services-ready'}));
 function shutdown(signal){if(stopping)return;stopping=true;console.log(`Consolidated shutdown requested: ${signal}`);for(const {child} of children.values())child.kill('SIGTERM');setTimeout(()=>process.exit(0),9000).unref();}
 process.on('SIGTERM',()=>shutdown('SIGTERM'));process.on('SIGINT',()=>shutdown('SIGINT'));
