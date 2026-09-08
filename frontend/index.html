@@ -97,9 +97,78 @@
       </div>
     </section>
 
+    <!-- 9. Hasil Terakhir (Live Draw) -->
+    <section class="results-box">
+      <div class="res-head">
+        <b>Hasil Terakhir <span class="live-tag"><i></i>LIVE</span></b>
+        <span id="resDate">08 September 2026</span>
+      </div>
+      <div class="res-search">
+        <span>🔍</span>
+        <input id="resFilter" placeholder="Cari Pasaran...">
+      </div>
+      
+      <!-- Grid 4 Kolom Hasil -->
+      <div class="res-grid">
+        <!-- Sample Card 1 -->
+        <div class="res-card">
+          <div class="res-name">SD TOTO MACAU</div>
+          <div class="res-date">07-09-2026</div>
+          <div class="res-number">95200</div>
+        </div>
+        <!-- Sample Card 2 -->
+        <div class="res-card">
+          <div class="res-name">KING KONG 4D</div>
+          <div class="res-date">07-09-2026</div>
+          <div class="res-number">2264</div>
+        </div>
+        <!-- Sample Card 3 -->
+        <div class="res-card">
+          <div class="res-name">SYDNEY</div>
+          <div class="res-date">08-09-2026</div>
+          <div class="res-number">4586</div>
+        </div>
+        <!-- Sample Card 4 -->
+        <div class="res-card">
+          <div class="res-name">HONGKONG</div>
+          <div class="res-date">07-09-2026</div>
+          <div class="res-number">3007</div>
+        </div>
+      </div>
+      <button class="btn-more" id="showMoreBtn">Show More Results</button>
+    </section>
+
+    <!-- 10. Bank Status -->
+    <section class="banks-section">
+      <div class="banks-title">Bank Status</div>
+      <div class="banks-grid">
+        <div class="bank-pill"><span class="status-tag">Online</span><span class="bank-name">BCA</span></div>
+        <div class="bank-pill"><span class="status-tag">Online</span><span class="bank-name">BNI</span></div>
+        <div class="bank-pill"><span class="status-tag">Online</span><span class="bank-name">BRI</span></div>
+        <div class="bank-pill"><span class="status-tag">Online</span><span class="bank-name">DANA</span></div>
+        <div class="bank-pill"><span class="status-tag">Online</span><span class="bank-name">GOPAY</span></div>
+        <div class="bank-pill"><span class="status-tag">Online</span><span class="bank-name">LINK AJA</span></div>
+        <div class="bank-pill"><span class="status-tag">Online</span><span class="bank-name">MANDIRI</span></div>
+        <div class="bank-pill"><span class="status-tag">Online</span><span class="bank-name">OVO</span></div>
+      </div>
+      <div class="bank-legend">
+        <div class="leg-item"><span class="leg-dot dot-on"></span> Online</div>
+        <div class="leg-item"><span class="leg-dot dot-warn"></span> Gangguan</div>
+        <div class="leg-item"><span class="leg-dot dot-off"></span> Offline</div>
+      </div>
+    </section>
+
+    <!-- Floating Menu Button (Bottom Left) -->
+    <button class="float-menu-btn" id="floatBtn">☰</button>
+
     <!-- Footer -->
     <footer>
-      &copy; 2026 GASTERUS V3. All Rights Reserved. Blue/Grey Mobile Edition.
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px">
+        <a href="privacy.html" style="color:#93c5fd;font-weight:700">Privacy</a>
+        <a href="responsible-gaming.html" style="color:#93c5fd;font-weight:700">Responsible Gaming</a>
+        <a href="terms.html" style="color:#93c5fd;font-weight:700">Terms</a>
+      </div>
+      &copy; 2026 GASTERUS V3. All Rights Reserved. Blue/Grey Edition.
     </footer>
 
   </div>

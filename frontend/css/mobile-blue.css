@@ -348,6 +348,177 @@ body {
 .cs-text b { font-size: 8px; color: #fff; }
 .cs-text small { font-size: 9px; color: #60a5fa; font-weight: 900; }
 
+/* --- Results Box --- */
+.results-box {
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border-top: 1px solid #1e293b;
+  border-bottom: 1px solid #1e293b;
+}
+
+.res-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  font-size: 14px;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+.live-tag {
+  background: #3b82f6;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  animation: pulse-blue 1.5s infinite;
+}
+@keyframes pulse-blue {
+  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+  70% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+.res-search {
+  display: flex;
+  align-items: center;
+  background: #0f172a;
+  border: 1px solid #3b82f6;
+  border-radius: 20px;
+  padding: 4px 12px;
+  margin-bottom: 10px;
+}
+.res-search input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 6px;
+  width: 100%;
+  outline: none;
+}
+
+.res-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.res-card {
+  background: linear-gradient(to bottom, #1e293b, #0f172a);
+  border: 1px solid #3b82f6;
+  border-radius: 6px;
+  text-align: center;
+  padding: 6px 2px;
+}
+.res-name {
+  background: #60a5fa;
+  color: #0f172a;
+  font-size: 9px;
+  font-weight: bold;
+  padding: 3px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.res-date { font-size: 8px; color: #94a3b8; }
+.res-number { font-size: 14px; font-weight: bold; color: #93c5fd; text-shadow: 0 0 5px rgba(147, 197, 253, 0.5); }
+
+.btn-more {
+  width: 100%;
+  background: linear-gradient(to bottom, #1e3a8a, #0f172a);
+  border: 1px solid #3b82f6;
+  color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* --- Bank Status --- */
+.banks-section {
+  padding: 14px 8px;
+}
+.banks-title {
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 10px;
+}
+.banks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.bank-pill {
+  background: #fff;
+  border-radius: 6px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  padding: 2px 6px 2px 52px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.status-tag {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  transform: translateY(-50%);
+  background: linear-gradient(to bottom, #00d84a, #009933);
+  color: #ffffff;
+  font-size: 8.5px;
+  font-weight: 900;
+  padding: 3px 6px;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.bank-name {
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: bold;
+}
+.bank-legend {
+  margin-top: 10px;
+  background: #000;
+  border: 1px solid #3b82f6;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px;
+  font-size: 10px;
+  font-weight: bold;
+}
+.leg-item { display: flex; align-items: center; gap: 4px; }
+.leg-dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-on { background: #00e600; box-shadow: 0 0 5px #00e600; }
+.dot-warn { background: #ffcc00; box-shadow: 0 0 5px #ffcc00; }
+.dot-off { background: #e60000; box-shadow: 0 0 5px #e60000; }
+
+/* --- Floating Menu Button --- */
+.float-menu-btn {
+  position: fixed;
+  bottom: 80px;
+  left: 0;
+  z-index: 999;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(to bottom, #2563eb, #1e3a8a);
+  border: 2px solid #60a5fa;
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(0, 0, 0, 0.9), inset 0 0 10px rgba(96, 165, 250, 0.45);
+}
+
 /* --- Footer --- */
 footer {
   margin-top: 20px;
