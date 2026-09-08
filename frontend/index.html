@@ -109,18 +109,29 @@
       </div>
     </section>
 
-    <!-- Live Draw & Pasaran Terpopuler -->
-    <section class="container" style="margin-top: var(--space-10);">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Hasil Live Draw & Pasaran Hari Ini</h2>
-          <p style="font-size: 0.9rem;">Update angka keluaran resmi secara otomatis setiap saat.</p>
+    <!-- Hasil Terakhir (Matching CindoToto Official Live Board) -->
+    <section class="container">
+      <div class="hasil-terakhir-container fade-in">
+        <div class="hasil-top-header">
+          <h2 class="hasil-main-title">Hasil Terakhir</h2>
+          <span class="hasil-date-display">08 September 2026</span>
         </div>
-        <a href="/member.html" class="btn btn-outline btn-sm">Lihat Semua Pasaran →</a>
-      </div>
 
-      <div class="market-grid" id="markets-grid-container">
-        <!-- Filled dynamically via JS -->
+        <!-- Search Bar Cari Pasaran -->
+        <div class="hasil-search-wrapper">
+          <span class="hasil-search-icon">🔍</span>
+          <input type="text" id="search-pasaran-input" class="hasil-search-input" placeholder="Cari Pasaran..." autocomplete="off">
+        </div>
+
+        <!-- Cards Grid (4 Columns) -->
+        <div class="hasil-grid" id="hasil-grid-container">
+          <!-- Dynamically populated with authentic results -->
+        </div>
+
+        <!-- Show More Button -->
+        <button type="button" class="btn-show-more-results" id="btn-show-more">
+          Show More Results
+        </button>
       </div>
     </section>
 

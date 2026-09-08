@@ -95,92 +95,176 @@
   margin-top: 2px;
 }
 
-/* Live Market Section */
-.section-header {
+/* ==========================================================================
+   HASIL TERAKHIR SECTION (Matching Official CindoToto Layout)
+   ========================================================================== */
+.hasil-terakhir-container {
+  background: radial-gradient(circle at 50% 0%, #200407 0%, #0d0406 100%);
+  border: 1px solid #7f1d1d;
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  margin-top: var(--space-8);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
+}
+
+.hasil-top-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.hasil-main-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.hasil-date-display {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fbbf24;
+}
+
+/* Search Bar Cari Pasaran */
+.hasil-search-wrapper {
+  position: relative;
   margin-bottom: var(--space-6);
 }
 
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
+.hasil-search-input {
+  width: 100%;
+  background: #000000;
+  border: 2px solid #eab308;
+  border-radius: var(--radius-full);
+  padding: 12px 20px 12px 48px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  outline: none;
+  transition: all var(--transition-fast);
 }
 
-.market-grid {
+.hasil-search-input:focus {
+  border-color: #facc15;
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.4);
+}
+
+.hasil-search-input::placeholder {
+  color: #a1a1aa;
+}
+
+.hasil-search-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  color: #eab308;
+  pointer-events: none;
+}
+
+/* Grid of 4 Columns */
+.hasil-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
 }
 
-.market-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
+/* Card Structure */
+.hasil-card {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  transition: transform 150ms ease, box-shadow 150ms ease;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  transition: transform var(--transition-fast), border-color var(--transition-fast);
-  position: relative;
-  overflow: hidden;
 }
 
-.market-card:hover {
+.hasil-card:hover {
   transform: translateY(-2px);
-  border-color: var(--border-brand);
+  box-shadow: 0 6px 12px rgba(234, 179, 8, 0.2);
 }
 
-.market-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.market-name {
-  font-weight: 700;
-  font-size: 1.05rem;
-}
-
-.market-result-display {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-  padding: var(--space-2) 0;
-}
-
-.ball-num {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-  border: 1px solid var(--border-brand);
-  color: var(--text-gold);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.hasil-card-badge {
+  background: linear-gradient(180deg, #fde047 0%, #eab308 100%);
+  color: #000000;
+  padding: 6px 8px;
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.15rem;
-  box-shadow: var(--shadow-sm);
+  font-size: 0.85rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.market-footer {
+.hasil-card-body {
+  background: #270608;
+  border: 1px solid #7f1d1d;
+  border-top: none;
+  padding: 10px 8px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  border-top: 1px solid var(--border-subtle);
-  padding-top: var(--space-3);
-  margin-top: auto;
+  justify-content: center;
+  gap: 4px;
 }
 
-.countdown-timer {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  color: var(--brand-primary);
+.hasil-card-date {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f3f4f6;
+  letter-spacing: 0.05em;
+}
+
+.hasil-card-number {
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 2px;
+  line-height: 1.1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.hasil-card-action {
+  margin-top: 4px;
+  font-size: 0.7rem;
+  color: #fdba74;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Show More Button */
+.btn-show-more-results {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  margin-inline: auto;
+  background: linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%);
+  color: #ffffff;
+  border: 1px solid #ef4444;
+  padding: 10px 24px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-show-more-results:hover {
+  background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+  color: #ffffff;
 }
 
 /* Bank Status Section */
@@ -208,7 +292,11 @@
   font-size: 0.85rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .hasil-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2);
+  }
   .hero-title { font-size: 2rem; }
   .quick-stats { grid-template-columns: repeat(2, 1fr); }
   .hero-actions { flex-direction: column; width: 100%; }
