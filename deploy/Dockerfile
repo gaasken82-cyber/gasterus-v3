@@ -25,6 +25,7 @@ RUN cd backend \
 COPY backend ./backend
 COPY deploy ./deploy
 COPY frontend ./frontend
+COPY admin ./admin
 
 # Syntax check critical files
 RUN node --check deploy/launcher.js \

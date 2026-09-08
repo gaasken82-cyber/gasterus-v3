@@ -1,0 +1,13 @@
+{
+  "name": "asean777-admin",
+  "version": "6.9.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.23.2 <23"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  }
+}

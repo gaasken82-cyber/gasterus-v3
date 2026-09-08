@@ -58,7 +58,7 @@ process.on('uncaughtException', error => fatalSignal('uncaughtException', error)
 process.on('unhandledRejection', reason => fatalSignal('unhandledRejection', reason instanceof Error ? reason : new Error(String(reason))));
 async function waitReady(url,timeoutMs=120000){const until=Date.now()+timeoutMs;while(Date.now()<until){try{const r=await fetch(url,{signal:AbortSignal.timeout(2500)});if(r.ok)return;}catch{}await sleep(1000);}throw new Error(`Timed out waiting for ${url}`);}
 
-const coreDir=resolve(ROOT,'services/core'),memberDir=resolve(ROOT,'services/member'),adminDir=resolve(ROOT,'services/admin'),opsDir=resolve(ROOT,'services/ops'),appDir=resolve(ROOT,'services/app');
+const coreDir=resolve(ROOT,'backend'),deployDir=resolve(ROOT,'deploy'),adminDir=resolve(ROOT,'admin');
 const coreUrl=`http://127.0.0.1:${CORE_INTERNAL_PORT}`;
 const internalCommon={HOST:'127.0.0.1',CORE_HOST:'127.0.0.1',CORE_PORT:String(CORE_INTERNAL_PORT),PUBLIC_PROTO:process.env.PUBLIC_PROTO || (process.env.NODE_ENV==='production'?'https':'http')};
 const onRailway=Boolean(process.env.RAILWAY_DEPLOYMENT_ID || process.env.RAILWAY_ENVIRONMENT_ID);
@@ -67,18 +67,18 @@ const runStartupMigrations=bool('RUN_STARTUP_MIGRATIONS', !onRailway);
 console.log(JSON.stringify({service:'asean777-launcher',version:'6.9.0.5',phase:'startup',publicPort:PUBLIC_PORT,corePort:CORE_INTERNAL_PORT,memberPort:MEMBER_INTERNAL_PORT,adminPort:ADMIN_INTERNAL_PORT,onRailway,runStartupMigrations}));
 // Bind Railway's public PORT immediately. /healthz remains 503 until Core/Member/Admin are ready,
 // preventing edge-level 502 during cold start while preserving the readiness gate.
-start('gateway',appDir,['gateway.js'],{CORE_INTERNAL_PORT:String(CORE_INTERNAL_PORT),MEMBER_INTERNAL_PORT:String(MEMBER_INTERNAL_PORT),ADMIN_INTERNAL_PORT:String(ADMIN_INTERNAL_PORT)},true);
+start('gateway',deployDir,['gateway.js'],{CORE_INTERNAL_PORT:String(CORE_INTERNAL_PORT),MEMBER_INTERNAL_PORT:String(MEMBER_INTERNAL_PORT),ADMIN_INTERNAL_PORT:String(ADMIN_INTERNAL_PORT)},true);
 console.log(JSON.stringify({service:'asean777-launcher',version:'6.9.0.5',phase:'public-port-bound',host:process.env.HOST||'0.0.0.0',port:PUBLIC_PORT}));
-await runWithRetry('dependency readiness',coreDir,['scripts/wait-dependencies.js'],{},20,3000);
+await runWithRetry('dependency readiness',coreDir,['migrations/wait-dependencies.js'],{},20,3000);
 if(runStartupMigrations){
-  await runWithRetry('database migration',coreDir,['scripts/migrate.js'],{},3,3000);
-  await runWithRetry('database seed',coreDir,['scripts/seed.js'],{},3,3000);
+  await runWithRetry('database migration',coreDir,['migrations/migrate.js'],{},3,3000);
+  await runWithRetry('database seed',coreDir,['migrations/seed.js'],{},3,3000);
 }
-await runWithRetry('schema readiness',coreDir,['scripts/schema-ready.js'],{},5,2000);
+await runWithRetry('schema readiness',coreDir,['migrations/schema-ready.js'],{},5,2000);
 start('core',coreDir,['src/server.js'],{HOST:'127.0.0.1',PORT:String(CORE_INTERNAL_PORT)});
 await waitReady(`${coreUrl}/ready`);
 if(bool('WORKER_ENABLED',true))start('worker',coreDir,['src/worker.js'],{HOST:'127.0.0.1',PORT:String(CORE_INTERNAL_PORT)});else console.log(JSON.stringify({service:'asean777-launcher',version:'6.9.0.5',phase:'worker-skipped',workerEnabled:false}));
-start('member',memberDir,['server.js'],{...internalCommon,PORT:String(MEMBER_INTERNAL_PORT)});
+start('member',deployDir,['member-server.js'],{...internalCommon,PORT:String(MEMBER_INTERNAL_PORT)});
 start('admin',adminDir,['server.js'],{...internalCommon,PORT:String(ADMIN_INTERNAL_PORT)});
 await Promise.all([waitReady(`http://127.0.0.1:${MEMBER_INTERNAL_PORT}/ready`),waitReady(`http://127.0.0.1:${ADMIN_INTERNAL_PORT}/ready`)]);
 // Health monitor disabled on free tier

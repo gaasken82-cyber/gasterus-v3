@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>SBOTOTO Admin | Payments</title><link href="enterprise.css" rel="stylesheet"/><script src="api.js"></script><script src="admin-shell.js"></script>
+<link href="enterprise-ui-r6820.css?v=6820-maxpremium" rel="stylesheet"/></head><body class="enterprise-r6820">
+<div class="split"><section class="card"><div class="card-head"><div><h2>Payment Methods</h2><p>Rekening bank, QRIS, dan e-wallet yang tampil pada form Deposit member.</p></div><button class="btn primary" id="newBtn">+ TAMBAH METODE</button></div><div class="table-wrap"><table><thead><tr><th>Type</th><th>Nama</th><th>Tujuan</th><th>Limit</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="rows"></tbody></table></div></section><section class="card"><div class="card-head"><div><h2>Live Preview</h2><p>Data yang akan dilihat member.</p></div></div><div class="stack" id="preview"></div></section></div>
+<div class="modal" hidden="" id="modal"><div class="modal-panel"><div class="modal-head"><h2 id="title">Payment Method</h2><button class="btn" id="close">TUTUP</button></div><div class="form-grid"><input id="id" type="hidden"/><div class="field"><label>Jenis</label><select id="methodType"><option>BANK</option><option>QRIS</option><option>EWALLET</option></select></div><div class="field"><label>Nama Tampilan</label><input autocomplete="off" id="paymentName" placeholder="Contoh: Bank Utama"/></div><div class="field"><label>Kode</label><input id="code" placeholder="BANK-01"/></div><div class="field"><label>Provider</label><input id="providerName" placeholder="Nama bank / e-wallet"/></div><div class="field"><label>Integration</label><select id="integrationMode"><option>MANUAL</option><option>PROVIDER</option></select></div><div class="field"><label>Provider Code</label><input id="providerCode" placeholder="Contoh: MIDTRANS / XENDIT"/></div><div class="field"><label>Currency</label><input id="currency" readonly="" value="IDR"/></div><div class="field"><label>Nama Rekening</label><input id="accountName"/></div><div class="field"><label>Nomor Rekening / Nomor E-Wallet</label><input id="accountNumber"/></div><div class="field"><label>Minimum</label><input id="minAmount" type="number" value="10000"/></div><div class="field"><label>Maksimum</label><input id="maxAmount" type="number" value="200000000"/></div><div class="field"><label>Fee Tetap</label><input id="feeFixed" type="number" value="0"/></div><div class="field"><label>Fee %</label><input id="feePercent" step="0.01" type="number" value="0"/></div><div class="field"><label>Urutan</label><input id="sortOrder" type="number" value="100"/></div><div class="field"><label>QR / Gambar (opsional)</label><input accept="image/png,image/jpeg,image/webp" id="imageFile" type="file"/><input id="qrImage" placeholder="URL gambar atau data URI"/></div><div class="field full"><label>Instruksi</label><textarea id="instructions"></textarea></div><div class="field full"><label class="switch-row"><input checked="" id="isActive" style="width:auto;min-height:0" type="checkbox"/> Aktif dan tampil ke member</label></div></div><div class="preview" id="imgPreview" style="margin-top:12px">Preview QR/gambar</div><div class="toolbar" style="margin-top:14px"><button class="btn primary" id="save">SIMPAN METODE</button></div></div></div>
+<script>
+AdminShell.mount('payments.html','Payment Center','Bank Accounts • QRIS • E-Wallet • Deposit Routing');
+const esc=AdminShell.esc;
+const el={
+  rows:document.getElementById('rows'),preview:document.getElementById('preview'),modal:document.getElementById('modal'),title:document.getElementById('title'),close:document.getElementById('close'),newBtn:document.getElementById('newBtn'),
+  id:document.getElementById('id'),methodType:document.getElementById('methodType'),paymentName:document.getElementById('paymentName'),code:document.getElementById('code'),providerName:document.getElementById('providerName'),
+  integrationMode:document.getElementById('integrationMode'),providerCode:document.getElementById('providerCode'),currency:document.getElementById('currency'),accountName:document.getElementById('accountName'),accountNumber:document.getElementById('accountNumber'),
+  minAmount:document.getElementById('minAmount'),maxAmount:document.getElementById('maxAmount'),feeFixed:document.getElementById('feeFixed'),feePercent:document.getElementById('feePercent'),sortOrder:document.getElementById('sortOrder'),
+  imageFile:document.getElementById('imageFile'),qrImage:document.getElementById('qrImage'),instructions:document.getElementById('instructions'),isActive:document.getElementById('isActive'),imgPreview:document.getElementById('imgPreview'),save:document.getElementById('save')
+};
+let data=[];
+function draw(){
+  el.rows.innerHTML=data.map(x=>`<tr><td><span class="badge ${esc(x.methodType)}">${esc(x.methodType)}</span></td><td><b>${esc(x.name)}</b><br><span class="muted">${esc(x.providerName||'-')} • ${esc(x.integrationMode||'MANUAL')}</span></td><td>${esc(x.accountName||'-')}<br><span class="mono">${esc(x.accountNumber||'-')}</span></td><td>${ASEAN_API.money(x.minAmount)} – ${ASEAN_API.money(x.maxAmount)}</td><td><span class="badge ${x.isActive?'ACTIVE':'SUSPENDED'}">${x.isActive?'ACTIVE':'OFF'}</span></td><td><button class="btn" data-edit="${x.id}">EDIT</button> <button class="btn ${x.isActive?'red':'green'}" data-toggle="${x.id}">${x.isActive?'NONAKTIFKAN':'AKTIFKAN'}</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Belum ada metode pembayaran. Tambahkan metode pertama.</td></tr>';
+  el.preview.innerHTML=data.filter(x=>x.isActive).map(x=>`<div class="card" style="box-shadow:none"><div><span class="badge ${esc(x.methodType)}">${esc(x.methodType)}</span> <b>${esc(x.name)}</b></div><div style="margin-top:9px" class="mono">${esc(x.accountNumber||'QRIS')}</div><div class="muted" style="margin-top:5px">${esc(x.accountName||x.providerName||'')}</div>${x.qrImage?`<img src="${esc(x.qrImage)}" alt="QR" style="max-width:150px;max-height:150px;margin-top:9px;border-radius:8px">`:''}</div>`).join('')||'<div class="empty">Tidak ada metode aktif.</div>';
+}
+async function load(){data=await ASEAN_API.request('/admin-api/owner/payment-methods');draw()}
+function form(x={}){
+  el.id.value=x.id||'';el.methodType.value=x.methodType||'BANK';el.paymentName.value=x.name||'';el.code.value=x.code||'';el.providerName.value=x.providerName||'';el.accountName.value=x.accountName||'';el.accountNumber.value=x.accountNumber||'';
+  el.integrationMode.value=x.integrationMode||'MANUAL';el.providerCode.value=x.providerCode||'';el.currency.value=x.currency||'IDR';el.minAmount.value=x.minAmount??10000;el.maxAmount.value=x.maxAmount??200000000;
+  el.feeFixed.value=x.feeFixed??0;el.feePercent.value=x.feePercent??0;el.sortOrder.value=x.sortOrder??100;el.qrImage.value=x.qrImage||'';el.instructions.value=x.instructions||'';el.isActive.checked=x.isActive!==false;renderImage();el.modal.hidden=false;
+}
+function renderImage(){el.imgPreview.innerHTML=el.qrImage.value?`<img src="${esc(el.qrImage.value)}" alt="Preview">`:'Preview QR/gambar'}
+function paymentPayload(){
+  const methodType=el.methodType.value;
+  const paymentName=el.paymentName.value.trim();
+  const accountName=el.accountName.value.trim();
+  const accountNumber=el.accountNumber.value.trim();
+  const integrationMode=el.integrationMode.value;
+  const providerCode=el.providerCode.value.trim();
+  const minAmount=Number(el.minAmount.value);
+  const maxAmount=Number(el.maxAmount.value);
+  if(!paymentName)throw new Error('Nama metode pembayaran wajib diisi.');
+  if(!Number.isFinite(minAmount)||minAmount<0)throw new Error('Minimum transaksi tidak valid.');
+  if(!Number.isFinite(maxAmount)||maxAmount<minAmount)throw new Error('Maksimum harus sama atau lebih besar dari minimum.');
+  if(methodType==='BANK'&&(!accountName||!accountNumber))throw new Error('Nama dan nomor rekening wajib diisi untuk metode BANK.');
+  if(methodType==='EWALLET'&&!accountNumber)throw new Error('Nomor e-wallet wajib diisi.');
+  if(methodType==='QRIS'&&!el.qrImage.value.trim())throw new Error('QR/gambar wajib diisi untuk metode QRIS.');
+  if(integrationMode==='PROVIDER'&&!providerCode)throw new Error('Provider Code wajib untuk mode PROVIDER.');
+  return {id:el.id.value||undefined,methodType,name:paymentName,code:el.code.value.trim(),providerName:el.providerName.value.trim(),integrationMode,providerCode,currency:el.currency.value,accountName,accountNumber,minAmount,maxAmount,feeFixed:Number(el.feeFixed.value)||0,feePercent:Number(el.feePercent.value)||0,sortOrder:Number(el.sortOrder.value)||100,qrImage:el.qrImage.value.trim(),instructions:el.instructions.value.trim(),isActive:el.isActive.checked};
+}
+el.newBtn.onclick=()=>form();
+el.close.onclick=()=>el.modal.hidden=true;
+el.modal.onclick=e=>{if(e.target===el.modal)el.modal.hidden=true};
+el.qrImage.oninput=renderImage;
+el.imageFile.onchange=()=>{const f=el.imageFile.files?.[0];if(!f)return;if(f.size>1800000){alert('Gambar maksimal sekitar 1.8 MB.');el.imageFile.value='';return}const r=new FileReader();r.onload=()=>{el.qrImage.value=String(r.result||'');renderImage()};r.readAsDataURL(f)};
+el.rows.onclick=async e=>{const edit=e.target.closest('[data-edit]'),toggle=e.target.closest('[data-toggle]');if(edit){form(data.find(x=>x.id===edit.dataset.edit)||{});}if(toggle){const x=data.find(v=>v.id===toggle.dataset.toggle);if(!x)return;try{await ASEAN_API.request('/admin-api/owner/payment-methods/'+x.id+'/status',{method:'POST',headers:{'x-csrf-token':ASEAN_API.csrf},body:JSON.stringify({isActive:!x.isActive})});await load()}catch(err){alert(err.message)}}};
+el.save.onclick=async()=>{
+  try{
+    const payload=paymentPayload();
+    el.save.disabled=true;el.save.textContent='MENYIMPAN...';
+    await ASEAN_API.request('/admin-api/owner/payment-methods',{method:'POST',headers:{'x-csrf-token':ASEAN_API.csrf},body:JSON.stringify(payload)});
+    el.modal.hidden=true;await load();alert('Metode pembayaran berhasil disimpan.');
+  }catch(e){alert(e?.message||'Gagal menyimpan metode pembayaran.')}finally{el.save.disabled=false;el.save.textContent='SIMPAN METODE'}
+};
+(async()=>{try{await AdminShell.auth();await load()}catch(e){location.href='index.html'}})();
+</script>
+<script src="enterprise-ui-r6820.js?v=6820-maxpremium"></script></body></html>
