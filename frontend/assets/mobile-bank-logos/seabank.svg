@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 58" role="img" aria-label="SeaBank">
+  <rect width="220" height="58" rx="8" fill="#fff"/>
+  <circle cx="28" cy="29" r="18" fill="#f58220"/>
+  <path d="M18 35c8 5 19 3 25-4-8 2-15-1-20-6 7 1 13-1 18-5-9-1-17 1-23 7-3 3-3 6 0 8z" fill="#fff"/>
+  <text x="55" y="38" font-family="Arial,Helvetica,sans-serif" font-size="28" font-weight="700" fill="#ee7623">SeaBank</text>
+</svg>
