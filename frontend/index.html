@@ -2,298 +2,106 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GASTERUS — Platform Togel Resmi & Sportsbook Terpercaya</title>
-  <meta name="description" content="Situs resmi Togel 4D/3D/2D pasaran terlengkap Singapore, Hongkong, Sydney, dan Sportsbook Bola dengan proses deposit & withdraw instan.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GASTERUS — Bandar Togel & Slot Blue Grey Edition</title>
+  <meta name="description" content="Gasterus v3 - Mobile optimized platform.">
 
   <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Unified Modular Stylesheets -->
   <link rel="stylesheet" href="/css/tokens.css">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/layout.css">
-  <link rel="stylesheet" href="/css/components.css">
-  <link rel="stylesheet" href="/css/animations.css">
-  <link rel="stylesheet" href="/css/mobile.css">
-  <link rel="stylesheet" href="/css/pages/home.css">
+  <link rel="stylesheet" href="/css/mobile-blue.css">
 </head>
-<body>
+<body class="page-home">
+  <div class="site">
+    
+    <!-- 2. Brand Row -->
+    <section class="brand-bar">
+      <!-- Using standard text for logo if image is red -->
+      <h1 style="color: #93c5fd; font-family: Outfit, sans-serif; font-size: 24px; margin:0;">GASTERUS</h1>
+      <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
+    </section>
 
-  <!-- Top Header Navigation -->
-  <header class="app-header">
-    <div class="container">
-      <a href="/index.html" class="brand-logo" id="logo-brand">
-        GASTERUS <span class="logo-badge">V3</span>
-      </a>
-
-      <nav class="nav-menu" aria-label="Main Navigation">
-        <a href="/index.html" class="nav-link active">Home</a>
-        <a href="/member.html" class="nav-link">Togel 4D</a>
-        <a href="/sportsbook.html" class="nav-link">Sportsbook</a>
-        <a href="/promotion.html" class="nav-link">Promosi</a>
-        <a href="/referral.html" class="nav-link">Referral</a>
-      </nav>
-
-      <!-- Guest / Logged In State Actions -->
-      <div class="header-actions">
-        <div id="header-guest-actions" style="display: flex; gap: var(--space-2);">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="window.openLoginModal(event)">Masuk</button>
-          <a href="/register.html" class="btn btn-primary btn-sm">Daftar Akun</a>
-        </div>
-
-        <div id="header-member-actions" style="display: none; align-items: center; gap: var(--space-3);">
-          <div class="balance-pill">
-            <span style="font-size: 0.75rem; color: var(--text-secondary);">Saldo</span>
-            <span class="balance-amount" id="header-balance">0</span>
-          </div>
-          <a href="/member.html" class="btn btn-primary btn-sm" id="header-username">Member Area</a>
-        </div>
-      </div>
+    <!-- 3. Marquee Ticker -->
+    <div class="marquee-bar">
+      <span class="marquee-inner">SELAMAT DATANG DI GASTERUS PLATFORM GENERASI 3 &bull; SISTEM BIRU ABU-ABU &bull; DEPOSIT &amp; WITHDRAW AKTIF 24 JAM &bull; HASIL PASARAN DIPERBARUI OTOMATIS &bull;</span>
     </div>
-  </header>
 
-  <!-- Real-time Live Ticker -->
-  <div class="info-ticker" role="marquee">
-    <div class="container" style="display: flex; gap: var(--space-8); align-items: center;">
-      <span class="badge badge-warning" style="flex-shrink: 0;"><span class="live-indicator"></span> PENGUMUMAN</span>
-      <span style="color: var(--text-secondary); font-size: 0.85rem;">
-        Selamat datang di Gasterus Platform Resmi Generasi 3. Deposit & Penarikan instan online 24 jam dengan sistem keamanan perbankan ganda.
-      </span>
-    </div>
-  </div>
-
-  <main class="app-main">
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="container hero-content">
-        <div class="hero-tag">
-          <span>★</span> Sistem Engine v3 Tercepat & Terakurat
-        </div>
-        <h1 class="hero-title">
-          Platform Taruhan <span>Togel & Sports</span> Generasi Baru
-        </h1>
-        <p class="hero-subtitle">
-          Nikmati pengalaman bertaruh Togel 4D/3D/2D pasaran resmi dunia, live draw transparan tanpa manipulasi, dan pasar taruhan bola dengan odds terlengkap.
-        </p>
-        <div class="hero-actions">
-          <a href="/register.html" class="btn btn-primary btn-lg animate-pulse-glow">
-            Daftar Sekarang & Main
-          </a>
-          <button type="button" class="btn btn-secondary btn-lg" onclick="window.openLoginModal(event)">
-            Masuk ke Akun
-          </button>
-        </div>
-
-        <!-- Quick Stats Indicators -->
-        <div class="quick-stats">
-          <div class="stat-box">
-            <div class="stat-value">30+</div>
-            <div class="stat-label">Pasaran Resmi WLA</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-value">&lt; 1 Menit</div>
-            <div class="stat-label">Proses Deposit Cepat</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-value">99.9%</div>
-            <div class="stat-label">Uptime Engine Bersih</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-value">24/7</div>
-            <div class="stat-label">Layanan CS Online</div>
-          </div>
+    <!-- 4. Hero Banner Frame -->
+    <section class="hero-banner-3d">
+      <div class="banner-container">
+        <!-- Placeholder for banner, since old one was red -->
+        <div style="width: 100%; height: 180px; background: linear-gradient(135deg, #1e3a8a, #0ea5e9); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-family: Outfit; font-size: 22px;">
+           PROMO EVENT GASTERUS V3
         </div>
       </div>
     </section>
 
-    <!-- Hasil Terakhir (Matching CindoToto Official Live Board) -->
-    <section class="container">
-      <div class="hasil-terakhir-container fade-in">
-        <div class="hasil-top-header">
-          <h2 class="hasil-main-title">Hasil Terakhir</h2>
-          <span class="hasil-date-display">08 September 2026</span>
-        </div>
+    <!-- 5. Quick Menu (5 Tiles) -->
+    <nav class="quick-menu">
+      <a class="qm-item" href="market-play.html"><span class="qm-icon">🎰</span><span class="qm-label">RTP SLOT</span></a>
+      <a class="qm-item" href="number-history.html"><span class="qm-icon">🎯</span><span class="qm-label">PREDIKSI TOGEL</span></a>
+      <a class="qm-item" href="rules.html"><span class="qm-icon">📖</span><span class="qm-label">CARA BERMAIN</span></a>
+      <a class="qm-item" href="promotion.html"><span class="qm-icon">🎁</span><span class="qm-label">PROMOSI</span></a>
+      <a class="qm-item" href="number-history.html"><span class="qm-icon">🏆</span><span class="qm-label">BUKTI JP</span></a>
+    </nav>
 
-        <!-- Search Bar Cari Pasaran -->
-        <div class="hasil-search-wrapper">
-          <span class="hasil-search-icon">🔍</span>
-          <input type="text" id="search-pasaran-input" class="hasil-search-input" placeholder="Cari Pasaran..." autocomplete="off">
+    <!-- 6. Login Form Direct Area -->
+    <section class="login-section">
+      <div class="login-title">Silahkan login untuk mulai bermain</div>
+      <form id="loginForm" onsubmit="event.preventDefault(); window.location.href='/member.html';">
+        <div class="inp-wrap">
+          <span class="inp-icon">👤</span>
+          <input id="username" type="text" autocomplete="username" minlength="3" maxlength="40" placeholder="Username" required>
         </div>
-
-        <!-- Cards Grid (4 Columns) -->
-        <div class="hasil-grid" id="hasil-grid-container">
-          <!-- Dynamically populated with authentic results -->
+        <div class="inp-wrap">
+          <span class="inp-icon">🔒</span>
+          <input id="password" type="password" autocomplete="current-password" minlength="6" maxlength="72" placeholder="Password" required>
         </div>
-
-        <!-- Show More Button -->
-        <button type="button" class="btn-show-more-results" id="btn-show-more">
-          Show More Results
-        </button>
-      </div>
-    </section>
-
-    <!-- Bank & Pembayaran -->
-    <section class="container" style="margin-top: var(--space-10); margin-bottom: var(--space-8);">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Metode Pembayaran Resmi</h2>
-          <p style="font-size: 0.9rem;">Dukungan transaksi perbankan nasional & QRIS instan.</p>
-        </div>
-      </div>
-
-      <div class="bank-grid">
-        <div class="bank-card">
-          <div class="bank-info">
-            <span class="live-indicator"></span>
-            <span>BCA Online</span>
-          </div>
-          <span class="badge badge-success">Online</span>
-        </div>
-        <div class="bank-card">
-          <div class="bank-info">
-            <span class="live-indicator"></span>
-            <span>MANDIRI</span>
-          </div>
-          <span class="badge badge-success">Online</span>
-        </div>
-        <div class="bank-card">
-          <div class="bank-info">
-            <span class="live-indicator"></span>
-            <span>BNI</span>
-          </div>
-          <span class="badge badge-success">Online</span>
-        </div>
-        <div class="bank-card">
-          <div class="bank-info">
-            <span class="live-indicator"></span>
-            <span>BRI</span>
-          </div>
-          <span class="badge badge-success">Online</span>
-        </div>
-        <div class="bank-card">
-          <div class="bank-info">
-            <span class="live-indicator"></span>
-            <span>QRIS 24 JAM</span>
-          </div>
-          <span class="badge badge-success">Instan</span>
-        </div>
-        <div class="bank-card">
-          <div class="bank-info">
-            <span class="live-indicator"></span>
-            <span>DANA / OVO</span>
-          </div>
-          <span class="badge badge-success">Online</span>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Footer -->
-  <footer class="app-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-col">
-          <div class="brand-logo" style="margin-bottom: var(--space-3);">
-            GASTERUS <span class="logo-badge">V3</span>
-          </div>
-          <p style="font-size: 0.85rem; line-height: 1.6; margin-bottom: var(--space-3);">
-            GASTERUS adalah platform taruhan daring generasi terbaru yang mengutamakan kecepatan, transparansi angka keluaran, dan pengalaman pengguna modern.
-          </p>
-          <div style="font-size: 0.8rem; color: var(--text-muted);">
-            18+ Bermainlah secara bertanggung jawab.
-          </div>
-        </div>
-
-        <div class="footer-col">
-          <h4>Permainan</h4>
-          <ul>
-            <li><a href="/member.html">Togel 4D/3D/2D</a></li>
-            <li><a href="/sportsbook.html">Sportsbook Bola</a></li>
-            <li><a href="/member.html">Colok Bebas</a></li>
-            <li><a href="/member.html">Colok Naga</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4>Bantuan & Info</h4>
-          <ul>
-            <li><a href="/rules.html">Aturan Main</a></li>
-            <li><a href="/promotion.html">Promosi & Bonus</a></li>
-            <li><a href="/referral.html">Program Referral</a></li>
-            <li><a href="/responsible-play.html">Bermain Bertanggung Jawab</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4>Keamanan</h4>
-          <ul>
-            <li><a href="/terms.html">Syarat & Ketentuan</a></li>
-            <li><a href="/privacy.html">Kebijakan Privasi</a></li>
-            <li><span style="color: var(--status-success);">● SSL 256-Bit Encrypted</span></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        &copy; 2026 GASTERUS. Hak Cipta Dilindungi Undang-Undang. Arsitektur Bersih v3.
-      </div>
-    </div>
-  </footer>
-
-  <!-- Mobile Bottom Navigation -->
-  <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
-    <a href="/index.html" class="mobile-nav-item active">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
-      <span>Home</span>
-    </a>
-    <a href="/member.html" class="mobile-nav-item">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path></svg>
-      <span>Togel</span>
-    </a>
-    <a href="/sportsbook.html" class="mobile-nav-item">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM4.37 11.23a6.002 6.002 0 010-2.46l2.39 1.23-2.39 1.23z"></path></svg>
-      <span>Sports</span>
-    </a>
-    <a href="/register.html" class="mobile-nav-item highlight">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path></svg>
-      <span>Daftar</span>
-    </a>
-    <a href="/deposit.html" class="mobile-nav-item">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"></path></svg>
-      <span>Transaksi</span>
-    </a>
-  </nav>
-
-  <!-- Login Modal -->
-  <div class="modal-overlay" id="login-modal" role="dialog" aria-modal="true" aria-labelledby="modal-login-title">
-    <div class="modal-box">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-        <h3 id="modal-login-title" style="font-size: 1.25rem;">Masuk ke Akun Gasterus</h3>
-        <button type="button" id="close-login-modal" style="color: var(--text-secondary); font-size: 1.5rem; line-height: 1;">&times;</button>
-      </div>
-
-      <form id="login-form">
-        <div class="form-group">
-          <label class="form-label" for="login-username">Username</label>
-          <input type="text" id="login-username" name="username" class="form-control" placeholder="Masukkan username" required autocomplete="username">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="login-password">Password</label>
-          <input type="password" id="login-password" name="password" class="form-control" placeholder="Masukkan kata sandi" required autocomplete="current-password">
-        </div>
-        <button type="submit" class="btn btn-primary btn-block" style="margin-top: var(--space-4);">Masuk Akun</button>
+        <button class="btn-login" type="submit">LOGIN SEKARANG</button>
       </form>
+      <button class="btn-daftar" type="button" onclick="window.location.href='/register.html';">Daftar</button>
+    </section>
 
-      <div style="text-align: center; margin-top: var(--space-4); font-size: 0.85rem; color: var(--text-secondary);">
-        Belum punya akun? <a href="/register.html" style="color: var(--brand-primary); font-weight: 600;">Daftar di sini</a>
+    <!-- 7. Search Area & Domain Box -->
+    <section class="search-section">
+      <a class="domain-box" href="./">
+        <span class="domain-icon">🔍</span>
+        <span class="domain-name">WWW.GASTERUS.FUN</span>
+      </a>
+      <a class="btn-wide-blue" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Keluhan Member</a>
+      <a class="btn-wide-blue" href="number-history.html">Jadwal Pasaran Togel</a>
+    </section>
+
+    <!-- 8. Contact CS Grid -->
+    <section class="contact-section">
+      <div class="cs-grid">
+        <a class="cs-card" href="https://wa.me/6285136342563" target="_blank">
+          <span class="cs-icon">📱</span>
+          <div class="cs-text"><b>WHATSAPP OFFICIAL</b><small>KLIK DISINI</small></div>
+        </a>
+        <a class="cs-card" href="https://facebook.com" target="_blank">
+          <span class="cs-icon">📘</span>
+          <div class="cs-text"><b>FACEBOOK OFFICIAL</b><small>KLIK DISINI</small></div>
+        </a>
+        <a class="cs-card" href="https://wa.me/6285136342563" target="_blank">
+          <span class="cs-icon">💬</span>
+          <div class="cs-text"><b>LIVECHAT FAST RESPON</b><small>KLIK DISINI</small></div>
+        </a>
+        <a class="cs-card" href="https://t.me/Dilarangberisik88" target="_blank">
+          <span class="cs-icon">✈️</span>
+          <div class="cs-text"><b>TELEGRAM OFFICIAL</b><small>KLIK DISINI</small></div>
+        </a>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <!-- Application Logic -->
-  <script type="module" src="/js/landing.js"></script>
+    <!-- Footer -->
+    <footer>
+      &copy; 2026 GASTERUS V3. All Rights Reserved. Blue/Grey Mobile Edition.
+    </footer>
+
+  </div>
 </body>
 </html>
