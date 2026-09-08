@@ -1,0 +1,154 @@
+/* ==========================================================================
+   GASTERUS v3 — LAYOUT SYSTEM
+   Header, Navigation, Sidebar, Page Container, Footer
+   ========================================================================== */
+
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+
+/* Header */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg-surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+  height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+.app-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.brand-logo .logo-badge {
+  background: var(--brand-gold);
+  color: var(--text-inverse);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+/* Top Nav Links */
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.nav-link {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--brand-primary);
+}
+
+/* Header User / Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* User Balance Pill */
+.balance-pill {
+  display: flex;
+  align-items: center;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  gap: var(--space-2);
+  font-size: 0.875rem;
+}
+
+.balance-pill .balance-amount {
+  font-weight: 700;
+  color: var(--text-gold);
+}
+
+/* Main Content Wrapper */
+.app-main {
+  flex: 1;
+  padding-block: var(--space-6);
+}
+
+/* Ticker / Running Info */
+.info-ticker {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-block: var(--space-2);
+  font-size: 0.85rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Footer */
+.app-footer {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  padding-block: var(--space-8);
+  margin-top: auto;
+  font-size: 0.875rem;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr repeat(3, 1fr);
+  gap: var(--space-8);
+  margin-bottom: var(--space-6);
+}
+
+.footer-col h4 {
+  font-size: 0.95rem;
+  margin-bottom: var(--space-3);
+  color: var(--text-primary);
+}
+
+.footer-col ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.footer-col a {
+  color: var(--text-secondary);
+}
+
+.footer-col a:hover {
+  color: var(--brand-primary);
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+}
