@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Riwayat Taruhan & Invoice — GASTERUS V3</title>
+  <meta name="description" content="Riwayat invoice taruhan Togel dan Sportsbook member Gasterus v3 lengkap dengan status kemenangan.">
+
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Modular Stylesheets -->
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/mobile.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="container">
+      <a href="/member.html" class="brand-logo">
+        GASTERUS <span class="logo-badge">V3</span>
+      </a>
+
+      <div class="header-actions">
+        <a href="/member.html" class="btn btn-secondary btn-sm">← Member Area</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+        <div>
+          <h1 style="font-size: 1.75rem;">Riwayat Taruhan Member</h1>
+          <p style="font-size: 0.9rem;">Daftar seluruh invoice taruhan angka TOTO dan Sportsbook Anda.</p>
+        </div>
+      </div>
+
+      <div class="card fade-in">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>No. Invoice</th>
+                <th>Waktu Pasang</th>
+                <th>Pasaran / Game</th>
+                <th>Detail Pilihan</th>
+                <th>Bayar Bersih</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="bets-table-body">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: var(--space-6);">
+                  Sedang memuat data riwayat taruhan...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
+    </div>
+  </footer>
+
+  <script type="module">
+    import api from '/js/api.js';
+    import auth from '/js/auth.js';
+    import { formatRupiah, formatDateTime } from '/js/utils.js';
+
+    async function loadBets() {
+      if (!auth.isLoggedIn()) {
+        window.location.href = '/index.html';
+        return;
+      }
+
+      const tbody = document.getElementById('bets-table-body');
+      try {
+        const res = await api.get('/member/bets');
+        const bets = res.items || res.data || res || [];
+
+        if (!bets.length) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">Belum ada riwayat taruhan yang tercatat.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = bets.map(b => {
+          let statusBadge = '<span class="badge badge-warning">PENDING</span>';
+          if (b.status === 'WON') statusBadge = '<span class="badge badge-success">MENANG</span>';
+          else if (b.status === 'LOST') statusBadge = '<span class="badge badge-danger">KALAH</span>';
+          else if (b.status === 'CANCELLED') statusBadge = '<span class="badge badge-info">DIBATALKAN</span>';
+
+          const itemsSummary = (b.items || []).map(i => `${i.selection} (${i.game_code || i.gameCode || '4D'})`).join(', ') || '-';
+
+          return `
+            <tr>
+              <td><strong style="font-family:var(--font-mono);">${b.invoice_no || b.invoiceNo || b.id.slice(0, 10)}</strong></td>
+              <td>${formatDateTime(b.created_at || b.createdAt)}</td>
+              <td>${b.market_name || b.marketName || 'Togel'}</td>
+              <td>${itemsSummary}</td>
+              <td style="color:var(--text-gold); font-weight:600;">${formatRupiah(b.net_stake || b.netStake || b.total_stake || 0)}</td>
+              <td>${statusBadge}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">Gagal mengambil data atau belum ada taruhan.</td></tr>`;
+      }
+    }
+
+    loadBets();
+  </script>
+</body>
+</html>

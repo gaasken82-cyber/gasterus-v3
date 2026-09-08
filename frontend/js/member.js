@@ -1,0 +1,143 @@
+/**
+ * Gasterus v3 — Member Area Dashboard Logic
+ */
+
+import api from './api.js';
+import auth from './auth.js';
+import { formatNumber, formatRupiah, getTimeRemaining, showToast } from './utils.js';
+
+let timerInterval = null;
+
+export async function initMember() {
+  if (!auth.isLoggedIn()) {
+    window.location.href = '/index.html';
+    return;
+  }
+
+  setupLogout();
+  await loadUserProfile();
+  await loadMarkets();
+  startTimers();
+}
+
+async function loadUserProfile() {
+  try {
+    const user = await auth.fetchMe();
+    if (user) {
+      updateProfileUI(user);
+    }
+  } catch (err) {
+    console.error('Failed to load user profile', err);
+  }
+}
+
+function updateProfileUI(user) {
+  const usernameEls = document.querySelectorAll('.user-display-name');
+  const balanceEls = document.querySelectorAll('.user-display-balance');
+  const avatarEl = document.getElementById('user-avatar-initial');
+
+  usernameEls.forEach(el => el.textContent = user.username);
+  balanceEls.forEach(el => el.textContent = formatNumber(user.balance || 0));
+
+  if (avatarEl && user.username) {
+    avatarEl.textContent = user.username.charAt(0).toUpperCase();
+  }
+}
+
+async function loadMarkets() {
+  const container = document.getElementById('member-markets-container');
+  if (!container) return;
+
+  try {
+    const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
+    const markets = res.items || res.data || res || [];
+    renderMarkets(markets);
+  } catch (err) {
+    console.warn('Fallback markets for member area');
+    const dummy = [
+      { name: 'SINGAPORE', code: 'SGP', period: '2981', result: '7492', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 3600000).toISOString() },
+      { name: 'HONGKONG', code: 'HK', period: '1420', result: '3180', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 7200000).toISOString() },
+      { name: 'SYDNEY', code: 'SDY', period: '0854', result: '5921', bettingStatus: 'CLOSED', closeAt: null },
+      { name: 'MACAU 4D', code: 'MC4D', period: '4190', result: '8034', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 1800000).toISOString() },
+      { name: 'TAIWAN', code: 'TW', period: '1205', result: '9102', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 5400000).toISOString() },
+      { name: 'CAMBODIA', code: 'CMD', period: '3312', result: '4451', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 900000).toISOString() }
+    ];
+    renderMarkets(dummy);
+  }
+}
+
+function renderMarkets(markets) {
+  const container = document.getElementById('member-markets-container');
+  if (!container) return;
+
+  container.innerHTML = markets.map(m => {
+    const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
+    const statusBadge = isClosed
+      ? `<span class="badge badge-danger">TUTUP</span>`
+      : `<span class="badge badge-success">BUKA</span>`;
+
+    const digits = (m.result ? String(m.result) : '----').split('');
+    const balls = digits.map(d => `<span class="ball-num" style="width:30px;height:30px;font-size:0.95rem;">${d}</span>`).join('');
+
+    return `
+      <div class="member-market-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h4 style="font-size:1rem;">${m.name}</h4>
+          ${statusBadge}
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+          Periode: #${m.period || '-'}
+        </div>
+        <div style="display:flex; gap:4px; justify-content:center; padding: 4px 0;">
+          ${balls}
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid var(--border-subtle); padding-top: 8px;">
+          <span>Sisa Waktu:</span>
+          <span class="countdown-timer" data-close="${m.closeAt || ''}">${isClosed ? 'Tutup' : '...'}</span>
+        </div>
+        ${
+          isClosed
+            ? `<button type="button" class="btn btn-secondary btn-sm btn-block btn-play" disabled>Pasaran Tutup</button>`
+            : `<a href="/market-play.html?code=${m.code || m.slug}" class="btn btn-primary btn-sm btn-block btn-play">Pasang Angka →</a>`
+        }
+      </div>
+    `;
+  }).join('');
+}
+
+function startTimers() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    document.querySelectorAll('.countdown-timer[data-close]').forEach(el => {
+      const closeAt = el.getAttribute('data-close');
+      if (!closeAt) return;
+      const t = getTimeRemaining(closeAt);
+      if (t.expired) {
+        el.textContent = 'Ditutup';
+      } else {
+        const hh = String(t.hours).padStart(2, '0');
+        const mm = String(t.minutes).padStart(2, '0');
+        const ss = String(t.seconds).padStart(2, '0');
+        el.textContent = `${hh}:${mm}:${ss}`;
+      }
+    });
+  }, 1000);
+}
+
+function setupLogout() {
+  document.querySelectorAll('.btn-action-logout').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (confirm('Apakah Anda yakin ingin keluar?')) {
+        await auth.logout();
+      }
+    });
+  });
+}
+
+// Auto init
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMember);
+} else {
+  initMember();
+}

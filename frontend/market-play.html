@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pasang Angka Togel 4D/3D/2D — GASTERUS V3</title>
+  <meta name="description" content="Halaman pasang taruhan togel 4D, 3D, 2D pasaran resmi dengan diskon tertinggi dan pembayaran hadiah instan.">
+
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Modular Stylesheets -->
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/mobile.css">
+  <link rel="stylesheet" href="/css/pages/market-play.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="container">
+      <a href="/member.html" class="brand-logo">
+        GASTERUS <span class="logo-badge">V3</span>
+      </a>
+
+      <div class="header-actions">
+        <a href="/member.html" class="btn btn-secondary btn-sm">← Daftar Pasaran</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="container">
+      <!-- Market Info Header -->
+      <div class="play-header fade-in">
+        <div class="market-meta-info">
+          <div class="market-meta-title">
+            <h1 id="market-title">Memuat Pasaran...</h1>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+              Periode Aktif: <strong id="market-period" style="color: var(--text-gold);">-</strong>
+            </div>
+          </div>
+          <span id="market-status" class="badge badge-success">BUKA</span>
+        </div>
+
+        <div style="text-align: right;">
+          <div style="font-size: 0.8rem; color: var(--text-secondary);">Sisa Waktu Penutupan:</div>
+          <div id="market-countdown" style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--brand-primary);">
+            --:--:--
+          </div>
+        </div>
+      </div>
+
+      <!-- Betting Grid Form & Slip -->
+      <div class="bet-grid-layout">
+        <!-- Input Rows Card -->
+        <div class="quick-bet-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+            <h3 style="font-size: 1.15rem;">Fast Bet 4D / 3D / 2D</h3>
+            <span style="font-size: 0.8rem; color: var(--text-secondary);">Min. bet Rp 1.000 / baris</span>
+          </div>
+
+          <!-- Header Labels for Table -->
+          <div class="bet-row" style="margin-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle); padding-bottom: 6px;">
+            <span class="bet-row-header" style="text-align: center;">No</span>
+            <span class="bet-row-header">Nomor Pilihan</span>
+            <span class="bet-row-header">Tipe Game</span>
+            <span class="bet-row-header" style="text-align: right;">Nominal (Rp)</span>
+            <span></span>
+          </div>
+
+          <!-- Rows Container -->
+          <div id="bet-rows-container">
+            <!-- Dynamic rows rendered by JS -->
+          </div>
+
+          <div style="margin-top: var(--space-4); display: flex; gap: var(--space-3);">
+            <button type="button" id="btn-add-row" class="btn btn-secondary btn-sm">+ Tambah 1 Baris</button>
+          </div>
+        </div>
+
+        <!-- Bet Slip Card (Right Column) -->
+        <div class="betslip-card">
+          <h3 style="font-size: 1.15rem; margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3);">
+            Ringkasan Invoice Bet
+          </h3>
+
+          <div class="betslip-summary-row">
+            <span style="color: var(--text-secondary);">Total Baris Angka</span>
+            <span id="betslip-count" style="font-weight: 600;">0 Baris</span>
+          </div>
+
+          <div class="betslip-summary-row">
+            <span style="color: var(--text-secondary);">Total Taruhan Kotor</span>
+            <span id="betslip-gross" style="font-weight: 600;">Rp 0</span>
+          </div>
+
+          <div class="betslip-summary-row">
+            <span style="color: var(--status-success);">Diskon Spesial Member</span>
+            <span id="betslip-discount" style="font-weight: 600; color: var(--status-success);">- Rp 0</span>
+          </div>
+
+          <div class="betslip-total-row">
+            <span>Total Bayar Bersih:</span>
+            <span class="betslip-total-amount" id="betslip-total">Rp 0</span>
+          </div>
+
+          <button type="button" id="btn-submit-bet" class="btn btn-primary btn-lg btn-block" style="margin-top: var(--space-4);">
+            Konfirmasi & Pasang Taruhan
+          </button>
+
+          <div style="margin-top: var(--space-4); font-size: 0.75rem; color: var(--text-muted); line-height: 1.5;">
+            * Saldo akan langsung didebit setelah taruhan disetujui. Invoice resmi dapat dilihat di menu riwayat taruhan.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
+    </div>
+  </footer>
+
+  <script type="module" src="/js/market-play.js"></script>
+</body>
+</html>

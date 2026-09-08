@@ -1,0 +1,107 @@
+/* ==========================================================================
+   GASTERUS v3 — MARKET PLAY / BETTING PAGE STYLES
+   ========================================================================== */
+
+.play-header {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.market-meta-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.market-meta-title h1 {
+  font-size: 1.5rem;
+}
+
+.bet-grid-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+/* Quick Bet Form */
+.quick-bet-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.bet-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr 1fr 40px;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.bet-row-header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.btn-remove-row {
+  color: var(--status-danger);
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+}
+
+/* Bet Slip Sidebar */
+.betslip-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-brand);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  position: sticky;
+  top: 80px;
+}
+
+.betslip-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.betslip-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-block: var(--space-4);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.betslip-total-amount {
+  font-size: 1.4rem;
+  color: var(--text-gold);
+}
+
+@media (max-width: 900px) {
+  .bet-grid-layout {
+    grid-template-columns: 1fr;
+  }
+  .bet-row {
+    grid-template-columns: 24px 1.2fr 1fr 1fr 30px;
+    font-size: 0.85rem;
+  }
+}
