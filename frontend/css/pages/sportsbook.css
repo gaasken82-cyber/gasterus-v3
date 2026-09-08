@@ -1,0 +1,167 @@
+/* ==========================================================================
+   GASTERUS v3 — SPORTSBOOK CSS
+   ========================================================================== */
+
+.sports-container {
+  display: grid;
+  grid-template-columns: 240px 1fr 320px;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* Sports Sidebar Filter */
+.sports-sidebar {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.sport-category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sport-category-item:hover,
+.sport-category-item.active {
+  background: var(--brand-primary-light);
+  color: var(--brand-primary);
+}
+
+/* Event List */
+.league-group-header {
+  background: var(--bg-surface-elevated);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.match-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  transition: border-color var(--transition-fast);
+}
+
+.match-card:hover {
+  border-color: var(--border-strong);
+}
+
+.match-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.match-teams-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-4);
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.team-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.match-score {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-gold);
+}
+
+/* Odds Grid */
+.odds-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.odd-btn {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.odd-btn:hover {
+  background: var(--brand-primary-light);
+  border-color: var(--brand-primary);
+}
+
+.odd-btn.selected {
+  background: var(--brand-gold);
+  border-color: var(--brand-primary);
+  color: var(--text-inverse);
+}
+
+.odd-btn.selected .odd-rate {
+  color: var(--text-inverse);
+}
+
+.odd-label {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.odd-rate {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-gold);
+}
+
+/* Sports Betslip */
+.sports-betslip-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  position: sticky;
+  top: 80px;
+}
+
+@media (max-width: 1024px) {
+  .sports-container {
+    grid-template-columns: 1fr;
+  }
+  .sports-sidebar {
+    display: none;
+  }
+}
