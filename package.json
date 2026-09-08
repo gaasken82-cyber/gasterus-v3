@@ -1,0 +1,19 @@
+{
+  "name": "gasterus-v3",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Gasterus Clean Rebuild v3",
+  "scripts": {
+    "start": "node deploy/launcher.js",
+    "dev:backend": "node deploy/launcher.js",
+    "dev:frontend": "npx serve frontend -p 3000",
+    "test": "node --test backend/tests/*.test.js",
+    "check": "node scripts/check-syntax.js",
+    "migrate": "node backend/scripts/migrate.js",
+    "schema:ready": "node backend/scripts/schema-ready.js"
+  },
+  "engines": {
+    "node": ">=22.23.2 <23"
+  }
+}

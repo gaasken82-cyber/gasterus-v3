@@ -1,0 +1,259 @@
+import { bool, int, optionalSecret, requiredSecret, text } from './env.js';
+
+// R6.8.18 direct-source safety: legacy Sportsbook session secrets from older
+// deployments must not affect the public Terus Hebat Unggul bridge.
+const directSportsSourceReleaseLocked = process.env.NODE_ENV === 'production';
+const ignoreSportsSourceLegacySecrets = directSportsSourceReleaseLocked || bool('SPORTS_SOURCE_IGNORE_LEGACY_SECRETS', true);
+const apiSportsKey = optionalSecret('API_SPORTS_KEY');
+const theOddsApiKey = optionalSecret('THE_ODDS_API_KEY');
+const sharpApiKey = optionalSecret('SHARP_API_KEY');
+const theSportsDbKey = optionalSecret('THESPORTSDB_API_KEY');
+const footballDataIoKey = optionalSecret('FOOTBALLDATA_IO_KEY');
+const sportmonksKey = optionalSecret('SPORTMONKS_API_KEY');
+function pricedProviderEnabled(name, key) {
+  const raw = String(process.env[name] ?? '').trim().toLowerCase();
+  if (!raw || raw === 'auto') return directSportsSourceReleaseLocked && Boolean(key);
+  return ['1', 'true', 'yes', 'on'].includes(raw);
+}
+
+export const config = Object.freeze({
+  nodeEnv: process.env.NODE_ENV || 'development',
+  host: process.env.HOST || '0.0.0.0',
+  port: int('PORT', 8080, 1, 65535),
+  databaseUrl: requiredSecret('DATABASE_URL', 12),
+  databaseSsl: bool('DATABASE_SSL', false),
+  pgPoolMax: int('PG_POOL_MAX', 15, 2, 100),
+  redisUrl: requiredSecret('REDIS_URL', 12),
+  memberProxySecret: requiredSecret('MEMBER_PROXY_SECRET', 32),
+  adminProxySecret: requiredSecret('ADMIN_PROXY_SECRET', 32),
+  opsInternalSecret: requiredSecret('OPS_INTERNAL_SECRET', 32),
+  sessionHmacKey: requiredSecret('SESSION_HMAC_KEY', 32),
+  apiKeyPepper: requiredSecret('API_KEY_PEPPER', 32),
+  mfaEncryptionKeyBase64: requiredSecret('MFA_ENCRYPTION_KEY_BASE64', 40),
+  memberSessionTtl: int('MEMBER_SESSION_TTL_SECONDS', 43200, 900, 604800),
+  ownerSessionTtl: int('OWNER_SESSION_TTL_SECONDS', 900, 900, 86400), // R6.94: 15-minute admin session (idle refresh)
+  highValueThreshold: int('HIGH_VALUE_APPROVAL_THRESHOLD', 1000000, 10000, 200000000),
+  approvalTtl: int('APPROVAL_TTL_SECONDS', 1800, 300, 86400),
+  queueName: process.env.QUEUE_NAME || 'asean777:settlement:queue',
+  lockTtlMs: int('LOCK_TTL_MS', 120000, 5000, 900000),
+  workerHeartbeatKey: text('WORKER_HEARTBEAT_KEY', 'asean777:worker:heartbeat'),
+  workerHeartbeatMaxAgeSeconds: int('WORKER_HEARTBEAT_MAX_AGE_SECONDS', 90, 20, 600),
+  allowedMemberOrigin: process.env.ALLOWED_MEMBER_ORIGIN || '',
+  allowedAdminOrigin: process.env.ALLOWED_ADMIN_ORIGIN || '',
+  trustProxy: bool('TRUST_PROXY', true),
+  cookieSecure: bool('COOKIE_SECURE', process.env.NODE_ENV === 'production'),
+  balanceUnitName: process.env.BALANCE_UNIT_NAME || 'Saldo',
+
+  // Public TOTO result aggregator. URLs are non-secret and can be overridden per environment.
+  totoCollectorEnabled: bool('TOTO_COLLECTOR_ENABLED', true),
+  totoCollectorIntervalSeconds: int('TOTO_COLLECTOR_INTERVAL_SECONDS', 60, 30, 3600),
+  totoSourceTimeoutMs: int('TOTO_SOURCE_TIMEOUT_MS', 12000, 2000, 30000),
+  totoCollectorUserAgent: text('TOTO_COLLECTOR_USER_AGENT', 'ASEAN777-Result-Collector/6.8.14'),
+  totoPoskoPaitoUrl: text('TOTO_POSKOPAITO_URL', 'https://poskopaito.com/'),
+  totoDataTotoUrl: text('TOTO_DATATOTO_URL', 'https://datatoto.pro/pasaran_lengkap_V2.php'),
+  totoMasterLiveUrl: text('TOTO_MASTERLIVE_URL', 'https://masterlive.net/'),
+  totoCindoTotoUrl: text('TOTO_CINDOTOTO_URL', 'https://cindototopusat.com/'),
+  totoSumTotoUrl: text('TOTO_SUMTOTO_URL', 'https://sumtotoking.com/support'),
+  totoMioTotoUrl: text('TOTO_MIOTOTO_URL', 'https://miototo.com/'),
+  totoIkonTotoUrl: text('TOTO_IKONTOTO_URL', 'https://ikontoto.org/'),
+  totoKiaTotoUrl: text('TOTO_KIATOTO_URL', 'https://kiatoto.net/'),
+  totoKingkongInfoUrl: text('TOTO_KINGKONG_INFO_URL', 'https://kingkongtoto-info.com/'),
+  totoBelizePoolsUrl: text('TOTO_BELIZE_POOLS_URL', 'https://belizepools.org/'),
+  totoMeridaPoolsUrl: text('TOTO_MERIDA_POOLS_URL', 'https://meridapools.org/'),
+  totoBrowserFallbackMaxSources: int('TOTO_BROWSER_FALLBACK_MAX_SOURCES', 2, 0, 4),
+  totoOfficialBrowserFallbackMaxSources: int('TOTO_OFFICIAL_BROWSER_FALLBACK_MAX_SOURCES', 2, 0, 4),
+  totoBrowserFallbackCacheSeconds: int('TOTO_BROWSER_FALLBACK_CACHE_SECONDS', 900, 60, 3600),
+  totoBrowserFallbackSettleMs: int('TOTO_BROWSER_FALLBACK_SETTLE_MS', 4500, 1000, 12000),
+  totoMaxResultAgeDays: int('TOTO_MAX_RESULT_AGE_DAYS', 4, 1, 14),
+  // Operator decision (diminta owner): pasaran pool yang hanya punya 1 keluarga sumber
+  // tetap boleh jadi VERIFIED sehingga betting pools bisa dibuka. Angka tetap hasil scrape
+  // sumber asli (bukan generator). Revert: set env TOTO_SINGLE_SOURCE_CAN_PUBLISH_VERIFIED=false.
+  totoSingleSourceCanPublishVerified: bool('TOTO_SINGLE_SOURCE_CAN_PUBLISH_VERIFIED', true),
+  // Tampilkan hasil REAL single-source (1 keluarga sumber) ke member sebagai display-only.
+  // Betting/settlement TETAP butuh VERIFIED (authorityReady). Matikan dengan TOTO_PUBLISH_SINGLE_SOURCE=false.
+  totoPublishSingleSource: bool('TOTO_PUBLISH_SINGLE_SOURCE', true),
+  // Per-source health & auto-failover. Ketika sebuah sumber gagal memproduksi hasil
+  // sebanyak failThreshold berturut-turut, ia ditandai "degraded" dan tidak lagi dibakar
+  // usaha render/CSS; setelah cooldown berlalu ia di-probe ulang untuk auto-heal.
+  // Hanya memengaruhi pemilihan sumber — TIDAK mengubah decision/verification/betting logic.
+  totoSourceFailThreshold: int('TOTO_SOURCE_FAIL_THRESHOLD', 5, 2, 20),
+  totoSourceFailCooldownSeconds: int('TOTO_SOURCE_FAIL_COOLDOWN_SECONDS', 300, 30, 3600),
+  totoSourceRotationEnabled: bool('TOTO_SOURCE_ROTATION_ENABLED', true),
+
+  // Direct public Sportsbook source bridge. Sensitive session values support *_FILE.
+  sportsSourceName: directSportsSourceReleaseLocked ? 'SBOTOP Public Football Mirror Feed' : text('SPORTS_SOURCE_NAME', 'SBOTOP Public Football Mirror Feed'),
+  sportsSourceBaseUrl: directSportsSourceReleaseLocked ? 'https://www.kerjahebatberhasil.com/' : text('SPORTS_SOURCE_BASE_URL', 'https://www.kerjahebatberhasil.com/'),
+  sportsSourceAllowedHost: directSportsSourceReleaseLocked ? 'www.kerjahebatberhasil.com' : text('SPORTS_SOURCE_ALLOWED_HOST', ''),
+  sportsSourceAllowedDomain: directSportsSourceReleaseLocked ? 'kerjahebatberhasil.com' : text('SPORTS_SOURCE_ALLOWED_DOMAIN', 'kerjahebatberhasil.com'),
+  // R6.9.0.10: public SBOTOP mirror pool. The primary mirror is fetched directly; legacy/migration hosts remain explicit fallbacks.
+  // Cross-domain hops always drop cookies/authorization/referer and an HTTP alias may only
+  // be used as a redirect hop; final priced content must still arrive over HTTPS.
+  sportsSourceTrustedRedirectDomains: directSportsSourceReleaseLocked ? 'hiduprukunsejahtera.com,terushebatunggul.com,pastimenangpasti.com' : text('SPORTS_SOURCE_TRUSTED_REDIRECT_DOMAINS', 'hiduprukunsejahtera.com,terushebatunggul.com,pastimenangpasti.com'),
+  sportsSourceCandidateUrls: directSportsSourceReleaseLocked ? 'https://www.kerjahebatberhasil.com/id-ID/sports;https://www.hiduprukunsejahtera.com/id-ID/sports;https://www.terushebatunggul.com/id-ID/euro/sepak-bola;https://www.terushebatunggul.com/id-ID/euro/taruhan-live/sepak-bola' : text('SPORTS_SOURCE_CANDIDATE_URLS', 'https://www.kerjahebatberhasil.com/id-ID/sports;https://www.hiduprukunsejahtera.com/id-ID/sports;https://www.terushebatunggul.com/id-ID/euro/sepak-bola;https://www.terushebatunggul.com/id-ID/euro/taruhan-live/sepak-bola'),
+  sportsSourceAllowPublicEdgeRedirect: bool('SPORTS_SOURCE_ALLOW_PUBLIC_EDGE_REDIRECT', directSportsSourceReleaseLocked),
+  sportsSourceMaxRedirects: int('SPORTS_SOURCE_MAX_REDIRECTS', 5, 0, 8),
+  sportsSourcePanelPath: directSportsSourceReleaseLocked ? '' : text('SPORTS_SOURCE_PANEL_PATH', ''),
+  sportsSourceMainPath: directSportsSourceReleaseLocked ? 'id-ID/sports' : text('SPORTS_SOURCE_MAIN_PATH', 'id-ID/sports'),
+  sportsSourceLivePath: directSportsSourceReleaseLocked ? '' : text('SPORTS_SOURCE_LIVE_PATH', ''),
+  sportsSourceDetailEnabled: bool('SPORTS_SOURCE_DETAIL_ENABLED', true),
+  sportsSourceDetailRefreshSeconds: int('SPORTS_SOURCE_DETAIL_REFRESH_SECONDS', 15, 10, 600),
+  sportsSourceDetailPrematchRefreshSeconds: int('SPORTS_SOURCE_DETAIL_PREMATCH_REFRESH_SECONDS', 90, 30, 3600),
+  sportsSourceScheduleDiscoveryEnabled: bool('SPORTS_SOURCE_SCHEDULE_DISCOVERY_ENABLED', true),
+  sportsSourceScheduleRefreshSeconds: int('SPORTS_SOURCE_SCHEDULE_REFRESH_SECONDS', 60, 15, 900),
+  sportsSourceScheduleMaxPages: int('SPORTS_SOURCE_SCHEDULE_MAX_PAGES', 8, 1, 16),
+  sportsSourceIgnoreLegacySecrets: ignoreSportsSourceLegacySecrets,
+  sportsSourceRef: ignoreSportsSourceLegacySecrets ? '' : optionalSecret('SPORTS_SOURCE_REF'),
+  sportsSourceCookie: ignoreSportsSourceLegacySecrets ? '' : optionalSecret('SPORTS_SOURCE_COOKIE'),
+  sportsSourceAuthorization: ignoreSportsSourceLegacySecrets ? '' : optionalSecret('SPORTS_SOURCE_AUTHORIZATION'),
+  sportsSourceReferer: directSportsSourceReleaseLocked ? 'https://www.kerjahebatberhasil.com/id-ID/sports' : text('SPORTS_SOURCE_REFERER', 'https://www.kerjahebatberhasil.com/id-ID/sports'),
+  sportsSourceUserAgent: text('SPORTS_SOURCE_USER_AGENT', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151.0.0.0 Safari/537.36 SBOTOTO/6.8.16'),
+  sportsSourceTimeoutMs: int('SPORTS_SOURCE_TIMEOUT_MS', 12000, 2000, 30000),
+  sportsSourceRefreshSeconds: int('SPORTS_SOURCE_REFRESH_SECONDS', 8, 3, 60),
+  sportsSourceBackgroundPollEnabled: bool('SPORTS_SOURCE_BACKGROUND_POLL_ENABLED', true),
+  sportsSourceBrowserEnabled: bool('SPORTS_SOURCE_BROWSER_ENABLED', true),
+  sportsSourceBrowserExecutable: text('SPORTS_SOURCE_BROWSER_EXECUTABLE', '/usr/bin/chromium'),
+  sportsSourceBrowserTimeoutMs: int('SPORTS_SOURCE_BROWSER_TIMEOUT_MS', 25000, 5000, 60000),
+  sportsSourceBrowserSettleMs: int('SPORTS_SOURCE_BROWSER_SETTLE_MS', 9000, 1000, 30000),
+  sportsSourceBrowserCacheSeconds: int('SPORTS_SOURCE_BROWSER_CACHE_SECONDS', 20, 5, 300),
+
+  // Provider credentials are read only by core and may be mounted as Docker secrets.
+  apiSportsKey,
+  apiSportsBaseUrl: text('API_SPORTS_BASE_URL', 'https://v3.football.api-sports.io'),
+  apiSportsEnabled: pricedProviderEnabled('API_SPORTS_ENABLED', apiSportsKey),
+  apiSportsDaysAhead: int('API_SPORTS_DAYS_AHEAD', 3, 0, 14),
+  apiSportsOddsPages: int('API_SPORTS_ODDS_PAGES', 2, 1, 20),
+  apiSportsLiveRefreshSeconds: int('API_SPORTS_LIVE_REFRESH_SECONDS', 30, 15, 300),
+  apiSportsPrematchRefreshSeconds: int('API_SPORTS_PREMATCH_REFRESH_SECONDS', 300, 60, 1800),
+  sharpApiKey,
+  sharpApiBaseUrl: text('SHARP_API_BASE_URL', 'https://api.sharpapi.io'),
+  sharpApiEnabled: pricedProviderEnabled('SHARP_API_ENABLED', sharpApiKey),
+  sharpApiSport: text('SHARP_API_SPORT', 'soccer'),
+  // Production fetches the complete SharpAPI soccer catalog. Filtering to only main/spread/total/1st_half
+  // silently discarded BTTS, Double Chance, team totals and other provider markets.
+  sharpApiMarkets: directSportsSourceReleaseLocked ? '' : text('SHARP_API_MARKETS', 'main,spread,total,1st_half'),
+  sharpApiSportsbook: text('SHARP_API_SPORTSBOOK', ''),
+  sharpApiPreferredSportsbooks: text('SHARP_API_PREFERRED_SPORTSBOOKS', 'sbobet,pinnacle,bet365'),
+  sharpApiRefreshSeconds: int('SHARP_API_REFRESH_SECONDS', directSportsSourceReleaseLocked ? 45 : 30, 15, 1800),
+  sharpApiMaxPages: int('SHARP_API_MAX_PAGES', directSportsSourceReleaseLocked ? 5 : 3, 1, 10),
+  sharpApiPageSize: int('SHARP_API_PAGE_SIZE', 200, 25, 200),
+  sharpApiMainLinesOnly: bool('SHARP_API_MAIN_LINES_ONLY', false),
+  theOddsApiKey,
+  theOddsApiBaseUrl: text('THE_ODDS_API_BASE_URL', 'https://api.the-odds-api.com/v4'),
+  theOddsApiEnabled: pricedProviderEnabled('THE_ODDS_API_ENABLED', theOddsApiKey),
+  theOddsApiRegions: text('THE_ODDS_API_REGIONS', 'eu,uk'),
+  theOddsApiMarkets: text('THE_ODDS_API_MARKETS', 'h2h,spreads,totals'),
+  theOddsApiEventMarketsEnabled: bool('THE_ODDS_API_EVENT_MARKETS_ENABLED', true),
+  theOddsApiEventMarkets: text('THE_ODDS_API_EVENT_MARKETS', 'h2h_3_way_h1,spreads_h1,totals_h1,btts,btts_h1,double_chance,double_chance_h1,halftime_fulltime'),
+  theOddsApiEventMaxEventsPerSport: int('THE_ODDS_API_EVENT_MAX_EVENTS_PER_SPORT', 8, 0, 50),
+  // Hard global ceiling for all the-odds-api sports combined. Keeps the in-memory
+  // sportsbook catalog well inside the Railway container budget even when NBA,
+  // tennis ATP/WTA and esports sport keys are enabled alongside football leagues.
+  theOddsApiMaxTotalEvents: int('THE_ODDS_API_MAX_TOTAL_EVENTS', 250, 0, 1200),
+  theOddsApiRefreshSeconds: int('THE_ODDS_API_REFRESH_SECONDS', 300, 60, 1800),
+  theOddsApiEventRefreshSeconds: int('THE_ODDS_API_EVENT_REFRESH_SECONDS', 300, 60, 1800),
+  theOddsApiBookmakers: text('THE_ODDS_API_BOOKMAKERS'),
+  theOddsApiSportKeys: text('THE_ODDS_API_SPORT_KEYS', 'soccer_epl,soccer_spain_la_liga,soccer_italy_serie_a,soccer_germany_bundesliga,soccer_france_ligue_one,soccer_uefa_champs_league,basketball_nba,tennis_atp_us_open,tennis_wta_us_open'),
+  theSportsDbKey,
+  theSportsDbBaseUrl: text('THESPORTSDB_BASE_URL', 'https://www.thesportsdb.com/api'),
+  theSportsDbEnabled: bool('THESPORTSDB_ENABLED', false),
+  theSportsDbLeagueIds: text('THESPORTSDB_LEAGUE_IDS', '4328,4335,4332,4331,4334,4387'),
+  footballDataIoKey: optionalSecret('FOOTBALLDATA_IO_KEY'),
+  footballDataIoBaseUrl: text('FOOTBALLDATA_IO_BASE_URL', 'https://footballdata.io/api/v1'),
+  footballDataIoEnabled: pricedProviderEnabled('FOOTBALLDATA_IO_ENABLED', footballDataIoKey),
+  footballDataIoRefreshSeconds: int('FOOTBALLDATA_IO_REFRESH_SECONDS', 300, 60, 1800),
+  footballDataIoUpcomingLimit: int('FOOTBALLDATA_IO_UPCOMING_LIMIT', 200, 10, 1000),
+  // Sportmonks v3. The supplied plan does not expose the standalone /football/odds/*
+  // endpoints (HTTP 404) and the `markets` filter is ignored on fixture includes, so
+  // prices arrive only through the per-fixture `include=odds` (~1.5 MB each, every
+  // market/bookmaker). The event cap therefore bounds both resident memory and the
+  // number of outbound odds requests per refresh cycle.
+  sportmonksKey,
+  sportmonksBaseUrl: text('SPORTMONKS_BASE_URL', 'https://api.sportmonks.com/v3'),
+  sportmonksEnabled: pricedProviderEnabled('SPORTMONKS_ENABLED', sportmonksKey),
+  sportmonksDaysAhead: int('SPORTMONKS_DAYS_AHEAD', 2, 0, 7),
+  sportmonksRefreshSeconds: int('SPORTMONKS_REFRESH_SECONDS', 300, 60, 1800),
+  sportmonksOddsRefreshSeconds: int('SPORTMONKS_ODDS_REFRESH_SECONDS', 180, 30, 1800),
+  sportmonksMaxTotalEvents: int('SPORTMONKS_MAX_TOTAL_EVENTS', 40, 0, 250),
+  sportmonksMaxParallel: int('SPORTMONKS_MAX_PARALLEL', 6, 1, 12),
+  sportsSourceRegistryEnabled: bool('SPORTS_SOURCE_REGISTRY_ENABLED', true),
+  sportsSourceEvictUnhealthyHours: int('SPORTS_SOURCE_EVICT_UNHEALTHY_HOURS', 2, 1, 720),
+  // Safe floor: promotion is always gated by isConfigEnabled(), so the registry
+  // can never fabricate a healthy source — MIN_ACTIVE only prevents over-eviction.
+  sportsSourceMinActive: int('SPORTS_SOURCE_MIN_ACTIVE', 2, 1, 12),
+  sportsSourceRecycleCooldownHours: int('SPORTS_SOURCE_RECYCLE_COOLDOWN_HOURS', 24, 1, 720),
+  // Provider fan-out budget: do not fetch every enabled provider at once.
+  // 0 keeps the legacy unlimited-parallel behaviour.
+  sportsSourceMaxParallel: int('SPORTS_SOURCE_MAX_PARALLEL', 3, 0, 20),
+  sportsbookArtworkEnabled: bool('SPORTSBOOK_ARTWORK_ENABLED', true),
+  sportsbookArtworkBaseUrl: text('SPORTSBOOK_ARTWORK_BASE_URL', 'https://www.thesportsdb.com/api/v1/json'),
+  // TheSportsDB publishes 123 as its current free V1 API key. Artwork is metadata-only and
+  // never participates in pricing, bet acceptance or settlement authority.
+  sportsbookArtworkApiKey: text('SPORTSBOOK_ARTWORK_API_KEY', '123'),
+  sportsbookArtworkCacheSeconds: int('SPORTSBOOK_ARTWORK_CACHE_SECONDS', 86400, 3600, 2592000),
+  sportsbookArtworkNegativeCacheSeconds: int('SPORTSBOOK_ARTWORK_NEGATIVE_CACHE_SECONDS', 21600, 300, 86400),
+  sportsbookArtworkMaxLookupsPerMinute: int('SPORTSBOOK_ARTWORK_MAX_LOOKUPS_PER_MINUTE', 20, 1, 30),
+  sportsbookArtworkMaxLookupsPerRefresh: int('SPORTSBOOK_ARTWORK_MAX_LOOKUPS_PER_REFRESH', 16, 1, 30),
+  sportsbookArtworkTimeoutMs: int('SPORTSBOOK_ARTWORK_TIMEOUT_MS', 5000, 1000, 15000),
+  // R6.9.0.15: SBOTOTO-owned public market feed. No commercial odds-provider credential is required.
+  // Upcoming fixtures + bookmaker anchor prices are collected from Football-Data's downloadable public CSV,
+  // then normalized and expanded by SBOTOTO's own probability/market engine.
+  publicMarketEnabled: bool('PUBLIC_MARKET_ENABLED', true),
+  publicMarketOpenFootballEnabled: bool('PUBLIC_MARKET_OPENFOOTBALL_ENABLED', true),
+  publicMarketFixturesUrl: text('PUBLIC_MARKET_FIXTURES_URL', 'https://www.football-data.co.uk/fixtures.csv'),
+  publicMarketExtraFixturesPageUrl: text('PUBLIC_MARKET_EXTRA_FIXTURES_PAGE_URL', 'https://www.football-data.co.uk/matches_new_leagues.php'),
+  publicMarketLatestResultsUrl: text('PUBLIC_MARKET_LATEST_RESULTS_URL', 'https://www.football-data.co.uk/new/Latest_Results.csv'),
+  publicMarketRefreshSeconds: int('PUBLIC_MARKET_REFRESH_SECONDS', 900, 300, 21600),
+  publicMarketMaxStaleSeconds: int('PUBLIC_MARKET_MAX_STALE_SECONDS', 604800, 1800, 604800),
+  publicMarketRequestTimeoutMs: int('PUBLIC_MARKET_REQUEST_TIMEOUT_MS', 12000, 2000, 30000),
+  publicMarketMaxEvents: int('PUBLIC_MARKET_MAX_EVENTS', 500, 10, 1200),
+  publicMarketDerivedMarketsEnabled: bool('PUBLIC_MARKET_DERIVED_MARKETS_ENABLED', true),
+  publicMarketDerivedMarginBps: int('PUBLIC_MARKET_DERIVED_MARGIN_BPS', 450, 100, 1200),
+  publicMarketPriceMaxAgeSeconds: int('PUBLIC_MARKET_PRICE_MAX_AGE_SECONDS', 604800, 900, 604800),
+  sportsbookRiskRepricingEnabled: bool('SPORTSBOOK_RISK_REPRICING_ENABLED', true),
+  sportsbookRiskRepricingMaxShadeBps: int('SPORTSBOOK_RISK_REPRICING_MAX_SHADE_BPS', 600, 0, 2000),
+  sportsFeedRefreshSeconds: int('SPORTS_FEED_REFRESH_SECONDS', 30, 5, 300),
+  sportsFeedStaleSeconds: int('SPORTS_FEED_STALE_SECONDS', 180, 30, 3600),
+  sportsbookMemberHorizonDays: int('SPORTSBOOK_MEMBER_HORIZON_DAYS', 30, 1, 60),
+  sportsbookMemberMaxEvents: int('SPORTSBOOK_MEMBER_MAX_EVENTS', 320, 20, 1000),
+  sportsFeedRequestTimeoutMs: int('SPORTS_FEED_REQUEST_TIMEOUT_MS', 12000, 2000, 30000),
+  sportsbookProviderFailureThreshold: int('SPORTSBOOK_PROVIDER_FAILURE_THRESHOLD', 3, 1, 20),
+  sportsbookProviderRecoverySuccesses: int('SPORTSBOOK_PROVIDER_RECOVERY_SUCCESSES', 2, 1, 20),
+  sportsbookProviderCooldownSeconds: int('SPORTSBOOK_PROVIDER_COOLDOWN_SECONDS', 30, 5, 3600),
+  sportsbookProviderIncidentLimit: int('SPORTSBOOK_PROVIDER_INCIDENT_LIMIT', 100, 10, 500),
+  sportsbookMarketReopenSuccesses: int('SPORTSBOOK_MARKET_REOPEN_SUCCESSES', 2, 1, 20),
+  sportsbookMarketReopenObservationSeconds: int('SPORTSBOOK_MARKET_REOPEN_OBSERVATION_SECONDS', 30, 1, 3600),
+  sportsbookMarketLifecycleRetentionSeconds: int('SPORTSBOOK_MARKET_LIFECYCLE_RETENTION_SECONDS', 86400, 300, 604800),
+  sportsbookMinStake: int('SPORTSBOOK_MIN_STAKE', 1000, 100, 100000000),
+  sportsbookMaxStake: int('SPORTSBOOK_MAX_STAKE', 50000000, 1000, 1000000000),
+  sportsbookMaxPayout: int('SPORTSBOOK_MAX_PAYOUT', 500000000, 10000, 2000000000),
+  sportsbookMaxLegs: int('SPORTSBOOK_MAX_LEGS', 12, 2, 30),
+  sportsbookMaxSystemCombinations: int('SPORTSBOOK_MAX_SYSTEM_COMBINATIONS', 120, 1, 1000),
+  sportsbookOddsTolerance: Number(text('SPORTSBOOK_ODDS_TOLERANCE', '0.001')),
+  sportsbookOddsChangePolicyDefault: text('SPORTSBOOK_ODDS_CHANGE_POLICY_DEFAULT', 'REJECT').toUpperCase(),
+  sportsbookQuoteTtlSeconds: int('SPORTSBOOK_QUOTE_TTL_SECONDS', 15, 5, 60),
+  sportsbookQuoteRequired: bool('SPORTSBOOK_QUOTE_REQUIRED', process.env.NODE_ENV === 'production'),
+  sportsbookPrematchCloseGraceSeconds: int('SPORTSBOOK_PREMATCH_CLOSE_GRACE_SECONDS', 30, 0, 300),
+  sportsbookMaxLivePriceAgeSeconds: int('SPORTSBOOK_MAX_LIVE_PRICE_AGE_SECONDS', 90, 15, 600),
+  sportsbookMaxPrematchPriceAgeSeconds: int('SPORTSBOOK_MAX_PREMATCH_PRICE_AGE_SECONDS', 900, 60, 7200),
+  sportsbookMaxEventLiability: int('SPORTSBOOK_MAX_EVENT_LIABILITY', 2000000000, 100000, 2000000000),
+  sportsbookMaxMarketLiability: int('SPORTSBOOK_MAX_MARKET_LIABILITY', 1000000000, 100000, 2000000000),
+  sportsbookMaxSelectionLiability: int('SPORTSBOOK_MAX_SELECTION_LIABILITY', 500000000, 100000, 2000000000),
+  // R6.9.0.12: when autonomous FT result authority is unavailable, healthy prematch
+  // SharpAPI prices may be accepted with an explicit operator-settlement guarantee.
+  // This never applies to LIVE or 1H markets and never fabricates result scores.
+  sportsbookManualFtSettlementFallbackEnabled: directSportsSourceReleaseLocked ? true : bool('SPORTSBOOK_MANUAL_FT_SETTLEMENT_FALLBACK_ENABLED', false),
+  sportsbookAutoSettlementEnabled: bool('SPORTSBOOK_AUTO_SETTLEMENT_ENABLED', true),
+  sportsbookAutoSettlementSeconds: int('SPORTSBOOK_AUTO_SETTLEMENT_SECONDS', 30, 15, 600),
+  sportsbookCashoutEnabled: bool('SPORTSBOOK_CASHOUT_ENABLED', true),
+  sportsbookCashoutOfferTtlSeconds: int('SPORTSBOOK_CASHOUT_OFFER_TTL_SECONDS', 8, 3, 30),
+  sportsbookCashoutFactorBps: int('SPORTSBOOK_CASHOUT_FACTOR_BPS', 9600, 5000, 10000),
+  sportsbookCashoutMinOffer: int('SPORTSBOOK_CASHOUT_MIN_OFFER', 100, 1, 100000000),
+  sportsbookRealtimeEnabled: bool('SPORTSBOOK_REALTIME_ENABLED', true),
+  sportsbookRealtimePollMs: int('SPORTSBOOK_REALTIME_POLL_MS', 2000, 1000, 15000),
+  sportsbookRealtimeHeartbeatSeconds: int('SPORTSBOOK_REALTIME_HEARTBEAT_SECONDS', 15, 5, 60),
+  sportsbookRealtimeMaxClients: int('SPORTSBOOK_REALTIME_MAX_CLIENTS', 2500, 10, 20000)
+});
+
+const mfaKey = Buffer.from(config.mfaEncryptionKeyBase64, 'base64');
+if (mfaKey.length !== 32) throw new Error('MFA_ENCRYPTION_KEY_BASE64 must decode to exactly 32 bytes');
+export const mfaEncryptionKey = mfaKey;
