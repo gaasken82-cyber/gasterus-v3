@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tarik Dana (Withdraw) — GASTERUS V3</title>
+  <meta name="description" content="Penarikan dana kemenangan Togel & Sportsbook cepat dan aman langsung masuk ke rekening bank terdaftar Anda.">
+
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Modular Stylesheets -->
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/mobile.css">
+  <link rel="stylesheet" href="/css/pages/transaction.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="container">
+      <a href="/member.html" class="brand-logo">
+        GASTERUS <span class="logo-badge">V3</span>
+      </a>
+
+      <div class="header-actions">
+        <a href="/member.html" class="btn btn-secondary btn-sm">← Member Area</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="container tx-container">
+      <div class="tx-card fade-in">
+        <div style="text-align: center; margin-bottom: var(--space-6);">
+          <span class="badge badge-warning" style="margin-bottom: var(--space-2);">PENARIKAN DANA</span>
+          <h1 style="font-size: 1.75rem;">Formulir Withdraw</h1>
+          <p style="font-size: 0.85rem;">Dana kemenangan akan dikirimkan otomatis ke rekening bank terdaftar Anda.</p>
+        </div>
+
+        <form id="withdraw-form">
+          <!-- Member Bank Info Card -->
+          <div class="bank-destination-box">
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Rekening Tujuan Pencairan:</div>
+            <strong id="member-bank-info" style="font-size: 1.05rem; color: var(--text-gold);">Memuat data rekening...</strong>
+          </div>
+
+          <!-- Amount Input -->
+          <div class="form-group">
+            <label class="form-label" for="withdraw-amount-input">Nominal Penarikan (Rp) <span style="color: var(--status-danger);">*</span></label>
+            <input type="number" id="withdraw-amount-input" name="amount" class="form-control" placeholder="Min. 50.000" min="50000" step="10000" required style="font-size: 1.15rem; font-weight: 700;">
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="nominal-preset-grid">
+            <button type="button" class="preset-btn" data-value="50000">Rp 50.000</button>
+            <button type="button" class="preset-btn" data-value="100000">Rp 100.000</button>
+            <button type="button" class="preset-btn" data-value="250000">Rp 250.000</button>
+            <button type="button" class="preset-btn" data-value="500000">Rp 500.000</button>
+            <button type="button" class="preset-btn" data-value="1000000">Rp 1.000.000</button>
+            <button type="button" class="preset-btn" data-value="2000000">Rp 2.000.000</button>
+          </div>
+
+          <!-- Security Password Confirmation -->
+          <div class="form-group">
+            <label class="form-label" for="withdraw-password">Kata Sandi Akun (Verifikasi Keamanan) <span style="color: var(--status-danger);">*</span></label>
+            <input type="password" id="withdraw-password" name="password" class="form-control" placeholder="Masukkan kata sandi Anda" required autocomplete="current-password">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top: var(--space-4);">
+            Tarik Dana Sekarang
+          </button>
+        </form>
+      </div>
+
+      <!-- History Card -->
+      <div class="card">
+        <h3 style="font-size: 1.1rem; margin-bottom: var(--space-4);">Riwayat Penarikan Dana</h3>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>Nominal</th>
+                <th>Status</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody id="tx-history-tbody">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
+    </div>
+  </footer>
+
+  <script type="module">
+    import { initWithdraw } from '/js/transaction.js';
+    initWithdraw();
+  </script>
+</body>
+</html>

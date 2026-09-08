@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Program Afiliasi Referral — GASTERUS V3</title>
+  <meta name="description" content="Program kemitraan dan komisi referral seumur hidup dengan mengajak teman bergabung di Gasterus.">
+
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/mobile.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="container">
+      <a href="/index.html" class="brand-logo">
+        GASTERUS <span class="logo-badge">V3</span>
+      </a>
+
+      <div class="header-actions">
+        <a href="/member.html" class="btn btn-secondary btn-sm">← Member Area</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="container" style="max-width: 720px;">
+      <div class="card fade-in" style="margin-bottom: var(--space-6);">
+        <h1 style="font-size: 1.75rem; margin-bottom: var(--space-2);">Tautan Referral Anda</h1>
+        <p style="font-size: 0.9rem; margin-bottom: var(--space-6);">Bagikan tautan ini ke media sosial atau teman untuk mulai menghasilkan komisi harian.</p>
+
+        <div class="form-group">
+          <label class="form-label">Tautan Pendaftaran Referral</label>
+          <div style="display: flex; gap: var(--space-2);">
+            <input type="text" id="referral-link-input" class="form-control" readonly value="https://gasterus.fun/register.html?ref=MYCODE" style="font-family: var(--font-mono); font-weight: 600;">
+            <button type="button" class="btn btn-primary" onclick="copyRefLink()">Salin Tautan</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card fade-in">
+        <h3 style="font-size: 1.15rem; margin-bottom: var(--space-4);">Statistik Jaringan Downline</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); text-align: center;">
+          <div style="background: var(--bg-surface-elevated); padding: var(--space-4); border-radius: var(--radius-md);">
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-gold);" id="stat-total-downline">0</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Total Member Diajak</div>
+          </div>
+          <div style="background: var(--bg-surface-elevated); padding: var(--space-4); border-radius: var(--radius-md);">
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--status-success);" id="stat-active-downline">0</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Member Aktif</div>
+          </div>
+          <div style="background: var(--bg-surface-elevated); padding: var(--space-4); border-radius: var(--radius-md);">
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--brand-primary);" id="stat-total-commission">Rp 0</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Total Komisi Masuk</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
+    </div>
+  </footer>
+
+  <script type="module">
+    import auth from '/js/auth.js';
+    import api from '/js/api.js';
+
+    const user = auth.getUser();
+    const refCode = user?.referral_code || user?.referralCode || 'GASTERUS';
+    const linkInput = document.getElementById('referral-link-input');
+    if (linkInput) {
+      linkInput.value = `${window.location.origin}/register.html?ref=${refCode}`;
+    }
+
+    window.copyRefLink = function() {
+      navigator.clipboard.writeText(linkInput.value);
+      alert('Tautan referral berhasil disalin!');
+    };
+  </script>
+</body>
+</html>
