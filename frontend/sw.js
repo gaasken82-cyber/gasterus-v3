@@ -48,8 +48,8 @@ self.addEventListener('fetch', (e) => {
 
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
-  // Skip API calls
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/member/')) {
+  // Skip API calls and JS application code from aggressive cache
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/member/') || url.pathname.startsWith('/js/')) {
     e.respondWith(fetch(request).catch(() => new Response('Offline', { status: 503 })));
     return;
   }

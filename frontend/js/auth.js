@@ -30,9 +30,10 @@ export const auth = {
   async login(username, password) {
     try {
       const res = await api.post('/member/login', { username, password });
-      api.setSession(res.token || res.sessionToken, res.csrfToken);
-      this.setUser(res.user);
-      return res.user;
+      const payload = res.data || res;
+      api.setSession(payload.token || payload.sessionToken, payload.csrfToken);
+      this.setUser(payload.user);
+      return payload.user;
     } catch (err) {
       showToast(err.message || 'Gagal login. Periksa username dan password.', 'danger');
       throw err;
@@ -42,9 +43,10 @@ export const auth = {
   async register(registrationData) {
     try {
       const res = await api.post('/member/register', registrationData);
-      api.setSession(res.token || res.sessionToken, res.csrfToken);
-      this.setUser(res.user);
-      return res.user;
+      const payload = res.data || res;
+      api.setSession(payload.token || payload.sessionToken, payload.csrfToken);
+      this.setUser(payload.user);
+      return payload.user;
     } catch (err) {
       showToast(err.message || 'Pendaftaran gagal.', 'danger');
       throw err;
@@ -54,10 +56,11 @@ export const auth = {
   async fetchMe() {
     try {
       const res = await api.get('/member/me');
-      if (res.user) {
-        this.setUser(res.user);
-        if (res.csrfToken) api.setSession(null, res.csrfToken);
-        return res.user;
+      const payload = res.data || res;
+      if (payload.user) {
+        this.setUser(payload.user);
+        if (payload.csrfToken) api.setSession(null, payload.csrfToken);
+        return payload.user;
       }
     } catch (err) {
       // Hanya logout jika server benar-benar menolak sesi (401 Unauthorized).

@@ -70,8 +70,9 @@ class ApiClient {
       }
 
       // Update CSRF token if returned
-      if (data.csrfToken) {
-        this.setSession(null, data.csrfToken);
+      const csrf = data.csrfToken || data.data?.csrfToken;
+      if (csrf) {
+        this.setSession(null, csrf);
       }
 
       return data;
