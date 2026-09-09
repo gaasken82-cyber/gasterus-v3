@@ -29,7 +29,6 @@ const STATE_PATH = resolve(HERE, '../data/sportsbook-source-registry.json');
 // OpenFootball (CC0) + football-data.co.uk (public CSV) as two underlying sources.
 const CURATED_SOURCES = [
   { code: 'public-market', label: 'OpenFootball (CC0) + Football-Data.co.uk public CSV', requiresKey: false },
-  { code: 'source-bridge', label: 'Direct source bridge (scraper)', requiresKey: false },
   { code: 'footballdata-io', label: 'footballdata.io (free plan, real market odds)', requiresKey: true },
   { code: 'thesportsdb', label: 'TheSportsDB (free)', requiresKey: true }
 ];
@@ -96,7 +95,6 @@ function persist() {
 export function isConfigEnabled(code) {
   switch (code) {
     case 'public-market': return Boolean(config.publicMarketEnabled);
-    case 'source-bridge': return Boolean(config.sportsSourceBaseUrl);
     case 'footballdata-io': return config.footballDataIoEnabled && Boolean(config.footballDataIoKey);
     case 'thesportsdb': return config.theSportsDbEnabled && Boolean(config.theSportsDbKey);
     default: return false;

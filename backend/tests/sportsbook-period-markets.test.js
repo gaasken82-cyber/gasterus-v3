@@ -15,7 +15,6 @@ Object.assign(process.env, {
 });
 
 const { __sportsbookProviders } = await import('../src/sportsbook-providers.js');
-const { __sportsbookParser } = await import('../src/sportsbook-source.js');
 const { evaluateSportsbookLeg } = await import('../src/sportsbook-result-evaluator.js');
 
 test('The Odds API event markets preserve FT/HT periods for 1X2 handicap and totals', () => {
@@ -82,20 +81,6 @@ test('provider merger keeps HT priced market bettable only when API-Sports resul
   const withScoreProvider = __sportsbookProviders.mergeProviderEvents([{ events: [oddsEvent] }, { events: [apiEvent] }]);
   assert.equal(withScoreProvider[0].markets[0].suspended, false);
   assert.ok(withScoreProvider[0]._sources.includes('api-sports'));
-});
-
-test('SBOBET source bridge parser preserves first-half market period instead of forcing FT', () => {
-  const html = `
-    <div class="MarketT Open"><div class="MarketHd"><div class="SubHead"><span>1X2 First Half</span></div></div>
-    <div class="MarketLea"><div class="SubHeadT">Test League</div></div>
-    <table><tr id="bu:od:or:991"><td class="DateTime"><div class="DateTimeTxt">Agu 11 20:00</div></td><td><div id="bu:od:afa:ev:9002001"></div></td>
-    <td><a class="OddsTabL"><span class="OddsR">2.10</span><span class="OddsL">Home FC</span></a></td>
-    <td><a class="OddsTabL"><span class="OddsR">2.05</span><span class="OddsL">Seri</span></a></td>
-    <td><a class="OddsTabR"><span class="OddsR">4.10</span><span class="OddsL">Away FC</span></a></td>
-    <td><a href="/id-id/euro/sepak-bola/test/9002001/home-fc-vs-away-fc" id="bu:od:go:ev:9002001">9</a></td></tr></table></div>`;
-  const events = __sportsbookParser.parseSbobetHtmlEvents(html);
-  assert.equal(events.length, 1);
-  assert.equal(events[0].markets[0].period, '1H');
 });
 
 test('auto settlement evaluates HT market from halftime score and FT market from final score', () => {

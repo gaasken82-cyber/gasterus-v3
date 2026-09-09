@@ -7,7 +7,7 @@ export function eventSettlementAuthority(event) {
     ? event._settlementReadySources
     : (Array.isArray(event?._sources) ? event._sources : []);
   const sources = [...new Set(readySources.map(cleanSource).filter(Boolean))];
-  const automaticFt = sources.includes('api-sports') || sources.includes('source-bridge') || sources.includes('public-market');
+  const automaticFt = sources.includes('api-sports') || sources.includes('public-market');
   const manualFt = !automaticFt && sources.includes('manual-ops');
   return {
     ft: automaticFt || manualFt,

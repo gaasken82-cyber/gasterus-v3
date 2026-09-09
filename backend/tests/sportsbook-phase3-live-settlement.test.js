@@ -92,8 +92,8 @@ test('HF6 Phase 3 HT/FT auto settlement requires explicit result authority when 
     periodScores:{'1H':{home:1,away:0}}
   };
   assert.equal(evaluateSportsbookLeg(ftLeg, { ...base, settlementAuthority:{ft:false,ht:false,sources:[]} }), null);
-  assert.equal(evaluateSportsbookLeg(htLeg, { ...base, settlementAuthority:{ft:true,ht:false,sources:['source-bridge']} }), null);
-  assert.equal(evaluateSportsbookLeg(ftLeg, { ...base, settlementAuthority:{ft:true,ht:false,sources:['source-bridge']} }).status, 'WON');
+  assert.equal(evaluateSportsbookLeg(htLeg, { ...base, settlementAuthority:{ft:true,ht:false,sources:['sportmonks']} }), null);
+  assert.equal(evaluateSportsbookLeg(ftLeg, { ...base, settlementAuthority:{ft:true,ht:false,sources:['sportmonks']} }).status, 'WON');
   assert.equal(evaluateSportsbookLeg(htLeg, { ...base, settlementAuthority:{ft:true,ht:true,sources:['api-sports']} }).status, 'WON');
 });
 

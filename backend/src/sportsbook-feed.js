@@ -6,7 +6,6 @@ import { logger } from './logger.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { sportsbookSnapshot as sourceBridgeSnapshot, sportsbookSourceStatus as sourceBridgeStatus, sportsbookEventDetail as sourceBridgeEventDetail } from './sportsbook-source.js';
 import { fetchSharpApi, fetchApiSports, fetchTheOddsApi, fetchTheSportsDb, fetchSportmonks, mergeProviderEvents, publicEvent } from './sportsbook-providers.js';
 import { fetchPublicMarketFeed } from './sportsbook-public-market.js';
 import { fetchFootballDataIo } from './sportsbook-footballdataio.js';
@@ -29,12 +28,6 @@ const MARKET_LIFECYCLE_KEY = 'sportsbook:market-lifecycle:v6';
 const REFRESH_MS = config.sportsFeedRefreshSeconds * 1000;
 const STALE_MS = config.sportsFeedStaleSeconds * 1000;
 
-const DIRECT_SOURCE_SETTLEMENT_TYPES = new Set(['1X2', 'HANDICAP', 'TOTALS', 'BTTS', 'DOUBLE_CHANCE', 'ODD_EVEN', 'CORRECT_SCORE']);
-function directSourceMarketBettable(market) {
-  // Direct source currently supplies final-score authority. Half-time and stat-based
-  // markets remain visible but suspended until a matching settlement authority exists.
-  return (market?.period || 'FT') === 'FT' && DIRECT_SOURCE_SETTLEMENT_TYPES.has(String(market?.type || '').toUpperCase());
-}
 let memory = { lifecycleGeneration: LIFECYCLE_GENERATION, events: [], providers: [], providerLifecycle: {}, marketLifecycleStats: { active: 0, suspended: 0, reopening: 0, closed: 0 }, revision: null, fetchedAt: 0, expiresAt: 0, error: null };
 let marketLifecycleMemory = {};
 let inFlight = null;
@@ -188,7 +181,6 @@ function providerHasPricedMarkets(result) {
 function enabledProviders() {
   return [
     { name: 'SBOTOTO Public Market Feed', code: 'public-market', enabled: Boolean(config.publicMarketEnabled) },
-    { name: config.sportsSourceName, code: 'source-bridge', enabled: Boolean(config.sportsSourceBaseUrl) },
     { name: 'SharpAPI', code: 'sharpapi', enabled: config.sharpApiEnabled && Boolean(config.sharpApiKey) },
     { name: 'API-Sports', code: 'api-sports', enabled: config.apiSportsEnabled && Boolean(config.apiSportsKey) },
     { name: 'The Odds API', code: 'the-odds-api', enabled: config.theOddsApiEnabled && Boolean(config.theOddsApiKey) },
@@ -307,9 +299,9 @@ function applyProviderLifecycleResult(result, lifecycle) {
   }));
   return { ...result, events };
 }
-function bridgeEvent(event, { suspended = false, source = 'source-bridge' } = {}) {
+function bridgeEvent(event, { suspended = false, source = 'supplied-snapshot' } = {}) {
   const markets = (event.markets || []).map(market => {
-    const marketSuspended = Boolean(suspended || (source === 'source-bridge' && !directSourceMarketBettable(market)));
+    const marketSuspended = Boolean(suspended);
     return {
     id: market.id,
     key: market.id,
@@ -352,18 +344,6 @@ function bridgeEvent(event, { suspended = false, source = 'source-bridge' } = {}
     _sources: [source]
   };
 }
-async function fetchSourceBridge() {
-  if (!config.sportsSourceBaseUrl) return { provider: 'source-bridge', enabled: false, events: [] };
-  const snapshot = await sourceBridgeSnapshot();
-  const stale = Boolean(snapshot.stale || snapshot.sourceError);
-  return {
-    provider: 'source-bridge',
-    enabled: true,
-    stale,
-    events: (snapshot.events || []).map(event => bridgeEvent(event, { suspended: stale })),
-    errors: snapshot.sourceError ? [snapshot.sourceError.message] : []
-  };
-}
 function suppliedSnapshotResult() {
   const snapshot = loadSuppliedSnapshot();
   return {
@@ -382,7 +362,6 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
   if (config.sportsSourceRegistryEnabled) maintainRegistry();
   const descriptors = [
     { code: 'public-market', enabled: Boolean(config.publicMarketEnabled), fetcher: fetchPublicMarketFeed },
-    { code: 'source-bridge', enabled: Boolean(config.sportsSourceBaseUrl), fetcher: fetchSourceBridge },
     { code: 'sharpapi', enabled: config.sharpApiEnabled && Boolean(config.sharpApiKey), fetcher: fetchSharpApi },
     { code: 'api-sports', enabled: config.apiSportsEnabled && Boolean(config.apiSportsKey), fetcher: fetchApiSports },
     { code: 'the-odds-api', enabled: config.theOddsApiEnabled && Boolean(config.theOddsApiKey), fetcher: fetchTheOddsApi },
@@ -595,7 +574,6 @@ export async function refreshSportsbookFeed({ reason = 'scheduled' } = {}) {
     const bettableEvents = refreshed.events.filter(event => eventBettingOpen(event) && (event.markets || []).some(market => !market.suspended && (market.selections || []).some(selection => !selection.suspended && Number(selection.odds) > 1))).length;
     const memberVisibleEvents = refreshed.events.filter(event => memberVisibleEvent(event)).length;
     const marketCount = (type, period) => activeMarkets.filter(market => market.type === type && market.period === period).length;
-    const sourceBridgeProvider = refreshed.providers.find(provider => provider.code === 'source-bridge') || null;
     const settlementAuthority = settlementAuthoritySummary(refreshed.events);
     logger.info('Sportsbook live feed refreshed', {
       reason,
@@ -624,21 +602,12 @@ export async function refreshSportsbookFeed({ reason = 'scheduled' } = {}) {
       htHandicap: marketCount('HANDICAP', '1H'),
       ftTotals: marketCount('TOTALS', 'FT'),
       htTotals: marketCount('TOTALS', '1H'),
-      activeUpstream: sourceBridgeStatus().activeUpstream || null,
-      sourceMode: sourceBridgeStatus().lastSuccessAt ? 'DIRECT_MULTI_PAGE_SOURCE' : null,
-      sourceBridgePricedMarkets: Number(sourceBridgeProvider?.pricedMarkets || 0),
-      sourceBridgeBettableMarkets: Number(sourceBridgeProvider?.bettableMarkets || 0),
-      sourceBridgeState: sourceBridgeProvider?.state || null,
-      sourceBridgeHealthy: Boolean(sourceBridgeProvider?.healthy),
       settlementFtEvents: settlementAuthority.ftEvents,
       settlementHtEvents: settlementAuthority.htEvents,
       settlementAutomaticFtEvents: settlementAuthority.automaticFtEvents,
       settlementManualFtEvents: settlementAuthority.manualFtEvents,
       settlementModes: settlementAuthority.modes,
       settlementSources: settlementAuthority.sources,
-      detailCacheEntries: sourceBridgeStatus().detailCacheEntries || 0,
-      scheduleIndexes: sourceBridgeStatus().activeScheduleIndexes || 0,
-      activeIndexCount: sourceBridgeStatus().activeIndexCount || 0,
       lifecycleActive: Number(refreshed.marketLifecycleStats?.active || 0),
       lifecycleSuspended: Number(refreshed.marketLifecycleStats?.suspended || 0),
       lifecycleReopening: Number(refreshed.marketLifecycleStats?.reopening || 0),
@@ -786,37 +755,10 @@ export async function sportsbookEventSnapshot(eventId) {
   const feed = await currentFeed();
   let current = feed.events.find(item => item.id === requested);
   if (!current) throw new AppError(404, 'Pertandingan tidak ditemukan.', 'SPORTS_EVENT_UNAVAILABLE');
-  let detailError = null;
-  const sourceRef = current._refs?.['source-bridge'];
-  const bridgeProvider = (feed.providers || []).find(provider => provider.code === 'source-bridge');
-  const bridgeDetailReady = Boolean(bridgeProvider?.bettingAllowed && bridgeProvider?.pricedMarkets > 0);
-  if (sourceRef && config.sportsSourceDetailEnabled && bridgeDetailReady) {
-    try {
-      const sourceDetail = await sourceBridgeEventDetail(sourceRef);
-      const detailBridge = bridgeEvent(sourceDetail, { suspended: Boolean(feed.readOnlySource), source: 'source-bridge' });
-      const merged = mergeProviderEvents([
-        { provider: 'aggregated-current', enabled: true, events: [current] },
-        { provider: 'source-bridge', enabled: true, events: [detailBridge] }
-      ])[0];
-      if (merged) {
-        merged.id = current.id;
-        merged._refs = { ...(current._refs || {}), ...(merged._refs || {}) };
-        merged.availableMarketCount = Math.max(Number(current.availableMarketCount || 0), Number(sourceDetail.availableMarketCount || 0), merged.markets.length);
-        merged.detailFetchedAt = sourceDetail.detailFetchedAt || new Date().toISOString();
-        const stampedMerged = stampPriceVersions([merged], Date.now())[0];
-        memory = { ...feed, events: feed.events.map(item => item.id === current.id ? stampedMerged : item) };
-        await writeRedisCache(memory);
-        current = stampedMerged;
-      }
-    } catch (error) {
-      detailError = { code: error?.code || 'SPORTS_SOURCE_DETAIL_ERROR', message: clean(error?.message || 'Detail market source unavailable') };
-      logger.warn('Sportsbook event detail source unavailable', { eventId: requested, sourceRef, code: detailError.code, error: detailError.message });
-    }
-  }
   const controls = await listActiveSportsbookTradingControls({ eventId: current.id });
   return {
     event: applySportsbookTradingControls([memberPublicEventDetail(current)], controls)[0],
-    detailLimited: Boolean(detailError),
+    detailLimited: false,
     source: {
       mode: feed.readOnlySource ? 'READ_ONLY_STALE_SOURCE' : 'LIVE',
       fetchedAt: new Date(feed.fetchedAt).toISOString()
@@ -855,8 +797,7 @@ export function sportsbookSourceStatus() {
     feedRevision: memory.revision || null,
     stale: Boolean(memory.readOnlySource || memory.snapshotFallback || (memory.expiresAt ? Date.now() > memory.expiresAt : true)),
     snapshotFallback: Boolean(memory.snapshotFallback),
-    providers: Object.values(memory.providerLifecycle || {}).map(publicProviderLifecycle),
-    bridge: sourceBridgeStatus()
+    providers: Object.values(memory.providerLifecycle || {}).map(publicProviderLifecycle)
   };
 }
 

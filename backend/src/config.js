@@ -1,9 +1,6 @@
 import { bool, int, optionalSecret, requiredSecret, text } from './env.js';
 
-// R6.8.18 direct-source safety: legacy Sportsbook session secrets from older
-// deployments must not affect the public Terus Hebat Unggul bridge.
-const directSportsSourceReleaseLocked = process.env.NODE_ENV === 'production';
-const ignoreSportsSourceLegacySecrets = directSportsSourceReleaseLocked || bool('SPORTS_SOURCE_IGNORE_LEGACY_SECRETS', true);
+const isProduction = process.env.NODE_ENV === 'production';
 const apiSportsKey = optionalSecret('API_SPORTS_KEY');
 const theOddsApiKey = optionalSecret('THE_ODDS_API_KEY');
 const sharpApiKey = optionalSecret('SHARP_API_KEY');
@@ -12,7 +9,7 @@ const footballDataIoKey = optionalSecret('FOOTBALLDATA_IO_KEY');
 const sportmonksKey = optionalSecret('SPORTMONKS_API_KEY');
 function pricedProviderEnabled(name, key) {
   const raw = String(process.env[name] ?? '').trim().toLowerCase();
-  if (!raw || raw === 'auto') return directSportsSourceReleaseLocked && Boolean(key);
+  if (!raw || raw === 'auto') return isProduction && Boolean(key);
   return ['1', 'true', 'yes', 'on'].includes(raw);
 }
 
@@ -83,41 +80,8 @@ export const config = Object.freeze({
   totoSourceFailCooldownSeconds: int('TOTO_SOURCE_FAIL_COOLDOWN_SECONDS', 300, 30, 3600),
   totoSourceRotationEnabled: bool('TOTO_SOURCE_ROTATION_ENABLED', true),
 
-  // Direct public Sportsbook source bridge. Sensitive session values support *_FILE.
-  sportsSourceName: directSportsSourceReleaseLocked ? 'SBOTOP Public Football Mirror Feed' : text('SPORTS_SOURCE_NAME', 'SBOTOP Public Football Mirror Feed'),
-  sportsSourceBaseUrl: directSportsSourceReleaseLocked ? 'https://www.kerjahebatberhasil.com/' : text('SPORTS_SOURCE_BASE_URL', 'https://www.kerjahebatberhasil.com/'),
-  sportsSourceAllowedHost: directSportsSourceReleaseLocked ? 'www.kerjahebatberhasil.com' : text('SPORTS_SOURCE_ALLOWED_HOST', ''),
-  sportsSourceAllowedDomain: directSportsSourceReleaseLocked ? 'kerjahebatberhasil.com' : text('SPORTS_SOURCE_ALLOWED_DOMAIN', 'kerjahebatberhasil.com'),
-  // R6.9.0.10: public SBOTOP mirror pool. The primary mirror is fetched directly; legacy/migration hosts remain explicit fallbacks.
-  // Cross-domain hops always drop cookies/authorization/referer and an HTTP alias may only
-  // be used as a redirect hop; final priced content must still arrive over HTTPS.
-  sportsSourceTrustedRedirectDomains: directSportsSourceReleaseLocked ? 'hiduprukunsejahtera.com,terushebatunggul.com,pastimenangpasti.com' : text('SPORTS_SOURCE_TRUSTED_REDIRECT_DOMAINS', 'hiduprukunsejahtera.com,terushebatunggul.com,pastimenangpasti.com'),
-  sportsSourceCandidateUrls: directSportsSourceReleaseLocked ? 'https://www.kerjahebatberhasil.com/id-ID/sports;https://www.hiduprukunsejahtera.com/id-ID/sports;https://www.terushebatunggul.com/id-ID/euro/sepak-bola;https://www.terushebatunggul.com/id-ID/euro/taruhan-live/sepak-bola' : text('SPORTS_SOURCE_CANDIDATE_URLS', 'https://www.kerjahebatberhasil.com/id-ID/sports;https://www.hiduprukunsejahtera.com/id-ID/sports;https://www.terushebatunggul.com/id-ID/euro/sepak-bola;https://www.terushebatunggul.com/id-ID/euro/taruhan-live/sepak-bola'),
-  sportsSourceAllowPublicEdgeRedirect: bool('SPORTS_SOURCE_ALLOW_PUBLIC_EDGE_REDIRECT', directSportsSourceReleaseLocked),
-  sportsSourceMaxRedirects: int('SPORTS_SOURCE_MAX_REDIRECTS', 5, 0, 8),
-  sportsSourcePanelPath: directSportsSourceReleaseLocked ? '' : text('SPORTS_SOURCE_PANEL_PATH', ''),
-  sportsSourceMainPath: directSportsSourceReleaseLocked ? 'id-ID/sports' : text('SPORTS_SOURCE_MAIN_PATH', 'id-ID/sports'),
-  sportsSourceLivePath: directSportsSourceReleaseLocked ? '' : text('SPORTS_SOURCE_LIVE_PATH', ''),
-  sportsSourceDetailEnabled: bool('SPORTS_SOURCE_DETAIL_ENABLED', true),
-  sportsSourceDetailRefreshSeconds: int('SPORTS_SOURCE_DETAIL_REFRESH_SECONDS', 15, 10, 600),
-  sportsSourceDetailPrematchRefreshSeconds: int('SPORTS_SOURCE_DETAIL_PREMATCH_REFRESH_SECONDS', 90, 30, 3600),
-  sportsSourceScheduleDiscoveryEnabled: bool('SPORTS_SOURCE_SCHEDULE_DISCOVERY_ENABLED', true),
-  sportsSourceScheduleRefreshSeconds: int('SPORTS_SOURCE_SCHEDULE_REFRESH_SECONDS', 60, 15, 900),
-  sportsSourceScheduleMaxPages: int('SPORTS_SOURCE_SCHEDULE_MAX_PAGES', 8, 1, 16),
-  sportsSourceIgnoreLegacySecrets: ignoreSportsSourceLegacySecrets,
-  sportsSourceRef: ignoreSportsSourceLegacySecrets ? '' : optionalSecret('SPORTS_SOURCE_REF'),
-  sportsSourceCookie: ignoreSportsSourceLegacySecrets ? '' : optionalSecret('SPORTS_SOURCE_COOKIE'),
-  sportsSourceAuthorization: ignoreSportsSourceLegacySecrets ? '' : optionalSecret('SPORTS_SOURCE_AUTHORIZATION'),
-  sportsSourceReferer: directSportsSourceReleaseLocked ? 'https://www.kerjahebatberhasil.com/id-ID/sports' : text('SPORTS_SOURCE_REFERER', 'https://www.kerjahebatberhasil.com/id-ID/sports'),
-  sportsSourceUserAgent: text('SPORTS_SOURCE_USER_AGENT', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151.0.0.0 Safari/537.36 SBOTOTO/6.8.16'),
-  sportsSourceTimeoutMs: int('SPORTS_SOURCE_TIMEOUT_MS', 12000, 2000, 30000),
-  sportsSourceRefreshSeconds: int('SPORTS_SOURCE_REFRESH_SECONDS', 8, 3, 60),
+  // Background poll gate for the consolidated sportsbook feed refresh (worker.js).
   sportsSourceBackgroundPollEnabled: bool('SPORTS_SOURCE_BACKGROUND_POLL_ENABLED', true),
-  sportsSourceBrowserEnabled: bool('SPORTS_SOURCE_BROWSER_ENABLED', true),
-  sportsSourceBrowserExecutable: text('SPORTS_SOURCE_BROWSER_EXECUTABLE', '/usr/bin/chromium'),
-  sportsSourceBrowserTimeoutMs: int('SPORTS_SOURCE_BROWSER_TIMEOUT_MS', 25000, 5000, 60000),
-  sportsSourceBrowserSettleMs: int('SPORTS_SOURCE_BROWSER_SETTLE_MS', 9000, 1000, 30000),
-  sportsSourceBrowserCacheSeconds: int('SPORTS_SOURCE_BROWSER_CACHE_SECONDS', 20, 5, 300),
 
   // Provider credentials are read only by core and may be mounted as Docker secrets.
   apiSportsKey,
@@ -133,11 +97,11 @@ export const config = Object.freeze({
   sharpApiSport: text('SHARP_API_SPORT', 'soccer'),
   // Production fetches the complete SharpAPI soccer catalog. Filtering to only main/spread/total/1st_half
   // silently discarded BTTS, Double Chance, team totals and other provider markets.
-  sharpApiMarkets: directSportsSourceReleaseLocked ? '' : text('SHARP_API_MARKETS', 'main,spread,total,1st_half'),
+  sharpApiMarkets: isProduction ? '' : text('SHARP_API_MARKETS', 'main,spread,total,1st_half'),
   sharpApiSportsbook: text('SHARP_API_SPORTSBOOK', ''),
   sharpApiPreferredSportsbooks: text('SHARP_API_PREFERRED_SPORTSBOOKS', 'sbobet,pinnacle,bet365'),
-  sharpApiRefreshSeconds: int('SHARP_API_REFRESH_SECONDS', directSportsSourceReleaseLocked ? 45 : 30, 15, 1800),
-  sharpApiMaxPages: int('SHARP_API_MAX_PAGES', directSportsSourceReleaseLocked ? 5 : 3, 1, 10),
+  sharpApiRefreshSeconds: int('SHARP_API_REFRESH_SECONDS', isProduction ? 45 : 30, 15, 1800),
+  sharpApiMaxPages: int('SHARP_API_MAX_PAGES', isProduction ? 5 : 3, 1, 10),
   sharpApiPageSize: int('SHARP_API_PAGE_SIZE', 200, 25, 200),
   sharpApiMainLinesOnly: bool('SHARP_API_MAIN_LINES_ONLY', false),
   theOddsApiKey,
@@ -244,7 +208,7 @@ export const config = Object.freeze({
   // R6.9.0.12: when autonomous FT result authority is unavailable, healthy prematch
   // SharpAPI prices may be accepted with an explicit operator-settlement guarantee.
   // This never applies to LIVE or 1H markets and never fabricates result scores.
-  sportsbookManualFtSettlementFallbackEnabled: directSportsSourceReleaseLocked ? true : bool('SPORTSBOOK_MANUAL_FT_SETTLEMENT_FALLBACK_ENABLED', false),
+  sportsbookManualFtSettlementFallbackEnabled: isProduction ? true : bool('SPORTSBOOK_MANUAL_FT_SETTLEMENT_FALLBACK_ENABLED', false),
   sportsbookAutoSettlementEnabled: bool('SPORTSBOOK_AUTO_SETTLEMENT_ENABLED', true),
   sportsbookAutoSettlementSeconds: int('SPORTSBOOK_AUTO_SETTLEMENT_SECONDS', 30, 15, 600),
   sportsbookCashoutEnabled: bool('SPORTSBOOK_CASHOUT_ENABLED', true),

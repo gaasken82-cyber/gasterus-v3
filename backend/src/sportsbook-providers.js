@@ -1005,7 +1005,7 @@ function applyManualFtSettlementFallback(event, { enabled = config.sportsbookMan
   const readySources = new Set(Array.isArray(event._settlementReadySources) ? event._settlementReadySources : []);
   // Automatic authority always wins. The fallback is only a settlement guarantee for
   // healthy prematch SharpAPI pricing; it is not a score/result source.
-  if (readySources.has('api-sports') || readySources.has('source-bridge') || readySources.has('public-market') || readySources.has('footballdata-io')) return event;
+  if (readySources.has('api-sports') || readySources.has('public-market') || readySources.has('footballdata-io')) return event;
   const fallbackPricingSource = eventSources.has('sharpapi') && readySources.has('sharpapi')
     ? 'sharpapi'
     : eventSources.has('public-market') && readySources.has('public-market')
@@ -1028,7 +1028,7 @@ function applyManualFtSettlementFallback(event, { enabled = config.sportsbookMan
 function applySettlementSafety(event) {
   const readySources = Array.isArray(event._settlementReadySources) ? event._settlementReadySources : event._sources || [];
   const sources = new Set(readySources);
-  const supportsFullTimeSettlement = sources.has('api-sports') || sources.has('source-bridge') || sources.has('public-market') || sources.has('footballdata-io') || sources.has('sportmonks') || sources.has('manual-ops');
+  const supportsFullTimeSettlement = sources.has('api-sports') || sources.has('public-market') || sources.has('footballdata-io') || sources.has('sportmonks') || sources.has('manual-ops');
   const supportsHalfTimeSettlement = sources.has('api-sports') || sources.has('public-market');
   event.markets = (event.markets || []).map(market => {
     const period = market.period || 'FT';

@@ -18,12 +18,12 @@ function directSourceEvent() {
       id: 'source-ft-1x2',
       type: '1X2',
       period: 'FT',
-      source: 'source-bridge',
+      source: 'public-market',
       suspended: false,
       selections: [
-        { key: 'home', odds: 1.91, source: 'source-bridge', suspended: false },
-        { key: 'draw', odds: 3.2, source: 'source-bridge', suspended: false },
-        { key: 'away', odds: 4.1, source: 'source-bridge', suspended: false }
+        { key: 'home', odds: 1.91, source: 'public-market', suspended: false },
+        { key: 'draw', odds: 3.2, source: 'public-market', suspended: false },
+        { key: 'away', odds: 4.1, source: 'public-market', suspended: false }
       ]
     }]
   }];
@@ -31,7 +31,7 @@ function directSourceEvent() {
 
 test('R6.9.0.11 fresh direct source becomes provider-healthy on its first healthy generation sample', () => {
   const next = advanceProviderLifecycle(null, {
-    code: 'source-bridge',
+    code: 'public-market',
     enabled: true,
     transportHealthy: true,
     pricingReady: true
