@@ -86,20 +86,20 @@
     <!-- 6. Login Form Direct Area -->
     <section class="login-section">
       <div class="login-title">Silahkan login untuk mulai bermain</div>
-      <form id="loginForm" onsubmit="event.preventDefault(); window.location.href='member.html';">
+      <form id="loginForm">
         <div class="inp-wrap">
           <span class="inp-icon">👤</span>
-          <input id="username" type="text" autocomplete="username" minlength="3" maxlength="40" placeholder="Username" required>
+          <input id="username" name="username" type="text" autocomplete="username" minlength="3" maxlength="40" placeholder="Username" required>
         </div>
         <div class="inp-wrap">
           <span class="inp-icon">🔒</span>
-          <input id="password" type="password" autocomplete="current-password" minlength="6" maxlength="72" placeholder="Password" required>
+          <input id="password" name="password" type="password" autocomplete="current-password" minlength="6" maxlength="72" placeholder="Password" required>
           <button class="inp-eye" type="button" id="togglePass" aria-label="Toggle Password">👁</button>
         </div>
         <label class="lite-mode">
           <input type="checkbox" id="liteCheck"> Lite Mode
         </label>
-        <button class="btn-login" type="submit">Log in</button>
+        <button class="btn-login" type="submit" id="btnLogin">Log in</button>
       </form>
       <button class="btn-daftar" type="button" onclick="window.location.href='register.html';">Daftar</button>
     </section>
@@ -470,5 +470,40 @@ document.getElementById("navBackdrop")?.addEventListener("click",closeNav);
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeNav();});
 })();
 </script>
+<script type="module">
+import auth from '/js/auth.js';
+import { showToast } from '/js/utils.js';
+
+const loginForm = document.getElementById('loginForm');
+const btnLogin = document.getElementById('btnLogin');
+
+if (loginForm && btnLogin) {
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = loginForm.username?.value?.trim() || document.getElementById('username')?.value?.trim() || '';
+    const password = loginForm.password?.value || document.getElementById('password')?.value || '';
+
+    if (!username || !password) {
+      showToast('Mohon masukkan username dan password.', 'warning');
+      return;
+    }
+
+    btnLogin.disabled = true;
+    btnLogin.textContent = 'Memproses...';
+
+    try {
+      await auth.login(username, password);
+      showToast('Login berhasil! Selamat datang kembali.', 'success');
+      setTimeout(() => {
+        window.location.href = '/member.html';
+      }, 600);
+    } catch (err) {
+      btnLogin.disabled = false;
+      btnLogin.textContent = 'Log in';
+    }
+  });
+}
+</script>
+
 </body>
 </html>
