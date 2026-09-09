@@ -203,5 +203,34 @@
     import { initDeposit } from '/js/transaction.js';
     initDeposit();
   </script>
+<script>
+    (function () {
+      function openNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.querySelector('.nav-drawer-backdrop');
+        if (drawer) drawer.classList.add('open');
+        if (backdrop) backdrop.classList.add('show');
+        document.body.classList.add('nav-open');
+      }
+      function closeNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.querySelector('.nav-drawer-backdrop');
+        if (drawer) drawer.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.classList.remove('nav-open');
+      }
+      document.querySelectorAll('[data-nav-open]').forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) { e.preventDefault(); openNav(); });
+      });
+      document.querySelectorAll('[data-nav-close]').forEach(function (el) {
+        el.addEventListener('click', closeNav);
+      });
+      var bd = document.querySelector('.nav-drawer-backdrop');
+      if (bd) bd.addEventListener('click', closeNav);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeNav();
+      });
+    })();
+  </script>
 </body>
 </html>

@@ -33,7 +33,24 @@ export const TOTO_SOURCES = Object.freeze([
   { code: 'belizepools-mid', name: 'Belize Pools Midday', url: config.totoBelizePoolsUrl + 'live-draw-midday/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
   { code: 'belizepools-eve', name: 'Belize Pools Evening', url: config.totoBelizePoolsUrl + 'live-draw-evening/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
   { code: 'belizepools-ngt', name: 'Belize Pools Night', url: config.totoBelizePoolsUrl + 'live-draw-night/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
-  { code: 'meridapools', name: 'Merida Pools Official', url: config.totoMeridaPoolsUrl, parser: 'pools-draw', family: 'meridapools.org', authority: true }
+  { code: 'meridapools', name: 'Merida Pools Official', url: config.totoMeridaPoolsUrl, parser: 'pools-draw', family: 'meridapools.org', authority: true },
+  // Vegasnet live-result widget: plain HTTP table (no Chromium). One lightweight
+  // request per show_id; each page is a single <table> row (Pasaran/Tanggal/Hasil)
+  // parsed by the generic 'vegasnet-table' table-rows parser. show_id list covers
+  // the pools mapped in toto-source-map.json ("vegasnet" alias entries).
+  {
+    code: 'vegasnet',
+    name: 'Vegasnet Live Result Widget',
+    url: 'https://widgets.vegasnet.info/result.php',
+    parser: 'vegasnet-table',
+    family: 'vegasnet.info',
+    combineAll: true,
+    showIds: [
+      2, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 21, 30, 38, 39, 40, 42, 43, 44,
+      45, 48, 49, 51, 54, 55, 57, 59, 60, 61, 63, 65, 66, 67, 70, 71, 74, 76,
+      77, 84, 88, 89, 94, 98, 101, 110, 113, 114, 115, 116, 138, 139, 157, 166
+    ]
+  }
 ]);
 
 function clean(value) { return String(value ?? '').replace(/\s+/g, ' ').trim(); }
@@ -142,6 +159,38 @@ export async function mapLimit(items, limit, mapper) {
 
 async function collectOneSource(source, fetchImpl) {
   const started = Date.now();
+  // Vegasnet widget: fetch every show_id page (plain HTTP), merge the single-row
+  // tables into one combined HTML document for the table-rows parser. Individual
+  // show_id failures are tolerated as long as at least one page succeeds.
+  if (source.combineAll && Array.isArray(source.showIds) && source.showIds.length) {
+    const pages = await mapLimit(source.showIds, 4, async (showId) => {
+      try {
+        const document = await fetchTotoDocument({ ...source, url: `${source.url}?show_id=${showId}` }, fetchImpl);
+        return { showId, html: document.html, status: document.status };
+      } catch (error) {
+        return { showId, html: '', status: null, error: clean(error.message) };
+      }
+    });
+    const okPages = pages.filter(page => page.html);
+    const html = okPages.map(page => page.html).join('\n');
+    const bytes = Buffer.byteLength(html);
+    const attempts = [
+      ...pages.filter(page => !page.html).map(page => ({ url: `${source.url}?show_id=${page.showId}`, ok: false, status: null, finalUrl: null, bytes: 0, error: page.error || 'VEGASNET_SHOWID_FAILED' })),
+      { url: `${source.url}?show_id=*(${okPages.length}/${source.showIds.length})`, ok: Boolean(html), status: html ? 200 : null, finalUrl: source.url, bytes, error: html ? null : 'VEGASNET_ALL_SHOWIDS_FAILED' }
+    ];
+    return {
+      ...source,
+      ok: Boolean(html),
+      html,
+      bytes,
+      status: html ? 200 : null,
+      finalUrl: source.url,
+      contentType: html ? 'text/html; combined=vegasnet' : null,
+      latencyMs: Date.now() - started,
+      attempts,
+      error: html ? null : 'VEGASNET_ALL_SHOWIDS_FAILED'
+    };
+  }
   const attempts = [];
   for (const candidate of uniqueUrls(source)) {
     try {

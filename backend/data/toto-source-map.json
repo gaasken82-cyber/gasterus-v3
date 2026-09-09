@@ -1,904 +1,958 @@
 [
-  {
-    "sortOrder": 1,
-    "name": "KING KONG 4D POOL",
-    "slug": "king-kong-4d-pool",
-    "sources": {
-      "cindototo": "King Kong 4D",
-      "sumtoto": [
-        "King Kong 4D"
-      ],
-      "datatoto": "King Kong 4D",
-      "masterlive": "King Kong 4D"
-    }
-  },
-  {
-    "sortOrder": 2,
-    "name": "5D TOTO MACAU POOL",
-    "slug": "5d-toto-macau-pool",
-    "sources": {
-      "datatoto": "Macau 21",
-      "masterlive": "TOTO MACAU 5D - 2",
-      "kingkonginfo": "Macau 21"
-    },
-    "authoritySources": [
-      "kingkonginfo"
-    ]
-  },
-  {
-    "sortOrder": 3,
-    "name": "4D TOTO MACAU POOL",
-    "slug": "4d-toto-macau-pool",
-    "sources": {
-      "poskopaito": "Toto Macau 1",
-      "masterlive": "TOTO MACAU 1",
-      "datatoto": "Macau 00"
-    }
-  },
-  {
-    "sortOrder": 4,
-    "name": "HONGKONG POOL",
-    "slug": "hongkong-pool",
-    "sources": {
-      "poskopaito": "Hongkong Lotto",
-      "datatoto": "Hklotto"
-    }
-  },
-  {
-    "sortOrder": 5,
-    "name": "SYDNEY POOL",
-    "slug": "sydney-pool",
-    "sources": {
-      "poskopaito": "Sydney Pools",
-      "masterlive": "SYDNEY"
-    }
-  },
-  {
-    "sortOrder": 6,
-    "name": "NEWYORK POOL",
-    "slug": "newyork-pool",
-    "sources": {
-      "cindototo": "NEWYORK",
-      "sumtoto": [
-        "NEWYORK"
-      ],
-      "datatoto": "NEWYORK",
-      "masterlive": "NEWYORK"
-    }
-  },
-  {
-    "sortOrder": 7,
-    "name": "SINGAPORE POOL",
-    "slug": "singapore-pool",
-    "sources": {
-      "poskopaito": "Singapore",
-      "masterlive": "SINGAPORE",
-      "datatoto": "Singapore"
-    }
-  },
-  {
-    "sortOrder": 8,
-    "name": "WELLINGTON POOL",
-    "slug": "wellington-pool",
-    "sources": {
-      "cindototo": "WELLINGTON",
-      "sumtoto": [
-        "WELLINGTON"
-      ],
-      "datatoto": "WELLINGTON",
-      "masterlive": "WELLINGTON"
-    }
-  },
-  {
-    "sortOrder": 9,
-    "name": "PRAGUE POOL",
-    "slug": "prague-pool",
-    "sources": {
-      "cindototo": "PRAGUE",
-      "sumtoto": [
-        "PRAGUE",
-        "PARAGUE"
-      ],
-      "datatoto": "PRAGUE",
-      "masterlive": "PRAGUE"
-    }
-  },
-  {
-    "sortOrder": 10,
-    "name": "SEATTLE POOL",
-    "slug": "seattle-pool",
-    "sources": {
-      "cindototo": "SEATTLE",
-      "sumtoto": [
-        "SEATTLE"
-      ],
-      "datatoto": "SEATTLE",
-      "masterlive": "SEATTLE"
-    }
-  },
-  {
-    "sortOrder": 11,
-    "name": "MEDELLIN POOL",
-    "slug": "medellin-pool",
-    "sources": {
-      "cindototo": "MEDELLIN",
-      "sumtoto": [
-        "MEDELLIN"
-      ],
-      "datatoto": "MEDELLIN",
-      "masterlive": "MEDELLIN"
-    }
-  },
-  {
-    "sortOrder": 12,
-    "name": "EMERLAD POOL",
-    "slug": "emerlad-pool",
-    "sources": {
-      "cindototo": "EMERLAD",
-      "sumtoto": [
-        "EMERALD",
-        "EMERLAD"
-      ],
-      "datatoto": "EMERLAD",
-      "masterlive": "EMERLAD"
-    }
-  },
-  {
-    "sortOrder": 13,
-    "name": "AUCKLAND POOL",
-    "slug": "auckland-pool",
-    "sources": {
-      "cindototo": "AUCKLAND",
-      "sumtoto": [
-        "AUCKLAND"
-      ],
-      "datatoto": "AUCKLAND",
-      "masterlive": "AUCKLAND"
-    }
-  },
-  {
-    "sortOrder": 14,
-    "name": "NAPIER HASTI POOL",
-    "slug": "napier-hasti-pool",
-    "sources": {
-      "cindototo": "NAPIER HASTI",
-      "sumtoto": [
-        "NAPIER-HASTI",
-        "NAPIER HASTI"
-      ],
-      "datatoto": "NAPIER HASTI",
-      "masterlive": "NAPIER HASTI"
-    }
-  },
-  {
-    "sortOrder": 15,
-    "name": "CHRISTCHURCH POOL",
-    "slug": "christchurch-pool",
-    "sources": {
-      "cindototo": "CHRISTCHURCH",
-      "sumtoto": [
-        "CHRISTCHURCH"
-      ],
-      "datatoto": "CHRISTCHURCH",
-      "masterlive": "CHRISTCHURCH"
-    }
-  },
-  {
-    "sortOrder": 16,
-    "name": "TAURANGA POOL",
-    "slug": "tauranga-pool",
-    "sources": {
-      "cindototo": "TAURANGA",
-      "sumtoto": [
-        "TAURANGA"
-      ],
-      "datatoto": "TAURANGA",
-      "masterlive": "TAURANGA"
-    }
-  },
-  {
-    "sortOrder": 17,
-    "name": "CHINA POOL",
-    "slug": "china-pool",
-    "sources": {
-      "poskopaito": "China",
-      "masterlive": "CHINA",
-      "datatoto": "China"
-    }
-  },
-  {
-    "sortOrder": 18,
-    "name": "NELSON POOL",
-    "slug": "nelson-pool",
-    "sources": {
-      "cindototo": "NELSON",
-      "sumtoto": [
-        "NELSON"
-      ],
-      "datatoto": "NELSON",
-      "masterlive": "NELSON"
-    }
-  },
-  {
-    "sortOrder": 19,
-    "name": "CALIFORNIA POOL",
-    "slug": "california-pool",
-    "sources": {
-      "poskopaito": "California",
-      "datatoto": "California"
-    }
-  },
-  {
-    "sortOrder": 20,
-    "name": "PCSO POOL",
-    "slug": "pcso-pool",
-    "sources": {
-      "poskopaito": "Pcso",
-      "datatoto": "Pcso"
-    }
-  },
-  {
-    "sortOrder": 21,
-    "name": "INVERCARGILL POOL",
-    "slug": "invercargill-pool",
-    "sources": {
-      "cindototo": "INVERCARGILL",
-      "sumtoto": [
-        "INVERCARGILL"
-      ],
-      "datatoto": "INVERCARGILL",
-      "masterlive": "INVERCARGILL"
-    }
-  },
-  {
-    "sortOrder": 22,
-    "name": "QUEENSTOWN POOL",
-    "slug": "queenstown-pool",
-    "sources": {
-      "cindototo": "QUEENSTOWN",
-      "sumtoto": [
-        "QUEENSTOWN"
-      ],
-      "datatoto": "QUEENSTOWN",
-      "masterlive": "QUEENSTOWN"
-    }
-  },
-  {
-    "sortOrder": 23,
-    "name": "ROTORUA POOL",
-    "slug": "rotorua-pool",
-    "sources": {
-      "cindototo": "ROTORUA",
-      "sumtoto": [
-        "ROTORUA"
-      ],
-      "datatoto": "ROTORUA",
-      "masterlive": "ROTORUA"
-    }
-  },
-  {
-    "sortOrder": 24,
-    "name": "NEW PLYMOUTH POOL",
-    "slug": "new-plymouth-pool",
-    "sources": {
-      "cindototo": "NEW PLYMOUTH",
-      "sumtoto": [
-        "NEW-PLYMOUTH",
-        "NEW PLYMOUTH"
-      ],
-      "datatoto": "NEW PLYMOUTH",
-      "masterlive": "NEW PLYMOUTH"
-    }
-  },
-  {
-    "sortOrder": 25,
-    "name": "GISBORNE POOL",
-    "slug": "gisborne-pool",
-    "sources": {
-      "cindototo": "GISBORNE",
-      "sumtoto": [
-        "GISBORNE"
-      ],
-      "datatoto": "GISBORNE",
-      "masterlive": "GISBORNE"
-    }
-  },
-  {
-    "sortOrder": 26,
-    "name": "WHANG REI POOL",
-    "slug": "whang-rei-pool",
-    "sources": {
-      "cindototo": "WHANG REI",
-      "sumtoto": [
-        "WHANG-REI",
-        "WHANG REI"
-      ],
-      "datatoto": "WHANG REI",
-      "masterlive": "WHANG REI"
-    }
-  },
-  {
-    "sortOrder": 27,
-    "name": "PALMERSTON POOL",
-    "slug": "palmerston-pool",
-    "sources": {
-      "cindototo": "PALMERSTON",
-      "sumtoto": [
-        "PALMERSTON N",
-        "PALMERSTON"
-      ],
-      "datatoto": "PALMERSTON",
-      "masterlive": "PALMERSTON"
-    }
-  },
-  {
-    "sortOrder": 28,
-    "name": "BULLSEYE POOL",
-    "slug": "bullseye-pool",
-    "sources": {
-      "poskopaito": "Bullseye",
-      "datatoto": "Bullseye",
-      "kingkonginfo": "Bullseye"
-    }
-  },
-  {
-    "sortOrder": 29,
-    "name": "DUNEDIN POOL",
-    "slug": "dunedin-pool",
-    "sources": {
-      "cindototo": "DUNEDIN",
-      "sumtoto": [
-        "DUNEDIN"
-      ],
-      "datatoto": "DUNEDIN",
-      "masterlive": "DUNEDIN"
-    }
-  },
-  {
-    "sortOrder": 30,
-    "name": "JEPANG POOL",
-    "slug": "jepang-pool",
-    "sources": {
-      "poskopaito": "Japan",
-      "datatoto": "Japan"
-    }
-  },
-  {
-    "sortOrder": 31,
-    "name": "HAMILTON POOL",
-    "slug": "hamilton-pool",
-    "sources": {
-      "cindototo": "HAMILTON",
-      "sumtoto": [
-        "HAMILTON"
-      ],
-      "datatoto": "HAMILTON",
-      "masterlive": "HAMILTON"
-    }
-  },
-  {
-    "sortOrder": 32,
-    "name": "TAIWAN POOL",
-    "slug": "taiwan-pool",
-    "sources": {
-      "poskopaito": "Taiwan",
-      "datatoto": "Taiwan"
-    }
-  },
-  {
-    "sortOrder": 33,
-    "name": "WISCONSIN POOL",
-    "slug": "wisconsin-pool",
-    "sources": {
-      "datatoto": "Wisconsin",
-      "kingkonginfo": "WISCONSIN"
-    }
-  },
-  {
-    "sortOrder": 34,
-    "name": "CAMBODIA POOL",
-    "slug": "cambodia-pool",
-    "sources": {
-      "poskopaito": "Cambodia",
-      "datatoto": "Magnum Cambodia"
-    }
-  },
-  {
-    "sortOrder": 35,
-    "name": "BELIZE MOR POOL",
-    "slug": "belize-mor-pool",
-    "sources": {
-      "cindototo": "BELIZE MOR",
-      "sumtoto": [
-        "BELIZE MOR"
-      ],
-      "datatoto": "BELIZE MOR",
-      "masterlive": "BELIZE MOR",
-      "belizepools-mor": "BELIZE MORNING"
-    }
-  },
-  {
-    "sortOrder": 36,
-    "name": "MERIDA EVE POOL",
-    "slug": "merida-eve-pool",
-    "sources": {
-      "cindototo": "MERIDA EVE",
-      "sumtoto": [
-        "MERIDA EVEN",
-        "MERIDA EVE"
-      ],
-      "datatoto": "MERIDA EVE",
-      "masterlive": "MERIDA EVE",
-      "meridapools": "MERIDA EVEN"
-    }
-  },
-  {
-    "sortOrder": 37,
-    "name": "MERIDA MOR POOL",
-    "slug": "merida-mor-pool",
-    "sources": {
-      "cindototo": "MERIDA MOR",
-      "sumtoto": [
-        "MERIDA MOR"
-      ],
-      "datatoto": "MERIDA MOR",
-      "masterlive": "MERIDA MOR",
-      "meridapools": "MERIDA MORNING"
-    }
-  },
-  {
-    "sortOrder": 38,
-    "name": "MERIDA NIGHT POOL",
-    "slug": "merida-night-pool",
-    "sources": {
-      "cindototo": "MERIDA NIGHT",
-      "sumtoto": [
-        "MERIDA NIGHT"
-      ],
-      "datatoto": "MERIDA NIGHT",
-      "masterlive": "MERIDA NIGHT"
-    }
-  },
-  {
-    "sortOrder": 39,
-    "name": "BELIZE MID POOL",
-    "slug": "belize-mid-pool",
-    "sources": {
-      "cindototo": "BELIZE MID",
-      "sumtoto": [
-        "BELIZE MID"
-      ],
-      "datatoto": "BELIZE MID",
-      "masterlive": "BELIZE MID",
-      "belizepools-mid": "BELIZE MID"
-    }
-  },
-  {
-    "sortOrder": 40,
-    "name": "BELIZE NIGHT POOL",
-    "slug": "belize-night-pool",
-    "sources": {
-      "cindototo": "BELIZE NIGHT",
-      "sumtoto": [
-        "BELIZE NIGHT"
-      ],
-      "datatoto": "BELIZE NIGHT",
-      "masterlive": "BELIZE NIGHT"
-    }
-  },
-  {
-    "sortOrder": 41,
-    "name": "BELIZE EVE POOL",
-    "slug": "belize-eve-pool",
-    "sources": {
-      "cindototo": "BELIZE EVE",
-      "sumtoto": [
-        "BELIZE EVE"
-      ],
-      "datatoto": "BELIZE EVE",
-      "masterlive": "BELIZE EVE",
-      "belizepools-eve": "BELIZE EVEN"
-    }
-  },
-  {
-    "sortOrder": 42,
-    "name": "MERIDA MID POOL",
-    "slug": "merida-mid-pool",
-    "sources": {
-      "cindototo": "MERIDA MID",
-      "sumtoto": [
-        "MERIDA MID"
-      ],
-      "datatoto": "MERIDA MID",
-      "masterlive": "MERIDA MID",
-      "meridapools": "MERIDA MID"
-    }
-  },
-  {
-    "sortOrder": 43,
-    "name": "GEORGIA EVE POOL",
-    "slug": "georgia-eve-pool",
-    "sources": {
-      "poskopaito": "Georgia Evening",
-      "datatoto": "Georgia Evening"
-    }
-  },
-  {
-    "sortOrder": 44,
-    "name": "GEORGIA NGT POOL",
-    "slug": "georgia-ngt-pool",
-    "sources": {
-      "poskopaito": "Georgia Night",
-      "datatoto": "Georgia Night"
-    }
-  },
-  {
-    "sortOrder": 45,
-    "name": "OREGON 1 POOL",
-    "slug": "oregon-1-pool",
-    "sources": {
-      "poskopaito": "Oregon (04:00)",
-      "datatoto": "Oregon 04"
-    }
-  },
-  {
-    "sortOrder": 46,
-    "name": "OREGON 3 POOL",
-    "slug": "oregon-3-pool",
-    "sources": {
-      "poskopaito": "Oregon (10:00)",
-      "datatoto": "Oregon 10"
-    }
-  },
-  {
-    "sortOrder": 47,
-    "name": "OREGON 4 POOL",
-    "slug": "oregon-4-pool",
-    "sources": {
-      "poskopaito": "Oregon (13:00)",
-      "datatoto": "Oregon 13"
-    }
-  },
-  {
-    "sortOrder": 48,
-    "name": "OHIO MID POOL",
-    "slug": "ohio-mid-pool",
-    "sources": {
-      "datatoto": "Ohio Midday",
-      "miototo": "OHIO MID"
-    }
-  },
-  {
-    "sortOrder": 49,
-    "name": "OHIO EVE POOL",
-    "slug": "ohio-eve-pool",
-    "sources": {
-      "datatoto": "Ohio Evening",
-      "miototo": "OHIO EVE"
-    }
-  },
-  {
-    "sortOrder": 50,
-    "name": "NEWYORK EVE POOL",
-    "slug": "newyork-eve-pool",
-    "sources": {
-      "poskopaito": "New York Evening",
-      "datatoto": "New York Evening"
-    }
-  },
-  {
-    "sortOrder": 51,
-    "name": "NEWYORK MID POOL",
-    "slug": "newyork-mid-pool",
-    "sources": {
-      "poskopaito": "New York Midday",
-      "datatoto": "New York Midday"
-    }
-  },
-  {
-    "sortOrder": 52,
-    "name": "OREGON 2 POOL",
-    "slug": "oregon-2-pool",
-    "sources": {
-      "poskopaito": "Oregon (07:00)",
-      "datatoto": "Oregon 07"
-    }
-  },
-  {
-    "sortOrder": 53,
-    "name": "GEORGIA MID POOL",
-    "slug": "georgia-mid-pool",
-    "sources": {
-      "poskopaito": "Georgia Midday",
-      "datatoto": "Georgia Midday"
-    }
-  },
-  {
-    "sortOrder": 54,
-    "name": "MARYLAND MID POOL",
-    "slug": "maryland-mid-pool",
-    "sources": {
-      "datatoto": "Maryland Midday",
-      "kingkonginfo": "MARYLAND MID"
-    }
-  },
-  {
-    "sortOrder": 55,
-    "name": "MARYLAND EVE POOL",
-    "slug": "maryland-eve-pool",
-    "sources": {
-      "datatoto": "Maryland Evening",
-      "kingkonginfo": "MARYLAND EVE"
-    }
-  },
-  {
-    "sortOrder": 56,
-    "name": "MICHIGAN MID POOL",
-    "slug": "michigan-mid-pool",
-    "sources": {
-      "datatoto": "Michigan Midday",
-      "miototo": "MICHIGAN MID"
-    }
-  },
-  {
-    "sortOrder": 57,
-    "name": "MICHIGAN EVE POOL",
-    "slug": "michigan-eve-pool",
-    "sources": {
-      "poskopaito": "Michigan Evening",
-      "datatoto": "Michigan Evening"
-    }
-  },
-  {
-    "sortOrder": 58,
-    "name": "NEWJERSEYMID POOL",
-    "slug": "newjerseymid-pool",
-    "sources": {
-      "poskopaito": "New Jersey Midday",
-      "datatoto": "New Jersey Midday"
-    }
-  },
-  {
-    "sortOrder": 59,
-    "name": "NEWJERSEYEVE POOL",
-    "slug": "newjerseyeve-pool",
-    "sources": {
-      "poskopaito": "New Jersey Evening",
-      "datatoto": "New Jersey Evening"
-    }
-  },
-  {
-    "sortOrder": 60,
-    "name": "KENTUCKY MID POOL",
-    "slug": "kentucky-mid-pool",
-    "sources": {
-      "poskopaito": "Kentucky Midday",
-      "datatoto": "Kentucky Midday"
-    }
-  },
-  {
-    "sortOrder": 61,
-    "name": "KENTUCKY EVE POOL",
-    "slug": "kentucky-eve-pool",
-    "sources": {
-      "poskopaito": "Kentucky Evening",
-      "datatoto": "Kentucky Evening"
-    }
-  },
-  {
-    "sortOrder": 62,
-    "name": "INDIANA MID POOL",
-    "slug": "indiana-mid-pool",
-    "sources": {
-      "poskopaito": "Indiana Midday",
-      "datatoto": "Indiana Midday"
-    }
-  },
-  {
-    "sortOrder": 63,
-    "name": "INDIANA EVE POOL",
-    "slug": "indiana-eve-pool",
-    "sources": {
-      "poskopaito": "Indiana Evening",
-      "datatoto": "Indiana Evening"
-    }
-  },
-  {
-    "sortOrder": 64,
-    "name": "TENNESSE MID POOL",
-    "slug": "tennesse-mid-pool",
-    "sources": {
-      "poskopaito": "Tennesse Midday",
-      "datatoto": "Tennesse Midday"
-    }
-  },
-  {
-    "sortOrder": 65,
-    "name": "TENNESSE MOR POOL",
-    "slug": "tennesse-mor-pool",
-    "sources": {
-      "poskopaito": "Tennesse Morning",
-      "datatoto": "Tennesse Morning"
-    }
-  },
-  {
-    "sortOrder": 66,
-    "name": "TENNESSE EVE POOL",
-    "slug": "tennesse-eve-pool",
-    "sources": {
-      "poskopaito": "Tennesse Evening",
-      "datatoto": "Tennesse Evening"
-    }
-  },
-  {
-    "sortOrder": 67,
-    "name": "TEXAS MOR POOL",
-    "slug": "texas-mor-pool",
-    "sources": {
-      "poskopaito": "Texas Morning",
-      "datatoto": "Texas Morning"
-    }
-  },
-  {
-    "sortOrder": 68,
-    "name": "TEXAS EVE POOL",
-    "slug": "texas-eve-pool",
-    "sources": {
-      "poskopaito": "Texas Evening",
-      "datatoto": "Texas Evening"
-    }
-  },
-  {
-    "sortOrder": 69,
-    "name": "TEXAS DAY POOL",
-    "slug": "texas-day-pool",
-    "sources": {
-      "poskopaito": "Texas Day",
-      "datatoto": "Texas Day"
-    }
-  },
-  {
-    "sortOrder": 70,
-    "name": "TEXAS NIGHT POOL",
-    "slug": "texas-night-pool",
-    "sources": {
-      "poskopaito": "Texas Night",
-      "datatoto": "Texas Night"
-    }
-  },
-  {
-    "sortOrder": 71,
-    "name": "FLORIDA MID POOL",
-    "slug": "florida-mid-pool",
-    "sources": {
-      "poskopaito": "Florida Midday",
-      "datatoto": "Florida Midday"
-    }
-  },
-  {
-    "sortOrder": 72,
-    "name": "FLORIDA EVE POOL",
-    "slug": "florida-eve-pool",
-    "sources": {
-      "poskopaito": "Florida Evening",
-      "datatoto": "Florida Evening"
-    }
-  },
-  {
-    "sortOrder": 73,
-    "name": "RHODE ISLAND POOL",
-    "slug": "rhode-island-pool",
-    "sources": {
-      "datatoto": "Rhode Island",
-      "miototo": "RHODE ISLAND"
-    }
-  },
-  {
-    "sortOrder": 74,
-    "name": "ILLINOIS EVE POOL",
-    "slug": "illinois-eve-pool",
-    "sources": {
-      "datatoto": "Illinois Evening",
-      "kingkonginfo": "ILLINOIS EVE"
-    }
-  },
-  {
-    "sortOrder": 75,
-    "name": "ILLINOIS MID POOL",
-    "slug": "illinois-mid-pool",
-    "sources": {
-      "datatoto": "Illinois Midday",
-      "kingkonginfo": "ILLINOIS MID"
-    }
-  },
-  {
-    "sortOrder": 76,
-    "name": "MISSOURI MID POOL",
-    "slug": "missouri-mid-pool",
-    "sources": {
-      "datatoto": "Missouri Midday",
-      "kingkonginfo": "MISSOURI MID"
-    }
-  },
-  {
-    "sortOrder": 77,
-    "name": "MISSOURI EVE POOL",
-    "slug": "missouri-eve-pool",
-    "sources": {
-      "datatoto": "Missouri Evening",
-      "kingkonginfo": "MISSOURI EVE"
-    }
-  },
-  {
-    "sortOrder": 78,
-    "name": "WASHINGTONMD POOL",
-    "slug": "washingtonmd-pool",
-    "sources": {
-      "poskopaito": "Washington Dc Midday",
-      "datatoto": "Washington Dc Midday"
-    }
-  },
-  {
-    "sortOrder": 79,
-    "name": "WASHINGTONEV POOL",
-    "slug": "washingtonev-pool",
-    "sources": {
-      "poskopaito": "Washington Dc Evening",
-      "datatoto": "Washington Dc Evening"
-    }
-  },
-  {
-    "sortOrder": 80,
-    "name": "DELAWARE NGT POOL",
-    "slug": "delaware-ngt-pool",
-    "sources": {
-      "datatoto": "Delaware Night",
-      "miototo": "DELAWARE NGT"
-    }
-  },
-  {
-    "sortOrder": 81,
-    "name": "DELAWARE DAY POOL",
-    "slug": "delaware-day-pool",
-    "sources": {
-      "datatoto": "Delaware Day",
-      "miototo": "DELAWARE DAY"
-    }
-  },
-  {
-    "sortOrder": 82,
-    "name": "VIRGINIA NGT POOL",
-    "slug": "virginia-ngt-pool",
-    "sources": {
-      "poskopaito": "Virginia Night",
-      "datatoto": "Virginia Night"
-    }
-  },
-  {
-    "sortOrder": 83,
-    "name": "VIRGINIA DAY POOL",
-    "slug": "virginia-day-pool",
-    "sources": {
-      "poskopaito": "Virginia Day",
-      "datatoto": "Virginia Day"
-    }
-  },
-  {
-    "sortOrder": 84,
-    "name": "NORTHCARODAY POOL",
-    "slug": "northcaroday-pool",
-    "sources": {
-      "poskopaito": "North Carolina Day",
-      "datatoto": "North Carolina Day"
-    }
-  },
-  {
-    "sortOrder": 85,
-    "name": "NORTHCAROEVE POOL",
-    "slug": "northcaroeve-pool",
-    "sources": {
-      "poskopaito": "North Carolina Evening",
-      "datatoto": "North Carolina Evening"
-    }
+ {
+  "sortOrder": 1,
+  "name": "KING KONG 4D POOL",
+  "slug": "king-kong-4d-pool",
+  "sources": {
+   "cindototo": "King Kong 4D",
+   "sumtoto": [
+    "King Kong 4D"
+   ],
+   "datatoto": "King Kong 4D",
+   "masterlive": "King Kong 4D"
   }
+ },
+ {
+  "sortOrder": 2,
+  "name": "5D TOTO MACAU POOL",
+  "slug": "5d-toto-macau-pool",
+  "sources": {
+   "datatoto": "Macau 21",
+   "masterlive": "TOTO MACAU 5D - 2",
+   "kingkonginfo": "Macau 21"
+  },
+  "authoritySources": [
+   "kingkonginfo"
+  ]
+ },
+ {
+  "sortOrder": 3,
+  "name": "4D TOTO MACAU POOL",
+  "slug": "4d-toto-macau-pool",
+  "sources": {
+   "poskopaito": "Toto Macau 1",
+   "masterlive": "TOTO MACAU 1",
+   "datatoto": "Macau 00",
+   "vegasnet": "Macau 00"
+  }
+ },
+ {
+  "sortOrder": 4,
+  "name": "HONGKONG POOL",
+  "slug": "hongkong-pool",
+  "sources": {
+   "poskopaito": "Hongkong Lotto",
+   "datatoto": "Hklotto",
+   "vegasnet": "Hkg Lotto"
+  }
+ },
+ {
+  "sortOrder": 5,
+  "name": "SYDNEY POOL",
+  "slug": "sydney-pool",
+  "sources": {
+   "poskopaito": "Sydney Pools",
+   "masterlive": "SYDNEY",
+   "vegasnet": "SYDNEY"
+  }
+ },
+ {
+  "sortOrder": 6,
+  "name": "NEWYORK POOL",
+  "slug": "newyork-pool",
+  "sources": {
+   "cindototo": "NEWYORK",
+   "sumtoto": [
+    "NEWYORK"
+   ],
+   "datatoto": "NEWYORK",
+   "masterlive": "NEWYORK"
+  }
+ },
+ {
+  "sortOrder": 7,
+  "name": "SINGAPORE POOL",
+  "slug": "singapore-pool",
+  "sources": {
+   "poskopaito": "Singapore",
+   "masterlive": "SINGAPORE",
+   "datatoto": "Singapore",
+   "vegasnet": "Singapore"
+  }
+ },
+ {
+  "sortOrder": 8,
+  "name": "WELLINGTON POOL",
+  "slug": "wellington-pool",
+  "sources": {
+   "cindototo": "WELLINGTON",
+   "sumtoto": [
+    "WELLINGTON"
+   ],
+   "datatoto": "WELLINGTON",
+   "masterlive": "WELLINGTON"
+  }
+ },
+ {
+  "sortOrder": 9,
+  "name": "PRAGUE POOL",
+  "slug": "prague-pool",
+  "sources": {
+   "cindototo": "PRAGUE",
+   "sumtoto": [
+    "PRAGUE",
+    "PARAGUE"
+   ],
+   "datatoto": "PRAGUE",
+   "masterlive": "PRAGUE"
+  }
+ },
+ {
+  "sortOrder": 10,
+  "name": "SEATTLE POOL",
+  "slug": "seattle-pool",
+  "sources": {
+   "cindototo": "SEATTLE",
+   "sumtoto": [
+    "SEATTLE"
+   ],
+   "datatoto": "SEATTLE",
+   "masterlive": "SEATTLE"
+  }
+ },
+ {
+  "sortOrder": 11,
+  "name": "MEDELLIN POOL",
+  "slug": "medellin-pool",
+  "sources": {
+   "cindototo": "MEDELLIN",
+   "sumtoto": [
+    "MEDELLIN"
+   ],
+   "datatoto": "MEDELLIN",
+   "masterlive": "MEDELLIN"
+  }
+ },
+ {
+  "sortOrder": 12,
+  "name": "EMERLAD POOL",
+  "slug": "emerlad-pool",
+  "sources": {
+   "cindototo": "EMERLAD",
+   "sumtoto": [
+    "EMERALD",
+    "EMERLAD"
+   ],
+   "datatoto": "EMERLAD",
+   "masterlive": "EMERLAD"
+  }
+ },
+ {
+  "sortOrder": 13,
+  "name": "AUCKLAND POOL",
+  "slug": "auckland-pool",
+  "sources": {
+   "cindototo": "AUCKLAND",
+   "sumtoto": [
+    "AUCKLAND"
+   ],
+   "datatoto": "AUCKLAND",
+   "masterlive": "AUCKLAND"
+  }
+ },
+ {
+  "sortOrder": 14,
+  "name": "NAPIER HASTI POOL",
+  "slug": "napier-hasti-pool",
+  "sources": {
+   "cindototo": "NAPIER HASTI",
+   "sumtoto": [
+    "NAPIER-HASTI",
+    "NAPIER HASTI"
+   ],
+   "datatoto": "NAPIER HASTI",
+   "masterlive": "NAPIER HASTI"
+  }
+ },
+ {
+  "sortOrder": 15,
+  "name": "CHRISTCHURCH POOL",
+  "slug": "christchurch-pool",
+  "sources": {
+   "cindototo": "CHRISTCHURCH",
+   "sumtoto": [
+    "CHRISTCHURCH"
+   ],
+   "datatoto": "CHRISTCHURCH",
+   "masterlive": "CHRISTCHURCH"
+  }
+ },
+ {
+  "sortOrder": 16,
+  "name": "TAURANGA POOL",
+  "slug": "tauranga-pool",
+  "sources": {
+   "cindototo": "TAURANGA",
+   "sumtoto": [
+    "TAURANGA"
+   ],
+   "datatoto": "TAURANGA",
+   "masterlive": "TAURANGA"
+  }
+ },
+ {
+  "sortOrder": 17,
+  "name": "CHINA POOL",
+  "slug": "china-pool",
+  "sources": {
+   "poskopaito": "China",
+   "masterlive": "CHINA",
+   "datatoto": "China",
+   "vegasnet": "China"
+  }
+ },
+ {
+  "sortOrder": 18,
+  "name": "NELSON POOL",
+  "slug": "nelson-pool",
+  "sources": {
+   "cindototo": "NELSON",
+   "sumtoto": [
+    "NELSON"
+   ],
+   "datatoto": "NELSON",
+   "masterlive": "NELSON"
+  }
+ },
+ {
+  "sortOrder": 19,
+  "name": "CALIFORNIA POOL",
+  "slug": "california-pool",
+  "sources": {
+   "poskopaito": "California",
+   "datatoto": "California",
+   "vegasnet": "California"
+  }
+ },
+ {
+  "sortOrder": 20,
+  "name": "PCSO POOL",
+  "slug": "pcso-pool",
+  "sources": {
+   "poskopaito": "Pcso",
+   "datatoto": "Pcso",
+   "vegasnet": "Pcso"
+  }
+ },
+ {
+  "sortOrder": 21,
+  "name": "INVERCARGILL POOL",
+  "slug": "invercargill-pool",
+  "sources": {
+   "cindototo": "INVERCARGILL",
+   "sumtoto": [
+    "INVERCARGILL"
+   ],
+   "datatoto": "INVERCARGILL",
+   "masterlive": "INVERCARGILL"
+  }
+ },
+ {
+  "sortOrder": 22,
+  "name": "QUEENSTOWN POOL",
+  "slug": "queenstown-pool",
+  "sources": {
+   "cindototo": "QUEENSTOWN",
+   "sumtoto": [
+    "QUEENSTOWN"
+   ],
+   "datatoto": "QUEENSTOWN",
+   "masterlive": "QUEENSTOWN"
+  }
+ },
+ {
+  "sortOrder": 23,
+  "name": "ROTORUA POOL",
+  "slug": "rotorua-pool",
+  "sources": {
+   "cindototo": "ROTORUA",
+   "sumtoto": [
+    "ROTORUA"
+   ],
+   "datatoto": "ROTORUA",
+   "masterlive": "ROTORUA"
+  }
+ },
+ {
+  "sortOrder": 24,
+  "name": "NEW PLYMOUTH POOL",
+  "slug": "new-plymouth-pool",
+  "sources": {
+   "cindototo": "NEW PLYMOUTH",
+   "sumtoto": [
+    "NEW-PLYMOUTH",
+    "NEW PLYMOUTH"
+   ],
+   "datatoto": "NEW PLYMOUTH",
+   "masterlive": "NEW PLYMOUTH"
+  }
+ },
+ {
+  "sortOrder": 25,
+  "name": "GISBORNE POOL",
+  "slug": "gisborne-pool",
+  "sources": {
+   "cindototo": "GISBORNE",
+   "sumtoto": [
+    "GISBORNE"
+   ],
+   "datatoto": "GISBORNE",
+   "masterlive": "GISBORNE"
+  }
+ },
+ {
+  "sortOrder": 26,
+  "name": "WHANG REI POOL",
+  "slug": "whang-rei-pool",
+  "sources": {
+   "cindototo": "WHANG REI",
+   "sumtoto": [
+    "WHANG-REI",
+    "WHANG REI"
+   ],
+   "datatoto": "WHANG REI",
+   "masterlive": "WHANG REI"
+  }
+ },
+ {
+  "sortOrder": 27,
+  "name": "PALMERSTON POOL",
+  "slug": "palmerston-pool",
+  "sources": {
+   "cindototo": "PALMERSTON",
+   "sumtoto": [
+    "PALMERSTON N",
+    "PALMERSTON"
+   ],
+   "datatoto": "PALMERSTON",
+   "masterlive": "PALMERSTON"
+  }
+ },
+ {
+  "sortOrder": 28,
+  "name": "BULLSEYE POOL",
+  "slug": "bullseye-pool",
+  "sources": {
+   "poskopaito": "Bullseye",
+   "datatoto": "Bullseye",
+   "kingkonginfo": "Bullseye",
+   "vegasnet": "Bullseye"
+  }
+ },
+ {
+  "sortOrder": 29,
+  "name": "DUNEDIN POOL",
+  "slug": "dunedin-pool",
+  "sources": {
+   "cindototo": "DUNEDIN",
+   "sumtoto": [
+    "DUNEDIN"
+   ],
+   "datatoto": "DUNEDIN",
+   "masterlive": "DUNEDIN"
+  }
+ },
+ {
+  "sortOrder": 30,
+  "name": "JEPANG POOL",
+  "slug": "jepang-pool",
+  "sources": {
+   "poskopaito": "Japan",
+   "datatoto": "Japan",
+   "vegasnet": "Japan"
+  }
+ },
+ {
+  "sortOrder": 31,
+  "name": "HAMILTON POOL",
+  "slug": "hamilton-pool",
+  "sources": {
+   "cindototo": "HAMILTON",
+   "sumtoto": [
+    "HAMILTON"
+   ],
+   "datatoto": "HAMILTON",
+   "masterlive": "HAMILTON"
+  }
+ },
+ {
+  "sortOrder": 32,
+  "name": "TAIWAN POOL",
+  "slug": "taiwan-pool",
+  "sources": {
+   "poskopaito": "Taiwan",
+   "datatoto": "Taiwan",
+   "vegasnet": "Taiwan"
+  }
+ },
+ {
+  "sortOrder": 33,
+  "name": "WISCONSIN POOL",
+  "slug": "wisconsin-pool",
+  "sources": {
+   "datatoto": "Wisconsin",
+   "kingkonginfo": "WISCONSIN",
+   "vegasnet": "Wisconsin"
+  }
+ },
+ {
+  "sortOrder": 34,
+  "name": "CAMBODIA POOL",
+  "slug": "cambodia-pool",
+  "sources": {
+   "poskopaito": "Cambodia",
+   "datatoto": "Magnum Cambodia",
+   "vegasnet": "Cambodia"
+  }
+ },
+ {
+  "sortOrder": 35,
+  "name": "BELIZE MOR POOL",
+  "slug": "belize-mor-pool",
+  "sources": {
+   "cindototo": "BELIZE MOR",
+   "sumtoto": [
+    "BELIZE MOR"
+   ],
+   "datatoto": "BELIZE MOR",
+   "masterlive": "BELIZE MOR",
+   "belizepools-mor": "BELIZE MORNING"
+  }
+ },
+ {
+  "sortOrder": 36,
+  "name": "MERIDA EVE POOL",
+  "slug": "merida-eve-pool",
+  "sources": {
+   "cindototo": "MERIDA EVE",
+   "sumtoto": [
+    "MERIDA EVEN",
+    "MERIDA EVE"
+   ],
+   "datatoto": "MERIDA EVE",
+   "masterlive": "MERIDA EVE",
+   "meridapools": "MERIDA EVEN"
+  }
+ },
+ {
+  "sortOrder": 37,
+  "name": "MERIDA MOR POOL",
+  "slug": "merida-mor-pool",
+  "sources": {
+   "cindototo": "MERIDA MOR",
+   "sumtoto": [
+    "MERIDA MOR"
+   ],
+   "datatoto": "MERIDA MOR",
+   "masterlive": "MERIDA MOR",
+   "meridapools": "MERIDA MORNING"
+  }
+ },
+ {
+  "sortOrder": 38,
+  "name": "MERIDA NIGHT POOL",
+  "slug": "merida-night-pool",
+  "sources": {
+   "cindototo": "MERIDA NIGHT",
+   "sumtoto": [
+    "MERIDA NIGHT"
+   ],
+   "datatoto": "MERIDA NIGHT",
+   "masterlive": "MERIDA NIGHT"
+  }
+ },
+ {
+  "sortOrder": 39,
+  "name": "BELIZE MID POOL",
+  "slug": "belize-mid-pool",
+  "sources": {
+   "cindototo": "BELIZE MID",
+   "sumtoto": [
+    "BELIZE MID"
+   ],
+   "datatoto": "BELIZE MID",
+   "masterlive": "BELIZE MID",
+   "belizepools-mid": "BELIZE MID"
+  }
+ },
+ {
+  "sortOrder": 40,
+  "name": "BELIZE NIGHT POOL",
+  "slug": "belize-night-pool",
+  "sources": {
+   "cindototo": "BELIZE NIGHT",
+   "sumtoto": [
+    "BELIZE NIGHT"
+   ],
+   "datatoto": "BELIZE NIGHT",
+   "masterlive": "BELIZE NIGHT"
+  }
+ },
+ {
+  "sortOrder": 41,
+  "name": "BELIZE EVE POOL",
+  "slug": "belize-eve-pool",
+  "sources": {
+   "cindototo": "BELIZE EVE",
+   "sumtoto": [
+    "BELIZE EVE"
+   ],
+   "datatoto": "BELIZE EVE",
+   "masterlive": "BELIZE EVE",
+   "belizepools-eve": "BELIZE EVEN"
+  }
+ },
+ {
+  "sortOrder": 42,
+  "name": "MERIDA MID POOL",
+  "slug": "merida-mid-pool",
+  "sources": {
+   "cindototo": "MERIDA MID",
+   "sumtoto": [
+    "MERIDA MID"
+   ],
+   "datatoto": "MERIDA MID",
+   "masterlive": "MERIDA MID",
+   "meridapools": "MERIDA MID"
+  }
+ },
+ {
+  "sortOrder": 43,
+  "name": "GEORGIA EVE POOL",
+  "slug": "georgia-eve-pool",
+  "sources": {
+   "poskopaito": "Georgia Evening",
+   "datatoto": "Georgia Evening",
+   "vegasnet": "Georgia Evening"
+  }
+ },
+ {
+  "sortOrder": 44,
+  "name": "GEORGIA NGT POOL",
+  "slug": "georgia-ngt-pool",
+  "sources": {
+   "poskopaito": "Georgia Night",
+   "datatoto": "Georgia Night",
+   "vegasnet": "Georgia Night"
+  }
+ },
+ {
+  "sortOrder": 45,
+  "name": "OREGON 1 POOL",
+  "slug": "oregon-1-pool",
+  "sources": {
+   "poskopaito": "Oregon (04:00)",
+   "datatoto": "Oregon 04",
+   "vegasnet": "Oregon (04:00)"
+  }
+ },
+ {
+  "sortOrder": 46,
+  "name": "OREGON 3 POOL",
+  "slug": "oregon-3-pool",
+  "sources": {
+   "poskopaito": "Oregon (10:00)",
+   "datatoto": "Oregon 10",
+   "vegasnet": "Oregon (10:00)"
+  }
+ },
+ {
+  "sortOrder": 47,
+  "name": "OREGON 4 POOL",
+  "slug": "oregon-4-pool",
+  "sources": {
+   "poskopaito": "Oregon (13:00)",
+   "datatoto": "Oregon 13",
+   "vegasnet": "Oregon (13:00)"
+  }
+ },
+ {
+  "sortOrder": 48,
+  "name": "OHIO MID POOL",
+  "slug": "ohio-mid-pool",
+  "sources": {
+   "datatoto": "Ohio Midday",
+   "miototo": "OHIO MID",
+   "vegasnet": "Ohio Midday"
+  }
+ },
+ {
+  "sortOrder": 49,
+  "name": "OHIO EVE POOL",
+  "slug": "ohio-eve-pool",
+  "sources": {
+   "datatoto": "Ohio Evening",
+   "miototo": "OHIO EVE",
+   "vegasnet": "Ohio Evening"
+  }
+ },
+ {
+  "sortOrder": 50,
+  "name": "NEWYORK EVE POOL",
+  "slug": "newyork-eve-pool",
+  "sources": {
+   "poskopaito": "New York Evening",
+   "datatoto": "New York Evening",
+   "vegasnet": "New York Evening"
+  }
+ },
+ {
+  "sortOrder": 51,
+  "name": "NEWYORK MID POOL",
+  "slug": "newyork-mid-pool",
+  "sources": {
+   "poskopaito": "New York Midday",
+   "datatoto": "New York Midday",
+   "vegasnet": "New York Midday"
+  }
+ },
+ {
+  "sortOrder": 52,
+  "name": "OREGON 2 POOL",
+  "slug": "oregon-2-pool",
+  "sources": {
+   "poskopaito": "Oregon (07:00)",
+   "datatoto": "Oregon 07",
+   "vegasnet": "Oregon (07:00)"
+  }
+ },
+ {
+  "sortOrder": 53,
+  "name": "GEORGIA MID POOL",
+  "slug": "georgia-mid-pool",
+  "sources": {
+   "poskopaito": "Georgia Midday",
+   "datatoto": "Georgia Midday",
+   "vegasnet": "Georgia Midday"
+  }
+ },
+ {
+  "sortOrder": 54,
+  "name": "MARYLAND MID POOL",
+  "slug": "maryland-mid-pool",
+  "sources": {
+   "datatoto": "Maryland Midday",
+   "kingkonginfo": "MARYLAND MID",
+   "vegasnet": "Maryland Midday"
+  }
+ },
+ {
+  "sortOrder": 55,
+  "name": "MARYLAND EVE POOL",
+  "slug": "maryland-eve-pool",
+  "sources": {
+   "datatoto": "Maryland Evening",
+   "kingkonginfo": "MARYLAND EVE",
+   "vegasnet": "Maryland Evening"
+  }
+ },
+ {
+  "sortOrder": 56,
+  "name": "MICHIGAN MID POOL",
+  "slug": "michigan-mid-pool",
+  "sources": {
+   "datatoto": "Michigan Midday",
+   "miototo": "MICHIGAN MID",
+   "vegasnet": "Michigan Midday"
+  }
+ },
+ {
+  "sortOrder": 57,
+  "name": "MICHIGAN EVE POOL",
+  "slug": "michigan-eve-pool",
+  "sources": {
+   "poskopaito": "Michigan Evening",
+   "datatoto": "Michigan Evening",
+   "vegasnet": "Michigan Evening"
+  }
+ },
+ {
+  "sortOrder": 58,
+  "name": "NEWJERSEYMID POOL",
+  "slug": "newjerseymid-pool",
+  "sources": {
+   "poskopaito": "New Jersey Midday",
+   "datatoto": "New Jersey Midday",
+   "vegasnet": "New Jersey Midday"
+  }
+ },
+ {
+  "sortOrder": 59,
+  "name": "NEWJERSEYEVE POOL",
+  "slug": "newjerseyeve-pool",
+  "sources": {
+   "poskopaito": "New Jersey Evening",
+   "datatoto": "New Jersey Evening",
+   "vegasnet": "New Jersey Evening"
+  }
+ },
+ {
+  "sortOrder": 60,
+  "name": "KENTUCKY MID POOL",
+  "slug": "kentucky-mid-pool",
+  "sources": {
+   "poskopaito": "Kentucky Midday",
+   "datatoto": "Kentucky Midday",
+   "vegasnet": "Kentucky Midday"
+  }
+ },
+ {
+  "sortOrder": 61,
+  "name": "KENTUCKY EVE POOL",
+  "slug": "kentucky-eve-pool",
+  "sources": {
+   "poskopaito": "Kentucky Evening",
+   "datatoto": "Kentucky Evening",
+   "vegasnet": "Kentucky Evening"
+  }
+ },
+ {
+  "sortOrder": 62,
+  "name": "INDIANA MID POOL",
+  "slug": "indiana-mid-pool",
+  "sources": {
+   "poskopaito": "Indiana Midday",
+   "datatoto": "Indiana Midday",
+   "vegasnet": "Indiana Midday"
+  }
+ },
+ {
+  "sortOrder": 63,
+  "name": "INDIANA EVE POOL",
+  "slug": "indiana-eve-pool",
+  "sources": {
+   "poskopaito": "Indiana Evening",
+   "datatoto": "Indiana Evening",
+   "vegasnet": "Indiana Evening"
+  }
+ },
+ {
+  "sortOrder": 64,
+  "name": "TENNESSE MID POOL",
+  "slug": "tennesse-mid-pool",
+  "sources": {
+   "poskopaito": "Tennesse Midday",
+   "datatoto": "Tennesse Midday",
+   "vegasnet": "Tennesse Midday"
+  }
+ },
+ {
+  "sortOrder": 65,
+  "name": "TENNESSE MOR POOL",
+  "slug": "tennesse-mor-pool",
+  "sources": {
+   "poskopaito": "Tennesse Morning",
+   "datatoto": "Tennesse Morning",
+   "vegasnet": "Tennesse Morning"
+  }
+ },
+ {
+  "sortOrder": 66,
+  "name": "TENNESSE EVE POOL",
+  "slug": "tennesse-eve-pool",
+  "sources": {
+   "poskopaito": "Tennesse Evening",
+   "datatoto": "Tennesse Evening",
+   "vegasnet": "Tennesse Evening"
+  }
+ },
+ {
+  "sortOrder": 67,
+  "name": "TEXAS MOR POOL",
+  "slug": "texas-mor-pool",
+  "sources": {
+   "poskopaito": "Texas Morning",
+   "datatoto": "Texas Morning",
+   "vegasnet": "Texas Morning"
+  }
+ },
+ {
+  "sortOrder": 68,
+  "name": "TEXAS EVE POOL",
+  "slug": "texas-eve-pool",
+  "sources": {
+   "poskopaito": "Texas Evening",
+   "datatoto": "Texas Evening",
+   "vegasnet": "Texas Evening"
+  }
+ },
+ {
+  "sortOrder": 69,
+  "name": "TEXAS DAY POOL",
+  "slug": "texas-day-pool",
+  "sources": {
+   "poskopaito": "Texas Day",
+   "datatoto": "Texas Day",
+   "vegasnet": "Texas Day"
+  }
+ },
+ {
+  "sortOrder": 70,
+  "name": "TEXAS NIGHT POOL",
+  "slug": "texas-night-pool",
+  "sources": {
+   "poskopaito": "Texas Night",
+   "datatoto": "Texas Night",
+   "vegasnet": "Texas Night"
+  }
+ },
+ {
+  "sortOrder": 71,
+  "name": "FLORIDA MID POOL",
+  "slug": "florida-mid-pool",
+  "sources": {
+   "poskopaito": "Florida Midday",
+   "datatoto": "Florida Midday",
+   "vegasnet": "Florida Midday"
+  }
+ },
+ {
+  "sortOrder": 72,
+  "name": "FLORIDA EVE POOL",
+  "slug": "florida-eve-pool",
+  "sources": {
+   "poskopaito": "Florida Evening",
+   "datatoto": "Florida Evening",
+   "vegasnet": "Florida Evening"
+  }
+ },
+ {
+  "sortOrder": 73,
+  "name": "RHODE ISLAND POOL",
+  "slug": "rhode-island-pool",
+  "sources": {
+   "datatoto": "Rhode Island",
+   "miototo": "RHODE ISLAND",
+   "vegasnet": "Rhode Island"
+  }
+ },
+ {
+  "sortOrder": 74,
+  "name": "ILLINOIS EVE POOL",
+  "slug": "illinois-eve-pool",
+  "sources": {
+   "datatoto": "Illinois Evening",
+   "kingkonginfo": "ILLINOIS EVE",
+   "vegasnet": "Illinois Evening"
+  }
+ },
+ {
+  "sortOrder": 75,
+  "name": "ILLINOIS MID POOL",
+  "slug": "illinois-mid-pool",
+  "sources": {
+   "datatoto": "Illinois Midday",
+   "kingkonginfo": "ILLINOIS MID",
+   "vegasnet": "Illinois Midday"
+  }
+ },
+ {
+  "sortOrder": 76,
+  "name": "MISSOURI MID POOL",
+  "slug": "missouri-mid-pool",
+  "sources": {
+   "datatoto": "Missouri Midday",
+   "kingkonginfo": "MISSOURI MID",
+   "vegasnet": "Missouri Midday"
+  }
+ },
+ {
+  "sortOrder": 77,
+  "name": "MISSOURI EVE POOL",
+  "slug": "missouri-eve-pool",
+  "sources": {
+   "datatoto": "Missouri Evening",
+   "kingkonginfo": "MISSOURI EVE",
+   "vegasnet": "Missouri Evening"
+  }
+ },
+ {
+  "sortOrder": 78,
+  "name": "WASHINGTONMD POOL",
+  "slug": "washingtonmd-pool",
+  "sources": {
+   "poskopaito": "Washington Dc Midday",
+   "datatoto": "Washington Dc Midday",
+   "vegasnet": "Washington Dc Midday"
+  }
+ },
+ {
+  "sortOrder": 79,
+  "name": "WASHINGTONEV POOL",
+  "slug": "washingtonev-pool",
+  "sources": {
+   "poskopaito": "Washington Dc Evening",
+   "datatoto": "Washington Dc Evening",
+   "vegasnet": "Washington Dc Evening"
+  }
+ },
+ {
+  "sortOrder": 80,
+  "name": "DELAWARE NGT POOL",
+  "slug": "delaware-ngt-pool",
+  "sources": {
+   "datatoto": "Delaware Night",
+   "miototo": "DELAWARE NGT",
+   "vegasnet": "Delaware Night"
+  }
+ },
+ {
+  "sortOrder": 81,
+  "name": "DELAWARE DAY POOL",
+  "slug": "delaware-day-pool",
+  "sources": {
+   "datatoto": "Delaware Day",
+   "miototo": "DELAWARE DAY",
+   "vegasnet": "Delaware Day"
+  }
+ },
+ {
+  "sortOrder": 82,
+  "name": "VIRGINIA NGT POOL",
+  "slug": "virginia-ngt-pool",
+  "sources": {
+   "poskopaito": "Virginia Night",
+   "datatoto": "Virginia Night",
+   "vegasnet": "Virginia Night"
+  }
+ },
+ {
+  "sortOrder": 83,
+  "name": "VIRGINIA DAY POOL",
+  "slug": "virginia-day-pool",
+  "sources": {
+   "poskopaito": "Virginia Day",
+   "datatoto": "Virginia Day",
+   "vegasnet": "Virginia Day"
+  }
+ },
+ {
+  "sortOrder": 84,
+  "name": "NORTHCARODAY POOL",
+  "slug": "northcaroday-pool",
+  "sources": {
+   "poskopaito": "North Carolina Day",
+   "datatoto": "North Carolina Day"
+  }
+ },
+ {
+  "sortOrder": 85,
+  "name": "NORTHCAROEVE POOL",
+  "slug": "northcaroeve-pool",
+  "sources": {
+   "poskopaito": "North Carolina Evening",
+   "datatoto": "North Carolina Evening",
+   "vegasnet": "North Carolina Evening"
+  }
+ }
 ]

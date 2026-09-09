@@ -283,6 +283,7 @@ export function parseObservation(html, alias, source) {
   if (source.parser === 'posko-board') return parseTableRows(html, alias, source) || parseLineWindow(html, alias, source) || parsePoskoBoard(html, alias, source);
   if (source.parser === 'pools-draw') return parsePoolDraw(html, alias, source);
   if (source.parser === 'market-card') return parseMarketCard(html, alias, source);
+  if (source.parser === 'vegasnet-table') return parseTableRows(html, alias, source);
   if (source.parser === 'snapshot-board' || SNAPSHOT_BOARD_SOURCE_CODES.has(source.code)) return parseSnapshotBoard(html, alias, source);
   return parseTableRows(html, alias, source) || parseLineWindow(html, alias, source);
 }

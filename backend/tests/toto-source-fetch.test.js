@@ -36,8 +36,8 @@ function response(url, html, { status = 200, contentLength = null } = {}) {
   };
 }
 
-test('TOTO network adapter is wired to the extended consensus federation (9 boards + 5 official pools)', async () => {
-  assert.deepEqual(TOTO_SOURCES.map(item => item.code), ['poskopaito', 'datatoto', 'masterlive', 'cindototo', 'sumtoto', 'miototo', 'ikontoto', 'kiatoto', 'kingkonginfo', 'belizepools-mor', 'belizepools-mid', 'belizepools-eve', 'belizepools-ngt', 'meridapools']);
+test('TOTO network adapter is wired to the extended consensus federation (10 boards + 5 official pools)', async () => {
+  assert.deepEqual(TOTO_SOURCES.map(item => item.code), ['poskopaito', 'datatoto', 'masterlive', 'cindototo', 'sumtoto', 'miototo', 'ikontoto', 'kiatoto', 'kingkonginfo', 'belizepools-mor', 'belizepools-mid', 'belizepools-eve', 'belizepools-ngt', 'meridapools', 'vegasnet']);
   assert.deepEqual(TOTO_SOURCES.map(item => item.url), [
     'https://poskopaito.com/',
     'https://datatoto.pro/pasaran_lengkap_V2.php',
@@ -52,7 +52,8 @@ test('TOTO network adapter is wired to the extended consensus federation (9 boar
     'https://belizepools.org/live-draw-midday/',
     'https://belizepools.org/live-draw-evening/',
     'https://belizepools.org/live-draw-night/',
-    'https://meridapools.org/'
+    'https://meridapools.org/',
+    'https://widgets.vegasnet.info/result.php'
   ]);
   const calls = [];
   const fakeFetch = async (url, options) => {
@@ -60,9 +61,12 @@ test('TOTO network adapter is wired to the extended consensus federation (9 boar
     return response(String(url), htmlFor(url));
   };
   const results = await collectTotoSources(fakeFetch);
-  assert.equal(results.length, 14);
+  const vegasnet = results.find(item => item.code === 'vegasnet');
+  assert.equal(results.length, 15);
+  assert.equal(vegasnet.ok, true);
+  assert.match(vegasnet.contentType, /combined=vegasnet/);
   assert.equal(results.every(item => item.ok && item.bytes > 0), true);
-  assert.equal(calls.length, 14);
+  assert.equal(calls.length, 14 + vegasnet.showIds.length);
   assert.equal(calls.every(call => call.options.redirect === 'follow'), true);
   const byHost = new Map(calls.map(call => [new URL(call.url).hostname.replace(/^www\./, ''), call.options.headers]));
   assert.match(byHost.get('datatoto.pro')['user-agent'], /ASEAN777-Result-Collector\/6\.8\.14/);
@@ -79,7 +83,7 @@ test('TOTO network adapter keeps healthy sources when one source fails', async (
     return response(String(url), htmlFor(url));
   };
   const results = await collectTotoSources(fakeFetch);
-  assert.equal(results.filter(item => item.ok).length, 13);
+  assert.equal(results.filter(item => item.ok).length, 14);
   assert.match(results.find(item => item.code === 'datatoto').error, /HTTP 503/);
 });
 
