@@ -43,7 +43,6 @@
   <header class="sb-header">
     <div class="sb-header-inner">
       <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
-      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
       <a href="/index.html" class="sb-brand">GASTERUS<span class="sb-brand-badge">SPORTSBOOK</span></a>
       
       <div class="sb-header-actions">
@@ -152,36 +151,6 @@
   </div>
 
   <script type="module" src="/js/sportsbook.js"></script>
-
-  <script>
-    (function () {
-      function openNav() {
-        var drawer = document.getElementById('site-nav-drawer');
-        var backdrop = document.getElementById('navBackdrop');
-        if (drawer) drawer.classList.add('open');
-        if (backdrop) backdrop.classList.add('show');
-        document.body.classList.add('nav-open');
-      }
-      function closeNav() {
-        var drawer = document.getElementById('site-nav-drawer');
-        var backdrop = document.getElementById('navBackdrop');
-        if (drawer) drawer.classList.remove('open');
-        if (backdrop) backdrop.classList.remove('show');
-        document.body.classList.remove('nav-open');
-      }
-      document.querySelectorAll('[data-nav-open]').forEach(function (trigger) {
-        trigger.addEventListener('click', function (e) { e.preventDefault(); openNav(); });
-      });
-      document.querySelectorAll('[data-nav-close]').forEach(function (el) {
-        el.addEventListener('click', closeNav);
-      });
-      document.getElementById('navBackdrop')?.addEventListener('click', closeNav);
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeNav();
-      });
-    })();
-  </script>
-
 
   <script>
     (function () {
