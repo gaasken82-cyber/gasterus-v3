@@ -60,7 +60,12 @@ export const auth = {
         return res.user;
       }
     } catch (err) {
-      this.logout(false);
+      // Hanya logout jika server benar-benar menolak sesi (401 Unauthorized).
+      // Error lain (network down, timeout, 5xx) TIDAK boleh menghapus token —
+      // itu yang menyebabkan user mental/kick balik ke halaman login.
+      if (err.status === 401) {
+        this.logout(false);
+      }
     }
     return null;
   },

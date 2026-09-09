@@ -21,13 +21,20 @@ export async function initMember() {
 }
 
 async function loadUserProfile() {
+  // Tampilkan data lokal dulu agar UI tidak kosong saat API loading
+  const localUser = auth.getUser();
+  if (localUser) updateProfileUI(localUser);
+
   try {
     const user = await auth.fetchMe();
     if (user) {
+      // Update UI dengan data fresh dari server
       updateProfileUI(user);
     }
+    // Jika fetchMe() return null (misal non-401 error), biarkan data lokal tetap tampil
   } catch (err) {
     console.error('Failed to load user profile', err);
+    // Fallback sudah ditampilkan di atas, tidak perlu redirect
   }
 }
 
