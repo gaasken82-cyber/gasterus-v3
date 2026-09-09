@@ -3,153 +3,214 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sportsbook Sepakbola & Taruhan Olahraga — GASTERUS V3</title>
-  <meta name="description" content="Pasaran judi bola sportsbook online odds tertinggi, live match handicap, 1X2, over under liga top Eropa.">
+  <title>Sportsbook Sepakbola — GASTERUS</title>
+  <meta name="description" content="Sportsbook bola online Gasterus — odds live 1X2, handicap, over/under, double chance liga top. Taruhan realtime dengan quote server.">
 
-  <!-- Google Fonts: Inter & Outfit -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
-
-  <!-- Modular Stylesheets -->
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/mobile.css">
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="/css/pages/sportsbook.css">
+  <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
+  <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gasterus.fun/">
+  <meta property="og:image" content="https://gasterus.fun/favicon.svg">
+  <meta property="og:image:width" content="64">
+  <meta property="og:image:height" content="64">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
+  <meta name="twitter:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
+  <meta name="twitter:image" content="https://gasterus.fun/favicon.svg">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(r => console.log('SW registered')).catch(e => console.log('SW fail'));
+    });
+  }
+</script>
 </head>
-<body>
+<body class="sb-page">
 
-  <!-- Top Header Navigation -->
-  <header class="app-header">
-    <div class="container">
-      <a href="/index.html" class="brand-logo">
-        GASTERUS <span class="logo-badge">V3</span>
-      </a>
-
-      <nav class="nav-menu">
-        <a href="/member.html" class="nav-link">Togel Pools</a>
-        <a href="/sportsbook.html" class="nav-link active">Sportsbook</a>
-        <a href="/bet-history.html" class="nav-link">Riwayat Bet</a>
-        <a href="/deposit.html" class="nav-link">Deposit</a>
-      </nav>
-
-      <div class="header-actions">
-        <div class="balance-pill">
-          <span style="font-size: 0.75rem; color: var(--text-secondary);">Saldo</span>
-          <span class="balance-amount" id="header-balance">0</span>
+  <!-- Header -->
+  <header class="sb-header">
+    <div class="sb-header-inner">
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
+      <a href="/index.html" class="sb-brand">GASTERUS<span class="sb-brand-badge">SPORTSBOOK</span></a>
+      
+      <div class="sb-header-actions">
+        <div class="sb-balance">
+          <span class="sb-balance-label">Saldo</span>
+          <span class="sb-balance-value" id="header-balance">0</span>
         </div>
-        <a href="/member.html" class="btn btn-secondary btn-sm" id="header-username">Member Area</a>
+        <a href="/member.html" class="sb-btn sb-btn-ghost sb-btn-sm" id="header-username">Member</a>
       </div>
     </div>
   </header>
 
-  <main class="app-main">
-    <div class="container">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
-        <div>
-          <h1 style="font-size: 1.75rem;">Sportsbook & Bursa Taruhan Bola</h1>
-          <p style="font-size: 0.9rem;">Update bursa odds sepakbola secara live dan transparan.</p>
-        </div>
-        <div style="display: flex; gap: var(--space-2);">
-          <button type="button" class="btn btn-secondary btn-sm sport-filter-btn active" data-filter="ALL">Semua Pertandingan</button>
-          <button type="button" class="btn btn-secondary btn-sm sport-filter-btn" data-filter="LIVE"><span class="live-indicator"></span> Sedang Berlangsung</button>
-          <button type="button" class="btn btn-secondary btn-sm sport-filter-btn" data-filter="UPCOMING">Akan Datang</button>
-        </div>
+  <!-- Navigation Drawer -->
+  <div class="nav-drawer-backdrop" id="navBackdrop"></div>
+  <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
+    <div class="nav-drawer-head">
+      <span class="nav-drawer-title">Menu</span>
+      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
+    </div>
+    <div class="nav-drawer-body">
+      <a class="nav-drawer-item" href="/index.html">Beranda</a>
+      <a class="nav-drawer-item" href="/member.html">Togel &amp; Slot</a>
+      <a class="nav-drawer-item" href="/sportsbook.html">Sportsbook</a>
+      <a class="nav-drawer-item" href="/number-history.html">Result</a>
+      <a class="nav-drawer-item" href="/bet-history.html">Riwayat Bet</a>
+      <a class="nav-drawer-item" href="/deposit.html">Deposit</a>
+      <a class="nav-drawer-item" href="/withdraw.html">Withdraw</a>
+      <a class="nav-drawer-item" href="/promotion.html">Promo</a>
+      <a class="nav-drawer-item" href="/referral.html">Referral</a>
+      <div style="margin-top:16px; border-top:1px solid #1e293b; padding-top:12px;">
+        <a class="nav-drawer-item" href="/rules.html">Cara Bermain</a>
+        <a class="nav-drawer-item" href="/privacy.html">Privasi</a>
+        <a class="nav-drawer-item" href="/terms.html">Ketentuan</a>
       </div>
+    </div>
+  </nav>
 
-      <div class="sports-container">
-        <!-- Sidebar Navigation -->
-        <aside class="sports-sidebar">
-          <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-gold); margin-bottom: var(--space-3); text-transform: uppercase;">
-            Kategori Olahraga
-          </div>
-          <div class="sport-category-item active">
-            <span>⚽ Sepak Bola</span>
-            <span class="badge badge-info">12</span>
-          </div>
-          <div class="sport-category-item">
-            <span>🏀 Bola Basket</span>
-            <span class="badge badge-secondary">3</span>
-          </div>
-          <div class="sport-category-item">
-            <span>🎾 Tenis</span>
-            <span class="badge badge-secondary">5</span>
-          </div>
-          <div class="sport-category-item">
-            <span>🎮 E-Sports</span>
-            <span class="badge badge-secondary">8</span>
-          </div>
-        </aside>
+  <main class="sb-main">
+    <div class="sb-layout">
 
-        <!-- Main Matches Stream -->
-        <div id="matches-list-container">
-          <!-- Dynamic matches rendered by JS -->
+      <!-- LEFT: Sports / League nav -->
+      <aside class="sb-sidebar" id="sb-sidebar">
+        <div class="sb-sidebar-title">Olahraga</div>
+        <nav id="sport-nav" class="sb-sport-nav" aria-label="Sport"></nav>
+        <div class="sb-sidebar-title sb-sidebar-sub">Liga</div>
+        <nav id="league-nav" class="sb-league-nav" aria-label="League"></nav>
+        <div class="sb-sidebar-status" id="sidebar-status"></div>
+      </aside>
+
+      <!-- CENTER: Matches -->
+      <section class="sb-content">
+        <div class="sb-toolbar">
+          <div class="sb-toolbar-left">
+            <span class="sb-rt-dot" id="rt-dot"></span>
+            <span id="rt-label">Connecting…</span>
+          </div>
+          <div class="sb-toolbar-right">
+            <div class="sb-search">
+              <input type="search" id="sb-search" placeholder="Terkati tim / liga…" autocomplete="off" aria-label="Search teams or leagues">
+            </div>
+            <div class="sb-filters" id="filter-tabs" role="group" aria-label="Filter"></div>
+          </div>
         </div>
 
-        <!-- Betslip Column -->
-        <aside class="sports-betslip-card">
-          <h3 style="font-size: 1.1rem; margin-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2);">
-            Tiket Taruhan
-          </h3>
+        <div id="sb-stale-banner" class="sb-stale-banner" hidden></div>
+        <div id="sb-error" class="sb-error" hidden></div>
+        <div id="sb-skeleton" class="sb-skeleton-list"></div>
+        <div id="sb-events" class="sb-events" aria-live="polite"></div>
+        <div id="sb-empty" class="sb-empty" hidden></div>
+      </section>
 
-          <div id="betslip-empty" style="text-align: center; padding: 40px 10px; color: var(--text-muted); font-size: 0.85rem;">
-            Pilih odds pada pertandingan di samping untuk memasang taruhan.
-          </div>
-
-          <div id="betslip-content" style="display: none;">
-            <div style="background: var(--bg-surface-elevated); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: var(--space-4);">
-              <div id="slip-match-name" style="font-weight: 700; font-size: 0.85rem;">-</div>
-              <div id="slip-selection-name" style="color: var(--text-gold); font-size: 0.9rem; font-weight: 600; margin-top: 4px;">-</div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" style="font-size: 0.8rem;">Nominal Taruhan (Rp)</label>
-              <input type="number" id="sports-stake-input" class="form-control" value="25000" min="10000" step="5000" style="text-align: right;">
-            </div>
-
-            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: var(--space-4);">
-              <span style="color: var(--text-secondary);">Estimasi Kemenangan:</span>
-              <strong id="slip-est-payout" style="color: var(--status-success);">Rp 0</strong>
-            </div>
-
-            <button type="button" id="btn-place-sports-bet" class="btn btn-primary btn-block">
-              Pasang Taruhan Sekarang
-            </button>
-          </div>
-        </aside>
-      </div>
+      <!-- RIGHT: Betslip -->
+      <aside class="sb-betslip" id="sb-betslip-desktop">
+        <div class="sb-betslip-head">
+          <span>Betslip</span>
+          <span class="sb-betslip-mode" id="betslip-mode" aria-hidden="true"></span>
+        </div>
+        <div id="betslip-body" class="sb-betslip-body"></div>
+      </aside>
     </div>
   </main>
 
-  <!-- Mobile Bottom Nav -->
-  <nav class="mobile-bottom-nav">
-    <a href="/member.html" class="mobile-nav-item">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path></svg>
-      <span>Togel</span>
-    </a>
-    <a href="/sportsbook.html" class="mobile-nav-item active">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM4.37 11.23a6.002 6.002 0 010-2.46l2.39 1.23-2.39 1.23z"></path></svg>
-      <span>Sports</span>
-    </a>
-    <a href="/bet-history.html" class="mobile-nav-item">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path></svg>
-      <span>Invoice</span>
-    </a>
-    <a href="/deposit.html" class="mobile-nav-item">
-      <svg fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"></path></svg>
-      <span>Deposit</span>
-    </a>
-  </nav>
+  <!-- Mobile betslip bar / sheet -->
+  <div class="sb-mobile-dock" id="sb-mobile-dock" hidden>
+    <button type="button" class="sb-dock-trigger" id="sb-dock-trigger" aria-haspopup="dialog">
+      <span class="sb-dock-count" id="sb-dock-count">0</span>
+      Betslip
+    </button>
+    <div class="sb-mobile-sheet" id="sb-mobile-sheet" role="dialog" aria-modal="true" aria-label="Betslip"></div>
+  </div>
 
-  <footer class="app-footer">
-    <div class="container footer-bottom">
-      &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
-    </div>
-  </footer>
+  <!-- Match detail modal -->
+  <div class="sb-modal-backdrop" id="sb-detail-backdrop" hidden>
+    <div class="sb-modal" id="sb-detail-modal" role="dialog" aria-modal="true" aria-label="Detail pertandingan"></div>
+  </div>
+
+  <div id="sb-toast-region"></div>
+
+  <noscript><div class="sb-error">Javascript diperlukan untuk menampilkan sportsbook.</div></noscript>
+
+  <!-- Footer Links -->
+  <div class="footer-links" style="padding: 12px; background: #0f172a; border-top: 1px solid #1e293b; display: flex; gap: 16px; justify-content: center; font-size: 12px;">
+    <a href="privacy.html" style="color: #94a3b8; text-decoration: none;">Privacy</a>
+    <a href="rules.html" style="color: #94a3b8; text-decoration: none;">Cara Bermain</a>
+    <a href="terms.html" style="color: #94a3b8; text-decoration: none;">Terms</a>
+  </div>
 
   <script type="module" src="/js/sportsbook.js"></script>
+
+  <script>
+    (function () {
+      function openNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.getElementById('navBackdrop');
+        if (drawer) drawer.classList.add('open');
+        if (backdrop) backdrop.classList.add('show');
+        document.body.classList.add('nav-open');
+      }
+      function closeNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.getElementById('navBackdrop');
+        if (drawer) drawer.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.classList.remove('nav-open');
+      }
+      document.querySelectorAll('[data-nav-open]').forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) { e.preventDefault(); openNav(); });
+      });
+      document.querySelectorAll('[data-nav-close]').forEach(function (el) {
+        el.addEventListener('click', closeNav);
+      });
+      document.getElementById('navBackdrop')?.addEventListener('click', closeNav);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeNav();
+      });
+    })();
+  </script>
+
+
+  <script>
+    (function () {
+      function openNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.getElementById('navBackdrop');
+        if (drawer) drawer.classList.add('open');
+        if (backdrop) backdrop.classList.add('show');
+        document.body.classList.add('nav-open');
+      }
+      function closeNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.getElementById('navBackdrop');
+        if (drawer) drawer.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.classList.remove('nav-open');
+      }
+      document.querySelectorAll('[data-nav-open]').forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) { e.preventDefault(); openNav(); });
+      });
+      document.querySelectorAll('[data-nav-close]').forEach(function (el) {
+        el.addEventListener('click', closeNav);
+      });
+      document.getElementById('navBackdrop')?.addEventListener('click', closeNav);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeNav();
+      });
+    })();
+  </script>
+
 </body>
 </html>

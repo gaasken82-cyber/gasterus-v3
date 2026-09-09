@@ -152,16 +152,7 @@ body {
   transform: translateY(1px);
 }
 
-/* --- 4. Marquee Bar --- */
-.marquee-bar {
-  background: #040810;
-  border-top: 1px solid #1e3a8a;
-  border-bottom: 1px solid #1e3a8a;
-  height: 28px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-}
+/* --- Marquee Bar (styling defined in Section 22) --- */
 
 .marquee-inner {
   display: inline-block;
@@ -702,12 +693,14 @@ body {
   color: #ffffff;
   width: 100%;
   outline: none;
+  text-align: center;
   font-size: 12px;
   font-weight: 600;
 }
 
 .res-search input::placeholder {
   color: #94a3b8;
+  text-align: center;
 }
 
 /* Grid 4 Kolom Sesuai Screenshot */
@@ -799,39 +792,22 @@ body {
 }
 
 .bank-card {
-  background: #040810;
+  background: #ffffff;
   border-radius: 6px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 2px 4px;
-  border: 1px solid #1e293b;
+  border: 1px solid #94a3b8;
+  border-bottom: 3px solid #10b981;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   min-width: 0;
 }
 
+/* Badge teks disembunyikan — status ditandai garis bawah hijau + legend (sesuai referensi) */
 .bank-badge-online {
-  background: #000000;
-  border: 1px solid #10b981;
-  width: 22px;
-  height: 11px;
-  border-radius: 999px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
-}
-
-.bank-badge-online::after {
-  content: '';
-  width: 10px;
-  height: 4px;
-  background: #10b981;
-  border-radius: 999px;
-  box-shadow: 0 0 6px #10b981;
+  display: none;
 }
 
 .bank-logo-img {
@@ -868,6 +844,7 @@ body {
   width: 9px;
   height: 9px;
   border-radius: 50%;
+  animation: liveBlink 1s infinite;
 }
 
 .dot-on {
@@ -928,9 +905,9 @@ body {
   color: #ffffff;
 }
 
-footer {
-  background: #03070d;
-  border-top: 1px solid #1e293b;
+footer, .site-footer {
+  background: linear-gradient(180deg, #070d18 0%, #03070d 100%);
+  border-top: 1px solid #1e3a8a;
   color: #94a3b8;
   font-size: 10px;
   text-align: center;
@@ -1300,6 +1277,12 @@ select.reg-input {
 .provider-card:active {
   transform: scale(0.97);
   border-color: #38bdf8;
+}
+
+/* Banner provider lebar (kartu ke-3, grid 2 kolom ala reference sbk) */
+.provider-card.full-width {
+  grid-column: span 2;
+  min-height: 110px;
 }
 
 /* --- 16b. Member Markets (rendered by member.js) --- */
@@ -1679,4 +1662,442 @@ select.reg-input {
   border-bottom: 1px solid #1e3a8a;
   padding-bottom: 8px;
   margin-bottom: 10px;
+}
+
+/* --- 20. Provider / Pasaran Selection Modal (Blue Sapphire Edition) --- */
+.provider-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2, 6, 18, 0.78);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.provider-modal-overlay.active {
+  display: flex;
+}
+.provider-modal-card {
+  width: 100%;
+  max-width: 320px;
+  background: linear-gradient(180deg, #0f1c30 0%, #060b14 100%);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  animation: gsModalPop 180ms ease-out;
+}
+@keyframes gsModalPop {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+.provider-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, #12223a 0%, #08111f 100%);
+  border-bottom: 1px solid #1e3a8a;
+}
+.provider-modal-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+.provider-modal-close {
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 4px;
+}
+.provider-modal-close:hover {
+  color: #ffffff;
+}
+.provider-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 14px;
+}
+.provider-modal-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 4px;
+  background: linear-gradient(180deg, #0a172c 0%, #040914 100%);
+  border: 1px solid #1e3a8a;
+  border-radius: 8px;
+  color: #e2e8f0;
+  text-decoration: none;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+.provider-modal-item:hover {
+  border-color: #38bdf8;
+  background: linear-gradient(180deg, #1d3a66 0%, #0a172c 100%);
+}
+.provider-modal-item:active {
+  transform: translateY(1px);
+}
+.provider-modal-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* --- 21. Header Menu Toggle + Side Nav Drawer (Cindototo style) --- */
+.menu-toggle {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #38bdf8;
+  font-size: 18px;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 5px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+.menu-toggle:active {
+  transform: translateY(1px);
+}
+.nav-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(2, 6, 18, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease, visibility 200ms ease;
+}
+.nav-drawer-backdrop.show {
+  opacity: 1;
+  visibility: visible;
+}
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 950;
+  width: 280px;
+  max-width: 82vw;
+  background: linear-gradient(180deg, #0f1c30 0%, #060b14 100%);
+  border-right: 1px solid #1e3a8a;
+  box-shadow: 4px 0 30px rgba(0, 0, 0, 0.8);
+  transform: translateX(-100%);
+  transition: transform 220ms ease;
+  overflow-y: auto;
+  padding-bottom: 30px;
+}
+body.nav-open .nav-drawer,
+.nav-drawer.open {
+  transform: translateX(0);
+}
+.nav-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #12223a 0%, #08111f 100%);
+  border-bottom: 1px solid #1e3a8a;
+}
+.nav-drawer-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #ffffff;
+}
+.nav-drawer-close {
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 4px;
+}
+.nav-drawer-links {
+  list-style: none;
+  margin: 0;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.nav-drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #0a172c 0%, #040914 100%);
+  border: 1px solid #1e3a8a;
+  border-radius: 7px;
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+.nav-drawer-link:hover {
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+.nav-drawer-link:active {
+  transform: translateY(1px);
+}
+.nav-drawer-ico {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* --- 22. Marquee Ticker (Cindototo style) --- */
+.marquee-bar {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(90deg, #0e1a2b 0%, #08111f 100%);
+  border-top: 1px solid #1e3a8a;
+  border-bottom: 1px solid #1e3a8a;
+  overflow: hidden;
+  margin-bottom: 8px;
+  height: 28px;
+}
+.marquee-label {
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 5px 10px;
+  margin-right: 8px;
+}
+.marquee-track {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.marquee-text {
+  display: inline-block;
+  color: #93c5fd;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 5px 0;
+  animation: gsMarquee 20s linear infinite;
+}
+@keyframes gsMarquee {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(-100%); }
+}
+
+/* --- 23. Trust Badge Strip (enterprise trust signal) --- */
+.trust-badge-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 6px 10px;
+  background: linear-gradient(180deg, #0c1626 0%, #070e1a 100%);
+  border-bottom: 1px solid #1e3a8a;
+}
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  color: #cbd5e1;
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.trust-icon {
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* --- 24. Promo Banner Carousel (enterprise) --- */
+.promo-carousel {
+  position: relative;
+  margin: 0 10px 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #1e3a8a;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  height: 120px;
+}
+.promo-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 14px 42px 14px 16px;
+  opacity: 0;
+  transition: opacity 400ms ease;
+  pointer-events: none;
+}
+.promo-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.promo-slide-1 {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(37, 99, 235, 0.45) 0%, transparent 60%),
+    linear-gradient(120deg, #0f203c 0%, #0a1730 60%, #06101f 100%);
+}
+.promo-slide-2 {
+  background:
+    radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.4) 0%, transparent 55%),
+    linear-gradient(120deg, #082f49 0%, #0a1730 55%, #06101f 100%);
+}
+.promo-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+}
+.promo-tag {
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #000000;
+  background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.promo-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+.promo-desc {
+  font-size: 9.5px;
+  color: #93c5fd;
+  max-width: 240px;
+  line-height: 1.3;
+}
+.promo-cta {
+  margin-top: 4px;
+  font-size: 9px;
+  font-weight: 900;
+  color: #ffffff;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  border-radius: 999px;
+  padding: 4px 12px;
+  text-decoration: none;
+  border: 1px solid #60a5fa;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.promo-dots {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+.promo-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+}
+.promo-dot.active {
+  background: #38bdf8;
+}
+
+/* --- 25. Enterprise Footer (multi-layer) --- */
+.site-footer .footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+}
+.site-footer .footer-links a {
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 700;
+}
+.site-footer .footer-links a:hover {
+  color: #38bdf8;
+}
+.footer-pay-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.footer-pay-label {
+  font-size: 9px;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+}
+.footer-pay-item {
+  font-size: 9px;
+  font-weight: 700;
+  color: #e2e8f0;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.footer-bottom-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-top: 1px solid #1e293b;
+  padding-top: 8px;
+  margin-top: 2px;
+}
+.footer-social {
+  display: inline-flex;
+  gap: 6px;
+}
+.footer-social a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 13px;
+  opacity: 0.85;
+}
+.footer-social a:hover {
+  opacity: 1;
+  color: #38bdf8;
+}
+.footer-disclaimer {
+  margin-top: 8px;
+  font-size: 8px;
+  color: #64748b;
+  line-height: 1.4;
 }

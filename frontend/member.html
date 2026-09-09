@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Dashboard Member — GASTERUS V3</title>
   <meta name="description" content="Dashboard area member Gasterus v3 — pasang taruhan Togel, Sportsbook, riwayat betting, dan kelola saldo.">
 
@@ -10,18 +10,44 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.json">
+
 
   <link rel="stylesheet" href="css/mobile-blue.css">
+  <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
+  <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gasterus.fun/">
+  <meta property="og:image" content="https://gasterus.fun/favicon.svg">
+  <meta property="og:image:width" content="64">
+  <meta property="og:image:height" content="64">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
+  <meta name="twitter:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
+  <meta name="twitter:image" content="https://gasterus.fun/favicon.svg">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(r => console.log('SW registered')).catch(e => console.log('SW fail'));
+    });
+  }
+</script>
 </head>
 <body class="page-member">
   <div class="site">
 
     <!-- Header -->
     <header class="brand-bar">
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
       <h1 class="brand-title">GASTERUS</h1>
       <div style="display:flex; gap:6px; align-items:center;">
         <a class="btn-livechat" href="deposit.html">Deposit</a>
-        <button type="button" class="btn-action-logout btn-livechat" style="background:linear-gradient(180deg,#ef4444 0%,#b91c1c 100%); border-color:#f87171;">Keluar</button>
+        <button type="button" class="btn-action-logout btn-livechat" style="background:linear-gradient(180deg,#1e293b 0%,#0f172a 100%); border:1px solid #cbd5e1; color:#e2e8f0;">Keluar</button>
       </div>
     </header>
 
@@ -34,11 +60,27 @@
       <button type="button" class="btn-refresh-balance" onclick="location.reload()">↻ Refresh</button>
     </div>
 
+    <!-- Marquee Ticker (Cindototo style) -->
+    <div class="marquee-bar">
+      <span class="marquee-label">INFO</span>
+      <div class="marquee-track">
+        <span class="marquee-text">Selamat datang di GASTERUS · Pasaran Togel Resmi 4D/3D/2D &amp; Sportsbook · Pembayaran Hasil Instan 100% Aman</span>
+      </div>
+    </div>
+
+    <!-- Trust Badge Strip (enterprise trust signal) -->
+    <div class="trust-badge-strip">
+      <span class="trust-badge"><span class="trust-icon">🛡️</span>Resmi &amp; Terpercaya</span>
+      <span class="trust-badge"><span class="trust-icon">✅</span>Pembayaran 100%</span>
+      <span class="trust-badge"><span class="trust-icon">⚡</span>Proses Instan</span>
+      <span class="trust-badge"><span class="trust-icon">🔐</span>Data Aman</span>
+    </div>
+
     <!-- 2 Baris Kategori Game -->
     <div class="member-cat-row-1">
       <a class="member-cat-card active" href="member.html"><span style="font-size:20px;">🎰</span>Semua</a>
-      <a class="member-cat-card" href="sportsbook.html"><span style="font-size:20px;">⚽</span>Sports</a>
-      <a class="member-cat-card" href="market-play.html"><span style="font-size:20px;">🎯</span>Togel</a>
+      <a class="member-cat-card" href="javascript:void(0)" data-modal-open="sports-modal"><span style="font-size:20px;">⚽</span>Sports</a>
+      <a class="member-cat-card" href="javascript:void(0)" data-modal-open="togel-modal"><span style="font-size:20px;">🎯</span>Togel</a>
       <a class="member-cat-card" href="number-history.html"><span style="font-size:20px;">🏆</span>Result</a>
       <a class="member-cat-card" href="promotion.html"><span style="font-size:20px;">🎁</span>Promo<span class="cat-badge-new">NEW</span></a>
     </div>
@@ -52,6 +94,30 @@
     <!-- Search Bar Game -->
     <div class="res-search">
       <input type="text" placeholder="Cari" aria-label="Cari Game">
+    </div>
+
+    <!-- Promo Banner Carousel (enterprise) -->
+    <div class="promo-carousel" id="promo-carousel">
+      <div class="promo-slide promo-slide-1">
+        <div class="promo-content">
+          <div class="promo-tag">PROMO</div>
+          <div class="promo-title">BONUS MEMBER BARU</div>
+          <div class="promo-desc">Kesempatan menang lebih besar untuk member GASTERUS.</div>
+          <a class="promo-cta" href="promotion.html">Lihat Promo →</a>
+        </div>
+      </div>
+      <div class="promo-slide promo-slide-2">
+        <div class="promo-content">
+          <div class="promo-tag">EVENT</div>
+          <div class="promo-title">DIAMOND SPORTS</div>
+          <div class="promo-desc">Pasang taruhan Sportsbook dan raih hadiah mingguan.</div>
+          <a class="promo-cta" href="sportsbook.html">Main Sekarang →</a>
+        </div>
+      </div>
+      <div class="promo-dots">
+        <span class="promo-dot" data-slide="0"></span>
+        <span class="promo-dot" data-slide="1"></span>
+      </div>
     </div>
 
     <!-- Link Alternatif + QR APK -->
@@ -92,11 +158,168 @@
     </div>
 
     <!-- Footer -->
-    <footer>
-      <div>&copy; Copyright 2014 - 2026 GASTERUS. All Rights Reserved.</div>
+    <footer class="site-footer">
+      <div class="footer-links">
+        <a href="rules.html">Peraturan</a>
+        <a href="responsible-play.html">Bermain Bertanggung Jawab</a>
+        <a href="privacy.html">Kebijakan Privasi</a>
+        <a href="terms.html">Syarat &amp; Ketentuan</a>
+        <a href="referral.html">Referral</a>
+        <a href="promotion.html">Promosi</a>
+      </div>
+      <div class="footer-pay-row">
+        <span class="footer-pay-label">PEMBAYARAN:</span>
+        <span class="footer-pay-item">🏦 Bank Transfer</span>
+        <span class="footer-pay-item">📱 E-Wallet</span>
+        <span class="footer-pay-item">🏷️ QRIS</span>
+      </div>
+      <div class="footer-bottom-line">
+        <span>© Copyright 2014 - 2026 GASTERUS. All Rights Reserved.</span>
+        <span class="footer-social">
+          <a href="#" aria-label="Telegram">✈️</a>
+          <a href="#" aria-label="WhatsApp">💬</a>
+          <a href="#" aria-label="Facebook">📘</a>
+          <a href="#" aria-label="Instagram">📸</a>
+        </span>
+      </div>
+      <div class="footer-disclaimer">Hanya untuk pengguna 18+. Harap bermain secara bertanggung jawab. GASTERUS V3.</div>
     </footer>
 
   </div>
+
+  <!-- ==== Side Navigation Drawer (Cindototo style) ==== -->
+  <div class="nav-drawer-backdrop" data-nav-close></div>
+  <nav class="nav-drawer" id="site-nav-drawer" aria-hidden="true">
+    <div class="nav-drawer-head">
+      <span class="nav-drawer-title">MENU GASTERUS</span>
+      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup">✕</button>
+    </div>
+    <ul class="nav-drawer-links">
+      <li><a class="nav-drawer-link" href="member.html"><span class="nav-drawer-ico">🎰</span>Lobby</a></li>
+      <li><a class="nav-drawer-link" href="market-play.html"><span class="nav-drawer-ico">🎯</span>Pasang Togel</a></li>
+      <li><a class="nav-drawer-link" href="sportsbook.html"><span class="nav-drawer-ico">⚽</span>Sportsbook</a></li>
+      <li><a class="nav-drawer-link" href="number-history.html"><span class="nav-drawer-ico">🏆</span>Riwayat Hasil</a></li>
+      <li><a class="nav-drawer-link" href="deposit.html"><span class="nav-drawer-ico">💳</span>Deposit</a></li>
+      <li><a class="nav-drawer-link" href="withdraw.html"><span class="nav-drawer-ico">💸</span>Withdraw</a></li>
+      <li><a class="nav-drawer-link" href="bet-history.html"><span class="nav-drawer-ico">📜</span>Riwayat Bet</a></li>
+      <li><a class="nav-drawer-link" href="referral.html"><span class="nav-drawer-ico">👥</span>Referral</a></li>
+    </ul>
+  </nav>
+
+  <!-- ==== Modal: Provider Sports ==== -->
+  <div class="provider-modal-overlay" id="sports-modal" aria-hidden="true">
+    <div class="provider-modal-card">
+      <div class="provider-modal-head">
+        <span class="provider-modal-title">PILIH PROVIDER SPORTS</span>
+        <button type="button" class="provider-modal-close" data-modal-close="sports-modal" aria-label="Tutup">✕</button>
+      </div>
+      <div class="provider-modal-grid">
+        <a class="provider-modal-item" href="sportsbook.html"><span class="provider-modal-icon">🎮</span><span>SPORTGG</span></a>
+        <a class="provider-modal-item" href="sportsbook.html"><span class="provider-modal-icon">🎮</span><span>SBOBET</span></a>
+        <a class="provider-modal-item" href="sportsbook.html"><span class="provider-modal-icon">🎮</span><span>SABA SPORTS</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==== Modal: Pasaran Togel ==== -->
+  <div class="provider-modal-overlay" id="togel-modal" aria-hidden="true">
+    <div class="provider-modal-card">
+      <div class="provider-modal-head">
+        <span class="provider-modal-title">PILIH PASARAN TOGEL</span>
+        <button type="button" class="provider-modal-close" data-modal-close="togel-modal" aria-label="Tutup">✕</button>
+      </div>
+      <div class="provider-modal-grid">
+        <a class="provider-modal-item" href="market-play.html?code=HK"><span class="provider-modal-icon">🎯</span><span>HONGKONG</span></a>
+        <a class="provider-modal-item" href="market-play.html?code=SGP"><span class="provider-modal-icon">🎯</span><span>SINGAPORE</span></a>
+        <a class="provider-modal-item" href="market-play.html?code=SDY"><span class="provider-modal-icon">🎯</span><span>SYDNEY</span></a>
+        <a class="provider-modal-item" href="market-play.html?code=MC4D"><span class="provider-modal-icon">🎯</span><span>MACAU 4D</span></a>
+        <a class="provider-modal-item" href="market-play.html?code=TW"><span class="provider-modal-icon">🎯</span><span>TAIWAN</span></a>
+        <a class="provider-modal-item" href="market-play.html?code=CMD"><span class="provider-modal-icon">🎯</span><span>CAMBODIA</span></a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      function openModal(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.add('active');
+      }
+      function closeModal(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+      }
+      function openNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.querySelector('.nav-drawer-backdrop');
+        if (drawer) drawer.classList.add('open');
+        if (backdrop) backdrop.classList.add('show');
+        document.body.classList.add('nav-open');
+      }
+      function closeNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.querySelector('.nav-drawer-backdrop');
+        if (drawer) drawer.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.classList.remove('nav-open');
+      }
+      document.querySelectorAll('[data-nav-open]').forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) {
+          e.preventDefault();
+          openNav();
+        });
+      });
+      document.querySelectorAll('[data-nav-close]').forEach(function (el) {
+        el.addEventListener('click', function () {
+          closeNav();
+        });
+      });
+      /* Promo banner carousel */
+      var promoSlides = Array.prototype.slice.call(document.querySelectorAll('.promo-slide'));
+      var promoDots = Array.prototype.slice.call(document.querySelectorAll('.promo-dot'));
+      var promoIndex = 0;
+      function showPromo(i) {
+        promoSlides.forEach(function (sl, x) { sl.classList.toggle('active', x === i); });
+        promoDots.forEach(function (d, x) { d.classList.toggle('active', x === i); });
+      }
+      promoDots.forEach(function (d) {
+        d.addEventListener('click', function () {
+          promoIndex = parseInt(d.getAttribute('data-slide'), 10) || 0;
+          showPromo(promoIndex);
+        });
+      });
+      if (promoSlides.length > 0) {
+        showPromo(0);
+        setInterval(function () {
+          promoIndex = (promoIndex + 1) % promoSlides.length;
+          showPromo(promoIndex);
+        }, 4500);
+      }
+      document.querySelectorAll('[data-modal-open]').forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) {
+          e.preventDefault();
+          openModal(trigger.getAttribute('data-modal-open'));
+        });
+      });
+      document.querySelectorAll('[data-modal-close]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          closeModal(btn.getAttribute('data-modal-close'));
+        });
+      });
+      document.querySelectorAll('.provider-modal-overlay').forEach(function (ov) {
+        ov.addEventListener('click', function (e) {
+          if (e.target === ov) closeModal(ov.id);
+        });
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.provider-modal-overlay.active').forEach(function (ov) {
+            ov.classList.remove('active');
+          });
+        }
+      });
+    })();
+  </script>
 
   <script type="module" src="js/member.js"></script>
 </body>

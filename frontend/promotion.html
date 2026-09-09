@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Promosi & Bonus Eksklusif — GASTERUS V3</title>
   <meta name="description" content="Kumpulan bonus deposit perdana, cashback mingguan, diskon pasang togel terbesar, dan komisi referral seumur hidup.">
 
@@ -12,16 +12,40 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/mobile.css">
+  <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
+  <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gasterus.fun/">
+  <meta property="og:image" content="https://gasterus.fun/favicon.svg">
+  <meta property="og:image:width" content="64">
+  <meta property="og:image:height" content="64">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
+  <meta name="twitter:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
+  <meta name="twitter:image" content="https://gasterus.fun/favicon.svg">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(r => console.log('SW registered')).catch(e => console.log('SW fail'));
+    });
+  }
+</script>
 </head>
 <body>
 
   <header class="app-header">
     <div class="container">
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
       <a href="/index.html" class="brand-logo">
         GASTERUS <span class="logo-badge">V3</span>
       </a>
@@ -39,6 +63,32 @@
       </div>
     </div>
   </header>
+
+  
+  <!-- Navigation Drawer -->
+  <div class="nav-drawer-backdrop" id="navBackdrop"></div>
+  <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
+    <div class="nav-drawer-head">
+      <span class="nav-drawer-title">Menu</span>
+      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
+    </div>
+    <div class="nav-drawer-body">
+      <a class="nav-drawer-item" href="/index.html">Beranda</a>
+      <a class="nav-drawer-item" href="/member.html">Togel &amp; Slot</a>
+      <a class="nav-drawer-item" href="/sportsbook.html">Sportsbook</a>
+      <a class="nav-drawer-item" href="/number-history.html">Result</a>
+      <a class="nav-drawer-item" href="/bet-history.html">Riwayat Bet</a>
+      <a class="nav-drawer-item" href="/deposit.html">Deposit</a>
+      <a class="nav-drawer-item" href="/withdraw.html">Withdraw</a>
+      <a class="nav-drawer-item" href="/promotion.html">Promo</a>
+      <a class="nav-drawer-item" href="/referral.html">Referral</a>
+      <div style="margin-top:16px; border-top:1px solid #1e293b; padding-top:12px;">
+        <a class="nav-drawer-item" href="/rules.html">Cara Bermain</a>
+        <a class="nav-drawer-item" href="/privacy.html">Privasi</a>
+        <a class="nav-drawer-item" href="/terms.html">Ketentuan</a>
+      </div>
+    </div>
+  </nav>
 
   <main class="app-main">
     <div class="container">
@@ -89,7 +139,14 @@
   </main>
 
   <footer class="app-footer">
-    <div class="container footer-bottom">
+    
+      <div class="footer-links">
+        <a href="privacy.html">Privacy</a>
+        <a href="responsible-play.html">Responsible Gaming</a>
+        <a href="terms.html">Terms</a>
+      </div>
+
+      <div class="container footer-bottom">
       &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
     </div>
   </footer>

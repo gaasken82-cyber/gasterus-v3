@@ -10,9 +10,33 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.json">
+
 
   <link rel="stylesheet" href="css/mobile-blue.css">
-</head>
+  <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
+  <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gasterus.fun/">
+  <meta property="og:image" content="https://gasterus.fun/favicon.svg">
+  <meta property="og:image:width" content="64">
+  <meta property="og:image:height" content="64">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
+  <meta name="twitter:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
+  <meta name="twitter:image" content="https://gasterus.fun/favicon.svg">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(reg => console.log('SW registered:', reg.scope)).catch(err => console.log('SW fail:', err));
+    });
+  }
+</script></head>
 <body class="page-home">
   <div class="site">
     
@@ -29,6 +53,7 @@
 
     <!-- 2. Brand Row -->
     <header class="brand-bar">
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
       <h1 class="brand-title">GASTERUS</h1>
       <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
     </header>
@@ -377,6 +402,26 @@
     </div>
 
     <!-- 13. Footer -->
+    
+  <!-- Navigation Drawer -->
+  <div class="nav-drawer-backdrop" id="navBackdrop"></div>
+  <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
+    <div class="nav-drawer-head">
+      <span class="nav-drawer-title">Menu</span>
+      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
+    </div>
+    <div class="nav-drawer-body">
+      <a class="nav-drawer-item" href="/index.html">Beranda</a>
+      <a class="nav-drawer-item" href="/member.html">Togel &amp; Slot</a>
+      <a class="nav-drawer-item" href="/sportsbook.html">Sportsbook</a>
+      <a class="nav-drawer-item" href="/number-history.html">Result</a>
+      <a class="nav-drawer-item" href="/bet-history.html">Riwayat Bet</a>
+      <a class="nav-drawer-item" href="/deposit.html">Deposit</a>
+      <a class="nav-drawer-item" href="/withdraw.html">Withdraw</a>
+      <a class="nav-drawer-item" href="/promotion.html">Promo</a>
+      <a class="nav-drawer-item" href="/referral.html">Referral</a>
+    </div>
+  </nav>
     <footer>
       <div class="footer-links">
         <a href="privacy.html">Privacy</a>
@@ -414,5 +459,16 @@
       });
     }
   </script>
+
+<script>
+(function(){
+function openNav(){var d=document.getElementById("site-nav-drawer"),b=document.getElementById("navBackdrop");if(d)d.classList.add("open");if(b)b.classList.add("show");document.body.classList.add("nav-open");}
+function closeNav(){var d=document.getElementById("site-nav-drawer"),b=document.getElementById("navBackdrop");if(d)d.classList.remove("open");if(b)b.classList.remove("show");document.body.classList.remove("nav-open");}
+document.querySelectorAll("[data-nav-open]").forEach(function(t){t.addEventListener("click",function(e){e.preventDefault();openNav();});});
+document.querySelectorAll("[data-nav-close]").forEach(function(e){e.addEventListener("click",closeNav);});
+document.getElementById("navBackdrop")?.addEventListener("click",closeNav);
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeNav();});
+})();
+</script>
 </body>
 </html>

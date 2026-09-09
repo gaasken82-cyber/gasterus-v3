@@ -98,7 +98,7 @@ function renderMarkets(markets) {
         ${
           isClosed
             ? `<button type="button" class="btn btn-secondary btn-sm btn-block btn-play" disabled>Pasaran Tutup</button>`
-            : `<a href="/market-play.html?code=${m.code || m.slug}" class="btn btn-primary btn-sm btn-block btn-play">Pasang Angka →</a>`
+            : `<a href="/market-play.html?code=${m.code || m.slug}" class="btn btn-primary btn-sm btn-block btn-play">▶ BET DISINI</a>`
         }
       </div>
     `;
