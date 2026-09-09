@@ -106,7 +106,10 @@ async function localReady(port, path='/ready') {
 
 const server = createServer(async (req,res) => {
   const url = new URL(req.url || '/', 'http://gateway.internal');
-  if (url.pathname === '/healthz' || url.pathname === '/readyz') {
+  if (url.pathname === '/healthz') {
+    return json(res, 200, {status:'ok', mode: PATH_MODE?'single-domain':'host-isolated', deploymentId:process.env.RAILWAY_DEPLOYMENT_ID||null});
+  }
+  if (url.pathname === '/readyz') {
     const [member,admin,core] = await Promise.all([localReady(MEMBER_PORT),localReady(ADMIN_PORT),localReady(Number(process.env.CORE_INTERNAL_PORT || 8083))]);
     return json(res, member && admin && core ? 200 : 503, {status:member&&admin&&core?'ready':'degraded', member, admin, core, mode: PATH_MODE?'single-domain':'host-isolated', deploymentId:process.env.RAILWAY_DEPLOYMENT_ID||null});
   }
