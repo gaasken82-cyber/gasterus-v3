@@ -1,0 +1,3 @@
+# Proxy API ke backend Railway (single source of truth).
+# Backend verified live: https://web-production-e8e55.up.railway.app (healthz 200)
+/api/*  https://web-production-e8e55.up.railway.app/api/:splat  200
