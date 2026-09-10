@@ -3,7 +3,7 @@
    Untuk PWA: Offline caching dasar
    ========================================================================== */
 
-const CACHE_NAME = 'gasterus-v3-cache-v1';
+const CACHE_NAME = 'gasterus-v3-cache-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -48,8 +48,10 @@ self.addEventListener('fetch', (e) => {
 
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
-  // Skip API calls and JS application code from aggressive cache
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/member/') || url.pathname.startsWith('/js/')) {
+  // Never cache application code or the service worker itself — these must always
+  // come straight from the network so a fix (like the login unwrap) reaches users
+  // immediately instead of an old broken copy being served forever from cache.
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/member/') || url.pathname.startsWith('/js/') || url.pathname === '/sw.js') {
     e.respondWith(fetch(request).catch(() => new Response('Offline', { status: 503 })));
     return;
   }
