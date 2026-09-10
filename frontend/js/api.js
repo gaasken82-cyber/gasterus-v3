@@ -62,7 +62,10 @@ class ApiClient {
             window.location.href = '/index.html?msg=session_expired';
           }
         }
-        const errorMsg = data.message || data.error || `Error ${res.status}: Terjadi kesalahan pada server.`;
+        const errorMsg = (typeof data.error === 'object' && data.error?.message)
+          || data.message
+          || (typeof data.error === 'string' ? data.error : null)
+          || `Error ${res.status}: Terjadi kesalahan pada server.`;
         const error = new Error(errorMsg);
         error.status = res.status;
         error.data = data;
