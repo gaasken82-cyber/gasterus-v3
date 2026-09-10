@@ -35,11 +35,14 @@ export async function initRegister() {
 
 async function loadCaptcha() {
   const container = document.getElementById('captcha-container');
+  const refreshBtn = document.getElementById('btn-refresh-captcha');
+  if (refreshBtn) refreshBtn.disabled = true;
   try {
     const res = await api.get('/member/register/captcha');
-    currentChallengeId = res.challengeId;
-    if (container && res.svg) {
-      container.innerHTML = res.svg;
+    const data = res?.data || res || {};
+    currentChallengeId = data.challengeId || null;
+    if (container && data.image) {
+      container.innerHTML = `<img src="${data.image}" alt="Captcha" style="display:block;max-width:100%;height:auto;">`;
     }
   } catch (err) {
     console.warn('Captcha load error, using offline placeholder', err);
@@ -48,6 +51,7 @@ async function loadCaptcha() {
       currentChallengeId = 'local-dummy-challenge';
     }
   }
+  if (refreshBtn) refreshBtn.disabled = false;
 }
 
 async function checkUsernameAvailability() {
@@ -62,12 +66,13 @@ async function checkUsernameAvailability() {
 
   try {
     const res = await api.get(`/member/register/username-availability?username=${encodeURIComponent(val)}`);
+    const data = res?.data || res || {};
     if (statusEl) {
-      if (!res.valid) {
-        statusEl.textContent = '❌ Format username tidak valid (3-12 karakter).';
+      if (!data.valid) {
+        statusEl.textContent = '✗ Username tidak valid (3-12 karakter).';
         statusEl.style.color = 'var(--status-danger)';
-      } else if (!res.available) {
-        statusEl.textContent = '❌ Username sudah digunakan.';
+      } else if (!data.available) {
+        statusEl.textContent = '✗ Username sudah terdaftar.';
         statusEl.style.color = 'var(--status-danger)';
       } else {
         statusEl.textContent = '✓ Username tersedia!';
@@ -113,8 +118,8 @@ async function handleRegisterSubmit(e) {
     bankName,
     accountNumber,
     accountName,
-    captchaChallengeId: currentChallengeId,
-    captchaCode,
+    captchaId: currentChallengeId,
+    captchaAnswer: captchaCode,
     referralCode: referralCode || undefined
   };
 
