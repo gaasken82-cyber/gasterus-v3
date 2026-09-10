@@ -57,7 +57,7 @@
         <div class="user-name"><span class="user-display-name">Member</span></div>
         <div class="user-balance">Balance: IDR. <span class="user-display-balance">0</span></div>
       </div>
-      <button type="button" class="btn-refresh-balance" id="btn-refresh-balance" onclick="refreshBalance(this)">↻ Refresh</button>
+      <button type="button" class="btn-refresh-balance" id="btn-refresh-balance" aria-label="Refresh Saldo">↻ Refresh</button>
     </div>
 
     <!-- Marquee Ticker (Cindototo style) -->
@@ -371,7 +371,7 @@
         btn.textContent = '↻ Memuat...';
       }
       try {
-        var token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token') || localStorage.getItem('token');
+        var token = localStorage.getItem('gasterus_token') || sessionStorage.getItem('gasterus_token');
         if (!token) {
           location.reload();
           return;
@@ -402,6 +402,12 @@
       }
     }
     window.refreshBalance = refreshBalance;
+
+    // Event listener untuk tombol refresh saldo
+    document.getElementById('btn-refresh-balance')?.addEventListener('click', function(e) {
+      e.preventDefault();
+      refreshBalance(this);
+    });
   </script>
 
   <script type="module" src="js/member.js"></script>

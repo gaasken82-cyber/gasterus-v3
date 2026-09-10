@@ -6,6 +6,11 @@ import api from './api.js';
 import auth from './auth.js';
 import { formatNumber, formatRupiah, getTimeRemaining, showToast } from './utils.js';
 
+// Generate idempotency key yang konsisten dan unik per kiriman
+function generateIdempotencyKey() {
+  return `mp_${Date.now()}_${Math.random().toString(36).substring(2, 12)}_${Math.random().toString(36).substring(2, 8)}`;
+}
+
 let currentMarket = null;
 let currentMarketConfig = null;
 let betRows = [];
@@ -209,9 +214,38 @@ function setupEventListeners() {
 }
 
 async function handleBetSubmit() {
-  const { validItemsCount, totalNet } = calculateTotals();
-  if (validItemsCount === 0) {
-    showToast('Masukkan minimal 1 nomor taruhan yang valid.', 'warning');
+  // Validasi format angka: hanya 2/3/4 digit angka murni (sesuai normalizeLotterySelection di backend)
+  const invalidRows = betRows
+    .filter(r => r.selection && r.selection.length >= 2 && r.stake > 0)
+    .filter(r => {
+      const gameCode = r.gameCode === 'AUTO'
+        ? (r.selection.length === 4 ? 'STRAIGHT_4D' : r.selection.length === 3 ? 'STRAIGHT_3D' : 'STRAIGHT_2D')
+        : r.gameCode;
+      // Validasi: harus sesuai digit yang diharapkan untuk game code tsb
+      const digitCount = {
+        'STRAIGHT_4D': 4,
+        'STRAIGHT_3D': 3,
+        'STRAIGHT_2D': 2,
+        'POSITION_2D_FRONT': 2,
+        'POSITION_2D_MIDDLE': 2
+      }[gameCode] || 4;
+      // Hanya angka + panjang tepat
+      if (!/^\d+$/.test(r.selection) || r.selection.length !== digitCount) {
+        return true;
+      }
+      // Cek duplikat selection (backend juga validasi ini sebagai BET_DUPLICATE_LINE)
+      const sel = r.selection.toUpperCase();
+      return betRows.some(other =>
+        other !== r &&
+        other.selection &&
+        other.selection.length >= 2 &&
+        other.selection.toUpperCase() === sel
+      );
+    });
+
+  if (invalidRows.length > 0) {
+    const examples = invalidRows.slice(0, 3).map(r => `"${r.selection}" (${r.gameCode})`).join(', ');
+    showToast(`Nomor tidak valid atau duplikat: ${examples}${invalidRows.length > 3 ? ' ...' : ''}`, 'danger');
     return;
   }
 
@@ -221,19 +255,32 @@ async function handleBetSubmit() {
     return;
   }
 
-  const items = betRows
+  const rows = betRows
     .filter(r => r.selection && r.selection.length >= 2 && r.stake > 0)
-    .map(r => ({
-      selection: r.selection,
-      stake: r.stake,
-      gameCode: r.gameCode === 'AUTO'
+    .map(r => {
+      const gameCode = r.gameCode === 'AUTO'
         ? (r.selection.length === 4 ? 'STRAIGHT_4D' : r.selection.length === 3 ? 'STRAIGHT_3D' : 'STRAIGHT_2D')
-        : r.gameCode
-    }));
+        : r.gameCode;
+      return {
+        gameCode,
+        selection: r.selection,
+        // amount = nominal bruto yang dimasukkan user.
+        // Backend akan menghitung ulang stake setelah diskon via calculateLotteryPricing,
+        // jadi kita tidak perlu kirim stake dari sini.
+        amount: r.stake
+      };
+    });
+
+  const marketId = currentMarketConfig?.marketId
+    || currentMarket?.marketId
+    || currentMarket?.id
+    || currentMarket?.slug;
 
   const payload = {
-    marketId: currentMarket.marketId || currentMarket.id || currentMarket.slug,
-    items
+    marketId,
+    period: currentMarketConfig?.period || currentMarket?.period || undefined,
+    rows,
+    idempotencyKey: generateIdempotencyKey()
   };
 
   const submitBtn = document.getElementById('btn-submit-bet');

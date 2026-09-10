@@ -1,7 +1,13 @@
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(process.cwd());
+for (const envPath of [resolve(ROOT, '.env'), resolve(ROOT, 'backend/.env')]) {
+  if (existsSync(envPath)) {
+    try { process.loadEnvFile(envPath); } catch {}
+  }
+}
 const children = new Map();
 let stopping = false;
 let fatalReason = null;

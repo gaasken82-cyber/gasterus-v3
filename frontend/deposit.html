@@ -54,7 +54,7 @@
         <div class="user-name"><span class="user-display-name">Member</span></div>
         <div class="user-balance">Balance: IDR. <span class="user-display-balance">0</span></div>
       </div>
-      <button type="button" class="btn-refresh-balance" onclick="location.reload()" aria-label="Refresh Saldo">↻ Refresh</button>
+      <button type="button" class="btn-refresh-balance" id="btn-refresh-deposit" aria-label="Refresh Saldo">↻ Refresh</button>
     </div>
 
     <!-- Marquee Ticker -->
@@ -94,7 +94,7 @@
         <div class="deposit-row">
           <span class="label">No. Rekening</span><span class="separator">:</span>
           <strong id="dest-bank-account">Memuat rekening...</strong>
-          <span class="copy-pill" id="dest-copy-btn" onclick="copyDestAccount(this)">Salin</span>
+          <span class="copy-pill" id="dest-copy-btn">Salin</span>
         </div>
         <div class="deposit-row">
           <span class="label">Penerima</span><span class="separator">:</span>
@@ -249,31 +249,38 @@
           if (amtInput) amtInput.focus();
         });
       }
-    })();
 
-    /* Copy Account Number with Visual Feedback */
-    function copyDestAccount(btn) {
-      var accEl = document.getElementById('dest-bank-account');
-      if (!accEl) return;
-      var text = accEl.textContent.trim();
-      if (!text || text.indexOf('Memuat') !== -1) return;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function () {
-          if (btn) {
-            var orig = btn.textContent;
-            btn.textContent = '✓ Disalin';
-            btn.style.background = '#22c55e';
-            btn.style.color = '#ffffff';
-            setTimeout(function () {
-              btn.textContent = orig;
-              btn.style.background = '';
-              btn.style.color = '';
-            }, 2000);
+      /* Refresh button */
+      var refreshBtn = document.getElementById('btn-refresh-deposit');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', function () {
+          location.reload();
+        });
+      }
+
+      /* Copy Account Number button */
+      var copyBtn = document.getElementById('dest-copy-btn');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function () {
+          var accEl = document.getElementById('dest-bank-account');
+          if (!accEl) return;
+          var text = accEl.textContent.trim();
+          if (!text || text.indexOf('Memuat') !== -1) return;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+              var orig = copyBtn.textContent;
+              copyBtn.textContent = '✓ Disalin';
+              copyBtn.style.background = '#22c55e';
+              copyBtn.style.color = '#ffffff';
+              setTimeout(function () {
+                copyBtn.textContent = orig;
+                copyBtn.style.background = '';
+                copyBtn.style.color = '';
+              }, 2000);
+            });
           }
         });
       }
-    }
-    window.copyDestAccount = copyDestAccount;
-  </script>
+    })();
 </body>
 </html>
