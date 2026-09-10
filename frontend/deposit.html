@@ -81,9 +81,9 @@
         <div class="deposit-row">
           <span class="label">Rekening</span><span class="separator">:</span>
           <select id="payment-method-select" name="paymentMethodId">
-            <option value="1">BCA - 8201-9238-11 (PT GASTERUS JAYA)</option>
-            <option value="2">MANDIRI - 1370-0283-9182 (PT GASTERUS JAYA)</option>
-            <option value="3">QRIS INSTAN 24 JAM (Semua Bank / E-Wallet)</option>
+            <option value="1" data-acc="Hubungi CS / Memuat..." data-name="PT GASTERUS JAYA">BCA Transfer</option>
+            <option value="2" data-acc="Hubungi CS / Memuat..." data-name="PT GASTERUS JAYA">MANDIRI Transfer</option>
+            <option value="3" data-acc="SCAN QRIS 24 JAM" data-name="GASTERUS OFFICIAL">QRIS INSTAN 24 JAM (Semua Bank / E-Wallet)</option>
           </select>
         </div>
 
@@ -93,14 +93,14 @@
         </div>
         <div class="deposit-row">
           <span class="label">No. Rekening</span><span class="separator">:</span>
-          <strong id="dest-bank-account">8201-9238-11</strong>
-          <span class="copy-pill" onclick="navigator.clipboard.writeText(document.getElementById('dest-bank-account').textContent); alert('Nomor rekening disalin!');">Salin</span>
+          <strong id="dest-bank-account">Memuat rekening...</strong>
+          <span class="copy-pill" id="dest-copy-btn" onclick="copyDestAccount(this)">Salin</span>
         </div>
         <div class="deposit-row">
           <span class="label">Penerima</span><span class="separator">:</span>
           <strong id="dest-account-holder">PT GASTERUS JAYA</strong>
         </div>
-        <button type="button" class="btn-qris-green">✓ QRIS — Bayar Instan 24 Jam</button>
+        <button type="button" class="btn-qris-green" id="btn-select-qris">✓ QRIS — Bayar Instan 24 Jam</button>
       </div>
 
       <!-- Kartu Putih QRIS -->
@@ -230,7 +230,50 @@
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeNav();
       });
+
+      /* Select QRIS quick button */
+      var qrisBtn = document.getElementById('btn-select-qris');
+      if (qrisBtn) {
+        qrisBtn.addEventListener('click', function () {
+          var sel = document.getElementById('payment-method-select');
+          if (sel) {
+            for (var i = 0; i < sel.options.length; i++) {
+              if (sel.options[i].textContent.indexOf('QRIS') !== -1) {
+                sel.selectedIndex = i;
+                sel.dispatchEvent(new Event('change'));
+                break;
+              }
+            }
+          }
+          var amtInput = document.getElementById('deposit-amount-input');
+          if (amtInput) amtInput.focus();
+        });
+      }
     })();
+
+    /* Copy Account Number with Visual Feedback */
+    function copyDestAccount(btn) {
+      var accEl = document.getElementById('dest-bank-account');
+      if (!accEl) return;
+      var text = accEl.textContent.trim();
+      if (!text || text.indexOf('Memuat') !== -1) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          if (btn) {
+            var orig = btn.textContent;
+            btn.textContent = '✓ Disalin';
+            btn.style.background = '#22c55e';
+            btn.style.color = '#ffffff';
+            setTimeout(function () {
+              btn.textContent = orig;
+              btn.style.background = '';
+              btn.style.color = '';
+            }, 2000);
+          }
+        });
+      }
+    }
+    window.copyDestAccount = copyDestAccount;
   </script>
 </body>
 </html>

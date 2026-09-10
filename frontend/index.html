@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -48,7 +48,7 @@
         <div class="app-title">APLIKASI GASTERUS</div>
         <div class="app-sub">Kini telah tersedia Aplikasi Android</div>
       </div>
-      <a class="app-btn-dl" href="assets/gasterus.apk" download>DOWNLOAD</a>
+      <a class="app-btn-dl" href="https://wa.me/6285136342563?text=Halo+CS+Gasterus%2C+saya+ingin+download+APK+Android" target="_blank" rel="noopener noreferrer">DOWNLOAD</a>
     </aside>
 
     <!-- 2. Brand Row -->
@@ -129,7 +129,7 @@
             <small>KLIK DISINI</small>
           </div>
         </a>
-        <a class="cs-card" href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+        <a class="cs-card" href="https://facebook.com/gasterusofficial" target="_blank" rel="noopener noreferrer">
           <span class="cs-badge">!</span>
           <div class="cs-icon-wrap">📘</div>
           <div class="cs-info">
@@ -160,7 +160,7 @@
     <section class="results-box">
       <div class="res-head">
         <b>Hasil Terakhir <span class="live-tag"><i></i>LIVE</span></b>
-        <span id="resDate">08 September 2026</span>
+        <span id="resDate">Memuat...</span>
       </div>
       <div class="res-search">
         <span>🔍</span>
@@ -336,7 +336,7 @@
     </section>
 
     <!-- 11. Floating Menu Button (Bottom Left) -->
-    <button class="float-menu-btn" id="floatBtn" type="button" aria-label="Menu" onclick="alert('Menu Cepat Terbuka');">☰</button>
+    <button class="float-menu-btn" id="floatBtn" type="button" aria-label="Menu" data-nav-open>☰</button>
 
     <!-- 12. Running Withdrawal Ticker -->
     <div class="withdraw-ticker">
@@ -435,7 +435,53 @@ if (loginForm && btnLogin) {
       btnLogin.textContent = 'Log in';
     }
   });
-}
+  }
+</script>
+
+<script>
+// Live Draw Loader — Fetch dinamis dari backend, fallback ke data statis jika gagal
+(function loadLiveDraw() {
+  var dateEl = document.getElementById('resDate');
+  var grid = document.getElementById('resultsGrid');
+
+  // Tampilkan tanggal hari ini
+  if (dateEl) {
+    var now = new Date();
+    dateEl.textContent = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+
+  if (!grid) return;
+
+  fetch('/api/public/markets?limit=24')
+    .then(function(res) { return res.ok ? res.json() : Promise.reject(res.status); })
+    .then(function(data) {
+      var markets = (data && (data.items || data.data)) || [];
+      if (!markets.length) return;
+
+      grid.innerHTML = markets.map(function(m) {
+        var result = m.result || '----';
+        var drawDate = '-';
+        if (m.drawDate) {
+          try {
+            var d = new Date(m.drawDate);
+            drawDate = ('0' + d.getDate()).slice(-2) + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + d.getFullYear();
+          } catch(e) {}
+        }
+        var name = (m.name || m.code || '').toUpperCase();
+        return '<div class="res-card" data-market="' + name.toLowerCase() + '">' +
+          '<div class="res-name">' + name + '</div>' +
+          '<div class="res-card-body">' +
+            '<div class="res-date">' + drawDate + '</div>' +
+            '<div class="res-number">' + result + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    })
+    .catch(function(err) {
+      // Fallback: data statis tetap tampil, hanya update tanggal
+      console.warn('[LiveDraw] API tidak tersedia, menggunakan data statis.', err);
+    });
+})();
 </script>
 
 </body>
