@@ -67,6 +67,15 @@ export async function registerMember(input,ip='') {
   assert(isValidMemberPassword(password),400,'Password harus 8-72 karakter serta mengandung huruf dan angka.','PASSWORD_INVALID');
   const existing=await query('SELECT 1 FROM users WHERE username=$1 LIMIT 1',[username]);
   assert(!existing.rows[0],409,'Username sudah digunakan. Gunakan username lain.','USERNAME_TAKEN');
+  if(email){
+    const emailExists=await query('SELECT 1 FROM users WHERE email=$1 LIMIT 1',[email]);
+    assert(!emailExists.rows[0],409,'Email sudah terdaftar. Gunakan email lain.','EMAIL_TAKEN');
+  }
+  const accountNumber=String(input.accountNumber||'').trim();
+  if(accountNumber){
+    const accExists=await query(`SELECT 1 FROM users u WHERE u.account_number=$1 AND btrim(u.account_number)<>'' AND NOT EXISTS(SELECT 1 FROM user_roles ur WHERE ur.user_id=u.id) LIMIT 1`,[accountNumber]);
+    assert(!accExists.rows[0],409,'Nomor rekening sudah digunakan. Gunakan nomor rekening lain.','ACCOUNT_NUMBER_TAKEN');
+  }
   const passwordHash=await hashPassword(password);
   const id=randomUUID(),accountId=randomUUID(),code=`A7${randomToken(7).replace(/[-_]/g,'').slice(0,9).toUpperCase()}`;
   let referrer=null;

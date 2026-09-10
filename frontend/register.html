@@ -88,9 +88,12 @@
 
       <div class="reg-field">
         <label class="reg-label">No. Telp/HP <span>*</span></label>
-        <div class="reg-phone-wrap">
-          <span class="reg-phone-prefix">+62</span>
-          <input type="tel" id="reg-phone" name="phone" placeholder="Nomor telepon anda" autocomplete="tel">
+        <div class="reg-input-col">
+          <div class="reg-phone-wrap">
+            <span class="reg-phone-prefix">+62</span>
+            <input type="tel" id="reg-phone" name="phone" placeholder="Nomor telepon anda" autocomplete="tel">
+          </div>
+          <span class="reg-username-status" id="phone-status"></span>
         </div>
       </div>
 
@@ -123,12 +126,18 @@
 
       <div class="reg-field">
         <label class="reg-label">Nama Rekening <span>*</span></label>
-        <input class="reg-input" type="text" id="reg-account-name" name="accountName" placeholder="Nama rekening anda" required>
+        <div class="reg-input-col">
+          <input class="reg-input" type="text" id="reg-account-name" name="accountName" placeholder="Nama rekening anda" required>
+          <span class="reg-username-status" id="account-name-status"></span>
+        </div>
       </div>
 
       <div class="reg-field">
         <label class="reg-label">Nomor Rekening <span>*</span></label>
-        <input class="reg-input" type="text" id="reg-account-number" name="accountNumber" placeholder="Nomor rekening" required>
+        <div class="reg-input-col">
+          <input class="reg-input" type="text" id="reg-account-number" name="accountNumber" placeholder="Nomor rekening" required>
+          <span class="reg-username-status" id="account-number-status"></span>
+        </div>
       </div>
 
       <!-- Captcha -->

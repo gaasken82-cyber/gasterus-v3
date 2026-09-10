@@ -3,7 +3,7 @@ import { query } from './db.js';
 import { redis } from './redis.js';
 import { AppError, assert } from './errors.js';
 import { hmac } from './security.js';
-import { isValidMemberUsername } from './registration-policy.js';
+import { isValidMemberUsername, isValidMemberEmail } from './registration-policy.js';
 
 const CAPTCHA_TTL_SECONDS = 300;
 const CAPTCHA_MIN_AGE_MS = 700;
@@ -49,6 +49,26 @@ export async function registrationUsernameAvailability(value) {
   const username = String(value ?? '').trim();
   if (!isValidMemberUsername(username)) return { valid: false, available: false };
   const { rows } = await query('SELECT 1 FROM users WHERE username=$1 LIMIT 1', [username]);
+  return { valid: true, available: !rows[0] };
+}
+
+export async function registrationEmailAvailability(value) {
+  const email = String(value ?? '').trim().toLowerCase();
+  if (!isValidMemberEmail(email)) return { valid: false, available: false };
+  const { rows } = await query('SELECT 1 FROM users WHERE email=$1 LIMIT 1', [email]);
+  return { valid: true, available: !rows[0] };
+}
+
+// Nomor rekening dianggap "terpakai" apabila milik member aktif (bukan akun
+// OWNER/STAFF/operator) sehingga seorang calon member tidak bisa mendaftarkan
+// rekening yang sudah dipakai pemain lain (mencegah shared payout account).
+export async function registrationAccountNumberAvailability(value) {
+  const accountNumber = String(value ?? '').trim();
+  if (accountNumber.length < 4 || accountNumber.length > 80) return { valid: false, available: false };
+  const { rows } = await query(`SELECT 1 FROM users u
+    WHERE u.account_number=$1 AND btrim(u.account_number)<>''
+      AND NOT EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id=u.id)
+    LIMIT 1`, [accountNumber]);
   return { valid: true, available: !rows[0] };
 }
 

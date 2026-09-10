@@ -945,7 +945,7 @@ footer, .site-footer {
 
 .reg-form {
   padding: 10px 14px;
-  max-width: 420px;
+  max-width: 210px;
   margin: 0 auto;
 }
 
@@ -976,8 +976,8 @@ footer, .site-footer {
 
 .reg-label {
   flex-shrink: 0;
-  width: 110px;
-  font-size: 12px;
+  width: 70px;
+  font-size: 11px;
   font-weight: 700;
   color: #cbd5e1;
   line-height: 1.3;
@@ -1070,10 +1070,17 @@ select.reg-input {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  min-width: 140px;
+  min-width: 0;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.reg-captcha-img img {
+  max-width: 100%;
+  height: auto;
 }
 
 .reg-captcha-refresh {

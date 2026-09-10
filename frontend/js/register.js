@@ -8,6 +8,9 @@ import { showToast } from './utils.js';
 
 let currentChallengeId = null;
 let usernameTimer = null;
+let accountNumberTimer = null;
+let emailTimer = null;
+let captchaLastRefresh = 0;
 
 const USERNAME_RE = /^[A-Za-z0-9_]{3,12}$/;
 const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,72}$/;
@@ -50,7 +53,31 @@ export async function initRegister() {
   if (confirmInput) confirmInput.addEventListener('input', validateConfirmField);
 
   const emailInput = document.getElementById('reg-email');
-  if (emailInput) emailInput.addEventListener('blur', validateEmailField);
+  if (emailInput) {
+    emailInput.addEventListener('blur', validateEmailField);
+    emailInput.addEventListener('input', () => {
+      if (emailTimer) clearTimeout(emailTimer);
+      emailTimer = setTimeout(validateEmailField, 400);
+    });
+  }
+
+  const phoneInput = document.getElementById('reg-phone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', validatePhoneField);
+    phoneInput.addEventListener('blur', validatePhoneField);
+  }
+
+  const accountNameInput = document.getElementById('reg-account-name');
+  if (accountNameInput) accountNameInput.addEventListener('input', validateAccountNameField);
+
+  const accountNumberInput = document.getElementById('reg-account-number');
+  if (accountNumberInput) {
+    accountNumberInput.addEventListener('input', () => {
+      if (accountNumberTimer) clearTimeout(accountNumberTimer);
+      accountNumberTimer = setTimeout(checkAccountNumberAvailability, 400);
+    });
+    accountNumberInput.addEventListener('blur', checkAccountNumberAvailability);
+  }
 
   const form = document.getElementById('register-form');
   if (form) form.addEventListener('submit', handleRegisterSubmit);
@@ -75,6 +102,9 @@ function setStatus(id, text, ok = null, borderInputId = null) {
 }
 
 async function loadCaptcha() {
+  const now = Date.now();
+  if (now - captchaLastRefresh < 800) return; // debounce spam clicks on refresh
+  captchaLastRefresh = now;
   const container = document.getElementById('captcha-container');
   const refreshBtn = document.getElementById('btn-refresh-captcha');
   if (refreshBtn) refreshBtn.disabled = true;
@@ -145,13 +175,64 @@ function validateConfirmField() {
   }
 }
 
-function validateEmailField() {
+async function validateEmailField() {
   const val = document.getElementById('reg-email').value.trim();
-  if (!val) { setStatus('email-status', '', null); return; }
+  if (!val) { setStatus('email-status', '', null, 'reg-email'); return; }
   if (!EMAIL_RE.test(val)) {
     setStatus('email-status', '✗ Format email tidak valid.', false, 'reg-email');
+    return;
+  }
+  try {
+    const res = await api.get(`/member/register/email-availability?email=${encodeURIComponent(val)}`);
+    const data = res?.data || res || {};
+    if (data.valid === false) {
+      setStatus('email-status', '✗ Format email tidak valid.', false, 'reg-email');
+    } else if (data.available === false) {
+      setStatus('email-status', '✗ Email sudah terdaftar.', false, 'reg-email');
+    } else {
+      setStatus('email-status', '✓ Email tersedia.', true, 'reg-email');
+    }
+  } catch (err) {
+    setStatus('email-status', '✓ Format email valid.', true, 'reg-email');
+  }
+}
+
+function validatePhoneField() {
+  const val = String(document.getElementById('reg-phone').value || '').replace(/\D/g, '');
+  if (!val) { setStatus('phone-status', '', null, 'reg-phone'); return; }
+  if (!/^\d{8,13}$/.test(val)) {
+    setStatus('phone-status', '✗ No. HP tidak valid (8-13 digit).', false, 'reg-phone');
   } else {
-    setStatus('email-status', '✓ Format valid.', true);
+    setStatus('phone-status', '✓ No. HP valid.', true, 'reg-phone');
+  }
+}
+
+function validateAccountNameField() {
+  const val = String(document.getElementById('reg-account-name').value || '').trim();
+  if (!val) { setStatus('account-name-status', '', null, 'reg-account-name'); return; }
+  setStatus('account-name-status', '✓ Nama rekening valid.', true, 'reg-account-name');
+}
+
+async function checkAccountNumberAvailability() {
+  const input = document.getElementById('reg-account-number');
+  const val = String(input.value || '').replace(/\s+/g, '');
+  if (!val) { setStatus('account-number-status', '', null, 'reg-account-number'); return; }
+  if (!/^\d{6,20}$/.test(val)) {
+    setStatus('account-number-status', '✗ Nomor rekening 6-20 digit angka.', false, 'reg-account-number');
+    return;
+  }
+  try {
+    const res = await api.get(`/member/register/account-availability?account=${encodeURIComponent(val)}`);
+    const data = res?.data || res || {};
+    if (data.valid === false) {
+      setStatus('account-number-status', '✗ Nomor rekening tidak valid.', false, 'reg-account-number');
+    } else if (data.available === false) {
+      setStatus('account-number-status', '✗ Nomor rekening sudah terdaftar.', false, 'reg-account-number');
+    } else {
+      setStatus('account-number-status', '✓ Nomor rekening bisa digunakan.', true, 'reg-account-number');
+    }
+  } catch (err) {
+    // Abaikan error cek (mis. offline) agar tidak menghalangi pendaftaran.
   }
 }
 
@@ -164,7 +245,7 @@ async function handleRegisterSubmit(e) {
   const email = form.email.value.trim();
   const password = form.password.value;
   const passwordConfirm = form.passwordConfirm.value;
-  const phone = form.phone.value.trim();
+  const phone = String(form.phone.value || '').replace(/\D/g, '');
   const bankName = form.bankName.value;
   const accountNumber = form.accountNumber.value.trim();
   const accountName = form.accountName.value.trim();
@@ -190,6 +271,21 @@ async function handleRegisterSubmit(e) {
   if (!EMAIL_RE.test(email)) {
     validateEmailField();
     showToast('Periksa format email.', 'warning');
+    return;
+  }
+  if (!/^\d{8,13}$/.test(phone)) {
+    validatePhoneField();
+    showToast('Periksa format nomor HP (8-13 digit).', 'warning');
+    return;
+  }
+  if (!String(accountName || '').trim()) {
+    setStatus('account-name-status', '✗ Nama rekening wajib diisi.', false, 'reg-account-name');
+    showToast('Nama rekening wajib diisi.', 'warning');
+    return;
+  }
+  if (!/^\d{6,20}$/.test(String(accountNumber || '').replace(/\s+/g, ''))) {
+    setStatus('account-number-status', '✗ Nomor rekening 6-20 digit angka.', false, 'reg-account-number');
+    showToast('Periksa format nomor rekening.', 'warning');
     return;
   }
 
@@ -226,6 +322,7 @@ async function handleRegisterSubmit(e) {
     const code = err?.data?.error?.code || err?.data?.code;
     if (code === 'USERNAME_TAKEN') setStatus('username-status', '✗ Username sudah terdaftar.', false, 'reg-username');
     if (code === 'EMAIL_TAKEN') setStatus('email-status', '✗ Email sudah terdaftar.', false, 'reg-email');
+    if (code === 'ACCOUNT_NUMBER_TAKEN') setStatus('account-number-status', '✗ Nomor rekening sudah terdaftar.', false, 'reg-account-number');
     await loadCaptcha();
     form.captchaCode.value = '';
   }
