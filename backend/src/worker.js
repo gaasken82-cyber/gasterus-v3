@@ -11,7 +11,7 @@ import { refreshSportsbookFeed } from './sportsbook-feed.js';
 import { calculateLotteryPricing, evaluateLotterySelection, legacyGameCode } from './lottery-games.js';
 import { expireStaleWalletApprovals } from './money.js';
 import { runTotoCollector } from './toto-collector.js';
-import { isDrawWindowActive, isPeriodCompleted } from './toto-collector-core.js';
+import { isDrawWindowActive, isPeriodCompleted, DRAW_SCHEDULE } from './toto-collector-core.js';
 import { startMemoryGuard } from './memory-guard.js';
 
 const processingQueue = `${config.queueName}:processing`;
@@ -444,8 +444,11 @@ async function main() {
     if (todoCollectorDue) {
       const nowMs = Date.now();
       const anyActive = (() => {
-        try { return isDrawWindowActive('king-kong-4d-pool', { now: new Date(nowMs) }) || isDrawWindowActive('4d-toto-macau-pool', { now: new Date(nowMs) }); }
-        catch { return true; } // fail-open: never hard-stop the collector on helper error
+        try {
+          return Object.keys(DRAW_SCHEDULE).some(slug => isDrawWindowActive(slug, { now: new Date(nowMs) }));
+        } catch {
+          return true; // fail-open: never hard-stop the collector on helper error
+        }
       })();
       // Per-market completion map (Redis-backed) so a period that already published
       // today's result stops being re-fetched until the period rolls over.
