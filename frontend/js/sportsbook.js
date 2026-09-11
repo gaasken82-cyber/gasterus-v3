@@ -491,11 +491,12 @@ function renderMarketRow(e, m, locked) {
     if (!odds) return `<span class="sb-odd sb-odd-off" title="Tidak ada harga">${escapeHtml(shortSel(s.label || s.key))}<b>—</b></span>`;
     const dir = oddsChangeDir(key, odds);
     const caret = dir === 'up' ? '<i class="sb-caret up">▲</i>' : dir === 'down' ? '<i class="sb-caret down">▼</i>' : '';
+    const flashStyle = dir === 'up' ? ' style="animation:sb-odds-flash-up 0.8s ease both"' : dir === 'down' ? ' style="animation:sb-odds-flash-down 0.8s ease both"' : '';
     return `<button type="button" class="sb-odd${sel ? ' chosen' : ''}${locked ? ' sb-locked' : ''}" data-sel="${escapeHtml(key)}"` +
       ` data-evid="${escapeHtml(e.id)}" data-mk="${escapeHtml(m.id)}" data-sk="${escapeHtml(s.key)}"` +
       ` data-odds="${odds}" data-pv="${escapeHtml(s.priceVersion || '')}" aria-pressed="${sel ? 'true' : 'false'}"` +
-      ` title="${escapeHtml(s.label || s.key)} @ ${odds.toFixed(2)}">` +
-      `<span class="sb-odd-label">${escapeHtml(shortSel(s.label || s.key))}</span><span class="sb-odd-rate">${odds.toFixed(2)}${caret}</span></button>`;
+      ` title="${escapeHtml(s.label || s.key)} @ ${odds.toFixed(2)}">`+
+      `<span class="sb-odd-label">${escapeHtml(shortSel(s.label || s.key))}</span><span class="sb-odd-rate"${flashStyle}>${odds.toFixed(2)}${caret}</span></button>`;
   }).join('');
   return `<div class="sb-market${locked ? ' sb-market-locked' : ''}" title="${escapeHtml(m.label || labelText)}">` +
     `<span class="sb-market-name">${labelHtml}</span>` +
@@ -712,7 +713,7 @@ function renderBetslip() {
       <div class="sb-slip-hint">Min ${formatRupiah(bettingConfig.minStake)} · Maks ${formatRupiah(bettingConfig.maxStake)} · Saldo ${formatRupiah(balance)}</div>
       ${overBalance ? `<div class="sb-slip-hint">Stake melebihi saldo. <a href="/deposit.html"><strong>Deposit di sini</strong></a>.</div>` : ''}
     </div>
-    <button type="button" id="btn-place-bet" class="sb-btn sb-btn-primary sb-btn-block"${(placing || overBalance) ? ' disabled' : ''}>${placing ? 'Memproses…' : 'Pasang Taruhan'}</button>
+    <button type="button" id="btn-place-bet" class="sb-btn sb-btn-place sb-btn-block"${(placing || overBalance) ? ' disabled' : ''}>${placing ? '⏳ Memproses…' : '⚽ Pasang Taruhan'}</button>
     <button type="button" id="btn-clear-slip" class="sb-btn sb-btn-ghost sb-btn-block sb-btn-sm">Kosongkan betslip</button>`;
 
   bindBetslipEvents(target);
@@ -870,7 +871,7 @@ async function placeBet() {
   } finally {
     placing = false;
     const b = el('btn-place-bet');
-    if (b) { b.disabled = false; b.textContent = 'Pasang Taruhan'; }
+    if (b) { b.disabled = false; b.textContent = '⚽ Pasang Taruhan'; }
   }
 }
 
