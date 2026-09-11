@@ -51,7 +51,7 @@ self.addEventListener('fetch', (e) => {
   // Never cache application code or the service worker itself — these must always
   // come straight from the network so a fix (like the login unwrap) reaches users
   // immediately instead of an old broken copy being served forever from cache.
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/member/') || url.pathname.startsWith('/js/') || url.pathname === '/sw.js') {
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/member/') || url.pathname.startsWith('/js/') || url.pathname.startsWith('/css/') || url.pathname === '/sw.js') {
     e.respondWith(fetch(request).catch(() => new Response('Offline', { status: 503 })));
     return;
   }

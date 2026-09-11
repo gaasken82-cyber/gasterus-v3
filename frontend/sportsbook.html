@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/mobile.css">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="/css/pages/sportsbook.css?v=wam-3.0">
+  <link rel="stylesheet" href="/css/pages/sportsbook-v3.css">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
   <meta property="og:type" content="website">
@@ -33,9 +33,20 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>
+  // Self-heal stale caches from old service workers
+  if ('caches' in window) {
+    caches.keys().then(function(keys) {
+      keys.forEach(function(k) {
+        if (k !== 'gasterus-v3-cache-v3') caches.delete(k);
+      });
+    });
+  }
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').then(r => console.log('SW registered')).catch(e => console.log('SW fail'));
+      navigator.serviceWorker.register('/sw.js').then(r => {
+        r.update();
+        console.log('SW registered & updated');
+      }).catch(e => console.log('SW fail'));
     });
   }
 </script>
