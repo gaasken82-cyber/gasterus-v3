@@ -75,13 +75,21 @@ function buildSkeleton() {
 }
 
 function renderAuthRequired() {
-  hideSkeleton();
-  setEmpty('Silakan login untuk melihat odds dan memasang taruhan sportsbook.');
-  const err = el('sb-error');
-  if (err) {
-    err.hidden = false;
-    err.innerHTML = `Sesi member belum aktif. <a href="/index.html">Login</a> untuk melanjutkan ke sportsbook.`;
+  const sk = el('sb-skeleton');
+  if (sk) { sk.innerHTML = ''; sk.hidden = true; }
+  const dot = el('rt-dot');
+  const label = el('rt-label');
+  if (dot) dot.className = 'sb-rt-dot off';
+  if (label) label.textContent = 'Login diperlukan';
+  const ev = el('sb-events');
+  if (ev) ev.innerHTML = '';
+  const empty = el('sb-empty');
+  if (empty) {
+    empty.hidden = false;
+    empty.innerHTML = 'Sportsbook khusus member. <a href="/index.html"><strong>Login di sini</strong></a> untuk melihat odds dan memasang taruhan.';
   }
+  const err = el('sb-error');
+  if (err) err.hidden = true;
 }
 
 function setStatus(state) {
@@ -90,11 +98,13 @@ function setStatus(state) {
   if (state === 'online') { if (dot) dot.className = 'sb-rt-dot on'; if (label) label.textContent = 'Live'; }
   else if (state === 'connecting') { if (dot) dot.className = 'sb-rt-dot'; if (label) label.textContent = 'Connecting…'; }
   else { if (dot) dot.className = 'sb-rt-dot off'; if (label) label.textContent = 'Offline'; }
+}
+
 // ---------------------------------------------------------------------------
 // SSE stream — manual client so the Authorization header can be sent.
 // EventSource cannot set headers, and the member session may be Bearer-based.
 // ---------------------------------------------------------------------------
-const SB_BUILD = 'sb4';
+const SB_BUILD = 'sb6';
 window.__SB_BUILD = SB_BUILD;
 console.info(`[GASTERUS] sportsbook build ${SB_BUILD}`);
 
@@ -808,5 +818,4 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initSportsbook);
 } else {
   initSportsbook();
-}
 }
