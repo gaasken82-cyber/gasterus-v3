@@ -3,7 +3,7 @@
    Untuk PWA: Offline caching dasar
    ========================================================================== */
 
-const CACHE_NAME = 'gasterus-v3-cache-v2';
+const CACHE_NAME = 'gasterus-v3-cache-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

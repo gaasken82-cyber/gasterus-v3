@@ -104,8 +104,8 @@ function cspForHtml(html) {
   const scripts = ["'self'", ...inlineScriptHashes(html)].join(' ');
   const directives = [
     "default-src 'self'", "base-uri 'none'", "object-src 'none'", "frame-src 'none'", "frame-ancestors 'none'",
-    "form-action 'self'", `script-src ${scripts}`, "script-src-attr 'none'", "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https:", "font-src 'self' data:", "connect-src 'self'", "media-src 'self'", "worker-src 'self' blob:",
+    "form-action 'self'", `script-src ${scripts}`, "script-src-attr 'none'", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: blob: https:", "font-src 'self' data: https://fonts.gstatic.com", "connect-src 'self'", "media-src 'self'", "worker-src 'self' blob:",
     "manifest-src 'self'"
   ];
   if (PUBLIC_PROTO === 'https') directives.push("upgrade-insecure-requests");
