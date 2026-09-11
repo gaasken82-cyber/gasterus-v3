@@ -309,18 +309,34 @@ function formatIndoOdds(decOdds) {
   }
 }
 
+// Timezone-aware "today" check (WIB = UTC+7).
+// Juga memberi window +26 jam ke depan & -3 jam ke belakang agar event
+// yang baru saja mulai atau berakhir tidak tiba-tiba hilang dari tab Hari Ini.
+function todayDateWIB(ts) {
+  // Returns 'YYYY-MM-DD' in WIB (UTC+7)
+  const d = new Date((ts || Date.now()) + 7 * 3600 * 1000);
+  return d.toISOString().slice(0, 10);
+}
+
 function isTodayEvent(e) {
   if (!e?.startTime) return false;
-  const d = new Date(e.startTime);
-  const now = new Date();
-  return d.toDateString() === now.toDateString();
+  const evTs = new Date(e.startTime).getTime();
+  if (!Number.isFinite(evTs)) return false;
+  const nowTs = Date.now();
+  const diffHours = (evTs - nowTs) / (1000 * 60 * 60);
+  // Window: started up to 3 h ago, or starts within next 26 h
+  if (diffHours >= -3 && diffHours <= 26) return true;
+  // Fallback: same calendar date in WIB
+  return todayDateWIB(evTs) === todayDateWIB(nowTs);
 }
 
 function isFutureEvent(e) {
   if (!e?.startTime) return false;
-  const d = new Date(e.startTime);
-  const now = new Date();
-  return d.getTime() > now.getTime() && d.toDateString() !== now.toDateString();
+  const evTs = new Date(e.startTime).getTime();
+  if (!Number.isFinite(evTs)) return false;
+  const nowTs = Date.now();
+  // "Early" = starts more than 26 h from now (beyond today window)
+  return evTs - nowTs > 26 * 60 * 60 * 1000;
 }
 
 // ---------------------------------------------------------------------------
