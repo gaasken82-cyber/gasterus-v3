@@ -64,7 +64,7 @@ export async function initSportsbook() {
   }
   setupFilterTabs();
   setupSearch();
-  setupMobileDock();
+  setupSlipSheet();
   bindEventHandlers();
   document.addEventListener('visibilitychange', () => { if (!document.hidden && auth.isLoggedIn()) refreshBalance(); });
 
@@ -476,33 +476,79 @@ function openLeagueModal() {
   modal.hidden = false;
 }
 
+// ---------------------------------------------------------------------------
+// Slip Sheet helpers (Mobile SBOBET-style slide-up betslip)
+// ---------------------------------------------------------------------------
+let slipSheetOpen = false;
+let activeSlipTab = 'single'; // 'single' | 'parlay'
+
+function openSlipSheet() {
+  const sheet = el('sb-slip-sheet');
+  const overlay = el('sb-slip-overlay');
+  if (!sheet) return;
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+  if (overlay) overlay.classList.add('active');
+  slipSheetOpen = true;
+  // Mark Slip Parlay button as active
+  const bnavSlip = el('bnav-slip');
+  if (bnavSlip) bnavSlip.classList.add('active');
+  renderBetslip();
+}
+
+function closeSlipSheet() {
+  const sheet = el('sb-slip-sheet');
+  const overlay = el('sb-slip-overlay');
+  if (!sheet) return;
+  sheet.classList.remove('open');
+  sheet.setAttribute('aria-hidden', 'true');
+  if (overlay) overlay.classList.remove('active');
+  slipSheetOpen = false;
+  const bnavSlip = el('bnav-slip');
+  if (bnavSlip) bnavSlip.classList.remove('active');
+}
+
+function setSlipTab(tab) {
+  activeSlipTab = tab;
+  // Update mobile sheet tabs
+  document.querySelectorAll('.sb-slip-tab').forEach((t) => {
+    t.classList.toggle('active', t.getAttribute('data-slip-tab') === tab);
+  });
+  // Update desktop betslip tabs
+  document.querySelectorAll('.sb-bs-tab').forEach((t) => {
+    t.classList.toggle('active', t.getAttribute('data-bstab') === tab);
+  });
+  renderBetslip();
+}
+
 function setupBottomNav() {
-  const slipBtn = el('bnav-slip');
   const myMatchesBtn = el('bnav-my-matches');
   const myBetsBtn = el('bnav-my-bets');
   const cashoutBtn = el('bnav-cashout');
-  const sheet = el('sb-mobile-sheet');
   const betsModal = el('sb-user-bets-backdrop');
   const closeBets = el('btn-close-bets-modal');
 
-  if (slipBtn && sheet) {
+  // "Slip Parlay" button → toggle slip sheet
+  const slipBtn = el('bnav-slip');
+  if (slipBtn) {
     slipBtn.addEventListener('click', () => {
-      const isOpen = sheet.classList.toggle('open');
-      if (isOpen) renderBetslip();
+      if (slipSheetOpen) closeSlipSheet();
+      else openSlipSheet();
     });
   }
   if (myMatchesBtn) {
     myMatchesBtn.addEventListener('click', () => {
+      closeSlipSheet();
       currentFilter = currentFilter === 'fav' ? 'today' : 'fav';
       renderAll();
       showToast(currentFilter === 'fav' ? 'Menampilkan Pertandingan Saya' : 'Menampilkan Semua', 'info');
     });
   }
-  if (myBetsBtn && betsModal) {
-    myBetsBtn.addEventListener('click', () => openUserBetsModal('Taruhan Saya'));
+  if (myBetsBtn) {
+    myBetsBtn.addEventListener('click', () => { closeSlipSheet(); openUserBetsModal('Taruhan Saya'); });
   }
-  if (cashoutBtn && betsModal) {
-    cashoutBtn.addEventListener('click', () => openUserBetsModal('Fitur Bayar Sekarang (Cashout)'));
+  if (cashoutBtn) {
+    cashoutBtn.addEventListener('click', () => { closeSlipSheet(); openUserBetsModal('Fitur Bayar Sekarang (Cashout)'); });
   }
   if (closeBets && betsModal) {
     closeBets.addEventListener('click', () => { betsModal.hidden = true; });
@@ -1147,6 +1193,10 @@ function handleOddClick(btn) {
   renderBetslip();
   renderAll();
   showToast(`${selection.label} @ ${odds.toFixed(2)} ditambahkan`, 'success');
+  // Auto-open betslip sheet on mobile when first selection is made
+  if (window.innerWidth <= 1024 && !slipSheetOpen) {
+    setTimeout(() => openSlipSheet(), 250);
+  }
 }
 // ---------------------------------------------------------------------------
 // Betslip — WAM-style accumulator, backed by Gasterus server quotes
@@ -1176,71 +1226,71 @@ function betslipBalance() {
 
 function renderBetslip() {
   const desktop = el('betslip-body');
-  const sheet = el('sb-mobile-sheet');
-  const dock = el('sb-mobile-dock');
-  const isMobile = Boolean(dock && !dock.hidden && sheet && sheet.classList.contains('open'));
-  const target = isMobile ? sheet : desktop;
-  if (!target) return;
+  const mobileBody = el('sb-mobile-sheet'); // inside sb-slip-sheet-body
+  const isDesktop = window.innerWidth > 1024;
+  const target = isDesktop ? desktop : mobileBody;
+  if (!target && !desktop && !mobileBody) return;
 
-  const bnavBadge = el('bnav-slip-count');
-  if (bnavBadge) {
-    if (selected.size > 0) {
-      bnavBadge.hidden = false;
-      bnavBadge.textContent = String(selected.size);
-    } else {
-      bnavBadge.hidden = true;
-    }
-  }
+  // --- Update ALL badge counters ---
+  const countEls = [el('bnav-slip-count'), el('sb-dock-count'), el('slip-sheet-count')];
+  countEls.forEach((c) => {
+    if (!c) return;
+    if (selected.size > 0) { c.hidden = false; c.textContent = String(selected.size); }
+    else { c.hidden = true; c.textContent = '0'; }
+  });
+
+  // Update desktop mode badge
+  const mode = el('betslip-mode');
+  if (mode) mode.textContent = selected.size > 0 ? (betType() === 'SINGLE' ? 'Single' : `Parlay · ${selected.size} leg`) : '';
+
+  const legs = [...selected.values()];
 
   if (!selected.size) {
-    target.innerHTML = '<div class="sb-slip-empty">Pilih odds pada pertandingan untuk memasang taruhan.</div>';
-    if (desktop && desktop !== target) desktop.innerHTML = '';
-    if (sheet && sheet !== target) sheet.innerHTML = '';
-    const mode = el('betslip-mode');
-    if (mode) mode.textContent = '';
-    const dc0 = el('sb-dock-count');
-    if (dc0) dc0.textContent = '0';
+    const emptyHtml = '<div class="sb-slip-empty">Pilih odds pada pertandingan untuk memasang taruhan.</div>';
+    if (desktop) desktop.innerHTML = emptyHtml;
+    if (mobileBody) mobileBody.innerHTML = emptyHtml;
     return;
   }
+
   let stake = betslipStake();
-  if (!stake) stake = bettingConfig.minStake; // default terisi, bukan kosong
+  if (!stake) stake = bettingConfig.minStake;
   const odds = totalOdds();
   const est = Math.floor(stake * odds);
-  const legs = [...selected.values()];
   const balance = betslipBalance();
   const overBalance = stake > balance;
-  const mode = el('betslip-mode');
-  if (mode) mode.textContent = betType() === 'SINGLE' ? 'Single' : `Parlay · ${legs.length} leg`;
+  const isParlay = activeSlipTab === 'parlay' || legs.length > 1;
 
-  target.innerHTML = `<div class="sb-slip-legs">${legs.map(slipLegHtml).join('')}</div>
+  const parlayInfo = isParlay && legs.length > 1 ? `<div class="sb-parlay-info">Mix Parlay ${legs.length} pilihan &mdash; Total odds: <b>${odds.toFixed(2)}</b></div>` : '';
+  const singleInfo = !isParlay ? '<div class="sb-single-mode-label">Mode Single &mdash; Stake berlaku per pilihan</div>' : '';
+
+  const html = `
+    ${isParlay ? parlayInfo : singleInfo}
+    <div class="sb-slip-legs">${legs.map(slipLegHtml).join('')}</div>
     <div class="sb-slip-summary">
       <div class="sb-slip-row"><span>Jumlah pilihan</span><b>${legs.length}</b></div>
       <div class="sb-slip-row"><span>Total odds</span><b>${odds.toFixed(2)}</b></div>
-      <div class="sb-slip-row"><span>Stake</span><b>${formatRupiah(stake)}</b></div>
       <div class="sb-slip-row"><span>Saldo</span><b>${formatRupiah(balance)}</b></div>
-      <div class="sb-slip-row"><span>Estimasi kemenangan</span><b class="sb-win" id="slip-est">${formatRupiah(est)}</b></div>
-      <div class="sb-slip-row"><span>Potential return</span><b class="sb-win" id="slip-potential">${formatRupiah(est)}</b></div>
       <div id="slip-quote" class="sb-slip-quote"></div>
       <div id="sb-quote-error" class="sb-quote-error" hidden></div>
     </div>
     <div class="sb-slip-stake">
       <label class="sb-label" for="sb-stake">Nominal taruhan (Rp)</label>
       <input type="number" id="sb-stake" inputmode="numeric" min="${bettingConfig.minStake}" max="${bettingConfig.maxStake}" step="1000" value="${stake}">
-      <div class="sb-quick" role="group" aria-label="Quick stake">
+      <div class="sb-quick" role="group">
         ${[10000, 25000, 50000, 100000].map((v) => `<button type="button" class="sb-quick-btn" data-quick="${v}">${fmt(v)}</button>`).join('')}
       </div>
-      <div class="sb-slip-hint">Min ${formatRupiah(bettingConfig.minStake)} · Maks ${formatRupiah(bettingConfig.maxStake)} · Saldo ${formatRupiah(balance)}</div>
-      ${overBalance ? `<div class="sb-slip-hint">Stake melebihi saldo. <a href="/deposit.html"><strong>Deposit di sini</strong></a>.</div>` : ''}
+      <div class="sb-slip-row" style="margin-top:6px"><span>Stake</span><b>${formatRupiah(stake)}</b></div>
+      <div class="sb-slip-row"><span>Estimasi menang</span><b class="sb-win" id="slip-est">${formatRupiah(est)}</b></div>
+      <div class="sb-slip-hint">Min ${formatRupiah(bettingConfig.minStake)} · Maks ${formatRupiah(bettingConfig.maxStake)}</div>
+      ${overBalance ? `<div class="sb-slip-hint" style="color:#ef4444">Stake melebihi saldo. <a href="/deposit.html" style="color:#ef4444"><u>Deposit</u></a></div>` : ''}
     </div>
     <button type="button" id="btn-place-bet" class="sb-btn sb-btn-place sb-btn-block"${(placing || overBalance) ? ' disabled' : ''}>${placing ? '⏳ Memproses…' : '⚽ Pasang Taruhan'}</button>
     <button type="button" id="btn-clear-slip" class="sb-btn sb-btn-ghost sb-btn-block sb-btn-sm">Kosongkan betslip</button>`;
 
-  bindBetslipEvents(target);
-  if (dock) {
-    dock.hidden = false;
-    const c = el('sb-dock-count');
-    if (c) c.textContent = String(legs.length);
-  }
+  // Render to both desktop and active mobile target
+  if (desktop) { desktop.innerHTML = html; bindBetslipEvents(desktop); }
+  if (mobileBody && mobileBody !== desktop) { mobileBody.innerHTML = html; bindBetslipEvents(mobileBody); }
+
   if (stake >= bettingConfig.minStake) requestQuote();
 }
 
@@ -1411,30 +1461,30 @@ async function refreshTicketNote() {
 }
 
 // ---------------------------------------------------------------------------
-// Mobile dock / sheet
+// Slip Sheet Setup (Mobile slide-up betslip with tabs)
 // ---------------------------------------------------------------------------
-function setupMobileDock() {
-  const dock = el('sb-mobile-dock');
-  const trigger = el('sb-dock-trigger');
-  const sheet = el('sb-mobile-sheet');
-  if (!dock || !trigger || !sheet) return;
-  trigger.addEventListener('click', () => {
-    const open = sheet.classList.toggle('open');
-    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
-    if (open) renderBetslip();
+function setupSlipSheet() {
+  // Close button
+  const closeBtn = el('btn-close-slip-sheet');
+  if (closeBtn) closeBtn.addEventListener('click', closeSlipSheet);
+
+  // Overlay click to close
+  const overlay = el('sb-slip-overlay');
+  if (overlay) overlay.addEventListener('click', closeSlipSheet);
+
+  // Tab switching (mobile)
+  document.querySelectorAll('.sb-slip-tab').forEach((tab) => {
+    tab.addEventListener('click', () => setSlipTab(tab.getAttribute('data-slip-tab') || 'single'));
   });
-  document.addEventListener('click', (e) => {
-    if (!sheet.classList.contains('open')) return;
-    if (sheet.contains(e.target) || trigger.contains(e.target)) return;
-    sheet.classList.remove('open');
-    trigger.setAttribute('aria-expanded', 'false');
+
+  // Tab switching (desktop)
+  document.querySelectorAll('.sb-bs-tab').forEach((tab) => {
+    tab.addEventListener('click', () => setSlipTab(tab.getAttribute('data-bstab') || 'single'));
   });
+
+  // Escape key to close
   document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    sheet.classList.remove('open');
-    trigger.setAttribute('aria-expanded', 'false');
-    const backdrop = el('sb-detail-backdrop');
-    if (backdrop) backdrop.hidden = true;
+    if (e.key === 'Escape' && slipSheetOpen) closeSlipSheet();
   });
 }
 

@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/mobile.css">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="/css/pages/sportsbook-v3.css?v=asian-v1">
+  <link rel="stylesheet" href="/css/pages/sportsbook-v3.css?v=betslip-v2-1789137394813">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
   <meta property="og:type" content="website">
@@ -211,8 +211,10 @@
 
       <!-- RIGHT: Desktop Betslip -->
       <aside class="sb-betslip" id="sb-betslip-desktop">
-        <div class="sb-betslip-head">
-          <span>Betslip</span>
+        <!-- Desktop Betslip Tabs -->
+        <div class="sb-betslip-tabs">
+          <button type="button" class="sb-bs-tab active" id="bstab-single" data-bstab="single">Single</button>
+          <button type="button" class="sb-bs-tab" id="bstab-parlay" data-bstab="parlay">Mix Parlay</button>
           <span class="sb-betslip-mode" id="betslip-mode" aria-hidden="true"></span>
         </div>
         <div id="betslip-body" class="sb-betslip-body"></div>
@@ -220,34 +222,62 @@
     </div>
   </main>
 
-  <!-- Mobile Betslip Slide-up Sheet -->
-  <div class="sb-mobile-dock" id="sb-mobile-dock" hidden>
-    <button type="button" class="sb-dock-trigger" id="sb-dock-trigger" aria-haspopup="dialog">
-      <span class="sb-dock-count" id="sb-dock-count">0</span>
-      Betslip
-    </button>
-    <div class="sb-mobile-sheet" id="sb-mobile-sheet" role="dialog" aria-modal="true" aria-label="Betslip"></div>
+  <!-- ================================================================
+       MOBILE BETSLIP SLIDE-UP SHEET (SBOBET/WAM Style)
+       Opens from bottom nav Slip Parlay button
+       ================================================================ -->
+  <div class="sb-slip-overlay" id="sb-slip-overlay" aria-hidden="true"></div>
+  <div class="sb-slip-sheet" id="sb-slip-sheet" role="dialog" aria-modal="true" aria-label="Betslip" aria-hidden="true">
+    <!-- Sheet Handle -->
+    <div class="sb-slip-handle-bar"></div>
+    <!-- Sheet Header -->
+    <div class="sb-slip-sheet-head">
+      <div class="sb-slip-sheet-tabs">
+        <button type="button" class="sb-slip-tab active" id="mbs-tab-single" data-slip-tab="single">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Single
+        </button>
+        <button type="button" class="sb-slip-tab" id="mbs-tab-parlay" data-slip-tab="parlay">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Mix Parlay
+        </button>
+      </div>
+      <div class="sb-slip-sheet-right">
+        <span class="sb-slip-count-badge" id="slip-sheet-count" hidden>0</span>
+        <button type="button" class="sb-slip-sheet-close" id="btn-close-slip-sheet" aria-label="Tutup betslip">✕</button>
+      </div>
+    </div>
+    <!-- Sheet Body -->
+    <div class="sb-slip-sheet-body" id="sb-mobile-sheet"></div>
   </div>
 
   <!-- Bottom Navigation Bar (Fixed SBOBET/WAM Style) -->
   <nav class="sb-bottom-nav" id="sb-bottom-nav">
     <button type="button" class="sb-bnav-item" id="bnav-slip">
       <span class="sb-bnav-icon-wrap">
-        <span class="sb-bnav-icon">🧾</span>
+        <svg class="sb-bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
         <span class="sb-bnav-badge" id="bnav-slip-count" hidden>0</span>
       </span>
       <span class="sb-bnav-label">Slip Parlay</span>
     </button>
     <button type="button" class="sb-bnav-item" id="bnav-my-matches">
-      <span class="sb-bnav-icon">📅</span>
+      <svg class="sb-bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
       <span class="sb-bnav-label">Pertandingan Saya</span>
     </button>
     <button type="button" class="sb-bnav-item" id="bnav-my-bets">
-      <span class="sb-bnav-icon">☑️</span>
+      <svg class="sb-bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+      </svg>
       <span class="sb-bnav-label">Taruhan Saya</span>
     </button>
     <button type="button" class="sb-bnav-item" id="bnav-cashout">
-      <span class="sb-bnav-icon">🔄</span>
+      <svg class="sb-bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
       <span class="sb-bnav-label">Fitur Bayar Sekarang</span>
     </button>
   </nav>
@@ -269,7 +299,7 @@
 
   <noscript><div class="sb-error">Javascript diperlukan untuk menampilkan sportsbook.</div></noscript>
 
-  <script type="module" src="/js/sportsbook.js?v=asian-v1"></script>
+  <script type="module" src="/js/sportsbook.js?v=1789137394813"></script>
 
   <script>
     (function () {

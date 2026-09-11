@@ -963,20 +963,30 @@ body.sb-page {
   cursor: pointer;
   text-decoration: none;
   transition: color 0.15s ease;
+  padding: 0 4px;
 }
 .sb-bnav-item:hover, .sb-bnav-item.active {
   color: #ffffff;
 }
+.sb-bnav-item.active .sb-bnav-svg {
+  stroke: #facc15;
+}
+.sb-bnav-svg {
+  stroke: #93c5fd;
+  transition: stroke 0.15s ease;
+  flex-shrink: 0;
+}
+.sb-bnav-item:hover .sb-bnav-svg { stroke: #ffffff; }
 .sb-bnav-icon-wrap {
   position: relative;
-}
-.sb-bnav-icon {
-  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .sb-bnav-badge {
   position: absolute;
-  top: -4px;
-  right: -8px;
+  top: -5px;
+  right: -9px;
   background: #ef4444;
   color: #ffffff;
   font-size: 9px;
@@ -985,11 +995,15 @@ body.sb-page {
   padding: 1px 5px;
   min-width: 14px;
   text-align: center;
+  line-height: 1.4;
+  border: 1px solid var(--sb-navy-dark);
 }
 .sb-bnav-label {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.2px;
+  line-height: 1;
+  text-align: center;
 }
 
 /* ==========================================================================
@@ -1001,23 +1015,45 @@ body.sb-page {
   border: 1px solid var(--sb-border-light);
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
 }
-.sb-betslip-head {
+/* Desktop betslip tabs (Single / Mix Parlay) */
+.sb-betslip-tabs {
   background: var(--sb-navy-header);
-  color: #ffffff;
-  padding: 10px 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
+  padding: 0 8px;
+  gap: 2px;
+  min-height: 40px;
+}
+.sb-bs-tab {
+  background: none;
+  border: none;
+  color: #93c5fd;
+  font-size: 12px;
   font-weight: 700;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.sb-bs-tab.active, .sb-bs-tab:hover {
+  color: #ffffff;
+  border-bottom-color: #facc15;
 }
 .sb-betslip-mode {
-  font-size: 11px;
+  margin-left: auto;
+  font-size: 10px;
   color: #facc15;
+  font-weight: 600;
+  padding-right: 4px;
 }
 .sb-betslip-body {
   padding: 12px;
+  overflow-y: auto;
+  flex: 1;
 }
 .sb-slip-empty {
   padding: 24px 12px;
@@ -1157,25 +1193,223 @@ body.sb-page {
   margin-top: 6px;
 }
 
-/* Mobile Slide-Up Sheet */
-.sb-mobile-sheet {
+
+/* ==========================================================================
+   MOBILE BETSLIP SLIDE-UP SHEET — SBOBET/WAM Style
+   ========================================================================== */
+
+/* Overlay backdrop */
+.sb-slip-overlay {
+  display: none;
   position: fixed;
-  bottom: 58px; /* above bottom nav */
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.sb-slip-overlay.active { display: block; animation: sbFadeIn 0.2s ease; }
+
+/* Slide-up sheet container */
+.sb-slip-sheet {
+  position: fixed;
+  bottom: 58px; /* always sit above bottom nav */
   left: 0;
   right: 0;
-  max-height: 80vh;
-  background: #ffffff;
-  border-radius: 14px 14px 0 0;
-  box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.25);
-  z-index: 998;
-  overflow-y: auto;
-  padding: 16px;
+  max-height: 88vh;
+  background: #0f172a;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
   transform: translateY(110%);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.sb-mobile-sheet.open {
+.sb-slip-sheet.open {
   transform: translateY(0);
 }
+
+/* Handle bar (drag indicator) */
+.sb-slip-handle-bar {
+  width: 40px;
+  height: 4px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 2px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+
+/* Sheet header */
+.sb-slip-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 0;
+  flex-shrink: 0;
+}
+
+/* Sheet tabs (Single / Mix Parlay) */
+.sb-slip-sheet-tabs {
+  display: flex;
+  gap: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 3px;
+}
+.sb-slip-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.sb-slip-tab.active {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.4);
+}
+.sb-slip-tab svg { flex-shrink: 0; }
+
+/* Sheet right side (count badge + close btn) */
+.sb-slip-sheet-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sb-slip-count-badge {
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 10px;
+  padding: 2px 8px;
+  min-width: 20px;
+  text-align: center;
+}
+.sb-slip-sheet-close {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #ffffff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+.sb-slip-sheet-close:hover { background: rgba(255,255,255,0.2); }
+
+/* Sheet body — scrollable content area */
+.sb-slip-sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px 16px;
+  /* Dark theme overrides for sheet body */
+  --slip-bg: #1e293b;
+  --slip-border: rgba(255,255,255,0.1);
+  --slip-text: #e2e8f0;
+  --slip-muted: #94a3b8;
+}
+
+/* Override betslip styles inside dark sheet */
+.sb-slip-sheet-body .sb-slip-empty {
+  color: #94a3b8;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  padding: 32px 16px;
+  text-align: center;
+  font-size: 13px;
+}
+.sb-slip-sheet-body .sb-slip-leg {
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.sb-slip-sheet-body .sb-slip-event { color: #f1f5f9; }
+.sb-slip-sheet-body .sb-slip-pick { color: #60a5fa; }
+.sb-slip-sheet-body .sb-slip-pick b { color: #facc15; }
+.sb-slip-sheet-body .sb-slip-market { color: #64748b; }
+.sb-slip-sheet-body .sb-slip-remove { color: #64748b; }
+.sb-slip-sheet-body .sb-slip-remove:hover { color: #ef4444; }
+.sb-slip-sheet-body .sb-slip-summary {
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+}
+.sb-slip-sheet-body .sb-slip-row { color: #94a3b8; }
+.sb-slip-sheet-body .sb-slip-row b { color: #e2e8f0; }
+.sb-slip-sheet-body .sb-slip-row b.sb-win { color: #4ade80; }
+.sb-slip-sheet-body .sb-label { color: #94a3b8; font-size: 11px; }
+.sb-slip-sheet-body .sb-slip-stake input {
+  background: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.sb-slip-sheet-body .sb-quick-btn {
+  background: #1e293b;
+  color: #93c5fd;
+  border-color: rgba(255,255,255,0.12);
+}
+.sb-slip-sheet-body .sb-quick-btn:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+.sb-slip-sheet-body .sb-slip-hint { color: #64748b; }
+.sb-slip-sheet-body .sb-btn-place {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  box-shadow: 0 3px 12px rgba(22, 163, 74, 0.4);
+  font-size: 14px;
+  padding: 12px;
+  border-radius: 8px;
+  letter-spacing: 0.3px;
+}
+.sb-slip-sheet-body .sb-btn-ghost {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+  color: #94a3b8;
+}
+
+/* Mix Parlay info panel (shown in parlay tab) */
+.sb-parlay-info {
+  background: rgba(250,204,21,0.08);
+  border: 1px solid rgba(250,204,21,0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 11px;
+  color: #fde68a;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.sb-parlay-info::before { content: '⚡'; flex-shrink: 0; }
+
+/* Single bet mode: stake per leg */
+.sb-single-mode-label {
+  font-size: 11px;
+  color: #94a3b8;
+  background: rgba(37,99,235,0.1);
+  border: 1px solid rgba(37,99,235,0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+}
+
+@keyframes sbFadeIn { from { opacity:0 } to { opacity:1 } }
 
 /* ==========================================================================
    13. LEAGUE SELECTOR MODAL
