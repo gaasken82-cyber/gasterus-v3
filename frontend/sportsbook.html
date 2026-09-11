@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/mobile.css">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="/css/pages/sportsbook-v3.css?v=fix-nav-v2">
+  <link rel="stylesheet" href="/css/pages/sportsbook-v3.css?v=asian-v1">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
   <meta property="og:type" content="website">
@@ -53,27 +53,91 @@
 </head>
 <body class="sb-page">
 
-  <!-- Header -->
+  <!-- Header Top Bar -->
   <header class="sb-header">
     <div class="sb-header-inner">
-      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
-      <a href="/index.html" class="sb-brand">GASTERUS<span class="sb-brand-badge">SPORTSBOOK</span></a>
-      
-      <div class="sb-header-actions">
-        <div class="sb-balance">
-          <span class="sb-balance-label">Saldo</span>
-          <span class="sb-balance-value" id="header-balance">0</span>
+      <div class="sb-header-left">
+        <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
+        <div class="sb-balance-box" id="header-balance-box">
+          <span class="sb-eye-icon" id="toggle-balance-vis" title="Sembunyikan/Tampilkan Saldo">👁</span>
+          <span class="sb-curr">IDR</span>
+          <span class="sb-balance-val" id="header-balance">0.00</span>
         </div>
-        <a href="/member.html" class="sb-btn sb-btn-ghost sb-btn-sm" id="header-username">Member</a>
+      </div>
+      
+      <div class="sb-header-right">
+        <div class="sb-coin-badge" title="Poin Bonus">
+          <span class="sb-coin-icon">🪙</span>
+          <span class="sb-coin-val">--</span>
+          <span class="sb-mail-icon" title="Pesan">✉</span>
+        </div>
+        <a href="/member.html" class="sb-user-avatar" id="header-username" title="Profil Member">
+          <span class="sb-avatar-icon">👤</span>
+        </a>
       </div>
     </div>
   </header>
+
+  <!-- Sub-Header: Sport & Mix Parlay -->
+  <div class="sb-subheader">
+    <div class="sb-subheader-inner">
+      <div class="sb-sport-selector" id="sb-sport-dropdown-trigger">
+        <span class="sb-breadcrumb">Olahraga › <strong id="current-sport-label">Sepak Bola</strong></span>
+        <span class="sb-chevron-down">▾</span>
+        <div class="sb-sport-menu" id="sb-sport-menu" hidden>
+          <button type="button" class="sb-sport-opt active" data-sport="all">⚽ Sepak Bola</button>
+          <button type="button" class="sb-sport-opt" data-sport="Basketball">🏀 Bola Basket</button>
+          <button type="button" class="sb-sport-opt" data-sport="Tennis">🎾 Tenis</button>
+          <button type="button" class="sb-sport-opt" data-sport="Badminton">🏸 Bulu Tangkis</button>
+          <button type="button" class="sb-sport-opt" data-sport="Esports">🎮 E-Sports</button>
+        </div>
+      </div>
+      <button type="button" class="sb-parlay-pill" id="btn-toggle-parlay">Mix Parlay</button>
+    </div>
+  </div>
+
+  <!-- Primary Category Tabs (Langsung, Hari Ini, Pasar Awal, Outright) -->
+  <div class="sb-category-bar">
+    <div class="sb-category-inner" id="sb-primary-tabs">
+      <button type="button" class="sb-cat-tab" data-filter="live">
+        Langsung <span class="sb-tab-count" id="count-live">0</span>
+      </button>
+      <button type="button" class="sb-cat-tab active" data-filter="today">
+        Hari Ini <span class="sb-tab-count active-badge" id="count-today">0</span>
+      </button>
+      <button type="button" class="sb-cat-tab" data-filter="early">
+        Pasar Awal <span class="sb-tab-count" id="count-early">0</span>
+      </button>
+      <button type="button" class="sb-cat-tab" data-filter="outright">
+        Outright <span class="sb-tab-count" id="count-outright">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Action Bar: Tampilkan Liga & Filter -->
+  <div class="sb-action-bar">
+    <div class="sb-action-inner">
+      <button type="button" class="sb-btn-action sb-btn-league" id="btn-show-leagues">
+        <span class="sb-icon-arrows">⇅</span> Tampilkan Liga
+      </button>
+      <button type="button" class="sb-btn-action sb-btn-filter" id="btn-filter-toggle" aria-label="Filter">
+        <span>⧩</span>
+      </button>
+      <div class="sb-search-wrap">
+        <input type="search" id="sb-search" placeholder="Cari tim / liga…" autocomplete="off" aria-label="Cari tim atau liga">
+      </div>
+      <div class="sb-rt-status" title="Status Feed">
+        <span class="sb-rt-dot" id="rt-dot"></span>
+        <span id="rt-label">Connecting…</span>
+      </div>
+    </div>
+  </div>
 
   <!-- Navigation Drawer -->
   <div class="nav-drawer-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
     <div class="nav-drawer-head">
-      <span class="nav-drawer-title">Menu</span>
+      <span class="nav-drawer-title">Menu Gasterus</span>
       <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
     </div>
     <div class="nav-drawer-body">
@@ -94,41 +158,58 @@
     </div>
   </nav>
 
+  <!-- League Selector Modal / Drawer -->
+  <div class="sb-league-modal-backdrop" id="league-modal-backdrop" hidden>
+    <div class="sb-league-modal" id="league-modal">
+      <div class="sb-league-modal-head">
+        <span>Pilih Liga</span>
+        <button type="button" class="sb-close-btn" id="btn-close-league-modal">✕</button>
+      </div>
+      <div class="sb-league-modal-search">
+        <input type="search" id="league-search-input" placeholder="Cari nama liga…">
+      </div>
+      <div class="sb-league-modal-list" id="league-modal-list"></div>
+      <div class="sb-league-modal-actions">
+        <button type="button" class="sb-btn sb-btn-ghost" id="btn-league-select-all">Pilih Semua</button>
+        <button type="button" class="sb-btn sb-btn-primary" id="btn-league-apply">Terapkan</button>
+      </div>
+    </div>
+  </div>
+
   <main class="sb-main">
     <div class="sb-layout">
 
-      <!-- LEFT: Sports / League nav -->
+      <!-- LEFT: Desktop Sports / League nav -->
       <aside class="sb-sidebar" id="sb-sidebar">
         <div class="sb-sidebar-title">Olahraga</div>
         <nav id="sport-nav" class="sb-sport-nav" aria-label="Sport"></nav>
-        <div class="sb-sidebar-title sb-sidebar-sub">Liga</div>
+        <div class="sb-sidebar-title sb-sidebar-sub">Liga Pilihan</div>
         <nav id="league-nav" class="sb-league-nav" aria-label="League"></nav>
         <div class="sb-sidebar-status" id="sidebar-status"></div>
       </aside>
 
-      <!-- CENTER: Matches -->
+      <!-- CENTER: Matches & Featured Live -->
       <section class="sb-content">
-        <div class="sb-toolbar">
-          <div class="sb-toolbar-left">
-            <span class="sb-rt-dot" id="rt-dot"></span>
-            <span id="rt-label">Connecting…</span>
-          </div>
-          <div class="sb-toolbar-right">
-            <div class="sb-search">
-              <input type="search" id="sb-search" placeholder="Cari tim / liga…" autocomplete="off" aria-label="Search teams or leagues">
-            </div>
-            <div class="sb-filters" id="filter-tabs" role="group" aria-label="Filter"></div>
-          </div>
-        </div>
-
         <div id="sb-stale-banner" class="sb-stale-banner" hidden></div>
         <div id="sb-error" class="sb-error" hidden></div>
+
+        <!-- Featured Live Matches Section -->
+        <section class="sb-live-featured-section" id="sb-live-section" hidden>
+          <div class="sb-section-title">
+            <span>Pantau Pertandingan Live</span>
+          </div>
+          <div class="sb-live-carousel" id="sb-live-carousel"></div>
+        </section>
+
+        <!-- Skeleton -->
         <div id="sb-skeleton" class="sb-skeleton-list"></div>
+
+        <!-- Main Events Feed -->
         <div id="sb-events" class="sb-events" aria-live="polite"></div>
         <div id="sb-empty" class="sb-empty" hidden></div>
       </section>
 
-      <!-- RIGHT: Betslip -->
+      <!-- RIGHT: Desktop Betslip -->
       <aside class="sb-betslip" id="sb-betslip-desktop">
         <div class="sb-betslip-head">
           <span>Betslip</span>
@@ -139,7 +220,7 @@
     </div>
   </main>
 
-  <!-- Mobile betslip bar / sheet -->
+  <!-- Mobile Betslip Slide-up Sheet -->
   <div class="sb-mobile-dock" id="sb-mobile-dock" hidden>
     <button type="button" class="sb-dock-trigger" id="sb-dock-trigger" aria-haspopup="dialog">
       <span class="sb-dock-count" id="sb-dock-count">0</span>
@@ -148,23 +229,47 @@
     <div class="sb-mobile-sheet" id="sb-mobile-sheet" role="dialog" aria-modal="true" aria-label="Betslip"></div>
   </div>
 
-  <!-- Match detail modal -->
-  <div class="sb-modal-backdrop" id="sb-detail-backdrop" hidden style="display: none !important;">
-    <div class="sb-modal" id="sb-detail-modal" role="dialog" aria-modal="true" aria-label="Detail pertandingan"></div>
+  <!-- Bottom Navigation Bar (Fixed SBOBET/WAM Style) -->
+  <nav class="sb-bottom-nav" id="sb-bottom-nav">
+    <button type="button" class="sb-bnav-item" id="bnav-slip">
+      <span class="sb-bnav-icon-wrap">
+        <span class="sb-bnav-icon">🧾</span>
+        <span class="sb-bnav-badge" id="bnav-slip-count" hidden>0</span>
+      </span>
+      <span class="sb-bnav-label">Slip Parlay</span>
+    </button>
+    <button type="button" class="sb-bnav-item" id="bnav-my-matches">
+      <span class="sb-bnav-icon">📅</span>
+      <span class="sb-bnav-label">Pertandingan Saya</span>
+    </button>
+    <button type="button" class="sb-bnav-item" id="bnav-my-bets">
+      <span class="sb-bnav-icon">☑️</span>
+      <span class="sb-bnav-label">Taruhan Saya</span>
+    </button>
+    <button type="button" class="sb-bnav-item" id="bnav-cashout">
+      <span class="sb-bnav-icon">🔄</span>
+      <span class="sb-bnav-label">Fitur Bayar Sekarang</span>
+    </button>
+  </nav>
+
+  <!-- My Bets / Cashout Dialog Modal -->
+  <div class="sb-modal-backdrop" id="sb-user-bets-backdrop" hidden>
+    <div class="sb-modal sb-bets-modal" id="sb-user-bets-modal" role="dialog" aria-modal="true">
+      <div class="sb-modal-head">
+        <span id="sb-user-bets-title">Taruhan Saya</span>
+        <button type="button" class="sb-close-btn" id="btn-close-bets-modal">✕</button>
+      </div>
+      <div class="sb-modal-body" id="sb-user-bets-body">
+        <div class="sb-empty">Memuat data taruhan…</div>
+      </div>
+    </div>
   </div>
 
   <div id="sb-toast-region"></div>
 
   <noscript><div class="sb-error">Javascript diperlukan untuk menampilkan sportsbook.</div></noscript>
 
-  <!-- Footer Links -->
-  <div class="footer-links" style="padding: 12px; background: #0f172a; border-top: 1px solid #1e293b; display: flex; gap: 16px; justify-content: center; font-size: 12px;">
-    <a href="privacy.html" style="color: #94a3b8; text-decoration: none;">Privacy</a>
-    <a href="rules.html" style="color: #94a3b8; text-decoration: none;">Cara Bermain</a>
-    <a href="terms.html" style="color: #94a3b8; text-decoration: none;">Terms</a>
-  </div>
-
-  <script type="module" src="/js/sportsbook.js?v=wam-v4"></script>
+  <script type="module" src="/js/sportsbook.js?v=asian-v1"></script>
 
   <script>
     (function () {
