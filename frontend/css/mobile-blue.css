@@ -1049,6 +1049,19 @@ footer, .site-footer {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.28), inset 0 2px 4px rgba(15,23,42,0.04), 0 8px 16px rgba(37,99,235,0.16);
 }
 
+/* Validation state — class-based (menang atas :focus, sinkron dgn centang) */
+.reg-input.is-invalid,
+.reg-phone-wrap.is-invalid {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16) !important;
+}
+
+.reg-input.is-valid,
+.reg-phone-wrap.is-valid {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14) !important;
+}
+
 .reg-input::placeholder {
   color: #94a3b8;
 }

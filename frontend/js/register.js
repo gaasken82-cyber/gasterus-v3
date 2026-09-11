@@ -93,11 +93,15 @@ function setStatus(id, text, ok = null, borderInputId = null) {
       el.style.color = '';
     }
   }
-  if (borderInputId) {
-    const input = document.getElementById(borderInputId);
-    if (input) {
-      input.style.borderColor = text ? (ok ? '' : '#ef4444') : '';
-    }
+  if (!borderInputId) return;
+  const input = document.getElementById(borderInputId);
+  if (!input) return;
+  const wrap = input.closest('.reg-phone-wrap');
+  const targets = wrap ? [input, wrap] : [input];
+  for (const t of targets) {
+    t.classList.remove('is-valid', 'is-invalid');
+    if (text && ok === true) t.classList.add('is-valid');
+    else if (text && ok === false) t.classList.add('is-invalid');
   }
 }
 
@@ -155,7 +159,7 @@ async function checkUsernameAvailability() {
 
 function validatePasswordField() {
   const val = document.getElementById('reg-password').value;
-  if (!val) { setStatus('password-status', '', null); return; }
+  if (!val) { setStatus('password-status', '', null, 'reg-password'); return; }
   if (!PASSWORD_RE.test(val)) {
     setStatus('password-status', '✗ Min. 8 karakter, berisi huruf dan angka.', false, 'reg-password');
   } else {
@@ -167,7 +171,7 @@ function validatePasswordField() {
 function validateConfirmField() {
   const pwd = document.getElementById('reg-password').value;
   const conf = document.getElementById('reg-password-confirm').value;
-  if (!conf) { setStatus('confirm-status', '', null); return; }
+  if (!conf) { setStatus('confirm-status', '', null, 'reg-password-confirm'); return; }
   if (pwd !== conf) {
     setStatus('confirm-status', '✗ Password tidak cocok.', false, 'reg-password-confirm');
   } else {
@@ -255,42 +259,42 @@ async function handleRegisterSubmit(e) {
   // Re-validate all inline fields before sending.
   if (!USERNAME_RE.test(username)) {
     setStatus('username-status', '✗ Username 3-12 karakter (huruf, angka, _).', false, 'reg-username');
-    showToast('Periksa format username.', 'warning');
+    showToast('Periksa format username.', 'danger');
     return;
   }
   if (!PASSWORD_RE.test(password)) {
     validatePasswordField();
-    showToast('Password harus 8-72 karakter serta mengandung huruf dan angka.', 'warning');
+    showToast('Password harus 8-72 karakter serta mengandung huruf dan angka.', 'danger');
     return;
   }
   if (password !== passwordConfirm) {
     validateConfirmField();
-    showToast('Konfirmasi kata sandi tidak cocok.', 'warning');
+    showToast('Konfirmasi kata sandi tidak cocok.', 'danger');
     return;
   }
   if (!EMAIL_RE.test(email)) {
     validateEmailField();
-    showToast('Periksa format email.', 'warning');
+    showToast('Periksa format email.', 'danger');
     return;
   }
   if (!/^\d{8,13}$/.test(phone)) {
     validatePhoneField();
-    showToast('Periksa format nomor HP (8-13 digit).', 'warning');
+    showToast('Periksa format nomor HP (8-13 digit).', 'danger');
     return;
   }
   if (!String(accountName || '').trim()) {
     setStatus('account-name-status', '✗ Nama rekening wajib diisi.', false, 'reg-account-name');
-    showToast('Nama rekening wajib diisi.', 'warning');
+    showToast('Nama rekening wajib diisi.', 'danger');
     return;
   }
   if (!/^\d{6,20}$/.test(String(accountNumber || '').replace(/\s+/g, ''))) {
     setStatus('account-number-status', '✗ Nomor rekening 6-20 digit angka.', false, 'reg-account-number');
-    showToast('Periksa format nomor rekening.', 'warning');
+    showToast('Periksa format nomor rekening.', 'danger');
     return;
   }
 
   if (!currentChallengeId || !captchaCode) {
-    showToast('Mohon masukkan kode captcha keamanan.', 'warning');
+    showToast('Mohon masukkan kode captcha keamanan.', 'danger');
     return;
   }
 
@@ -318,11 +322,13 @@ async function handleRegisterSubmit(e) {
     }, 800);
   } catch (err) {
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Daftar Akun Baru';
+    submitBtn.textContent = 'Daftar';
     const code = err?.data?.error?.code || err?.data?.code;
     if (code === 'USERNAME_TAKEN') setStatus('username-status', '✗ Username sudah terdaftar.', false, 'reg-username');
     if (code === 'EMAIL_TAKEN') setStatus('email-status', '✗ Email sudah terdaftar.', false, 'reg-email');
     if (code === 'ACCOUNT_NUMBER_TAKEN') setStatus('account-number-status', '✗ Nomor rekening sudah terdaftar.', false, 'reg-account-number');
+    const msg = err?.data?.error?.message || err?.data?.message || (code ? `Pendaftaran gagal (${code}).` : 'Pendaftaran gagal. Periksa koneksi Anda dan coba lagi.');
+    showToast(msg, 'danger');
     await loadCaptcha();
     form.captchaCode.value = '';
   }
