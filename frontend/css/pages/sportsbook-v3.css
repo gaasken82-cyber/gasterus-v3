@@ -6,6 +6,8 @@
    ========================================================================== */
 
 /* ── Override tokens for sportsbook gold palette ── */
+[hidden] { display: none !important; }
+
 .sb-page {
   --sb-bg:          #06080d;
   --sb-nav:         #0a0f1a;
@@ -1083,6 +1085,9 @@
   justify-content: center;
   padding: 16px;
   animation: sb-scale-in 0.25s var(--sb-ease) both;
+}
+.sb-modal-backdrop[hidden] {
+  display: none !important;
 }
 .sb-modal {
   background: var(--sb-card);
