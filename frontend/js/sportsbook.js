@@ -15,6 +15,7 @@ import auth from './auth.js';
 import { formatRupiah, showToast, escapeHtml } from './utils.js';
 
 const STREAM_URL = '/api/member/sportsbook/stream';
+const SNAPSHOT_URL = '/api/member/sportsbook/events';
 const FEED_DETAIL_URL = (id) => `/api/member/sportsbook/events/${encodeURIComponent(id)}`;
 
 // ---------------------------------------------------------------------------
@@ -95,7 +96,25 @@ function setStatus(state) {
 function startStream() {
   streamClosed = false;
   setStatus('connecting');
+  loadRestSnapshot(); // REST bootstrap — render papan data seketika; SSE mengambil alih realtime.
   connectStream();
+}
+
+// REST bootstrap/fallback — papan tetap terisi walau SSE terblokir/dibuffer perantara.
+async function loadRestSnapshot() {
+  try {
+    const headers = { Accept: 'application/json' };
+    if (api.token) { headers.Authorization = `Bearer ${api.token}`; headers['x-session-token'] = api.token; }
+    const res = await fetch(SNAPSHOT_URL, { method: 'GET', credentials: 'include', headers });
+    if (!res.ok) return false;
+    const json = await res.json();
+    const payload = json?.data || json || null;
+    if (payload && Array.isArray(payload.events) && payload.events.length) {
+      onSnapshot(payload);
+      return true;
+    }
+  } catch { /* abaikan — SSE/stream akan mencoba lagi */ }
+  return false;
 }
 
 async function connectStream() {
@@ -128,7 +147,8 @@ async function connectStream() {
       reader.release?.();
       if (streamClosed) return;
     } catch (e) {
-      // transport error — fall through to reconnect with backoff
+      // transport error — refresh data via REST fallback lalu reconnect dengan backoff
+      await loadRestSnapshot();
     }
     if (streamClosed) return;
     setStatus('connecting');
