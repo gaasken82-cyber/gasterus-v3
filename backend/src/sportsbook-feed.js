@@ -184,6 +184,7 @@ function enabledProviders() {
     { name: 'SharpAPI', code: 'sharpapi', enabled: config.sharpApiEnabled && Boolean(config.sharpApiKey) },
     { name: 'API-Sports', code: 'api-sports', enabled: config.apiSportsEnabled && Boolean(config.apiSportsKey) },
     { name: 'The Odds API', code: 'the-odds-api', enabled: config.theOddsApiEnabled && Boolean(config.theOddsApiKey) },
+    { name: 'Sportmonks', code: 'sportmonks', enabled: config.sportmonksEnabled && Boolean(config.sportmonksKey) },
     { name: 'TheSportsDB', code: 'thesportsdb', enabled: config.theSportsDbEnabled && Boolean(config.theSportsDbKey) },
     { name: 'FootballData.io', code: 'footballdata-io', enabled: config.footballDataIoEnabled && Boolean(config.footballDataIoKey) }
   ];
@@ -365,7 +366,7 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
     { code: 'sharpapi', enabled: config.sharpApiEnabled && Boolean(config.sharpApiKey), fetcher: fetchSharpApi },
     { code: 'api-sports', enabled: config.apiSportsEnabled && Boolean(config.apiSportsKey), fetcher: fetchApiSports },
     { code: 'the-odds-api', enabled: config.theOddsApiEnabled && Boolean(config.theOddsApiKey), fetcher: fetchTheOddsApi },
-    { code: 'sportmonks', enabled: config.sportmonksEnabled && Boolean(config.sportmonksApiKey), fetcher: fetchSportmonks },
+    { code: 'sportmonks', enabled: config.sportmonksEnabled && Boolean(config.sportmonksKey), fetcher: fetchSportmonks },
     { code: 'thesportsdb', enabled: config.theSportsDbEnabled && Boolean(config.theSportsDbKey), fetcher: fetchTheSportsDb },
     { code: 'footballdata-io', enabled: config.footballDataIoEnabled && Boolean(config.footballDataIoKey), fetcher: fetchFootballDataIo }
   ].filter(descriptor => !config.sportsSourceRegistryEnabled || isActive(descriptor.code));
