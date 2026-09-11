@@ -119,7 +119,7 @@ function setStatus(state) {
 // SSE stream — manual client so the Authorization header can be sent.
 // EventSource cannot set headers, and the member session may be Bearer-based.
 // ---------------------------------------------------------------------------
-const SB_BUILD = 'sb6';
+const SB_BUILD = 'sb7';
 window.__SB_BUILD = SB_BUILD;
 console.info(`[GASTERUS] sportsbook build ${SB_BUILD}`);
 
