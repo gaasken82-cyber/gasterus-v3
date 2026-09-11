@@ -94,6 +94,10 @@ function setStatus(state) {
 // SSE stream — manual client so the Authorization header can be sent.
 // EventSource cannot set headers, and the member session may be Bearer-based.
 // ---------------------------------------------------------------------------
+const SB_BUILD = 'sb4';
+window.__SB_BUILD = SB_BUILD;
+console.info(`[GASTERUS] sportsbook build ${SB_BUILD}`);
+
 function startStream() {
   streamClosed = false;
   setStatus('connecting');
@@ -108,14 +112,14 @@ async function loadRestSnapshot() {
     const headers = { Accept: 'application/json' };
     if (api.token) { headers.Authorization = `Bearer ${api.token}`; headers['x-session-token'] = api.token; }
     const res = await fetch(SNAPSHOT_URL, { method: 'GET', credentials: 'include', headers });
-    if (!res.ok) return false;
+    if (!res.ok) { console.warn('[GASTERUS] snapshot http', res.status); return false; }
     const json = await res.json();
     const payload = json?.data || json || null;
     if (payload && Array.isArray(payload.events) && payload.events.length) {
       onSnapshot(payload);
       return true;
     }
-  } catch { /* abaikan — SSE/stream akan mencoba lagi */ }
+  } catch (e) { console.warn('[GASTERUS] snapshot bootstrap gagal', e); }
   return false;
 }
 
@@ -193,7 +197,12 @@ function onSnapshot(snapshot) {
   const needsFirstRender = !eventsEl || !eventsEl.innerHTML;
   if (revision !== lastRenderRevision || needsFirstRender) {
     lastRenderRevision = revision;
-    renderAll();
+    try { renderAll(); }
+    catch (e) {
+      // Fail-loud: bug render harus terlihat, bukan "Connecting…" tanpa akhir.
+      console.error('[GASTERUS] renderAll gagal', e);
+      if (eventsEl) eventsEl.innerHTML = `<div class="sb-empty">Gagal menampilkan papan: ${escapeHtml(e?.message || String(e))} (build ${SB_BUILD})</div>`;
+    }
   }
   renderStatusMeta();
 }
