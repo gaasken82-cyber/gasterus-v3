@@ -92,6 +92,46 @@
         </div>
       </div>
 
+      <div class="card fade-in" style="margin-bottom: var(--space-4);">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <a class="btn btn-secondary btn-sm" href="/bet-history.html" data-game-link="all">Semua</a>
+          <a class="btn btn-secondary btn-sm" href="/bet-history.html?game=togel" data-game-link="togel">Togel</a>
+          <a class="btn btn-secondary btn-sm" href="/bet-history.html?game=sportsbook" data-game-link="sportsbook">Sportsbook</a>
+          <span style="flex:1"></span>
+          <a class="btn btn-secondary btn-sm" href="?game=sportsbook" data-status-link="">Semua status</a>
+          <a class="btn btn-secondary btn-sm" href="?game=sportsbook&amp;status=OPEN" data-status-link="OPEN">Open</a>
+          <a class="btn btn-secondary btn-sm" href="?game=sportsbook&amp;status=WON" data-status-link="WON">Won</a>
+          <a class="btn btn-secondary btn-sm" href="?game=sportsbook&amp;status=LOST" data-status-link="LOST">Lost</a>
+          <a class="btn btn-secondary btn-sm" href="?game=sportsbook&amp;status=VOID" data-status-link="VOID">Void</a>
+          <a class="btn btn-secondary btn-sm" href="?game=sportsbook&amp;status=CASHED_OUT" data-status-link="CASHED_OUT">Cash Out</a>
+        </div>
+      </div>
+
+      <div class="card fade-in" id="sb-history-card" hidden>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Waktu</th>
+                <th>Event / Market</th>
+                <th>Odds</th>
+                <th>Stake</th>
+                <th>Return</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="sb-bets-table-body">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: var(--space-6);">
+                  Sedang memuat riwayat sportsbook...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="card fade-in">
         <div class="table-responsive">
           <table class="table">
@@ -136,6 +176,62 @@
     import auth from '/js/auth.js';
     import { formatRupiah, formatDateTime } from '/js/utils.js';
 
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    const sbStatusBadge = (s) => {
+      const st = String(s || 'OPEN').toUpperCase();
+      if (st === 'WON') return '<span class="badge badge-success">MENANG</span>';
+      if (st === 'LOST') return '<span class="badge badge-danger">KALAH</span>';
+      if (st === 'VOID' || st === 'CANCELLED') return '<span class="badge badge-info">VOID</span>';
+      if (st === 'CASHED_OUT') return '<span class="badge badge-info">CASH OUT</span>';
+      if (st.startsWith('PARTIAL')) return '<span class="badge badge-warning">PARTIAL</span>';
+      return '<span class="badge badge-warning">OPEN</span>';
+    };
+
+    async function loadSportsbookBets(game, status) {
+      const card = document.getElementById('sb-history-card');
+      const tbody = document.getElementById('sb-bets-table-body');
+      const showSb = !game || game === 'sportsbook';
+      if (card) card.hidden = !showSb;
+      if (!showSb || !tbody) return;
+      document.querySelectorAll('[data-game-link]').forEach((a) => {
+        const g = a.getAttribute('data-game-link');
+        const active = (game || 'all') === g || (!game && g === 'all');
+        if (active) a.classList.add('active'); else a.classList.remove('active');
+      });
+      document.querySelectorAll('[data-status-link]').forEach((a) => {
+        const active = String(a.getAttribute('data-status-link') || '') === String(status || '');
+        if (active) a.classList.add('active'); else a.classList.remove('active');
+      });
+      try {
+        const q = status ? `?status=${encodeURIComponent(status)}&limit=50` : '?limit=50';
+        const res = await api.get(`/member/sportsbook/bets${q}`);
+        const rows = res?.data?.items || res?.data || res || [];
+        const list = Array.isArray(rows) ? rows : [];
+        if (!list.length) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">Belum ada tiket sportsbook${status ? ` status ${esc(status)}` : ''}.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = list.map((t) => {
+          const legs = Array.isArray(t.legs) ? t.legs : [];
+          const detail = legs.map((l) => `${esc(l.home || '')} vs ${esc(l.away || '')} — ${esc(l.marketLabel || l.marketType || '')}${l.marketLine ? ` (${esc(String(l.marketLine))})` : ''} · ${esc(l.selectionLabel || '')}`).join('<br>') || '-';
+          const ret = Number(t.payout || 0) > 0 ? t.payout : (t.status === 'OPEN' ? (t.potentialPayout || 0) : 0);
+          return `<tr>
+              <td><strong style="font-family:var(--font-mono);">${esc(t.invoice || String(t.id || '').slice(0, 10))}</strong><br><span style="font-size:0.75rem;color:var(--text-muted);">${esc(t.betType || '')}${t.selectionCount ? ` · ${t.selectionCount} leg` : ''}</span></td>
+              <td>${formatDateTime(t.acceptedAt || t.createdAt)}${t.settledAt ? `<br><span style="font-size:0.75rem;color:var(--text-muted);">Settle: ${formatDateTime(t.settledAt)}</span>` : ''}</td>
+              <td style="font-size:0.8rem;">${detail}</td>
+              <td style="font-family:var(--font-mono);">${Number(t.totalOdds || 0).toFixed(2)}</td>
+              <td style="color:var(--text-gold); font-weight:600;">${formatRupiah(t.totalStake || 0)}</td>
+              <td style="font-weight:600;">${formatRupiah(ret || 0)}</td>
+              <td>${sbStatusBadge(t.status)}</td>
+            </tr>`;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">Gagal mengambil riwayat sportsbook.</td></tr>`;
+      }
+    }
+
     async function loadBets() {
       if (!auth.isLoggedIn()) {
         window.location.href = '/index.html';
@@ -177,6 +273,8 @@
     }
 
     loadBets();
+    const params = new URLSearchParams(window.location.search || '');
+    loadSportsbookBets((params.get('game') || 'all').toLowerCase(), (params.get('status') || '').toUpperCase());
   </script>
 <script>
     (function () {

@@ -25,18 +25,32 @@ let feed = { events: [], stale: false, degraded: false, source: {} };
 let selected = new Map(); // selectionKey -> leg payload (betslip)
 let currentSport = 'all';
 let currentLeague = 'all';
-let currentFilter = 'all'; // all | live
+let currentFilter = 'all'; // all | live | upcoming | fav
 let searchQuery = '';
+const FAV_KEY = 'gasterus_sb_fav_leagues';
+let favLeagues = new Set();
+try { favLeagues = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch { favLeagues = new Set(); }
 let lastRenderRevision = '';
 let bettingConfig = { minStake: 1000, maxStake: 50000000, maxLegs: 12, quoteRequired: true };
 let streamClosed = false;
 let restRefreshTimer = null;
 let quote = null; // last successful server quote
 let placing = false;
+let lastStake = 0; // fallback stake saat input tidak ada di DOM (mobile sheet tertutup)
 
 const el = (id) => document.getElementById(id);
 const selKey = (ev, mk, sk) => `${ev}|${mk}|${sk}`;
 const fmt = (n) => (Number.isFinite(Number(n)) ? new Intl.NumberFormat('id-ID').format(Number(n)) : '0');
+const isLiveEvent = (e) => Boolean(e?.live) || String(e?.status || '').toUpperCase() === 'LIVE';
+const isFinishedEvent = (e) => String(e?.status || '').toUpperCase() === 'FINISHED';
+function saveFavs() { try { localStorage.setItem(FAV_KEY, JSON.stringify([...favLeagues])); } catch { /* ignore */ } }
+function toggleFavLeague(league) {
+  const l = String(league || '');
+  if (!l) return;
+  if (favLeagues.has(l)) favLeagues.delete(l); else favLeagues.add(l);
+  saveFavs();
+}
+async function refreshBalance() { try { await auth.fetchMe(); auth.updateHeaderAuthUI(); } catch { /* ignore */ } }
 
 // ---------------------------------------------------------------------------
 // Init
@@ -52,6 +66,7 @@ export async function initSportsbook() {
   setupSearch();
   setupMobileDock();
   bindEventHandlers();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && auth.isLoggedIn()) refreshBalance(); });
 
   if (!auth.isLoggedIn()) {
     setStatus('offline');
@@ -201,7 +216,13 @@ function onSnapshot(snapshot) {
     source: snapshot.source || {}
   };
   if (snapshot.betting) bettingConfig = { ...bettingConfig, ...snapshot.betting };
+  const oddsMoved = syncSelectedOdds(feed.events);
   pruneSelections(feed.events);
+  if (oddsMoved) {
+    quote = null; // harga berubah → quote lama tidak valid, minta ulang
+    renderBetslip();
+    if (el('sb-stake')) onStakeChange();
+  }
 
   const eventsEl = el('sb-events');
   const needsFirstRender = !eventsEl || !eventsEl.innerHTML;
@@ -232,6 +253,29 @@ function pruneSelections(events) {
   if (changed) { quote = null; renderBetslip(); }
 }
 
+// Bet engine: sinkron odds betslip dengan feed terbaru.
+// Kalau odds/priceVersion leg berubah di feed, perbarui simpanan agar quote
+// berikutnya memakai harga segar (server tetap revalidasi saat placeBet).
+function syncSelectedOdds(events) {
+  if (!selected.size) return false;
+  const byId = new Map((events || []).map((e) => [e?.id, e]));
+  let changed = false;
+  for (const s of selected.values()) {
+    const mk = byId.get(s.eventId)?.markets?.find((m) => m.id === s.marketId);
+    const sel = mk?.selections?.find((x) => x.key === s.selectionId);
+    if (!sel || sel.suspended) continue; // penghapusan ditangani pruneSelections
+    const fresh = Number(sel.odds);
+    if (Number.isFinite(fresh) && fresh > 1 &&
+      (fresh !== Number(s.odds) || String(sel.priceVersion || '') !== String(s.priceVersion || ''))) {
+      s.odds = fresh;
+      s.priceVersion = sel.priceVersion || '';
+      if (sel.label) s.selectionLabel = sel.label;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 function renderStatusMeta() {
   const banner = el('sb-stale-banner');
   if (banner) {
@@ -247,7 +291,9 @@ function renderStatusMeta() {
 function setupFilterTabs() {
   const tabs = [
     { id: 'all', label: 'Semua' },
-    { id: 'live', label: '● LIVE' }
+    { id: 'live', label: '● LIVE' },
+    { id: 'upcoming', label: 'Upcoming' },
+    { id: 'fav', label: '★ Favorit' }
   ];
   const host = el('filter-tabs');
   if (!host) return;
@@ -261,13 +307,31 @@ function setupFilterTabs() {
     b.addEventListener('click', () => { currentFilter = t.id; renderAll(); syncFilterUI(); });
     host.appendChild(b);
   }
+  const favT = document.createElement('button');
+  favT.type = 'button';
+  favT.className = 'sb-chip' + (currentLeague !== 'all' && favLeagues.has(currentLeague) ? ' active' : '');
+  favT.setAttribute('data-fav-toggle', '1');
+  favT.title = 'Tandai/hapus liga terpilih sebagai favorit';
+  favT.textContent = currentLeague !== 'all' && favLeagues.has(currentLeague) ? '★ Liga ini' : '☆ Tandai liga';
+  favT.addEventListener('click', () => {
+    if (currentLeague === 'all') { showToast('Pilih satu liga dulu di navigasi Liga.', 'warning'); return; }
+    toggleFavLeague(currentLeague);
+    renderAll(); syncFilterUI();
+  });
+  host.appendChild(favT);
 }
 
 function syncFilterUI() {
   document.querySelectorAll('#filter-tabs .sb-chip').forEach((b) => {
+    if (b.hasAttribute('data-fav-toggle')) {
+      const fav = currentLeague !== 'all' && favLeagues.has(currentLeague);
+      b.classList.toggle('active', fav);
+      b.textContent = fav ? '★ Liga ini' : '☆ Tandai liga';
+      return;
+    }
     b.classList.toggle('active', b.getAttribute('data-filter') === currentFilter);
   });
-  document.querySelectorAll('#league-nav .sb-nav-item').forEach((b) => {
+  document.querySelectorAll('#league-nav [data-league]').forEach((b) => {
     b.classList.toggle('active', b.getAttribute('data-league') === currentLeague);
   });
   document.querySelectorAll('#sport-nav .sb-nav-item').forEach((b) => {
@@ -303,7 +367,9 @@ function visibleEvents() {
   let list = feed.events;
   if (currentSport !== 'all') list = list.filter((e) => String(e.sport || '').toLowerCase() === String(currentSport).toLowerCase());
   if (currentLeague !== 'all') list = list.filter((e) => String(e.league || '') === currentLeague);
-  if (currentFilter === 'live') list = list.filter((e) => Boolean(e.live) || String(e.status || '').toUpperCase() === 'LIVE');
+  if (currentFilter === 'live') list = list.filter((e) => isLiveEvent(e));
+  else if (currentFilter === 'upcoming') list = list.filter((e) => !isLiveEvent(e) && !isFinishedEvent(e));
+  else if (currentFilter === 'fav') list = list.filter((e) => favLeagues.has(String(e.league || 'Liga Internasional')));
   if (searchQuery) {
     list = list.filter((e) =>
       String(e.league || '').toLowerCase().includes(searchQuery) ||
@@ -320,7 +386,7 @@ function renderAll() {
   const list = visibleEvents();
   if (!list.length) {
     ev.innerHTML = '';
-    setEmpty('Tidak ada pertandingan yang tersedia pada filter ini.');
+    setEmpty(currentFilter === 'fav' && !favLeagues.size ? 'Belum ada liga favorit. Tandai ★ pada daftar liga.' : 'Tidak ada pertandingan yang tersedia pada filter ini.');
     renderSidebar(feed.events);
     return;
   }
@@ -411,8 +477,10 @@ function renderMatch(e) {
 function renderMarketRow(e, m, locked) {
   const type = String(m.type || 'OTHER').toUpperCase();
   const period = String(m.period || 'FT').toUpperCase();
-  const lineLabel = m.line ? ` <span class="sb-market-line">${escapeHtml(String(m.line))}</span>` : '';
-  const label = `${marketLabel(type)}${period === '1H' ? ' · HT' : ''}${lineLabel}`;
+  const lineText = m.line ? ` ${String(m.line)}` : '';
+  const lineHtml = m.line ? ` <span class="sb-market-line">${escapeHtml(String(m.line))}</span>` : '';
+  const labelText = `${marketLabel(type)}${period === '1H' ? ' · HT' : ''}${lineText}`;
+  const labelHtml = `${escapeHtml(marketLabel(type))}${period === '1H' ? ' · HT' : ''}${lineHtml}`;
   let cols = m.selections || [];
   if (cols.length > 7) cols = cols.slice(0, 7);
   const btnHtml = cols.map((s) => {
@@ -429,8 +497,8 @@ function renderMarketRow(e, m, locked) {
       ` title="${escapeHtml(s.label || s.key)} @ ${odds.toFixed(2)}">` +
       `<span class="sb-odd-label">${escapeHtml(shortSel(s.label || s.key))}</span><span class="sb-odd-rate">${odds.toFixed(2)}${caret}</span></button>`;
   }).join('');
-  return `<div class="sb-market${locked ? ' sb-market-locked' : ''}" title="${escapeHtml(m.label || label)}">` +
-    `<span class="sb-market-name">${escapeHtml(label)}</span>` +
+  return `<div class="sb-market${locked ? ' sb-market-locked' : ''}" title="${escapeHtml(m.label || labelText)}">` +
+    `<span class="sb-market-name">${labelHtml}</span>` +
     `<div class="sb-odd-grid">${btnHtml}</div></div>`;
 }
 
@@ -483,9 +551,9 @@ function renderSidebar(list) {
   }
   if (leagueHost) {
     let h = `<button type="button" class="sb-nav-item${currentLeague === 'all' ? ' active' : ''}" data-league="all">Semua Liga</button>`;
-    h += leagues.map((l) => `<button type="button" class="sb-nav-item${currentLeague === l ? ' active' : ''}" data-league="${escapeHtml(l)}">${escapeHtml(l)}</button>`).join('');
+    h += leagues.map((l) => `<button type="button" class="sb-nav-item${currentLeague === l ? ' active' : ''}" data-league="${escapeHtml(l)}">${favLeagues.has(l) ? '★ ' : ''}${escapeHtml(l)}</button>`).join('');
     leagueHost.innerHTML = h;
-    leagueHost.querySelectorAll('.sb-nav-item').forEach((b) => b.addEventListener('click', () => { currentLeague = b.getAttribute('data-league'); renderAll(); syncFilterUI(); }));
+    leagueHost.querySelectorAll('[data-league]').forEach((b) => b.addEventListener('click', () => { currentLeague = b.getAttribute('data-league'); renderAll(); syncFilterUI(); }));
   }
   const st = el('sidebar-status');
   if (st) st.innerHTML = feed.source?.pricedMarkets ? `${fmt(feed.source.pricedMarkets)} markets` : '—';
@@ -582,8 +650,18 @@ function totalOdds() {
 }
 
 function betslipStake() {
-  const n = Number(el('sb-stake')?.value);
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+  const input = el('sb-stake');
+  if (input) {
+    const n = Number(input.value);
+    if (Number.isFinite(n) && n > 0) { lastStake = Math.floor(n); return lastStake; }
+    return 0;
+  }
+  return Number.isFinite(lastStake) && lastStake > 0 ? Math.floor(lastStake) : 0;
+}
+
+function betslipBalance() {
+  const u = auth.getUser() || {};
+  return Number(u.balance ?? u.wallet?.balance ?? 0) || 0;
 }
 
 function renderBetslip() {
@@ -600,12 +678,17 @@ function renderBetslip() {
     if (sheet && sheet !== target) sheet.innerHTML = '';
     const mode = el('betslip-mode');
     if (mode) mode.textContent = '';
+    const dc0 = el('sb-dock-count');
+    if (dc0) dc0.textContent = '0';
     return;
   }
-  const stake = betslipStake();
+  let stake = betslipStake();
+  if (!stake) stake = bettingConfig.minStake; // default terisi, bukan kosong
   const odds = totalOdds();
   const est = Math.floor(stake * odds);
   const legs = [...selected.values()];
+  const balance = betslipBalance();
+  const overBalance = stake > balance;
   const mode = el('betslip-mode');
   if (mode) mode.textContent = betType() === 'SINGLE' ? 'Single' : `Parlay · ${legs.length} leg`;
 
@@ -613,19 +696,23 @@ function renderBetslip() {
     <div class="sb-slip-summary">
       <div class="sb-slip-row"><span>Jumlah pilihan</span><b>${legs.length}</b></div>
       <div class="sb-slip-row"><span>Total odds</span><b>${odds.toFixed(2)}</b></div>
+      <div class="sb-slip-row"><span>Stake</span><b>${formatRupiah(stake)}</b></div>
+      <div class="sb-slip-row"><span>Saldo</span><b>${formatRupiah(balance)}</b></div>
       <div class="sb-slip-row"><span>Estimasi kemenangan</span><b class="sb-win" id="slip-est">${formatRupiah(est)}</b></div>
+      <div class="sb-slip-row"><span>Potential return</span><b class="sb-win" id="slip-potential">${formatRupiah(est)}</b></div>
       <div id="slip-quote" class="sb-slip-quote"></div>
       <div id="sb-quote-error" class="sb-quote-error" hidden></div>
     </div>
     <div class="sb-slip-stake">
       <label class="sb-label" for="sb-stake">Nominal taruhan (Rp)</label>
-      <input type="number" id="sb-stake" inputmode="numeric" min="${bettingConfig.minStake}" max="${bettingConfig.maxStake}" step="1000" value="${stake || bettingConfig.minStake}">
+      <input type="number" id="sb-stake" inputmode="numeric" min="${bettingConfig.minStake}" max="${bettingConfig.maxStake}" step="1000" value="${stake}">
       <div class="sb-quick" role="group" aria-label="Quick stake">
         ${[10000, 25000, 50000, 100000].map((v) => `<button type="button" class="sb-quick-btn" data-quick="${v}">${fmt(v)}</button>`).join('')}
       </div>
-      <div class="sb-slip-hint">Min ${formatRupiah(bettingConfig.minStake)} · Maks ${formatRupiah(bettingConfig.maxStake)}</div>
+      <div class="sb-slip-hint">Min ${formatRupiah(bettingConfig.minStake)} · Maks ${formatRupiah(bettingConfig.maxStake)} · Saldo ${formatRupiah(balance)}</div>
+      ${overBalance ? `<div class="sb-slip-hint">Stake melebihi saldo. <a href="/deposit.html"><strong>Deposit di sini</strong></a>.</div>` : ''}
     </div>
-    <button type="button" id="btn-place-bet" class="sb-btn sb-btn-primary sb-btn-block"${placing ? ' disabled' : ''}>${placing ? 'Memproses…' : 'Pasang Taruhan'}</button>
+    <button type="button" id="btn-place-bet" class="sb-btn sb-btn-primary sb-btn-block"${(placing || overBalance) ? ' disabled' : ''}>${placing ? 'Memproses…' : 'Pasang Taruhan'}</button>
     <button type="button" id="btn-clear-slip" class="sb-btn sb-btn-ghost sb-btn-block sb-btn-sm">Kosongkan betslip</button>`;
 
   bindBetslipEvents(target);
@@ -722,9 +809,14 @@ function bindBetslipEvents(root) {
 }
 
 function onStakeChange() {
-  const stake = betslipStake();
+  const stake = betslipStake(); // juga menyimpan ke lastStake
   const est = el('slip-est');
   if (est) est.textContent = formatRupiah(Math.floor(stake * totalOdds()));
+  const pot = el('slip-potential');
+  if (pot) pot.textContent = formatRupiah(Math.floor(stake * totalOdds()));
+  const place = el('btn-place-bet');
+  const over = stake > betslipBalance();
+  if (place && !placing) place.disabled = over;
   quote = null;
   const host = el('slip-quote');
   if (host) host.innerHTML = '';
@@ -734,9 +826,10 @@ function onStakeChange() {
 
 async function placeBet() {
   if (placing || !selected.size) return;
-  const stake = betslipStake();
+  const stake = betslipStake() || lastStake || bettingConfig.minStake;
   if (stake < bettingConfig.minStake) { showToast(`Minimal taruhan ${formatRupiah(bettingConfig.minStake)}.`, 'warning'); return; }
   if (stake > bettingConfig.maxStake) { showToast(`Maksimal taruhan ${formatRupiah(bettingConfig.maxStake)}.`, 'warning'); return; }
+  if (stake > betslipBalance()) { showToast('Stake melebihi saldo. Silakan deposit dulu.', 'warning'); return; }
   if (bettingConfig.quoteRequired && !quote?.quoteToken) {
     showToast('Quote server belum siap. Coba lagi sebentar.', 'warning');
     return;
@@ -756,14 +849,21 @@ async function placeBet() {
     renderAll();
     showToast(`Tiket ${ticket?.invoice || ''} berhasil dipasang!`, 'success');
     refreshTicketNote();
-    try { await auth.fetchMe(); auth.updateHeaderAuthUI(); } catch { /* ignore */ }
+    refreshBalance();
   } catch (err) {
     const code = err?.data?.error?.code || '';
     if (code === 'SPORTSBOOK_ODDS_CHANGED' || code === 'SPORTSBOOK_ODDS_VERSION_CHANGED') {
       showToast('Odds telah berubah. Betslip diperbarui — tinjau kembali.', 'warning');
       quote = null;
+      syncSelectedOdds(feed.events);
       renderBetslip();
       renderAll();
+    } else if (code === 'SPORTSBOOK_QUOTE_EXPIRED' || code === 'SPORTSBOOK_QUOTE_INVALID') {
+      showToast('Quote kedaluwarsa. Meminta harga terbaru…', 'warning');
+      quote = null;
+      renderBetslip();
+      const stake = betslipStake() || lastStake || 0;
+      if (selected.size && stake >= bettingConfig.minStake) requestQuote();
     } else {
       showToast(err?.message || 'Gagal memasang taruhan.', 'danger');
     }
