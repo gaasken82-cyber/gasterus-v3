@@ -170,6 +170,7 @@ async function connectStream() {
         const chunk = await reader.read();
         if (chunk.done) break;
         buf += decoder.decode(chunk.value ?? new Uint8Array(0), { stream: true });
+        if (buf.length > 2 * 1024 * 1024) buf = ''; // Safety guard against runaway buffer leak
         let idx;
         while ((idx = buf.indexOf('\n\n')) >= 0) {
           const frame = buf.slice(0, idx);

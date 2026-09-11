@@ -215,6 +215,10 @@ async function cachedRequest(key, ttlMs, fetcher) {
   if (cached?.value !== undefined && now - cached.fetchedAt < ttlMs) return cached.value;
   if (cached?.inFlight) return cached.inFlight;
   const inFlight = Promise.resolve().then(fetcher).then(value => {
+    if (providerRequestCache.size > 300) {
+      const oldest = [...providerRequestCache.entries()].sort((a, b) => (a[1]?.fetchedAt || 0) - (b[1]?.fetchedAt || 0));
+      for (const [k] of oldest.slice(0, 50)) providerRequestCache.delete(k);
+    }
     providerRequestCache.set(key, { value, fetchedAt: Date.now(), inFlight: null });
     return value;
   }).catch(error => {
@@ -505,6 +509,10 @@ async function fetchOddsApiEventMarkets(sportKey, rawEvents) {
       if (config.theOddsApiBookmakers) url.searchParams.set('bookmakers', config.theOddsApiBookmakers);
       const payload = await requestJson(url, { label: 'The Odds API event markets' });
       if (payload && typeof payload === 'object') {
+        if (oddsApiEventDetailCache.size > 300) {
+          const oldest = [...oddsApiEventDetailCache.entries()].sort((a, b) => (a[1]?.fetchedAt || 0) - (b[1]?.fetchedAt || 0));
+          for (const [k] of oldest.slice(0, 50)) oddsApiEventDetailCache.delete(k);
+        }
         oddsApiEventDetailCache.set(cacheKey, { fetchedAt: Date.now(), payload });
         extras.set(event.id, payload);
       }
