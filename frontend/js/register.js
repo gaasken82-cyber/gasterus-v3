@@ -159,7 +159,7 @@ function validatePasswordField() {
   if (!PASSWORD_RE.test(val)) {
     setStatus('password-status', '✗ Min. 8 karakter, berisi huruf dan angka.', false, 'reg-password');
   } else {
-    setStatus('password-status', '✓ Kuat kuat.', true);
+    setStatus('password-status', '✓ Kuat kuat.', true, 'reg-password');
   }
   validateConfirmField();
 }
@@ -171,7 +171,7 @@ function validateConfirmField() {
   if (pwd !== conf) {
     setStatus('confirm-status', '✗ Password tidak cocok.', false, 'reg-password-confirm');
   } else {
-    setStatus('confirm-status', '✓ Cocok.', true);
+    setStatus('confirm-status', '✓ Cocok.', true, 'reg-password-confirm');
   }
 }
 
