@@ -68,13 +68,15 @@ export async function initSportsbook() {
   bindEventHandlers();
   document.addEventListener('visibilitychange', () => { if (!document.hidden && auth.isLoggedIn()) refreshBalance(); });
 
-  if (!auth.isLoggedIn()) {
-    setStatus('offline');
-    renderAuthRequired();
-    return;
+  if (auth.isLoggedIn()) {
+    startStream();
+    refreshTicketNote();
+  } else {
+    // Public preview: unauthenticated visitors can view all matches and live odds
+    setStatus('online');
+    loadRestSnapshot();
+    if (!restRefreshTimer) restRefreshTimer = setInterval(() => { loadRestSnapshot(); }, 45000);
   }
-  startStream();
-  refreshTicketNote();
 }
 
 function buildSkeleton() {
@@ -826,6 +828,11 @@ function onStakeChange() {
 }
 
 async function placeBet() {
+  if (!auth.isLoggedIn()) {
+    showToast('Silakan login terlebih dahulu untuk memasang taruhan.', 'warning');
+    setTimeout(() => { window.location.href = '/index.html?msg=login_required'; }, 1200);
+    return;
+  }
   if (placing || !selected.size) return;
   const stake = betslipStake() || lastStake || bettingConfig.minStake;
   if (stake < bettingConfig.minStake) { showToast(`Minimal taruhan ${formatRupiah(bettingConfig.minStake)}.`, 'warning'); return; }

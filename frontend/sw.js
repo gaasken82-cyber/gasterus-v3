@@ -48,10 +48,8 @@ self.addEventListener('fetch', (e) => {
 
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
-  // Never cache application code or the service worker itself — these must always
-  // come straight from the network so a fix (like the login unwrap) reaches users
-  // immediately instead of an old broken copy being served forever from cache.
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/member/') || url.pathname.startsWith('/js/') || url.pathname.startsWith('/css/') || url.pathname === '/sw.js') {
+  // Never cache real-time sportsbook, application code, or the service worker itself
+  if (url.pathname.includes('sportsbook') || url.pathname.startsWith('/api/') || url.pathname.startsWith('/member/') || url.pathname.startsWith('/js/') || url.pathname.startsWith('/css/') || url.pathname === '/sw.js') {
     e.respondWith(fetch(request).catch(() => new Response('Offline', { status: 503 })));
     return;
   }
@@ -61,7 +59,12 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(request)
         .then((res) => {
-          caches.open(CACHE_NAME).then((c) => c.put(request, res.clone()));
+          if (res && res.status === 200) {
+            try {
+              const copy = res.clone();
+              caches.open(CACHE_NAME).then((c) => c.put(request, copy)).catch(() => {});
+            } catch (_) {}
+          }
           return res;
         })
         .catch(() => caches.match(request).then((r) => r || caches.match('/index.html')))
@@ -72,12 +75,14 @@ self.addEventListener('fetch', (e) => {
   // Static assets: cache first
   e.respondWith(
     caches.match(request).then((cached) => {
-      if (cached) {
-        fetch(request).then((r) => caches.open(CACHE_NAME).then((c) => c.put(request, r.clone()))).catch(() => {});
-        return cached;
-      }
+      if (cached) return cached;
       return fetch(request).then((r) => {
-        caches.open(CACHE_NAME).then((c) => c.put(request, r.clone()));
+        if (r && r.status === 200) {
+          try {
+            const copy = r.clone();
+            caches.open(CACHE_NAME).then((c) => c.put(request, copy)).catch(() => {});
+          } catch (_) {}
+        }
         return r;
       }).catch(() => new Response('', { status: 404 }));
     })
