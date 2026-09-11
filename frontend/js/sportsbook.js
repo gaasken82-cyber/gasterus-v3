@@ -30,6 +30,7 @@ let searchQuery = '';
 let lastRenderRevision = '';
 let bettingConfig = { minStake: 1000, maxStake: 50000000, maxLegs: 12, quoteRequired: true };
 let streamClosed = false;
+let restRefreshTimer = null;
 let quote = null; // last successful server quote
 let placing = false;
 
@@ -97,6 +98,7 @@ function startStream() {
   streamClosed = false;
   setStatus('connecting');
   loadRestSnapshot(); // REST bootstrap — render papan data seketika; SSE mengambil alih realtime.
+  if (!restRefreshTimer) restRefreshTimer = setInterval(() => { if (!streamClosed) loadRestSnapshot(); }, 45000); // periodic fallback refresh
   connectStream();
 }
 
