@@ -21,10 +21,12 @@ RUN cd backend \
  && if [ -f package-lock.json ]; then npm ci --omit=dev --no-audit --no-fund; else npm install --omit=dev --no-audit --no-fund --package-lock=false; fi \
  && npm cache clean --force
 
-# Copy application source
+# Copy application source.
+# NOTE (Instruction #1): the frontend is deployed to Cloudflare Pages only and is
+# intentionally NOT shipped in the Railway backend container. Do not re-add
+# `COPY frontend ./frontend` — Railway runs backend/API logic only.
 COPY backend ./backend
 COPY deploy ./deploy
-COPY frontend ./frontend
 COPY admin ./admin
 
 # Syntax check critical files

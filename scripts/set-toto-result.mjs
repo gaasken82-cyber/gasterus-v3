@@ -218,30 +218,46 @@ async function main() {
     process.exit(0);
   }
 
-  const DATABASE_URL = process.env.DATABASE_URL;
-  if (!DATABASE_URL) {
-    console.error('\x1b[31m[ERROR]\x1b[0m DATABASE_URL tidak ditemukan. Pastikan file backend/.env ada atau set DATABASE_URL di environment.');
+  let isProd = false;
+  const filteredArgs = [];
+  for (const a of args) {
+    if (a === '--prod' || a === '-p') {
+      isProd = true;
+    } else {
+      filteredArgs.push(a);
+    }
+  }
+
+  // SECURITY (QC): production DB connection string MUST come only from the
+  // environment (Railway secret / .env). Never hardcode a DB password in source.
+  const PROD_DB_URL = process.env.DATABASE_PROD_URL;
+  const DATABASE_URL = isProd ? PROD_DB_URL : (process.env.DATABASE_URL || PROD_DB_URL);
+  if (!DATABASE_URL || !String(DATABASE_URL).trim()) {
+    console.error('\x1b[31m[ERROR]\x1b[0m DATABASE_PROD_URL tidak ditemukan (var env kosong). Set DATABASE_PROD_URL dengan string connection database production — password database TIDAK boleh di-hardcode.');
     process.exit(1);
   }
+
+  const targetEnvLabel = isProd ? '\x1b[41m\x1b[37m[PRODUCTION - gasterus.fun]\x1b[0m' : '\x1b[44m\x1b[37m[LOCAL]\x1b[0m';
+  console.log(`\nTarget Database: ${targetEnvLabel}\n`);
 
   const pg = await loadPg();
   const pool = new pg.Pool({
     connectionString: DATABASE_URL,
     max: 3,
     connectionTimeoutMillis: 10000,
-    ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+    ssl: (isProd || process.env.DATABASE_SSL === 'true' || DATABASE_URL.includes('rlwy.net')) ? { rejectUnauthorized: false } : undefined
   });
 
   const client = await pool.connect();
   try {
-    if (args[0] === '--list' || args[0] === '-l') {
-      const filter = args[1] || '';
+    if (filteredArgs[0] === '--list' || filteredArgs[0] === '-l') {
+      const filter = filteredArgs[1] || '';
       await listMarkets(client, filter);
       return;
     }
 
-    if (args[0] === '--batch') {
-      const filePath = args[1];
+    if (filteredArgs[0] === '--batch') {
+      const filePath = filteredArgs[1];
       if (!filePath || !existsSync(filePath)) {
         console.error(`\x1b[31m[ERROR]\x1b[0m File batch tidak ditemukan: ${filePath}`);
         process.exit(1);
@@ -269,9 +285,9 @@ async function main() {
     }
 
     // Single market update: <market> <result> [date]
-    const targetMarket = args[0];
-    const newResult = String(args[1] || '').trim();
-    const targetDate = args[2] || getWibDateStr();
+    const targetMarket = filteredArgs[0];
+    const newResult = String(filteredArgs[1] || '').trim();
+    const targetDate = filteredArgs[2] || getWibDateStr();
     const targetTime = getWibTimeStr();
 
     if (!newResult || !/^\d{3,6}$/.test(newResult)) {

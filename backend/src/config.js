@@ -55,8 +55,12 @@ export const config = Object.freeze({
   totoIkonTotoUrl: text('TOTO_IKONTOTO_URL', 'https://ikontoto.org/'),
   totoKiaTotoUrl: text('TOTO_KIATOTO_URL', 'https://kiatoto.net/'),
   totoKingkongInfoUrl: text('TOTO_KINGKONG_INFO_URL', 'https://kingkongtoto-info.com/'),
-  totoBelizePoolsUrl: text('TOTO_BELIZE_POOLS_URL', 'https://belizepools.org/'),
+    totoBelizePoolsUrl: text('TOTO_BELIZE_POOLS_URL', 'https://belizepools.org/'),
   totoMeridaPoolsUrl: text('TOTO_MERIDA_POOLS_URL', 'https://meridapools.org/'),
+  // Official Vegasnet live-result widget. Verified live at the widgets subdomain
+  // (https://widgets.vegasnet.info/result.php). The bare https://vegasnet.info/result.php
+  // returns 404, so it must NOT be used. Configurable per-deployment (Railway env).
+  totoVegasnetUrl: text('TOTO_VEGASNET_URL', 'https://widgets.vegasnet.info/result.php'),
   // Chromium browser fallback DISABLED by default (0): TOTO results now come from the
   // light-weight Vegasnet HTTP widget source (see toto-source-fetch.js). Set the env
   // var explicitly to re-enable per-run Chromium rendering.

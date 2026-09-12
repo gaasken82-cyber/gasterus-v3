@@ -15,33 +15,19 @@ function boardMarkerTest(html) {
 const BROWSER_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
 
 export const TOTO_SOURCES = Object.freeze([
-  { code: 'poskopaito', name: 'PoskoPaito', url: config.totoPoskoPaitoUrl, parser: 'posko-board', family: 'poskopaito.com', requestProfile: 'browser-id', browserFallback: true },
-  { code: 'datatoto', name: 'DataToto', url: config.totoDataTotoUrl, family: 'datatoto.pro' },
-  { code: 'masterlive', name: 'MasterLive', url: config.totoMasterLiveUrl, family: 'masterlive.net' },
-  { code: 'cindototo', name: 'CindoToto Public Result Board', url: config.totoCindoTotoUrl, urls: [config.totoCindoTotoUrl, 'https://cindototopusat.com/support'], parser: 'snapshot-board', snapshotBoard: true, globalBoard: true, family: 'cindototopusat.com', requestProfile: 'browser-id', browserFallback: true },
-  { code: 'sumtoto', name: 'SumToto Public Result Board', url: config.totoSumTotoUrl, urls: [config.totoSumTotoUrl, 'https://sumtotoking.com/'], parser: 'snapshot-board', snapshotBoard: true, globalBoard: true, family: 'sumtotoking.com', requestProfile: 'browser-id', browserFallback: true },
-  { code: 'miototo', name: 'MioToto Public Result Board', url: config.totoMioTotoUrl, urls: [config.totoMioTotoUrl, 'https://miototo.com/support'], parser: 'snapshot-board', snapshotBoard: true, globalBoard: true, family: 'miototo.com', requestProfile: 'browser-id', browserFallback: true },
-  { code: 'ikontoto', name: 'IkonToto Public Result Board', url: config.totoIkonTotoUrl, parser: 'snapshot-board', snapshotBoard: true, globalBoard: true, family: 'ikontoto.org', requestProfile: 'browser-id', browserFallback: true },
-  { code: 'kiatoto', name: 'KiaToto Public Result Board', url: config.totoKiaTotoUrl, parser: 'snapshot-board', snapshotBoard: true, globalBoard: true, family: 'kiatoto.net', requestProfile: 'browser-id', browserFallback: true },
-  { code: 'kingkonginfo', name: 'KingkongToto Result & Schedule Board', url: config.totoKingkongInfoUrl, parser: 'market-card', globalBoard: true, family: 'kingkongtoto-info.com', requestProfile: 'browser-id', browserFallback: true },
-  // Official lottery pools live-draw sources (public, static HTML, no anti-bot). Each family is a distinct
-  // operator, so an agreement with these counts toward the two-family CONSENSUS/VERSIFIED gate.
-  // Operator official draw authorities. When an official site publishes the latest draw,
-  // its result overrides any differing aggregator observation for that pool (the operator
-  // is the source of truth for its own draws). Distinguish from CONSENSUS_INPUT sources.
-  { code: 'belizepools-mor', name: 'Belize Pools Morning', url: config.totoBelizePoolsUrl + 'live-draw-morning/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
-  { code: 'belizepools-mid', name: 'Belize Pools Midday', url: config.totoBelizePoolsUrl + 'live-draw-midday/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
-  { code: 'belizepools-eve', name: 'Belize Pools Evening', url: config.totoBelizePoolsUrl + 'live-draw-evening/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
-  { code: 'belizepools-ngt', name: 'Belize Pools Night', url: config.totoBelizePoolsUrl + 'live-draw-night/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
-  { code: 'meridapools', name: 'Merida Pools Official', url: config.totoMeridaPoolsUrl, parser: 'pools-draw', family: 'meridapools.org', authority: true },
-  // Vegasnet live-result widget: plain HTTP table (no Chromium). One lightweight
-  // request per show_id; each page is a single <table> row (Pasaran/Tanggal/Hasil)
-  // parsed by the generic 'vegasnet-table' table-rows parser. show_id list covers
-  // the pools mapped in toto-source-map.json ("vegasnet" alias entries).
+  // === INSTRUCTION (QC): FOCUS ON VEGASNET =================================
+  // `vegasnet` is the PRIMARY & sole most-reliable source. Plain HTTP widget,
+  // no Chromium. One lightweight request per show_id; each page is a single
+  // <table> row parsed by the 'vegasnet-table' parser. show_id list covers the
+  // pools mapped in toto-source-map.json ("vegasnet" alias entries).
+  //
+  // Cleanup (Instruction #1): removed dead/unreliable scrapers from this array:
+  // poskopaito, datatoto (down), masterlive, cindototo, sumtoto, miototo,
+  // ikontoto, kiatoto. Only sources proven alive remain (liveness-verified).
   {
     code: 'vegasnet',
     name: 'Vegasnet Live Result Widget',
-    url: 'https://widgets.vegasnet.info/result.php',
+    url: config.totoVegasnetUrl,
     parser: 'vegasnet-table',
     family: 'vegasnet.info',
     combineAll: true,
@@ -50,7 +36,18 @@ export const TOTO_SOURCES = Object.freeze([
       45, 48, 49, 51, 54, 55, 57, 59, 60, 61, 63, 65, 66, 67, 70, 71, 74, 76,
       77, 84, 88, 89, 94, 98, 101, 110, 113, 114, 115, 116, 138, 139, 157, 166
     ]
-  }
+  },
+  // Backup board (proven live, browser-rendered): aggregates ALL pools incl.
+  // schedule (Tutup Pasaran / Result Pasaran WIB).
+  { code: 'kingkonginfo', name: 'KingkongToto Result & Schedule Board', url: config.totoKingkongInfoUrl, parser: 'market-card', globalBoard: true, family: 'kingkongtoto-info.com', requestProfile: 'browser-id', browserFallback: true },
+  // Official operator live-draw authorities (proven live, static HTML, no anti-bot).
+  // Each family is a distinct operator, so agreement counts toward the two-family
+  // CONSENSUS/VERIFIED gate; official site overrides any differing aggregator obs.
+  { code: 'belizepools-mor', name: 'Belize Pools Morning', url: config.totoBelizePoolsUrl + 'live-draw-morning/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
+  { code: 'belizepools-mid', name: 'Belize Pools Midday', url: config.totoBelizePoolsUrl + 'live-draw-midday/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
+  { code: 'belizepools-eve', name: 'Belize Pools Evening', url: config.totoBelizePoolsUrl + 'live-draw-evening/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
+  { code: 'belizepools-ngt', name: 'Belize Pools Night', url: config.totoBelizePoolsUrl + 'live-draw-night/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
+  { code: 'meridapools', name: 'Merida Pools Official', url: config.totoMeridaPoolsUrl, parser: 'pools-draw', family: 'meridapools.org', authority: true }
 ]);
 
 function clean(value) { return String(value ?? '').replace(/\s+/g, ' ').trim(); }

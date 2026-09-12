@@ -36,24 +36,16 @@ function response(url, html, { status = 200, contentLength = null } = {}) {
   };
 }
 
-test('TOTO network adapter is wired to the extended consensus federation (10 boards + 5 official pools)', async () => {
-  assert.deepEqual(TOTO_SOURCES.map(item => item.code), ['poskopaito', 'datatoto', 'masterlive', 'cindototo', 'sumtoto', 'miototo', 'ikontoto', 'kiatoto', 'kingkonginfo', 'belizepools-mor', 'belizepools-mid', 'belizepools-eve', 'belizepools-ngt', 'meridapools', 'vegasnet']);
+test('TOTO source set is lean & vegasnet-primary (proven-alive sources only)', async () => {
+  assert.deepEqual(TOTO_SOURCES.map(item => item.code), ['vegasnet', 'kingkonginfo', 'belizepools-mor', 'belizepools-mid', 'belizepools-eve', 'belizepools-ngt', 'meridapools']);
   assert.deepEqual(TOTO_SOURCES.map(item => item.url), [
-    'https://poskopaito.com/',
-    'https://datatoto.pro/pasaran_lengkap_V2.php',
-    'https://masterlive.net/',
-    'https://cindototopusat.com/',
-    'https://sumtotoking.com/support',
-    'https://miototo.com/',
-    'https://ikontoto.org/',
-    'https://kiatoto.net/',
+    'https://widgets.vegasnet.info/result.php',
     'https://kingkongtoto-info.com/',
     'https://belizepools.org/live-draw-morning/',
     'https://belizepools.org/live-draw-midday/',
     'https://belizepools.org/live-draw-evening/',
     'https://belizepools.org/live-draw-night/',
-    'https://meridapools.org/',
-    'https://widgets.vegasnet.info/result.php'
+    'https://meridapools.org/'
   ]);
   const calls = [];
   const fakeFetch = async (url, options) => {
@@ -62,29 +54,26 @@ test('TOTO network adapter is wired to the extended consensus federation (10 boa
   };
   const results = await collectTotoSources(fakeFetch);
   const vegasnet = results.find(item => item.code === 'vegasnet');
-  assert.equal(results.length, 15);
+  assert.equal(results.length, 7);
   assert.equal(vegasnet.ok, true);
   assert.match(vegasnet.contentType, /combined=vegasnet/);
   assert.equal(results.every(item => item.ok && item.bytes > 0), true);
-  assert.equal(calls.length, 14 + vegasnet.showIds.length);
+  assert.equal(calls.length, 6 + vegasnet.showIds.length); // 6 non-combine sources + 1 per show_id
   assert.equal(calls.every(call => call.options.redirect === 'follow'), true);
   const byHost = new Map(calls.map(call => [new URL(call.url).hostname.replace(/^www\./, ''), call.options.headers]));
-  assert.match(byHost.get('datatoto.pro')['user-agent'], /ASEAN777-Result-Collector\/6\.8\.14/);
-  assert.match(byHost.get('masterlive.net')['user-agent'], /ASEAN777-Result-Collector\/6\.8\.14/);
-  for (const host of ['poskopaito.com','cindototopusat.com','sumtotoking.com','miototo.com','ikontoto.org','kiatoto.net','kingkongtoto-info.com']) {
-    assert.match(byHost.get(host)['user-agent'], /Mozilla\/5\.0/);
-    assert.match(byHost.get(host)['accept-language'], /id-ID/);
-  }
+  assert.match(byHost.get('kingkongtoto-info.com')['user-agent'], /Mozilla\/5\.0/);
+  assert.match(byHost.get('kingkongtoto-info.com')['accept-language'], /id-ID/);
+  assert.match(byHost.get('widgets.vegasnet.info')['user-agent'], /ASEAN777-Result-Collector\/6\.8\.14/);
 });
 
 test('TOTO network adapter keeps healthy sources when one source fails', async () => {
   const fakeFetch = async url => {
-    if (new URL(url).hostname === 'datatoto.pro') return response(String(url), '', { status: 503 });
+    if (new URL(url).hostname === 'meridapools.org') return response(String(url), '', { status: 503 });
     return response(String(url), htmlFor(url));
   };
   const results = await collectTotoSources(fakeFetch);
-  assert.equal(results.filter(item => item.ok).length, 14);
-  assert.match(results.find(item => item.code === 'datatoto').error, /HTTP 503/);
+  assert.equal(results.filter(item => item.ok).length, 6);
+  assert.match(results.find(item => item.code === 'meridapools').error, /HTTP 503/);
 });
 
 test('TOTO source fetch blocks unsafe URLs and cross-host redirects', async () => {
@@ -98,23 +87,26 @@ test('TOTO source fetch blocks unsafe URLs and cross-host redirects', async () =
 });
 
 
-test('snapshot source falls back to its next approved candidate when the primary page has no result board', async () => {
-  const source = TOTO_SOURCES.find(item => item.code === 'cindototo');
+test('vegasnet combineAll tolerates individual show_id failures and merges HTML', async () => {
+  const source = TOTO_SOURCES.find(item => item.code === 'vegasnet');
   const calls = [];
   const result = await __totoSourceFetch.collectOneSource(source, async url => {
     calls.push(String(url));
-    if (new URL(url).pathname === '/') return response(String(url), '<html><body>landing only</body></html>');
-    return response(String(url), snapshotHtml('WELLINGTON', '4969'));
+    const showId = new URL(url).searchParams.get('show_id');
+    if (showId === '2') return response(String(url), '<table><tr><td>Ohio Midday</td><td>12-09-2026</td><td>6364</td></tr></table>');
+    if (showId === '9') return response(String(url), '<table><tr><td>Hkg Lotto</td><td>12-09-2026</td><td>3007</td></tr></table>');
+    return response(String(url), ''); // empty page → tolerated as VEGASNET_SHOWID_FAILED
   });
   assert.equal(result.ok, true);
-  assert.equal(calls.length, 2);
-  assert.equal(new URL(result.url).pathname, '/support');
-  assert.equal(result.attempts[0].error, 'TOTO_SOURCE_BOARD_MARKER_MISSING');
-  assert.equal(result.attempts[1].ok, true);
+  assert.match(result.contentType, /combined=vegasnet/);
+  assert.match(result.html, /Ohio Midday/);
+  assert.match(result.html, /3007/);
+  assert.equal(calls.length, source.showIds.length);
+  assert.match(result.attempts.find(a => a.error).error, /VEGASNET_SHOWID_FAILED/);
 });
 
 test('browser fallback preserves HTTPS/same-host policy and returns rendered DOM', async () => {
-  const source = TOTO_SOURCES.find(item => item.code === 'cindototo');
+  const source = TOTO_SOURCES.find(item => item.code === 'kingkonginfo');
   const rendered = await renderTotoSource({ ...source, ok: true, html: '<html>landing</html>' }, async url => ({
     html: snapshotHtml('WELLINGTON', '4969'), finalUrl: url, renderer: 'CHROMIUM_CDP', renderMs: 12
   }));

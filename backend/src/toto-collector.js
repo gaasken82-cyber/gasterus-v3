@@ -29,7 +29,7 @@ let lastAuthoritySnapshotRevision = null;
 const AUTHORITY_SNAPSHOT_LOG_INTERVAL_MS = 15 * 60 * 1000;
 let browserFallbackCursor = 0;
 const renderedConsensusCache = new Map();
-const BROWSER_FALLBACK_PRIORITY = Object.freeze(['cindototo','kingkonginfo','ikontoto','kiatoto','poskopaito','miototo','sumtoto']);
+const BROWSER_FALLBACK_PRIORITY = Object.freeze(['kingkonginfo']); // only kept browser-enabled source (Instruction #1 cleanup)
 
 // Per-source health & auto-failover (additive; TIDAK mengubah decision/verification/betting logic).
 const sourceHealth = new Map();
