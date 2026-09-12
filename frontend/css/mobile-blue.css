@@ -153,11 +153,13 @@ body {
   border: 0;
   box-shadow: none;
   line-height: 0;
+  /* Prevent container growing to native image size */
+  overflow: hidden;
+  max-width: 60%;
 }
 
 .brand-title picture {
-  display: flex;
-  align-items: center;
+  display: contents;
   background: transparent;
   background-color: transparent;
   border: 0;
@@ -165,14 +167,17 @@ body {
 }
 
 .brand-logo-img {
-  height: 60px;
-  width: auto;
-  max-width: 280px;
+  /* height drives size; width auto-adjusts proportionally */
+  height: 40px;
+  /* Override any accidental HTML width/height attribute */
+  width: auto !important;
+  /* Hard cap so 970px native image never renders at full width */
+  max-width: 200px;
+  max-height: 48px;
   object-fit: contain;
   object-position: left center;
   display: block;
-  filter: drop-shadow(0 1px 6px rgba(37, 99, 235, 0.45));
-  /* PNG resolusi tinggi — biarkan browser downscale (tajam di retina) */
+  filter: none;
   background: transparent;
   background-color: transparent;
   background-image: none;
@@ -180,13 +185,30 @@ body {
   border-radius: 0;
   box-shadow: none;
   outline: none;
-  image-rendering: auto;
+  mix-blend-mode: normal;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Scoped per halaman */
+.page-home .brand-logo-img {
+  height: 46px;
+  max-width: 220px;
+}
+
+.page-member .brand-logo-img {
+  height: 30px;
+  max-width: 140px;
 }
 
 @media (max-width: 480px) {
-  .brand-logo-img {
-    height: 48px;
-    max-width: 220px;
+  .page-home .brand-logo-img {
+    height: 38px;
+    max-width: 175px;
+  }
+  .page-member .brand-logo-img {
+    height: 26px;
+    max-width: 118px;
   }
   .brand-bar {
     padding: 6px 10px;
