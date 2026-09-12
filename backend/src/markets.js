@@ -44,6 +44,9 @@ export async function listMarkets({category,q,limit=100,offset=0,includeHistoric
   const values=[];const where=[];
   if(category){values.push(category);where.push(`category=$${values.length}`)}
   if(q){values.push(`%${String(q).slice(0,80)}%`);where.push(`name ILIKE $${values.length}`)}
+  // Hide deactivated (NZ regional) pools from the active catalog. market_betting_configs
+  // has no `status` column, so `status` is unambiguous here in both SELECT and COUNT.
+  where.push("status<>'closed'");
   values.push(Math.min(Math.max(Number(limit)||100,1),100));const lp=values.length;values.push(Math.max(Number(offset)||0,0));const op=values.length;
   const clause=where.length?`WHERE ${where.join(' AND ')}`:'';
   const bettingJoin=`LEFT JOIN market_betting_configs c ON c.market_id=m.id`;

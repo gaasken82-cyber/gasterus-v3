@@ -544,19 +544,10 @@ export const DRAW_SCHEDULE = Object.freeze({
   'taiwan-pool': ['12:00', '23:00'],
   'cambodia-pool': ['08:00', '18:00'],
   'newyork-pool': ['07:00', '16:00'],
-  'wellington-pool': ['08:00', '18:00'],
   'prague-pool': ['09:00', '20:00'],
   'seattle-pool': ['09:00', '21:00'],
-  'auckland-pool': ['08:00', '19:00'],
-  'napier-hasti-pool': ['09:00', '20:00'],
-  'christchurch-pool': ['08:30', '19:30'],
-  'tauranga-pool': ['08:00', '18:00'],
   'california-pool': ['09:00', '20:00'],
-  'nelson-pool': ['09:00', '20:00'],
-  'pcso-pool': ['13:00', '00:30'],
-  'invercargill-pool': ['09:00', '19:30'],
-  'queenstown-pool': ['09:00', '20:00'],
-  'rotorua-pool': ['09:00', '19:00']
+  'pcso-pool': ['13:00', '00:30']
 });
 function toMin(t) {
   const [hh = '00', mm = '00'] = String(t || '00:00').split(':');

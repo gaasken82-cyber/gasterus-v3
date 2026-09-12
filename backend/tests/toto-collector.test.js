@@ -18,9 +18,9 @@ const __totoCollector = { ...core, MARKET_MAP: core.MARKET_MAP };
 
 const source = (code, name, html, extra = {}) => ({ code, name, family: code, ok: true, html, ...extra });
 
-test('TOTO source map contains 85 markets with no source-less market', () => {
-  assert.equal(__totoCollector.MARKET_MAP.length, 85);
-  assert.equal(__totoCollector.MARKET_MAP.filter(item => Object.keys(item.sources).length).length, 85);
+test('TOTO source map contains every canonical market with no source-less market (NZ regionals disabled)', () => {
+  assert.equal(__totoCollector.MARKET_MAP.length, 74);
+  assert.equal(__totoCollector.MARKET_MAP.filter(item => Object.keys(item.sources).length).length, 74);
   assert.equal(__totoCollector.MARKET_MAP.filter(item => !Object.keys(item.sources).length).length, 0);
 });
 
@@ -229,7 +229,7 @@ test('runtime freshness gate rejects old consensus without altering current fres
   assert.equal(stale.confidence, 0);
 });
 
-test('source federation global-board parser can address all 85 canonical markets when a board exposes their known aliases', () => {
+test('source federation global-board parser can address every canonical market when a board exposes their known aliases', () => {
   const aliasesOf = value => Array.isArray(value) ? value : typeof value === 'string' ? [value] : [];
   const rows = [];
   for (const mapping of __totoCollector.MARKET_MAP) {
@@ -243,5 +243,5 @@ test('source federation global-board parser can address all 85 canonical markets
     html: `<h4>Hasil Terakhir</h4><div>19 Agustus 2026</div>${rows.join('')}`
   };
   const covered = __totoCollector.MARKET_MAP.filter(mapping => __totoCollector.observationsForMapping(mapping, [board]).length === 1);
-  assert.equal(covered.length, 85);
+  assert.equal(covered.length, __totoCollector.MARKET_MAP.length);
 });

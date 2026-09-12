@@ -81,19 +81,6 @@
   }
  },
  {
-  "sortOrder": 8,
-  "name": "WELLINGTON POOL",
-  "slug": "wellington-pool",
-  "sources": {
-   "cindototo": "WELLINGTON",
-   "sumtoto": [
-    "WELLINGTON"
-   ],
-   "datatoto": "WELLINGTON",
-   "masterlive": "WELLINGTON"
-  }
- },
- {
   "sortOrder": 9,
   "name": "PRAGUE POOL",
   "slug": "prague-pool",
@@ -148,59 +135,6 @@
   }
  },
  {
-  "sortOrder": 13,
-  "name": "AUCKLAND POOL",
-  "slug": "auckland-pool",
-  "sources": {
-   "cindototo": "AUCKLAND",
-   "sumtoto": [
-    "AUCKLAND"
-   ],
-   "datatoto": "AUCKLAND",
-   "masterlive": "AUCKLAND"
-  }
- },
- {
-  "sortOrder": 14,
-  "name": "NAPIER HASTI POOL",
-  "slug": "napier-hasti-pool",
-  "sources": {
-   "cindototo": "NAPIER HASTI",
-   "sumtoto": [
-    "NAPIER-HASTI",
-    "NAPIER HASTI"
-   ],
-   "datatoto": "NAPIER HASTI",
-   "masterlive": "NAPIER HASTI"
-  }
- },
- {
-  "sortOrder": 15,
-  "name": "CHRISTCHURCH POOL",
-  "slug": "christchurch-pool",
-  "sources": {
-   "cindototo": "CHRISTCHURCH",
-   "sumtoto": [
-    "CHRISTCHURCH"
-   ],
-   "datatoto": "CHRISTCHURCH",
-   "masterlive": "CHRISTCHURCH"
-  }
- },
- {
-  "sortOrder": 16,
-  "name": "TAURANGA POOL",
-  "slug": "tauranga-pool",
-  "sources": {
-   "cindototo": "TAURANGA",
-   "sumtoto": [
-    "TAURANGA"
-   ],
-   "datatoto": "TAURANGA",
-   "masterlive": "TAURANGA"
-  }
- },
- {
   "sortOrder": 17,
   "name": "CHINA POOL",
   "slug": "china-pool",
@@ -209,19 +143,6 @@
    "masterlive": "CHINA",
    "datatoto": "China",
    "vegasnet": "China"
-  }
- },
- {
-  "sortOrder": 18,
-  "name": "NELSON POOL",
-  "slug": "nelson-pool",
-  "sources": {
-   "cindototo": "NELSON",
-   "sumtoto": [
-    "NELSON"
-   ],
-   "datatoto": "NELSON",
-   "masterlive": "NELSON"
   }
  },
  {
@@ -242,72 +163,6 @@
    "poskopaito": "Pcso",
    "datatoto": "Pcso",
    "vegasnet": "Pcso"
-  }
- },
- {
-  "sortOrder": 21,
-  "name": "INVERCARGILL POOL",
-  "slug": "invercargill-pool",
-  "sources": {
-   "cindototo": "INVERCARGILL",
-   "sumtoto": [
-    "INVERCARGILL"
-   ],
-   "datatoto": "INVERCARGILL",
-   "masterlive": "INVERCARGILL"
-  }
- },
- {
-  "sortOrder": 22,
-  "name": "QUEENSTOWN POOL",
-  "slug": "queenstown-pool",
-  "sources": {
-   "cindototo": "QUEENSTOWN",
-   "sumtoto": [
-    "QUEENSTOWN"
-   ],
-   "datatoto": "QUEENSTOWN",
-   "masterlive": "QUEENSTOWN"
-  }
- },
- {
-  "sortOrder": 23,
-  "name": "ROTORUA POOL",
-  "slug": "rotorua-pool",
-  "sources": {
-   "cindototo": "ROTORUA",
-   "sumtoto": [
-    "ROTORUA"
-   ],
-   "datatoto": "ROTORUA",
-   "masterlive": "ROTORUA"
-  }
- },
- {
-  "sortOrder": 24,
-  "name": "NEW PLYMOUTH POOL",
-  "slug": "new-plymouth-pool",
-  "sources": {
-   "cindototo": "NEW PLYMOUTH",
-   "sumtoto": [
-    "NEW-PLYMOUTH",
-    "NEW PLYMOUTH"
-   ],
-   "datatoto": "NEW PLYMOUTH",
-   "masterlive": "NEW PLYMOUTH"
-  }
- },
- {
-  "sortOrder": 25,
-  "name": "GISBORNE POOL",
-  "slug": "gisborne-pool",
-  "sources": {
-   "cindototo": "GISBORNE",
-   "sumtoto": [
-    "GISBORNE"
-   ],
-   "datatoto": "GISBORNE",
-   "masterlive": "GISBORNE"
   }
  },
  {
