@@ -148,25 +148,45 @@ body {
   text-decoration: none;
   order: -1;
   margin-right: auto;
+  background: transparent;
+  background-color: transparent;
+  border: 0;
+  box-shadow: none;
+  line-height: 0;
+}
+
+.brand-title picture {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  background-color: transparent;
+  border: 0;
+  line-height: 0;
 }
 
 .brand-logo-img {
-  height: 46px;
+  height: 60px;
   width: auto;
-  max-width: 230px;
+  max-width: 280px;
   object-fit: contain;
   object-position: left center;
   display: block;
   filter: drop-shadow(0 1px 6px rgba(37, 99, 235, 0.45));
   /* PNG resolusi tinggi — biarkan browser downscale (tajam di retina) */
   background: transparent;
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  outline: none;
   image-rendering: auto;
 }
 
 @media (max-width: 480px) {
   .brand-logo-img {
-    height: 38px;
-    max-width: 185px;
+    height: 48px;
+    max-width: 220px;
   }
   .brand-bar {
     padding: 6px 10px;
@@ -643,7 +663,36 @@ body {
 .cs-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
+}
+
+.cs-btn-link {
+  display: block;
+  width: 100%;
+  line-height: 0;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+}
+
+.cs-btn-link:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: drop-shadow(0 6px 14px rgba(56, 189, 248, 0.45));
+}
+
+.cs-btn-link:active {
+  transform: scale(0.97);
+}
+
+.cs-btn-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 376 / 105;
+  object-fit: contain;
+  display: block;
 }
 
 .cs-card {
