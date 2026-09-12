@@ -134,9 +134,15 @@ function serveStatic(request, response, pathname) {
   try { decoded = decodeURIComponent(pathname); } catch { return send(response, 400, 'Bad request'); }
   if (decoded.includes('\0') || blockedPublicPath.test(decoded)) return send(response, 404, 'Not found');
   const relative = decoded === '/' ? '/index.html' : decoded;
-  const file = resolve(PUBLIC, `.${relative}`);
+  let file = resolve(PUBLIC, `.${relative}`);
   if (!(file === PUBLIC || file.startsWith(`${PUBLIC}${sep}`))) return send(response, 404, 'Not found');
-  if (!existsSync(file) || !statSync(file).isFile()) return send(response, 404, 'Not found');
+  if (!existsSync(file) || !statSync(file).isFile()) {
+    if (existsSync(`${file}.html`) && statSync(`${file}.html`).isFile()) {
+      file = `${file}.html`;
+    } else {
+      return send(response, 404, 'Not found');
+    }
+  }
   const extension = extname(file).toLowerCase();
   const type = contentTypes[extension];
   if (!type) return send(response, 404, 'Not found');
