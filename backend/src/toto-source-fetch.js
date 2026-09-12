@@ -31,6 +31,7 @@ export const TOTO_SOURCES = Object.freeze([
     parser: 'vegasnet-table',
     family: 'vegasnet.info',
     combineAll: true,
+    batchSize: 30,
     showIds: [
       2, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 21, 30, 38, 39, 40, 42, 43, 44,
       45, 48, 49, 51, 54, 55, 57, 59, 60, 61, 63, 65, 66, 67, 70, 71, 74, 76,
@@ -156,24 +157,30 @@ export async function mapLimit(items, limit, mapper) {
 
 async function collectOneSource(source, fetchImpl) {
   const started = Date.now();
-  // Vegasnet widget: fetch every show_id page (plain HTTP), merge the single-row
-  // tables into one combined HTML document for the table-rows parser. Individual
-  // show_id failures are tolerated as long as at least one page succeeds.
+  // Vegasnet widget (lean transport): group all show_ids into a single request per
+  // batch (`?show_id=a,b,c`) — plain HTTP, no Chromium. The widget returns one row
+  // per pool, so the merged HTML is parsed by the same table-rows parser as before
+  // (one request per show_id). Empty/failed batches are tolerated as long as at
+  // least one batch succeeds. This reduces N=56 HTTP calls down to a few batches.
   if (source.combineAll && Array.isArray(source.showIds) && source.showIds.length) {
-    const pages = await mapLimit(source.showIds, 4, async (showId) => {
+    const batchSize = Math.max(1, Number(source.batchSize) || 30);
+    const groups = [];
+    for (let i = 0; i < source.showIds.length; i += batchSize) groups.push(source.showIds.slice(i, i + batchSize));
+    const pages = await mapLimit(groups, 2, async (group) => {
+      const url = `${source.url}?show_id=${group.join(',')}`;
       try {
-        const document = await fetchTotoDocument({ ...source, url: `${source.url}?show_id=${showId}` }, fetchImpl);
-        return { showId, html: document.html, status: document.status };
+        const document = await fetchTotoDocument({ ...source, url }, fetchImpl);
+        return { url, html: document.html, status: document.status };
       } catch (error) {
-        return { showId, html: '', status: null, error: clean(error.message) };
+        return { url, html: '', status: null, error: clean(error.message) };
       }
     });
     const okPages = pages.filter(page => page.html);
     const html = okPages.map(page => page.html).join('\n');
     const bytes = Buffer.byteLength(html);
     const attempts = [
-      ...pages.filter(page => !page.html).map(page => ({ url: `${source.url}?show_id=${page.showId}`, ok: false, status: null, finalUrl: null, bytes: 0, error: page.error || 'VEGASNET_SHOWID_FAILED' })),
-      { url: `${source.url}?show_id=*(${okPages.length}/${source.showIds.length})`, ok: Boolean(html), status: html ? 200 : null, finalUrl: source.url, bytes, error: html ? null : 'VEGASNET_ALL_SHOWIDS_FAILED' }
+      ...pages.filter(page => !page.html).map(page => ({ url: page.url, ok: false, status: null, finalUrl: null, bytes: 0, error: page.error || 'VEGASNET_SHOWID_FAILED' })),
+      { url: `${source.url}?show_id=*(successful ${okPages.length}/${groups.length} batches)`, ok: Boolean(html), status: html ? 200 : null, finalUrl: source.url, bytes, error: html ? null : 'VEGASNET_ALL_SHOWIDS_FAILED' }
     ];
     return {
       ...source,

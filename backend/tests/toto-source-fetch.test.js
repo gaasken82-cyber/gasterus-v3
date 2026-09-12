@@ -58,7 +58,7 @@ test('TOTO source set is lean & vegasnet-primary (proven-alive sources only)', a
   assert.equal(vegasnet.ok, true);
   assert.match(vegasnet.contentType, /combined=vegasnet/);
   assert.equal(results.every(item => item.ok && item.bytes > 0), true);
-  assert.equal(calls.length, 6 + vegasnet.showIds.length); // 6 non-combine sources + 1 per show_id
+  assert.equal(calls.length, 6 + Math.ceil(vegasnet.showIds.length / vegasnet.batchSize)); // 6 non-combine sources + vegasnet batches
   assert.equal(calls.every(call => call.options.redirect === 'follow'), true);
   const byHost = new Map(calls.map(call => [new URL(call.url).hostname.replace(/^www\./, ''), call.options.headers]));
   assert.match(byHost.get('kingkongtoto-info.com')['user-agent'], /Mozilla\/5\.0/);
@@ -87,21 +87,24 @@ test('TOTO source fetch blocks unsafe URLs and cross-host redirects', async () =
 });
 
 
-test('vegasnet combineAll tolerates individual show_id failures and merges HTML', async () => {
+test('vegasnet batched combineAll merges rows and tolerates empty batches', async () => {
   const source = TOTO_SOURCES.find(item => item.code === 'vegasnet');
   const calls = [];
   const result = await __totoSourceFetch.collectOneSource(source, async url => {
     calls.push(String(url));
-    const showId = new URL(url).searchParams.get('show_id');
-    if (showId === '2') return response(String(url), '<table><tr><td>Ohio Midday</td><td>12-09-2026</td><td>6364</td></tr></table>');
-    if (showId === '9') return response(String(url), '<table><tr><td>Hkg Lotto</td><td>12-09-2026</td><td>3007</td></tr></table>');
-    return response(String(url), ''); // empty page → tolerated as VEGASNET_SHOWID_FAILED
+    const ids = (new URL(url).searchParams.get('show_id') || '').split(',');
+    const rows = [];
+    if (ids.includes('2')) rows.push('<table><tr><td>Ohio Midday</td><td>12-09-2026</td><td>6364</td></tr></table>');
+    if (ids.includes('9')) rows.push('<table><tr><td>Tennesse Midday</td><td>12-09-2026</td><td>1111</td></tr></table>');
+    return response(String(url), rows.join('')); // batches without rows -> empty, tolerated
   });
   assert.equal(result.ok, true);
   assert.match(result.contentType, /combined=vegasnet/);
   assert.match(result.html, /Ohio Midday/);
-  assert.match(result.html, /3007/);
-  assert.equal(calls.length, source.showIds.length);
+  assert.match(result.html, /1111/);
+  const batchCount = Math.ceil(source.showIds.length / source.batchSize);
+  assert.equal(calls.length, batchCount);
+  assert.equal(calls.every(u => new URL(u).hostname === 'widgets.vegasnet.info'), true);
   assert.match(result.attempts.find(a => a.error).error, /VEGASNET_SHOWID_FAILED/);
 });
 
