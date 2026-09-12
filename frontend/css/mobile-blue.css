@@ -374,10 +374,13 @@ body {
   text-align: center !important;
 }
 
-/* Kompensasi padding: username tidak punya .inp-eye di kanan,
-   tambahkan padding-right 42px agar lebar area teks sejajar dengan password */
-.inp-wrap input#username {
-  padding-right: 42px;
+/* Spacer kanan untuk username agar simetris sempurna dengan tombol eye pada password */
+.inp-eye-spacer {
+  width: 42px;
+  height: 100%;
+  flex-shrink: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Tombol Mata Toggle Password di Kanan */
