@@ -282,6 +282,9 @@ body {
   font-size: 22px;
   line-height: 1;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .qm-label {
