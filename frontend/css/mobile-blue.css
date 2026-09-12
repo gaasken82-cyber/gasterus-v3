@@ -166,10 +166,10 @@ body {
 }
 
 .brand-logo-img {
-  /* Height drives proportion; width auto-calculates to exact 4.71:1 */
-  height: 46px;
+  /* Logo baru 1024x258px — rasio 4:1. Height drives size, width auto */
+  height: 50px;
   width: auto !important;
-  max-width: 240px;
+  max-width: 300px;
   object-fit: contain;
   object-position: left center;
   display: block;
@@ -182,33 +182,34 @@ body {
   box-shadow: none;
   outline: none;
   mix-blend-mode: normal;
-  /* Ultra-smooth bicubic hardware acceleration */
-  image-rendering: auto;
+  /* Bicubic downscale — tajam & anti-aliased */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
 }
 
 /* Scoped per halaman */
 .page-home .brand-logo-img {
-  height: 48px;
-  max-width: 240px;
+  height: 52px;
+  max-width: 310px;
 }
 
 .page-member .brand-logo-img {
-  height: 34px;
-  max-width: 170px;
+  height: 36px;
+  max-width: 215px;
 }
 
 @media (max-width: 480px) {
   .page-home .brand-logo-img {
-    height: 38px;
-    max-width: 185px;
+    height: 42px;
+    max-width: 220px;
   }
   .page-member .brand-logo-img {
-    height: 28px;
-    max-width: 135px;
+    height: 32px;
+    max-width: 160px;
   }
   .brand-bar {
     padding: 8px 12px;
-    min-height: 54px;
+    min-height: 58px;
     gap: 10px;
   }
 }
