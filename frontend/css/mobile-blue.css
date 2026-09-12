@@ -189,23 +189,23 @@ body {
 
 /* Scoped per halaman */
 .page-home .brand-logo-img {
-  height: 44px;
-  max-width: 170px;
+  height: 42px;
+  max-width: 185px;
 }
 
 .page-member .brand-logo-img {
   height: 30px;
-  max-width: 120px;
+  max-width: 130px;
 }
 
 @media (max-width: 480px) {
   .page-home .brand-logo-img {
-    height: 36px;
-    max-width: 140px;
+    height: 34px;
+    max-width: 145px;
   }
   .page-member .brand-logo-img {
     height: 26px;
-    max-width: 105px;
+    max-width: 110px;
   }
   .brand-bar {
     padding: 6px 10px;
