@@ -40,22 +40,26 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text-primary);
+  order: -1;
+  margin-right: auto;
 }
 
 .brand-logo .brand-logo-img {
-  height: 32px;
+  height: 46px;
   width: auto;
-  max-width: 160px;
+  max-width: 230px;
   object-fit: contain;
+  object-position: left center;
   display: block;
   background: transparent;
+  image-rendering: auto;
   filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.55));
 }
 
 @media (max-width: 480px) {
   .brand-logo .brand-logo-img {
-    height: 28px;
-    max-width: 130px;
+    height: 38px;
+    max-width: 185px;
   }
 }
 
