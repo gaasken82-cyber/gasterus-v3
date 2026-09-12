@@ -42,6 +42,15 @@
   color: var(--text-primary);
 }
 
+.brand-logo .brand-logo-img {
+  height: 38px;
+  width: auto;
+  max-width: 155px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.55));
+}
+
 .brand-logo .logo-badge {
   background: var(--brand-gold);
   color: var(--text-inverse);
