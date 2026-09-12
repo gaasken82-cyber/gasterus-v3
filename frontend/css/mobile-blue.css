@@ -2350,6 +2350,7 @@ body.nav-open .nav-drawer,
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .page-login .input-with-icon .form-input {
