@@ -146,14 +146,13 @@ body {
   display: flex;
   align-items: center;
   text-decoration: none;
-  order: -1;
   margin-right: auto;
+  flex-shrink: 0;
   background: transparent;
   background-color: transparent;
   border: 0;
   box-shadow: none;
   line-height: 0;
-  /* Prevent container growing to native image size */
   overflow: hidden;
   max-width: 60%;
 }
