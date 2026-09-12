@@ -166,50 +166,126 @@ body {
 }
 
 .brand-logo-img {
-  /* Logo baru 1024x258px — rasio 4:1. Height drives size, width auto */
-  height: 50px;
+  /* Logo upload user 626x160px — rasio ~3.9:1 */
+  height: 48px;
   width: auto !important;
-  max-width: 300px;
+  max-width: 220px;
   object-fit: contain;
   object-position: left center;
   display: block;
-  filter: none;
   background: transparent;
-  background-color: transparent;
-  background-image: none;
   border: 0;
   border-radius: 0;
   box-shadow: none;
   outline: none;
-  mix-blend-mode: normal;
-  /* Bicubic downscale — tajam & anti-aliased */
   image-rendering: -webkit-optimize-contrast;
   image-rendering: high-quality;
+  transition: transform 0.25s ease;
+}
+
+/* ── Efek Berkilau Seperti GIF pada Logo ── */
+@keyframes logoShineSweep {
+  0% {
+    left: -140%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  35% {
+    left: 140%;
+    opacity: 1;
+  }
+  36%, 100% {
+    left: 140%;
+    opacity: 0;
+  }
+}
+
+@keyframes logoSparkleGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(250, 204, 21, 0.4))
+            drop-shadow(0 0 10px rgba(59, 130, 246, 0.35));
+  }
+  18% {
+    filter: drop-shadow(0 0 14px rgba(255, 230, 100, 0.95))
+            drop-shadow(0 0 28px rgba(59, 130, 246, 0.8))
+            drop-shadow(0 0 38px rgba(255, 215, 0, 0.5));
+  }
+  35% {
+    filter: drop-shadow(0 0 6px rgba(100, 180, 255, 0.6))
+            drop-shadow(0 0 14px rgba(250, 204, 21, 0.4));
+  }
+}
+
+.logo-shine-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+/* Berkas kilatan cahaya diagonal yang menyapu berkala */
+.logo-shine-wrap::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -140%;
+  width: 65%;
+  height: 140%;
+  background: linear-gradient(
+    110deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.1) 30%,
+    rgba(255, 255, 255, 0.85) 48%,
+    rgba(255, 240, 150, 0.9) 52%,
+    rgba(255, 255, 255, 0.7) 58%,
+    rgba(147, 197, 253, 0.3) 70%,
+    transparent 85%
+  );
+  transform: skewX(-24deg);
+  animation: logoShineSweep 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.logo-shine-wrap .brand-logo-img,
+.logo-shine-wrap .sb-logo-img,
+.logo-shine-wrap img {
+  position: relative;
+  z-index: 1;
+  animation: logoSparkleGlow 3s ease-in-out infinite;
+  will-change: filter;
 }
 
 /* Scoped per halaman */
 .page-home .brand-logo-img {
-  height: 52px;
-  max-width: 310px;
+  height: 48px;
+  max-width: 220px;
 }
 
 .page-member .brand-logo-img {
   height: 36px;
-  max-width: 215px;
+  max-width: 170px;
 }
 
 @media (max-width: 480px) {
+  .brand-logo-img {
+    height: 38px;
+    max-width: 175px;
+  }
   .page-home .brand-logo-img {
-    height: 42px;
-    max-width: 220px;
+    height: 38px;
+    max-width: 175px;
   }
   .page-member .brand-logo-img {
     height: 32px;
-    max-width: 160px;
+    max-width: 150px;
   }
   .brand-bar {
     padding: 8px 12px;
-    min-height: 58px;
+    min-height: 54px;
     gap: 10px;
   }
 }
@@ -254,44 +330,161 @@ body {
   100% { transform: translateX(-100%); }
 }
 
-/* --- 5. Hero Banner --- */
+/* --- 5. Hero Banner 3D Smooth Slider --- */
 .hero-banner-3d {
   padding: 8px 10px;
+  perspective: 1200px;
 }
 
-.banner-container {
+.banner-slider-wrapper {
+  position: relative;
   width: 100%;
   border-radius: 12px;
   overflow: hidden;
-  border: 1.5px solid rgba(56, 189, 248, 0.65);
-  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.35), 0 0 16px rgba(234, 179, 8, 0.18);
-  background: #071120;
-  position: relative;
-  display: block;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border: 1.5px solid rgba(56, 189, 248, 0.7);
+  background: #050b14;
+  box-shadow: 0 8px 28px rgba(14, 165, 233, 0.35), 0 0 20px rgba(234, 179, 8, 0.2);
+  transform-style: preserve-3d;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.banner-container:hover {
-  transform: translateY(-1px);
+.banner-slider-wrapper:hover {
   border-color: #38bdf8;
-  box-shadow: 0 6px 26px rgba(56, 189, 248, 0.55), 0 0 20px rgba(234, 179, 8, 0.28);
+  box-shadow: 0 12px 36px rgba(56, 189, 248, 0.55), 0 0 24px rgba(234, 179, 8, 0.3);
+}
+
+.banner-slides-track {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  overflow: hidden;
+  background: #050b14;
+}
+
+.banner-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(100%) scale(0.92) rotateY(-8deg);
+  transition: transform 0.65s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.55s ease, visibility 0.65s ease;
+  will-change: transform, opacity;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-slide.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0) scale(1) rotateY(0deg);
+  z-index: 2;
+}
+
+.banner-slide.prev-slide {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-100%) scale(0.92) rotateY(8deg);
+  z-index: 1;
 }
 
 .hero-banner-link {
   display: block;
   width: 100%;
+  height: 100%;
   text-decoration: none;
   line-height: 0;
-  cursor: pointer;
 }
 
 .hero-banner-img {
   width: 100%;
-  height: auto;
+  height: 100%;
   aspect-ratio: 2 / 1;
   object-fit: cover;
   display: block;
   border-radius: 10px;
+}
+
+/* Tombol Navigasi 3D Prev / Next */
+.banner-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  background: rgba(7, 17, 32, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.7);
+  border-radius: 50%;
+  color: #f1f5f9;
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  padding: 0;
+  outline: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.banner-nav-btn:hover {
+  background: rgba(14, 165, 233, 0.9);
+  border-color: #facc15;
+  color: #ffffff;
+  transform: translateY(-50%) scale(1.12);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.8), 0 0 10px rgba(250, 204, 21, 0.6);
+}
+
+.banner-nav-prev {
+  left: 10px;
+}
+
+.banner-nav-next {
+  right: 10px;
+}
+
+/* Dots Indikator 3D */
+.banner-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 5;
+  padding: 4px 10px;
+  background: rgba(5, 11, 20, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 16px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.banner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.banner-dot.active {
+  width: 22px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f59e0b 0%, #38bdf8 100%);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.85);
 }
 
 .banner-content {

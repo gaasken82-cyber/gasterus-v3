@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Deposit Saldo — GASTERUS V3</title>
+  <title>Deposit Saldo � GASTERUS V3</title>
+  <link rel="stylesheet" href="/css/animations.css">
   <meta name="description" content="Formulir pengisian saldo akun Gasterus v3 instan melalui transfer bank BCA, Mandiri, BNI, BRI, dan QRIS.">
 
   <!-- Google Fonts: Inter & Outfit -->
@@ -14,7 +15,7 @@
   <link rel="manifest" href="manifest.json">
 
 
-  <link rel="stylesheet" href="css/mobile-blue.css?v=20260912-logo-v2">
+  <link rel="stylesheet" href="css/mobile-blue.css?v=20260912-logo-v4">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
   <meta property="og:type" content="website">
@@ -43,11 +44,11 @@
 
     <!-- Header -->
     <header class="brand-bar">
-      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">?</button>
       <a href="/index.html" class="brand-title">
-        <img src="/assets/logo.png?v=20260912-logo-v2" alt="GASTERUS" class="brand-logo-img">
+        <span class="logo-shine-wrap"><img src="/assets/logo.png?v=20260912-logo-v4" alt="GASTERUS" class="brand-logo-img"></span>
       </a>
-      <a class="btn-livechat" href="member.html" aria-label="Kembali ke Member Area">← Member</a>
+      <a class="btn-livechat" href="member.html" aria-label="Kembali ke Member Area">? Member</a>
     </header>
 
     <!-- User Bar: Nama + Saldo + Refresh -->
@@ -56,25 +57,25 @@
         <div class="user-name"><span class="user-display-name">Member</span></div>
         <div class="user-balance">Balance: IDR. <span class="user-display-balance">0</span></div>
       </div>
-      <button type="button" class="btn-refresh-balance" id="btn-refresh-deposit" aria-label="Refresh Saldo">↻ Refresh</button>
+      <button type="button" class="btn-refresh-balance" id="btn-refresh-deposit" aria-label="Refresh Saldo">? Refresh</button>
     </div>
 
     <!-- Marquee Ticker -->
     <div class="marquee-bar">
       <span class="marquee-label">INFO</span>
       <div class="marquee-track">
-        <span class="marquee-text">Selamat datang di GASTERUS · Deposit & Withdraw Super Cepat · Bonus Tanpa Batas Setiap Hari</span>
+        <span class="marquee-text">Selamat datang di GASTERUS � Deposit & Withdraw Super Cepat � Bonus Tanpa Batas Setiap Hari</span>
       </div>
     </div>
 
     <!-- Judul Halaman Kasir -->
-    <div class="deposit-page-title">KASIR — DEPOSIT SALDO</div>
+    <div class="deposit-page-title">KASIR � DEPOSIT SALDO</div>
 
     <!-- 3 Tab Kasir -->
     <div class="deposit-tabs-grid">
-      <a class="deposit-tab-item active" href="deposit.html"><span style="font-size:18px;">💰</span>Deposit</a>
-      <a class="deposit-tab-item" href="withdraw.html"><span style="font-size:18px;">💸</span>Withdraw</a>
-      <a class="deposit-tab-item" href="bet-history.html"><span style="font-size:18px;">📜</span>Riwayat</a>
+      <a class="deposit-tab-item active" href="deposit.html"><span style="font-size:18px;">??</span>Deposit</a>
+      <a class="deposit-tab-item" href="withdraw.html"><span style="font-size:18px;">??</span>Withdraw</a>
+      <a class="deposit-tab-item" href="bet-history.html"><span style="font-size:18px;">??</span>Riwayat</a>
     </div>
 
     <form id="deposit-form">
@@ -102,14 +103,14 @@
           <span class="label">Penerima</span><span class="separator">:</span>
           <strong id="dest-account-holder">PT GASTERUS JAYA</strong>
         </div>
-        <button type="button" class="btn-qris-green" id="btn-select-qris">✓ QRIS — Bayar Instan 24 Jam</button>
+        <button type="button" class="btn-qris-green" id="btn-select-qris">? QRIS � Bayar Instan 24 Jam</button>
       </div>
 
       <!-- Kartu Putih QRIS -->
       <div class="qris-white-card">
         <div class="title-brand">GASTERUS OFFICIAL</div>
-        <div class="sub-user">Deposit via QRIS — All Bank / E-Wallet</div>
-        <div class="badge-trust">🔒 100% AMAN &amp; TERENKRIPSI</div>
+        <div class="sub-user">Deposit via QRIS � All Bank / E-Wallet</div>
+        <div class="badge-trust">?? 100% AMAN &amp; TERENKRIPSI</div>
         <div class="qris-logo-wrap">
           <img src="assets/mobile-bank-logos/qris.svg" alt="QRIS">
         </div>
@@ -168,7 +169,7 @@
   <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
     <div class="nav-drawer-head">
       <span class="nav-drawer-title">Menu</span>
-      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
+      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">?</button>
     </div>
     <div class="nav-drawer-body">
       <a class="nav-drawer-item" href="/index.html">Beranda</a>
@@ -271,7 +272,7 @@
           if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(function () {
               var orig = copyBtn.textContent;
-              copyBtn.textContent = '✓ Disalin';
+              copyBtn.textContent = '? Disalin';
               copyBtn.style.background = '#22c55e';
               copyBtn.style.color = '#ffffff';
               setTimeout(function () {

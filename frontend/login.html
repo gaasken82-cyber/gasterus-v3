@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Masuk Akun — GASTERUS</title>
+  <title>Masuk Akun � GASTERUS</title>
+  <link rel="stylesheet" href="/css/animations.css">
   <meta name="description" content="Masuk ke akun Gasterus Anda untuk bermain Togel resmi, Sportsbook, dan live casino dengan keamanan tingkat tinggi.">
 
   <!-- Google Fonts: Inter & Outfit -->
@@ -13,7 +14,7 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="manifest" href="manifest.json">
 
-  <link rel="stylesheet" href="css/mobile-blue.css?v=20260912-logo-v2">
+  <link rel="stylesheet" href="css/mobile-blue.css?v=20260912-logo-v4">
   <meta property="og:title" content="GASTERUS - Masuk Akun">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
   <meta property="og:type" content="website">
@@ -41,9 +42,9 @@
   <div class="site">
     <!-- Header -->
     <header class="brand-bar">
-      <button type="button" class="menu-toggle" data-nav-open aria-label="Buka Menu">☰</button>
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Buka Menu">?</button>
       <a href="/index.html" class="brand-title">
-        <img src="/assets/logo.png?v=20260912-logo-v2" alt="GASTERUS" class="brand-logo-img">
+        <span class="logo-shine-wrap"><img src="/assets/logo.png?v=20260912-logo-v4" alt="GASTERUS" class="brand-logo-img"></span>
       </a>
       <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
     </header>
@@ -52,7 +53,7 @@
     <div class="marquee-bar">
       <span class="marquee-label">INFO</span>
       <div class="marquee-track">
-        <span class="marquee-text">Selamat datang di GASTERUS · Deposit &amp; Withdraw Super Cepat 24 Jam · Pembayaran Hasil Instan 100% Aman</span>
+        <span class="marquee-text">Selamat datang di GASTERUS � Deposit &amp; Withdraw Super Cepat 24 Jam � Pembayaran Hasil Instan 100% Aman</span>
       </div>
     </div>
     
@@ -72,7 +73,7 @@
             <label for="password" class="form-label">Password</label>
             <div class="input-with-icon">
               <input type="password" id="password" name="password" class="form-input" placeholder="Masukkan password" required autocomplete="current-password" minlength="6" maxlength="72">
-              <button type="button" class="toggle-password" id="btnTogglePassword" aria-label="Lihat Password">👁</button>
+              <button type="button" class="toggle-password" id="btnTogglePassword" aria-label="Lihat Password">??</button>
             </div>
           </div>
 
@@ -89,7 +90,7 @@
         
         <div class="login-footer">
           <p>Belum punya akun? <a href="/register">Daftar sekarang</a></p>
-          <a href="/" class="login-back-home">← Kembali ke Beranda</a>
+          <a href="/" class="login-back-home">? Kembali ke Beranda</a>
         </div>
       </div>
     </main>
@@ -99,7 +100,7 @@
     <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
       <div class="nav-drawer-head">
         <span class="nav-drawer-title">Menu</span>
-        <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
+        <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">?</button>
       </div>
       <div class="nav-drawer-body">
         <a class="nav-drawer-item" href="/">Beranda</a>
@@ -146,7 +147,7 @@
       btnToggle.addEventListener('click', () => {
         const isPassword = passInput.type === 'password';
         passInput.type = isPassword ? 'text' : 'password';
-        btnToggle.textContent = isPassword ? '🙈' : '👁';
+        btnToggle.textContent = isPassword ? '??' : '??';
       });
     }
 
