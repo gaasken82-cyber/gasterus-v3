@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Riwayat Taruhan & Invoice — GASTERUS V3</title>
+  <title>Riwayat Taruhan & Invoice � GASTERUS V3</title>
   <meta name="description" content="Riwayat invoice taruhan Togel dan Sportsbook member Gasterus v3 lengkap dengan status kemenangan.">
 
   <!-- Google Fonts: Inter & Outfit -->
@@ -46,11 +46,11 @@
 
   <header class="app-header">
     <div class="container">
-      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
-      <a href="/member.html" class="brand-logo"><img src="/assets/logo.png" alt="GASTERUS" class="brand-logo-img"></a>
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">?</button>
+      <a href="/member.html" class="brand-logo"><img src="/assets/logo.png?v=20260912-logo-retina-v6" alt="GASTERUS" class="brand-logo-img"></a>
 
       <div class="header-actions">
-        <a href="/member.html" class="btn btn-secondary btn-sm">← Member Area</a>
+        <a href="/member.html" class="btn btn-secondary btn-sm">? Member Area</a>
       </div>
     </div>
   </header>
@@ -61,7 +61,7 @@
   <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
     <div class="nav-drawer-head">
       <span class="nav-drawer-title">Menu</span>
-      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
+      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">?</button>
     </div>
     <div class="nav-drawer-body">
       <a class="nav-drawer-item" href="/index.html">Beranda</a>
@@ -213,10 +213,10 @@
         }
         tbody.innerHTML = list.map((t) => {
           const legs = Array.isArray(t.legs) ? t.legs : [];
-          const detail = legs.map((l) => `${esc(l.home || '')} vs ${esc(l.away || '')} — ${esc(l.marketLabel || l.marketType || '')}${l.marketLine ? ` (${esc(String(l.marketLine))})` : ''} · ${esc(l.selectionLabel || '')}`).join('<br>') || '-';
+          const detail = legs.map((l) => `${esc(l.home || '')} vs ${esc(l.away || '')} � ${esc(l.marketLabel || l.marketType || '')}${l.marketLine ? ` (${esc(String(l.marketLine))})` : ''} � ${esc(l.selectionLabel || '')}`).join('<br>') || '-';
           const ret = Number(t.payout || 0) > 0 ? t.payout : (t.status === 'OPEN' ? (t.potentialPayout || 0) : 0);
           return `<tr>
-              <td><strong style="font-family:var(--font-mono);">${esc(t.invoice || String(t.id || '').slice(0, 10))}</strong><br><span style="font-size:0.75rem;color:var(--text-muted);">${esc(t.betType || '')}${t.selectionCount ? ` · ${t.selectionCount} leg` : ''}</span></td>
+              <td><strong style="font-family:var(--font-mono);">${esc(t.invoice || String(t.id || '').slice(0, 10))}</strong><br><span style="font-size:0.75rem;color:var(--text-muted);">${esc(t.betType || '')}${t.selectionCount ? ` � ${t.selectionCount} leg` : ''}</span></td>
               <td>${formatDateTime(t.acceptedAt || t.createdAt)}${t.settledAt ? `<br><span style="font-size:0.75rem;color:var(--text-muted);">Settle: ${formatDateTime(t.settledAt)}</span>` : ''}</td>
               <td style="font-size:0.8rem;">${detail}</td>
               <td style="font-family:var(--font-mono);">${Number(t.totalOdds || 0).toFixed(2)}</td>

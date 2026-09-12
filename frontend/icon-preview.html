@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium 3D Glass & Sapphire Icon Set - Gasterus V3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #030712;
+      --card-bg: rgba(15, 23, 42, 0.65);
+      --border-color: rgba(56, 189, 248, 0.2);
+      --sapphire: #2563eb;
+      --sapphire-light: #38bdf8;
+      --silver: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.18) 0%, transparent 60%),
+        radial-gradient(circle at 10% 80%, rgba(56, 189, 248, 0.08) 0%, transparent 40%);
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 40px 24px 80px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: rgba(37, 99, 235, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--sapphire-light);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #60a5fa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      font-size: 17px;
+      color: #94a3b8;
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .spec-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .spec-pill {
+      font-size: 12px;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 14px;
+      border-radius: 8px;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+      margin-bottom: 56px;
+    }
+
+    .icon-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .icon-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.4), transparent);
+    }
+
+    .icon-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 20px 40px -15px rgba(2, 6, 23, 0.8), 0 0 25px rgba(37, 99, 235, 0.25);
+    }
+
+    .icon-wrapper {
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.4));
+      transition: transform 0.4s ease;
+    }
+
+    .icon-card:hover .icon-wrapper {
+      transform: scale(1.08);
+    }
+
+    .icon-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .icon-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 6px;
+    }
+
+    .icon-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .icon-actions {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      border: 1px solid rgba(56, 189, 248, 0.5);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    /* Scaling test strip */
+    .scale-test {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .scale-test h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .scale-test p {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 28px;
+    }
+
+    .scales-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 36px;
+      flex-wrap: wrap;
+    }
+
+    .scale-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .scale-label {
+      font-size: 12px;
+      color: #64748b;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="badge">Modern 3D UI Iconography</div>
+    <h1>Premium 3D Glass & Sapphire Icon Set</h1>
+    <p class="subtitle">
+      Koleksi ikon 3D dimensional berpresisi tinggi dengan material Crystal Glass, beveled Sapphire Blue, aksen Liquid Silver, dan pencahayaan sinematik yang elegan.
+    </p>
+    <div class="spec-pills">
+      <span class="spec-pill">📐 512 × 512 px Square Canvas</span>
+      <span class="spec-pill">💎 3D Crystal Bounding Box</span>
+      <span class="spec-pill">🔷 Sapphire + Silver Material</span>
+      <span class="spec-pill">✨ Controlled Specular Highlights</span>
+      <span class="spec-pill">🎯 Pixel-Perfect Visual Padding</span>
+    </div>
+  </header>
+
+  <div class="icon-grid">
+    <!-- Icon 1: Sportsbook -->
+    <div class="icon-card">
+      <div class="icon-wrapper">
+        <img src="/assets/icons/icon-sportsbook.svg" alt="Sportsbook 3D Icon">
+      </div>
+      <div class="icon-title">Sportsbook</div>
+      <div class="icon-desc">Futuristic white ceramic football with sapphire crystal facets and orbital glass ring.</div>
+      <div class="icon-actions">
+        <a href="/assets/icons/icon-sportsbook.svg" download class="btn btn-primary">Download SVG</a>
+        <a href="/assets/icons/icon-sportsbook.svg" target="_blank" class="btn btn-secondary">Inspect</a>
+      </div>
+    </div>
+
+    <!-- Icon 2: Lottery / 4D -->
+    <div class="icon-card">
+      <div class="icon-wrapper">
+        <img src="/assets/icons/icon-lottery.svg" alt="Togel 4D 3D Icon">
+      </div>
+      <div class="icon-title">Togel & 4D Pool</div>
+      <div class="icon-desc">Dimensional sapphire crystal sphere with holographic lucky numbers and gyroscopic ring.</div>
+      <div class="icon-actions">
+        <a href="/assets/icons/icon-lottery.svg" download class="btn btn-primary">Download SVG</a>
+        <a href="/assets/icons/icon-lottery.svg" target="_blank" class="btn btn-secondary">Inspect</a>
+      </div>
+    </div>
+
+    <!-- Icon 3: Wallet / Deposit -->
+    <div class="icon-card">
+      <div class="icon-wrapper">
+        <img src="/assets/icons/icon-wallet.svg" alt="Wallet Deposit 3D Icon">
+      </div>
+      <div class="icon-title">Deposit & Wallet</div>
+      <div class="icon-desc">3D Glass smart card with polished silver EMV chip and floating sapphire currency coin.</div>
+      <div class="icon-actions">
+        <a href="/assets/icons/icon-wallet.svg" download class="btn btn-primary">Download SVG</a>
+        <a href="/assets/icons/icon-wallet.svg" target="_blank" class="btn btn-secondary">Inspect</a>
+      </div>
+    </div>
+
+    <!-- Icon 4: Withdraw / Cashout -->
+    <div class="icon-card">
+      <div class="icon-wrapper">
+        <img src="/assets/icons/icon-withdraw.svg" alt="Withdraw Cashout 3D Icon">
+      </div>
+      <div class="icon-title">Withdraw & Payout</div>
+      <div class="icon-desc">Dynamic 3D sapphire chiseled diamond arrow leaping forward through a silver vault ring.</div>
+      <div class="icon-actions">
+        <a href="/assets/icons/icon-withdraw.svg" download class="btn btn-primary">Download SVG</a>
+        <a href="/assets/icons/icon-withdraw.svg" target="_blank" class="btn btn-secondary">Inspect</a>
+      </div>
+    </div>
+
+    <!-- Icon 5: Member Profile -->
+    <div class="icon-card">
+      <div class="icon-wrapper">
+        <img src="/assets/icons/icon-profile.svg" alt="Member Profile 3D Icon">
+      </div>
+      <div class="icon-title">Member Area</div>
+      <div class="icon-desc">3D Crystal biometric shield crest with polished silver user avatar and sapphire core.</div>
+      <div class="icon-actions">
+        <a href="/assets/icons/icon-profile.svg" download class="btn btn-primary">Download SVG</a>
+        <a href="/assets/icons/icon-profile.svg" target="_blank" class="btn btn-secondary">Inspect</a>
+      </div>
+    </div>
+
+    <!-- Icon 6: History & Analytics -->
+    <div class="icon-card">
+      <div class="icon-wrapper">
+        <img src="/assets/icons/icon-history.svg" alt="History & Analytics 3D Icon">
+      </div>
+      <div class="icon-title">Riwayat & Result</div>
+      <div class="icon-desc">Dimensional crystal chart columns with sapphire gradient tops and ascending electric trend line.</div>
+      <div class="icon-actions">
+        <a href="/assets/icons/icon-history.svg" download class="btn btn-primary">Download SVG</a>
+        <a href="/assets/icons/icon-history.svg" target="_blank" class="btn btn-secondary">Inspect</a>
+      </div>
+    </div>
+
+    <!-- Icon 7: Promotion & Bonus -->
+    <div class="icon-card">
+      <div class="icon-wrapper">
+        <img src="/assets/icons/icon-promotion.svg" alt="Promotion 3D Icon">
+      </div>
+      <div class="icon-title">Promo & Bonus</div>
+      <div class="icon-desc">Luxury crystal gift box with polished liquid-silver metallic ribbons and floating sapphire sparkle.</div>
+      <div class="icon-actions">
+        <a href="/assets/icons/icon-promotion.svg" download class="btn btn-primary">Download SVG</a>
+        <a href="/assets/icons/icon-promotion.svg" target="_blank" class="btn btn-secondary">Inspect</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi-Scale Verification Test Strip -->
+  <div class="scale-test">
+    <h2>Multi-Scale Verification (Crisp at Every Size)</h2>
+    <p>Uji konsistensi proporsi dan ketajaman ikon pada berbagai ukuran UI aplikasi dan web:</p>
+    <div class="scales-row">
+      <div class="scale-item">
+        <img src="/assets/icons/icon-sportsbook.svg" style="width: 32px; height: 32px;" alt="32px">
+        <span class="scale-label">32px (Navbar)</span>
+      </div>
+      <div class="scale-item">
+        <img src="/assets/icons/icon-lottery.svg" style="width: 48px; height: 48px;" alt="48px">
+        <span class="scale-label">48px (Mobile Bar)</span>
+      </div>
+      <div class="scale-item">
+        <img src="/assets/icons/icon-wallet.svg" style="width: 64px; height: 64px;" alt="64px">
+        <span class="scale-label">64px (Quick Menu)</span>
+      </div>
+      <div class="scale-item">
+        <img src="/assets/icons/icon-profile.svg" style="width: 96px; height: 96px;" alt="96px">
+        <span class="scale-label">96px (Dashboard)</span>
+      </div>
+      <div class="scale-item">
+        <img src="/assets/icons/icon-promotion.svg" style="width: 140px; height: 140px;" alt="140px">
+        <span class="scale-label">140px (Hero Card)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

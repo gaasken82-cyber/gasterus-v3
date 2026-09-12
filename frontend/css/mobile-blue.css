@@ -168,11 +168,9 @@ body {
 
 .brand-logo-img {
   /* height drives size; width auto-adjusts proportionally */
-  height: 40px;
-  /* Override any accidental HTML width/height attribute */
+  height: 42px;
   width: auto !important;
-  /* Hard cap so 970px native image never renders at full width */
-  max-width: 200px;
+  max-width: 180px;
   max-height: 48px;
   object-fit: contain;
   object-position: left center;
@@ -186,29 +184,29 @@ body {
   box-shadow: none;
   outline: none;
   mix-blend-mode: normal;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
+  /* High-quality smooth hardware-accelerated downscaling */
+  image-rendering: auto;
 }
 
 /* Scoped per halaman */
 .page-home .brand-logo-img {
-  height: 46px;
-  max-width: 220px;
+  height: 44px;
+  max-width: 170px;
 }
 
 .page-member .brand-logo-img {
   height: 30px;
-  max-width: 140px;
+  max-width: 120px;
 }
 
 @media (max-width: 480px) {
   .page-home .brand-logo-img {
-    height: 38px;
-    max-width: 175px;
+    height: 36px;
+    max-width: 140px;
   }
   .page-member .brand-logo-img {
     height: 26px;
-    max-width: 118px;
+    max-width: 105px;
   }
   .brand-bar {
     padding: 6px 10px;
