@@ -35,6 +35,197 @@
     });
   }
 </script>
+  <style>
+    .promo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: var(--space-6);
+      margin-bottom: var(--space-8);
+    }
+    @media (max-width: 480px) {
+      .promo-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .promo-card {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    .promo-card:hover {
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+    }
+    .promo-banner-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 2 / 1;
+      overflow: hidden;
+      background: #020617;
+    }
+    .promo-banner-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+    .promo-card:hover .promo-banner-wrap img {
+      transform: scale(1.02);
+    }
+    .promo-body {
+      padding: var(--space-4) var(--space-5);
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .promo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: var(--space-2);
+      flex-wrap: wrap;
+    }
+    .promo-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin: 0;
+      line-height: 1.35;
+    }
+    .promo-desc {
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      margin-bottom: var(--space-4);
+    }
+    .promo-toggle-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 11px 16px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      border-radius: 8px;
+      background: rgba(30, 41, 59, 0.85);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      transition: all 0.25s ease;
+      font-family: inherit;
+    }
+    .promo-toggle-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .promo-toggle-btn.is-active {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
+      color: #ffffff;
+    }
+    .promo-toggle-btn .toggle-icon {
+      display: inline-block;
+      transition: transform 0.3s ease;
+      font-weight: bold;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+    .promo-toggle-btn.is-active .toggle-icon {
+      transform: rotate(180deg);
+    }
+    .promo-drawer {
+      display: none;
+      margin-top: var(--space-4);
+      padding-top: var(--space-4);
+      border-top: 1px dashed rgba(255, 255, 255, 0.15);
+      animation: promoDrawerOpen 0.35s ease forwards;
+    }
+    .promo-drawer.is-open {
+      display: block;
+    }
+    @keyframes promoDrawerOpen {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .promo-rules-box {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+    .promo-rules-title {
+      font-weight: 800;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .promo-rules-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      line-height: 1.55;
+    }
+    .promo-rules-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .promo-rules-list li code {
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .promo-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      font-size: 0.92rem;
+      margin-bottom: var(--space-4);
+    }
+    .promo-table th {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+      background: rgba(30, 58, 138, 0.6);
+      color: #38bdf8;
+      font-weight: 700;
+      text-align: left;
+    }
+    .promo-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .promo-table tr:last-child td {
+      border-bottom: none;
+    }
+  </style>
 </head>
 <body class="page-promotion">
   <div class="site">
@@ -92,412 +283,482 @@
         <p>Nikmati promo dan diskon taruhan paling menguntungkan yang dihitung transparan tanpa syarat tersembunyi.</p>
       </div>
 
-            <!-- Featured Promo: Freebet 10.000 Tanpa DP -->
-      <div class="card fade-in" style="margin-bottom: var(--space-6); overflow: hidden; padding: 0; border: 1.5px solid #f59e0b; box-shadow: 0 4px 24px rgba(245, 158, 11, 0.35);">
-        <picture>
-          <source srcset="assets/banners/hero-freebet-10k.webp?v=20260912-v3" type="image/webp">
-          <img src="assets/banners/hero-freebet-10k.jpg?v=20260912-v3" alt="Freebet 10.000 Tanpa DP Gasterus Sportbook &amp; Toto" style="width: 100%; height: auto; display: block; aspect-ratio: 2 / 1; object-fit: cover;">
-        </picture>
-        <div style="padding: var(--space-4) var(--space-5);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2); flex-wrap: wrap; gap: 8px;">
-            <h2 style="font-size: 1.4rem; margin: 0; color: #f8fafc;">Freebet Rp 10.000 Tanpa DP</h2>
-            <span class="badge badge-warning" style="font-weight: 800; background: #f59e0b; color: #000;">KLAIM SEKARANG</span>
-          </div>
-          <p style="font-size: 0.92rem; line-height: 1.6; color: #cbd5e1; margin-bottom: var(--space-4);">
-            Bonus spesial Freebet Rp 10.000 khusus member baru tanpa perlu deposit awal! Berlaku untuk semua permainan Sportsbook, Live Casino, dan Togel di GASTERUS.
-          </p>
-        </div>
-      </div>
+      <!-- Promotional Cards Grid (Single Unique Card per Promo with Expandable Rules) -->
+      <div class="promo-grid">
 
-      <!-- Featured Event: Lomba 2D & 3D -->
-      <div class="card fade-in" style="margin-bottom: var(--space-6); overflow: hidden; padding: 0; border: 1.5px solid #38bdf8; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25);">
-        <picture>
-          <source srcset="assets/banners/hero-lomba-2d3d.webp" type="image/webp">
-          <img src="assets/banners/hero-lomba-2d3d.jpg" alt="Lomba 2D &amp; 3D 3 Line HK SDY SGP Gasterus" style="width: 100%; height: auto; display: block; aspect-ratio: 2 / 1; object-fit: cover;">
-        </picture>
-        <div style="padding: var(--space-4) var(--space-5);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2); flex-wrap: wrap; gap: 8px;">
-            <h2 style="font-size: 1.4rem; margin: 0; color: #f8fafc;">Lomba Tebak 2D &amp; 3D (3 Line)</h2>
-            <span class="badge badge-warning" style="font-weight: 800;">PASARAN HK - SDY - SGP</span>
+        <!-- Promo 1: Event 3 Tim Gasterus -->
+        <div id="event-parlay-3tim" class="promo-card fade-in" style="border-color: rgba(2, 132, 199, 0.4);">
+          <div class="promo-banner-wrap">
+            <picture>
+              <source srcset="assets/banners/hero-event-parlay-3tim.webp?v=20260913-v1" type="image/webp">
+              <img src="assets/banners/hero-event-parlay-3tim.jpg?v=20260913-v1" alt="Event Parlay 3 Tim Gasterus" loading="lazy">
+            </picture>
           </div>
-          <p style="font-size: 0.92rem; line-height: 1.6; color: #cbd5e1; margin-bottom: var(--space-4);">
-            Ikuti kompetisi tebak angka 2D &amp; 3D khusus 3 line setiap hari untuk pasaran resmi Hong Kong (HK), Sydney (SDY), dan Singapore (SGP). Hadiah tunai langsung cair ke saldo utama!
-          </p>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: var(--space-4);">
-            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px;">
-              <div style="font-weight: 800; color: #38bdf8; font-size: 0.95rem; margin-bottom: 6px;">🥇 HADIAH 2D</div>
-              <div style="font-size: 0.85rem; color: #e2e8f0; line-height: 1.6;">
-                Juara 1: <strong>Rp 250.000</strong><br>
-                Juara 2: <strong>Rp 150.000</strong><br>
-                Juara 3: <strong>Rp 75.000</strong>
+          <div class="promo-body">
+            <div class="promo-header">
+              <h2 class="promo-title">Event 3 Tim Parlay Gasterus</h2>
+              <span class="badge badge-info" style="font-weight: 800; background: #0284c7; color: #fff;">TOTAL HADIAH 5JT+</span>
+            </div>
+            <p class="promo-desc">
+              Raih podium Juara 1 s/d 3 dengan JP Terbesar total jutaan rupiah + bonus weekend! Minimal odds 10, stake 50K wajib 3 tim pasaran HDP &amp; O/U.
+            </p>
+            <button type="button" class="promo-toggle-btn" onclick="togglePromoDrawer(this)">
+              <span class="toggle-text">Lihat Syarat &amp; Hadiah Lengkap</span>
+              <span class="toggle-icon">↓</span>
+            </button>
+            <div class="promo-drawer">
+              <!-- Tabel Hadiah Event 3 Tim -->
+              <div style="font-weight: 800; color: #facc15; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <span>🏆</span> STRUKTUR HADIAH EVENT 3 TIM
               </div>
-            </div>
-            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(234, 179, 8, 0.4); border-radius: 8px; padding: 12px;">
-              <div style="font-weight: 800; color: #facc15; font-size: 0.95rem; margin-bottom: 6px;">🏆 HADIAH 3D</div>
-              <div style="font-size: 0.85rem; color: #e2e8f0; line-height: 1.6;">
-                Juara 1: <strong>Rp 1.250.000</strong><br>
-                Juara 2: <strong>Rp 800.000</strong><br>
-                Juara 3: <strong>Rp 550.000</strong>
-              </div>
-            </div>
-          </div>
-          <a href="/member.html" class="btn btn-primary btn-block">Ikuti Lomba Sekarang di Member Area →</a>
-        </div>
-      </div>
+              <table class="promo-table">
+                <thead>
+                  <tr>
+                    <th>JUARA</th>
+                    <th style="text-align: right;">HADIAH</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-weight: 700; color: #facc15;">🥇 JUARA 1</td>
+                    <td style="color: #f8fafc; font-weight: 700; text-align: right;">RP. 2.500.000,- <span style="color: #38bdf8; font-weight: 600;">+ (500K WEEKEND)</span></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 700; color: #cbd5e1;">🥈 JUARA 2</td>
+                    <td style="color: #f8fafc; font-weight: 700; text-align: right;">RP. 1.500.000,- <span style="color: #38bdf8; font-weight: 600;">+ (250K WEEKEND)</span></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 700; color: #f97316;">🥉 JUARA 3</td>
+                    <td style="color: #f8fafc; font-weight: 700; text-align: right;">RP. 1.000.000,- <span style="color: #38bdf8; font-weight: 600;">+ (150K WEEKEND)</span></td>
+                  </tr>
+                </tbody>
+              </table>
 
-      <!-- Featured Event: Parlay Paus Gasterus (4 Tim) -->
-      <div id="event-parlay-paus" class="card fade-in" style="margin-bottom: var(--space-6); overflow: hidden; padding: 0; border: 1.5px solid #38bdf8; box-shadow: 0 4px 24px rgba(56, 189, 248, 0.35);">
-        <picture>
-          <source srcset="assets/banners/hero-event-parlay-paus.webp?v=20260913-v2" type="image/webp">
-          <img src="assets/banners/hero-event-parlay-paus.jpg?v=20260913-v2" alt="Event Parlay Paus 4 Tim Gasterus" style="width: 100%; height: auto; display: block; aspect-ratio: 2 / 1; object-fit: cover;">
-        </picture>
-        <div style="padding: var(--space-4) var(--space-5);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: 8px;">
-            <h2 style="font-size: 1.4rem; margin: 0; color: #f8fafc;">PARLAY PAUS GASTERUS</h2>
-            <span class="badge badge-info" style="font-weight: 800; background: #0284c7; color: #fff;">KHUSUS 4 TIM</span>
-          </div>
-          
-          <!-- Tabel Hadiah Parlay Paus -->
-          <div style="margin-bottom: var(--space-4); overflow-x: auto;">
-            <div style="font-weight: 800; color: #facc15; font-size: 1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-              <span>🏆</span> STRUKTUR HADIAH PARLAY PAUS
-            </div>
-            <table style="width: 100%; border-collapse: collapse; background: rgba(15, 23, 42, 0.7); border-radius: 8px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.25); font-size: 0.92rem;">
-              <thead>
-                <tr style="background: rgba(30, 58, 138, 0.6); color: #38bdf8; text-align: left;">
-                  <th style="padding: 10px 14px; border-bottom: 1px solid rgba(56, 189, 248, 0.3);">BET</th>
-                  <th style="padding: 10px 14px; border-bottom: 1px solid rgba(56, 189, 248, 0.3); text-align: right;">HADIAH</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                  <td style="padding: 10px 14px; font-weight: 700; color: #cbd5e1;">⚡ 350k</td>
-                  <td style="padding: 10px 14px; color: #facc15; font-weight: 700; text-align: right;">1.000.000</td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                  <td style="padding: 10px 14px; font-weight: 700; color: #cbd5e1;">🔥 500k</td>
-                  <td style="padding: 10px 14px; color: #facc15; font-weight: 700; text-align: right;">1.750.000</td>
-                </tr>
-                <tr>
-                  <td style="padding: 10px 14px; font-weight: 700; color: #38bdf8;">👑 1000k</td>
-                  <td style="padding: 10px 14px; color: #4ade80; font-weight: 800; text-align: right;">3.500.000</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Syarat dan Ketentuan Parlay Paus -->
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: var(--space-4); margin-bottom: var(--space-4);">
-            <div style="font-weight: 800; color: #38bdf8; font-size: 1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-              <span>📋</span> SYARAT DAN KETENTUAN :
-            </div>
-            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #cbd5e1; line-height: 1.55;">
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>MINIMAL ODDS 1.70</strong></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>MINIMAL BET 350K, 500K &amp; 1000K</strong></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>KHUSUS 4 TIM, TIDAK LEBIH TIDAK KURANG</strong></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>HANYA BERLAKU UNTUK PASARAN <strong>HDP, OVER/UNDER, 1X2 | BEBAS HT &amp; FT</strong></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>WAJIB ADA 2 MATCH</strong> Pasaran 3/4 , 1 3/4 dan seterusnya (Bebas HDP / OU)</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>TIDAK BOLEH ADA KESAMAAN TIM/PARTAI DI SETIAP TIKET MESKI BERBEDA STAKE</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>JIKA DITEMUKAN ADANYA KECURANGAN SEPERTI SAFETY BET, KESAMAAN IP DAN SEBAGAINYA MAKA BONUS AKAN DIBATALKAN</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>SEHARI HANYA BISA KLAIM <strong>1x (DIRESET JAM 11 SIANG)</strong></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>SHARE BILL DI GRUP FB GASTERUS DENGAN CAPTION: <code style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 6px; border-radius: 4px; font-weight: 700;">PAUSGASTERUS</code></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>1 FB hanya berlaku 1 ID, apabila ada indikasi 1 FB claim dengan 2 ID atau lebih event dianggap gugur</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #ef4444; font-weight: bold;">✗</span> <span><strong>DILARANG EARLYBET &amp; BETTINGAN SEBELUM JAM 11 WIB (JAM RESET), DINYATAKAN TIDAK SAH.</strong></span></li>
-            </ul>
-          </div>
-
-          <a href="sportsbook.html" class="btn btn-primary btn-block">Pasang Parlay Paus 4 Tim Sekarang di Sportsbook →</a>
-        </div>
-      </div>
-
-      <!-- Featured Event: Event Parlay 3 Tim -->
-      <div id="event-parlay-3tim" class="card fade-in" style="margin-bottom: var(--space-6); overflow: hidden; padding: 0; border: 1.5px solid #0284c7; box-shadow: 0 4px 24px rgba(2, 132, 199, 0.3);">
-        <picture>
-          <source srcset="assets/banners/hero-event-parlay-3tim.webp?v=20260913-v1" type="image/webp">
-          <img src="assets/banners/hero-event-parlay-3tim.jpg?v=20260913-v1" alt="Event Parlay 3 Tim Gasterus" style="width: 100%; height: auto; display: block; aspect-ratio: 2 / 1; object-fit: cover;">
-        </picture>
-        <div style="padding: var(--space-4) var(--space-5);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: 8px;">
-            <h2 style="font-size: 1.4rem; margin: 0; color: #f8fafc;">EVENT 3 TIM GASTERUS</h2>
-            <span class="badge badge-info" style="font-weight: 800; background: #0284c7; color: #fff;">TOTAL HADIAH 5JT+</span>
-          </div>
-          
-          <!-- Tabel Hadiah Event 3 Tim -->
-          <div style="margin-bottom: var(--space-4); overflow-x: auto;">
-            <div style="font-weight: 800; color: #facc15; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-              <span>🏆</span> STRUKTUR HADIAH EVENT 3 TIM
-            </div>
-            <table style="width: 100%; border-collapse: collapse; background: rgba(15, 23, 42, 0.7); border-radius: 8px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.25); font-size: 0.92rem;">
-              <thead>
-                <tr style="background: rgba(30, 58, 138, 0.6); color: #38bdf8; text-align: left;">
-                  <th style="padding: 10px 14px; border-bottom: 1px solid rgba(56, 189, 248, 0.3);">JUARA</th>
-                  <th style="padding: 10px 14px; border-bottom: 1px solid rgba(56, 189, 248, 0.3);">HADIAH</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                  <td style="padding: 10px 14px; font-weight: 700; color: #facc15;">🥇 JUARA 1</td>
-                  <td style="padding: 10px 14px; color: #f8fafc; font-weight: 700;">RP. 2.500.000,- <span style="color: #38bdf8; font-weight: 600;">+ (RP. 500.000,- WEEKEND)</span></td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                  <td style="padding: 10px 14px; font-weight: 700; color: #cbd5e1;">🥈 JUARA 2</td>
-                  <td style="padding: 10px 14px; color: #f8fafc; font-weight: 700;">RP. 1.500.000,- <span style="color: #38bdf8; font-weight: 600;">+ (RP. 250.000,- WEEKEND)</span></td>
-                </tr>
-                <tr>
-                  <td style="padding: 10px 14px; font-weight: 700; color: #f97316;">🥉 JUARA 3</td>
-                  <td style="padding: 10px 14px; color: #f8fafc; font-weight: 700;">RP. 1.000.000,- <span style="color: #38bdf8; font-weight: 600;">+ (RP. 150.000,- WEEKEND)</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Syarat dan Ketentuan -->
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: var(--space-4); margin-bottom: var(--space-4);">
-            <div style="font-weight: 800; color: #38bdf8; font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-              <span>📋</span> SYARAT DAN KETENTUAN :
-            </div>
-            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #cbd5e1; line-height: 1.55;">
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>MINIMAL TOTAL ODDS 10</strong> (BOLEH LEBIH).</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>STAKE WAJIB 50K.</strong></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>WAJIB 3 TIM.</strong></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>JIKA TERDAPAT <strong>1 IP KLAIM 2 PODIUM</strong> MAKA TIDAK SAH DUA2NYA.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>KHUSUS PASARAN : <strong>HDP &amp; O/U (HT/FT)</strong>.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>JUARA DITENTUKAN DARI <strong>JP TERBESAR</strong> (PERINGKAT 1 s/d 3).</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>SATU ID HANYA BISA KLAIM 1 HADIAH, CONTOH BILL DIA JUARA 1 DAN 2 MAKA YG BISA DI CLAIM HANYA BIL YG JUARA 1.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>WAJIB SHARE BILL SEBELUM KICK OFF DAN CAPTION : <code style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 6px; border-radius: 4px; font-weight: 700;">3TIMGASTERUS</code> / <code style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 6px; border-radius: 4px; font-weight: 700;">3TIM</code></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>TIDAK BOLEH MENGAMBIL BONUS DEPOSIT UNTUK MENGIKUTI EVENT INI.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>TIDAK ADA BATASAN BILL UNTUK DI TARUHKAN.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>TIDAK BOLEH ADA TIM YG SAMA TIAP BILL (BAIK EVENT LAIN / NON EVENT / SINGLEBET) ANTAR ID, MISAL BILL 1 (TIM A,B,C) BILL 2 HARUS (TIM D,E,F) BILL 3 HARUS (TIM G,H,I).</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>EVENT HANYA BERLAKU DAN DAPAT DIKLAIM APABILA <strong>WINFULL (MENANG SEMUA)</strong> DALAM 1 BILL (TIDAK BERLAKU WH, LH, DRAW, PERTANDINGAN YANG DI BATALKAN / DIBERHENTIKAN TIDAK SAH).</span></li>
-            </ul>
-          </div>
-
-          <a href="sportsbook.html" class="btn btn-primary btn-block">Pasang Parlay 3 Tim Sekarang di Sportsbook →</a>
-        </div>
-      </div>
-
-      <!-- Featured Event: Event Parlay Over / Under -->
-      <div id="event-parlay-over-under" class="card fade-in" style="margin-bottom: var(--space-6); overflow: hidden; padding: 0; border: 1.5px solid #facc15; box-shadow: 0 4px 24px rgba(250, 204, 21, 0.28);">
-        <picture>
-          <source srcset="assets/banners/hero-event-parlay-ou.webp?v=20260913-v2" type="image/webp">
-          <img src="assets/banners/hero-event-parlay-ou.jpg?v=20260913-v2" alt="Event Parlay Over Under Odds 1.78 Gasterus" style="width: 100%; height: auto; display: block; aspect-ratio: 2 / 1; object-fit: cover;">
-        </picture>
-        <div style="padding: var(--space-4) var(--space-5);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: 8px;">
-            <h2 style="font-size: 1.4rem; margin: 0; color: #f8fafc;">EVENT OVER UNDER GASTERUS</h2>
-            <span class="badge badge-warning" style="font-weight: 800; background: #facc15; color: #000;">MINIMAL ODDS 1.78</span>
-          </div>
-
-          <!-- Tabel Struktur Hadiah Over / Under (2 Kolom: Stake 23K & Stake 43K) -->
-          <div style="margin-bottom: var(--space-4);">
-            <div style="font-weight: 800; color: #facc15; font-size: 1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
-              <span>🏆</span> STRUKTUR HADIAH EVENT OVER / UNDER
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
-              <!-- Tabel Stake Minimal 23K -->
-              <div style="background: rgba(15, 23, 42, 0.7); border-radius: 8px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.35);">
-                <div style="background: linear-gradient(90deg, rgba(2, 132, 199, 0.8), rgba(14, 165, 233, 0.5)); padding: 10px 14px; font-weight: 800; color: #ffffff; font-size: 0.95rem; text-align: center; border-bottom: 1px solid rgba(56, 189, 248, 0.4);">
-                  ⚡ STAKE MINIMAL 23K
+              <!-- Syarat dan Ketentuan -->
+              <div class="promo-rules-box" style="border-color: rgba(2, 132, 199, 0.3);">
+                <div class="promo-rules-title" style="color: #38bdf8;">
+                  <span>📋</span> SYARAT DAN KETENTUAN :
                 </div>
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                  <thead>
-                    <tr style="background: rgba(15, 23, 42, 0.9); color: #38bdf8; text-align: left;">
-                      <th style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">TIM</th>
-                      <th style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: right;">HADIAH</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <td style="padding: 8px 12px; font-weight: 600; color: #e2e8f0;">5 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #facc15; text-align: right;">600.000</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <td style="padding: 8px 12px; font-weight: 600; color: #e2e8f0;">6 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #facc15; text-align: right;">800.000</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <td style="padding: 8px 12px; font-weight: 600; color: #e2e8f0;">7 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #facc15; text-align: right;">1.200.000</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <td style="padding: 8px 12px; font-weight: 600; color: #e2e8f0;">8 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #facc15; text-align: right;">2.000.000</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <td style="padding: 8px 12px; font-weight: 600; color: #e2e8f0;">9 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #facc15; text-align: right;">2.500.000</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #38bdf8;">10 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 800; color: #4ade80; text-align: right;">5.000.000</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <ul class="promo-rules-list">
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>MINIMAL TOTAL ODDS 10</strong> (BOLEH LEBIH).</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>STAKE WAJIB 50K.</strong></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>WAJIB 3 TIM.</strong></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>JIKA TERDAPAT <strong>1 IP KLAIM 2 PODIUM</strong> MAKA TIDAK SAH DUA2NYA.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>KHUSUS PASARAN : <strong>HDP &amp; O/U (HT/FT)</strong>.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>JUARA DITENTUKAN DARI <strong>JP TERBESAR</strong> (PERINGKAT 1 s/d 3).</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>SATU ID HANYA BISA KLAIM 1 HADIAH, CONTOH BILL DIA JUARA 1 DAN 2 MAKA YG BISA DI CLAIM HANYA BIL YG JUARA 1.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>WAJIB SHARE BILL SEBELUM KICK OFF DAN CAPTION : <code>3TIMGASTERUS</code> / <code>3TIM</code></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>TIDAK BOLEH MENGAMBIL BONUS DEPOSIT UNTUK MENGIKUTI EVENT INI.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>TIDAK ADA BATASAN BILL UNTUK DI TARUHKAN.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>TIDAK BOLEH ADA TIM YG SAMA TIAP BILL (BAIK EVENT LAIN / NON EVENT / SINGLEBET) ANTAR ID, MISAL BILL 1 (TIM A,B,C) BILL 2 HARUS (TIM D,E,F) BILL 3 HARUS (TIM G,H,I).</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>EVENT HANYA BERLAKU DAN DAPAT DIKLAIM APABILA <strong>WINFULL (MENANG SEMUA)</strong> DALAM 1 BILL (TIDAK BERLAKU WH, LH, DRAW, PERTANDINGAN YANG DI BATALKAN / DIBERHENTIKAN TIDAK SAH).</span></li>
+                </ul>
               </div>
 
-              <!-- Tabel Stake Minimal 43K -->
-              <div style="background: rgba(15, 23, 42, 0.7); border-radius: 8px; overflow: hidden; border: 1px solid rgba(250, 204, 21, 0.4);">
-                <div style="background: linear-gradient(90deg, rgba(202, 138, 4, 0.8), rgba(234, 179, 8, 0.6)); padding: 10px 14px; font-weight: 800; color: #000000; font-size: 0.95rem; text-align: center; border-bottom: 1px solid rgba(250, 204, 21, 0.4);">
-                  🔥 STAKE MINIMAL 43K
+              <a href="sportsbook.html" class="btn btn-primary btn-block">Pasang Parlay 3 Tim di Sportsbook →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Promo 2: Parlay Paus Gasterus (4 Tim) -->
+        <div id="event-parlay-paus" class="promo-card fade-in" style="border-color: rgba(56, 189, 248, 0.4);">
+          <div class="promo-banner-wrap">
+            <picture>
+              <source srcset="assets/banners/hero-event-parlay-paus.webp?v=20260913-v2" type="image/webp">
+              <img src="assets/banners/hero-event-parlay-paus.jpg?v=20260913-v2" alt="Event Parlay Paus 4 Tim Gasterus" loading="lazy">
+            </picture>
+          </div>
+          <div class="promo-body">
+            <div class="promo-header">
+              <h2 class="promo-title">PARLAY PAUS GASTERUS (4 Tim)</h2>
+              <span class="badge badge-info" style="font-weight: 800; background: #0284c7; color: #fff;">HADIAH S/D 3.5JT</span>
+            </div>
+            <p class="promo-desc">
+              Khusus 4 tim pilihan stake 350k, 500k &amp; 1000k. Hadiah tunai langsung hingga Rp 3.500.000 pasaran HDP, Over/Under &amp; 1X2!
+            </p>
+            <button type="button" class="promo-toggle-btn" onclick="togglePromoDrawer(this)">
+              <span class="toggle-text">Lihat Syarat &amp; Hadiah Lengkap</span>
+              <span class="toggle-icon">↓</span>
+            </button>
+            <div class="promo-drawer">
+              <!-- Tabel Hadiah Parlay Paus -->
+              <div style="font-weight: 800; color: #facc15; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <span>🏆</span> STRUKTUR HADIAH PARLAY PAUS
+              </div>
+              <table class="promo-table">
+                <thead>
+                  <tr>
+                    <th>BET</th>
+                    <th style="text-align: right;">HADIAH</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-weight: 700; color: #cbd5e1;">⚡ 350k</td>
+                    <td style="color: #facc15; font-weight: 700; text-align: right;">1.000.000</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 700; color: #cbd5e1;">🔥 500k</td>
+                    <td style="color: #facc15; font-weight: 700; text-align: right;">1.750.000</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 700; color: #38bdf8;">👑 1000k</td>
+                    <td style="color: #4ade80; font-weight: 800; text-align: right;">3.500.000</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Syarat dan Ketentuan Parlay Paus -->
+              <div class="promo-rules-box" style="border-color: rgba(56, 189, 248, 0.3);">
+                <div class="promo-rules-title" style="color: #38bdf8;">
+                  <span>📋</span> SYARAT DAN KETENTUAN :
                 </div>
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                  <thead>
-                    <tr style="background: rgba(15, 23, 42, 0.9); color: #facc15; text-align: left;">
-                      <th style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">TIM</th>
-                      <th style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: right;">HADIAH</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <td style="padding: 8px 12px; font-weight: 600; color: #e2e8f0;">5 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #facc15; text-align: right;">1.200.000</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <td style="padding: 8px 12px; font-weight: 600; color: #e2e8f0;">6 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #facc15; text-align: right;">1.700.000</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <td style="padding: 8px 12px; font-weight: 600; color: #e2e8f0;">7 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #facc15; text-align: right;">2.500.000</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <td style="padding: 8px 12px; font-weight: 600; color: #e2e8f0;">8 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #facc15; text-align: right;">3.500.000</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <td style="padding: 8px 12px; font-weight: 600; color: #e2e8f0;">9 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #facc15; text-align: right;">5.500.000</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 8px 12px; font-weight: 700; color: #facc15;">10 TEAM</td>
-                      <td style="padding: 8px 12px; font-weight: 800; color: #4ade80; text-align: right;">8.500.000</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <ul class="promo-rules-list">
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>MINIMAL ODDS 1.70</strong></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>MINIMAL BET 350K, 500K &amp; 1000K</strong></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>KHUSUS 4 TIM, TIDAK LEBIH TIDAK KURANG</strong></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>HANYA BERLAKU UNTUK PASARAN <strong>HDP, OVER/UNDER, 1X2 | BEBAS HT &amp; FT</strong></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>WAJIB ADA 2 MATCH</strong> Pasaran 3/4 , 1 3/4 dan seterusnya (Bebas HDP / OU)</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>TIDAK BOLEH ADA KESAMAAN TIM/PARTAI DI SETIAP TIKET MESKI BERBEDA STAKE</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>JIKA DITEMUKAN ADANYA KECURANGAN SEPERTI SAFETY BET, KESAMAAN IP DAN SEBAGAINYA MAKA BONUS AKAN DIBATALKAN</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>SEHARI HANYA BISA KLAIM <strong>1x (DIRESET JAM 11 SIANG)</strong></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>SHARE BILL DI GRUP FB GASTERUS DENGAN CAPTION: <code>PAUSGASTERUS</code></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>1 FB hanya berlaku 1 ID, apabila ada indikasi 1 FB claim dengan 2 ID atau lebih event dianggap gugur</span></li>
+                  <li><span style="color: #ef4444; font-weight: bold;">✗</span> <span><strong>DILARANG EARLYBET &amp; BETTINGAN SEBELUM JAM 11 WIB (JAM RESET), DINYATAKAN TIDAK SAH.</strong></span></li>
+                </ul>
               </div>
+
+              <a href="sportsbook.html" class="btn btn-primary btn-block">Pasang Parlay Paus di Sportsbook →</a>
             </div>
           </div>
-
-          <!-- Syarat dan Ketentuan Over / Under -->
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(250, 204, 21, 0.3); border-radius: 8px; padding: var(--space-4); margin-bottom: var(--space-4);">
-            <div style="font-weight: 800; color: #facc15; font-size: 1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-              <span>📋</span> SYARAT DAN KETENTUAN :
-            </div>
-            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #cbd5e1; line-height: 1.55;">
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>MINIMAL ODDS 1.78.</strong></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>STAKE WAJIB 23K ATAU 43K.</strong></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>KHUSUS 5 s/d 10 TIM.</strong></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>HANYA BERLAKU UNTUK PASARAN OVER / UNDER HT/FT.</strong></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>JIKA BET OVER MAKA HARUS <strong>OVER SEMUA</strong> DALAM 1 BILL, BEGITU JUGA JIKA BET UNDER MAKA HARUS <strong>UNDER SEMUA</strong> DALAM 1 BILL.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>TIDAK BOLEH MELAKUKAN <strong>SAFETY BET (BET BERLAWANAN)</strong>.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>JIKA DITEMUKAN ADANYA KECURANGAN SEPERTI SAFETY BET, KESAMAAN IP DAN SEBAGAINYA MAKA BONUS AKAN DIBATALKAN.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>SEHARI HANYA BISA KLAIM <strong>1x (DIRESET JAM 11 SIANG)</strong>.</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>WAJIB MENGGUNAKAN CAPTION : <code style="background: rgba(250, 204, 21, 0.2); color: #facc15; padding: 2px 6px; border-radius: 4px; font-weight: 700;">OUGASTERUS</code> / <code style="background: rgba(250, 204, 21, 0.2); color: #facc15; padding: 2px 6px; border-radius: 4px; font-weight: 700;">OU</code></span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #22c55e; font-weight: bold;">✓</span> <span>WAJIB SHARE TIKET/BILL DI <strong>FACEBOOK OFFICIAL GASTERUS</strong> YANG SUDAH DISEDIAKAN ADMIN GRUP (JIKA JP TIDAK DI POST TIKET/BILL NYA GUGUR).</span></li>
-              <li style="display: flex; align-items: flex-start; gap: 8px;"><span style="color: #ef4444; font-weight: bold;">✗</span> <span><strong>DILARANG EARLYBET &amp; BETTINGAN SEBELUM JAM 11 WIB (JAM RESET), DINYATAKAN TIDAK SAH.</strong></span></li>
-            </ul>
-          </div>
-
-          <a href="sportsbook.html" class="btn btn-primary btn-block">Pasang Parlay Over / Under di Sportsbook →</a>
         </div>
-      </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-6);">
-        <!-- Promo Card 1: Parlay Paus (4 Tim) -->
-        <div class="card fade-in" style="overflow: hidden; padding: 0; border: 1.5px solid #38bdf8;">
-          <picture>
-            <source srcset="assets/banners/hero-event-parlay-paus.webp?v=20260913-v2" type="image/webp">
-            <img src="assets/banners/hero-event-parlay-paus.jpg?v=20260913-v2" alt="Event Parlay Paus 4 Tim Gasterus" style="width: 100%; height: auto; display: block; aspect-ratio: 2 / 1; object-fit: cover;">
-          </picture>
-          <div style="padding: var(--space-4);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-3);">
-              <h3 style="font-size: 1.2rem; margin: 0; color: #f8fafc;">Parlay Paus (4 Tim)</h3>
-              <span class="badge badge-info">HADIAH S/D 3.5JT</span>
+        <!-- Promo 3: Event Parlay Over / Under -->
+        <div id="event-parlay-over-under" class="promo-card fade-in" style="border-color: rgba(250, 204, 21, 0.4);">
+          <div class="promo-banner-wrap">
+            <picture>
+              <source srcset="assets/banners/hero-event-parlay-ou.webp?v=20260913-v2" type="image/webp">
+              <img src="assets/banners/hero-event-parlay-ou.jpg?v=20260913-v2" alt="Event Parlay Over Under Odds 1.78 Gasterus" loading="lazy">
+            </picture>
+          </div>
+          <div class="promo-body">
+            <div class="promo-header">
+              <h2 class="promo-title">EVENT OVER UNDER GASTERUS</h2>
+              <span class="badge badge-warning" style="font-weight: 800; background: #facc15; color: #000;">ODDS MIN 1.78</span>
             </div>
-            <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: var(--space-4); color: #cbd5e1;">
-              Khusus 4 tim bet 350k, 500k &amp; 1000k. Hadiah tunai langsung hingga Rp 3.500.000 pasaran HDP, O/U &amp; 1X2!
+            <p class="promo-desc">
+              Spesial taruhan pasar Over/Under HT/FT dengan odds minimal 1.78. Hadiah kemenangan hingga Rp 8.500.000 untuk 5 s/d 10 tim!
             </p>
-            <a href="#event-parlay-paus" class="btn btn-primary btn-sm btn-block">Lihat Syarat &amp; Hadiah Lengkap ↓</a>
-          </div>
-        </div>
+            <button type="button" class="promo-toggle-btn" onclick="togglePromoDrawer(this)">
+              <span class="toggle-text">Lihat Syarat &amp; Hadiah Lengkap</span>
+              <span class="toggle-icon">↓</span>
+            </button>
+            <div class="promo-drawer">
+              <!-- Tabel Struktur Hadiah Over / Under (2 Kolom: Stake 23K & Stake 43K) -->
+              <div style="font-weight: 800; color: #facc15; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <span>🏆</span> STRUKTUR HADIAH EVENT OVER / UNDER
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: var(--space-4);">
+                <!-- Tabel Stake Minimal 23K -->
+                <div style="background: rgba(15, 23, 42, 0.7); border-radius: 8px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.35);">
+                  <div style="background: linear-gradient(90deg, rgba(2, 132, 199, 0.8), rgba(14, 165, 233, 0.5)); padding: 8px 12px; font-weight: 800; color: #ffffff; font-size: 0.9rem; text-align: center;">
+                    ⚡ STAKE MINIMAL 23K
+                  </div>
+                  <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                    <thead>
+                      <tr style="background: rgba(15, 23, 42, 0.9); color: #38bdf8; text-align: left;">
+                        <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.08);">TIM</th>
+                        <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: right;">HADIAH</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 10px; color: #e2e8f0;">5 TEAM</td><td style="padding: 6px 10px; font-weight: 700; color: #facc15; text-align: right;">600.000</td></tr>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 10px; color: #e2e8f0;">6 TEAM</td><td style="padding: 6px 10px; font-weight: 700; color: #facc15; text-align: right;">800.000</td></tr>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 10px; color: #e2e8f0;">7 TEAM</td><td style="padding: 6px 10px; font-weight: 700; color: #facc15; text-align: right;">1.200.000</td></tr>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 10px; color: #e2e8f0;">8 TEAM</td><td style="padding: 6px 10px; font-weight: 700; color: #facc15; text-align: right;">2.000.000</td></tr>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 10px; color: #e2e8f0;">9 TEAM</td><td style="padding: 6px 10px; font-weight: 700; color: #facc15; text-align: right;">2.500.000</td></tr>
+                      <tr><td style="padding: 6px 10px; font-weight: 700; color: #38bdf8;">10 TEAM</td><td style="padding: 6px 10px; font-weight: 800; color: #4ade80; text-align: right;">5.000.000</td></tr>
+                    </tbody>
+                  </table>
+                </div>
 
-        <!-- Promo Card 2: Event 3 Tim Parlay -->
-        <div class="card fade-in" style="overflow: hidden; padding: 0; border: 1.5px solid #0284c7;">
-          <picture>
-            <source srcset="assets/banners/hero-event-parlay-3tim.webp?v=20260913-v1" type="image/webp">
-            <img src="assets/banners/hero-event-parlay-3tim.jpg?v=20260913-v1" alt="Event Parlay 3 Tim Gasterus" style="width: 100%; height: auto; display: block; aspect-ratio: 2 / 1; object-fit: cover;">
-          </picture>
-          <div style="padding: var(--space-4);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-3);">
-              <h3 style="font-size: 1.2rem; margin: 0; color: #f8fafc;">Event 3 Tim Parlay</h3>
-              <span class="badge badge-info">TOTAL HADIAH 5JT+</span>
+                <!-- Tabel Stake Minimal 43K -->
+                <div style="background: rgba(15, 23, 42, 0.7); border-radius: 8px; overflow: hidden; border: 1px solid rgba(250, 204, 21, 0.4);">
+                  <div style="background: linear-gradient(90deg, rgba(202, 138, 4, 0.8), rgba(234, 179, 8, 0.6)); padding: 8px 12px; font-weight: 800; color: #000000; font-size: 0.9rem; text-align: center;">
+                    🔥 STAKE MINIMAL 43K
+                  </div>
+                  <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                    <thead>
+                      <tr style="background: rgba(15, 23, 42, 0.9); color: #facc15; text-align: left;">
+                        <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.08);">TIM</th>
+                        <th style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: right;">HADIAH</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 10px; color: #e2e8f0;">5 TEAM</td><td style="padding: 6px 10px; font-weight: 700; color: #facc15; text-align: right;">1.200.000</td></tr>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 10px; color: #e2e8f0;">6 TEAM</td><td style="padding: 6px 10px; font-weight: 700; color: #facc15; text-align: right;">1.700.000</td></tr>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 10px; color: #e2e8f0;">7 TEAM</td><td style="padding: 6px 10px; font-weight: 700; color: #facc15; text-align: right;">2.500.000</td></tr>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 10px; color: #e2e8f0;">8 TEAM</td><td style="padding: 6px 10px; font-weight: 700; color: #facc15; text-align: right;">3.500.000</td></tr>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 10px; color: #e2e8f0;">9 TEAM</td><td style="padding: 6px 10px; font-weight: 700; color: #facc15; text-align: right;">5.500.000</td></tr>
+                      <tr><td style="padding: 6px 10px; font-weight: 700; color: #facc15;">10 TEAM</td><td style="padding: 6px 10px; font-weight: 800; color: #4ade80; text-align: right;">8.500.000</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Syarat dan Ketentuan Over / Under -->
+              <div class="promo-rules-box" style="border-color: rgba(250, 204, 21, 0.3);">
+                <div class="promo-rules-title" style="color: #facc15;">
+                  <span>📋</span> SYARAT DAN KETENTUAN :
+                </div>
+                <ul class="promo-rules-list">
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>MINIMAL ODDS 1.78.</strong></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>STAKE WAJIB 23K ATAU 43K.</strong></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>KHUSUS 5 s/d 10 TIM.</strong></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>HANYA BERLAKU UNTUK PASARAN OVER / UNDER HT/FT.</strong></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>JIKA BET OVER MAKA HARUS <strong>OVER SEMUA</strong> DALAM 1 BILL, BEGITU JUGA JIKA BET UNDER MAKA HARUS <strong>UNDER SEMUA</strong> DALAM 1 BILL.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>TIDAK BOLEH MELAKUKAN <strong>SAFETY BET (BET BERLAWANAN)</strong>.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>JIKA DITEMUKAN ADANYA KECURANGAN SEPERTI SAFETY BET, KESAMAAN IP DAN SEBAGAINYA MAKA BONUS AKAN DIBATALKAN.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>SEHARI HANYA BISA KLAIM <strong>1x (DIRESET JAM 11 SIANG)</strong>.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>WAJIB MENGGUNAKAN CAPTION : <code>OUGASTERUS</code> / <code>OU</code></span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>WAJIB SHARE TIKET/BILL DI <strong>FACEBOOK OFFICIAL GASTERUS</strong> YANG SUDAH DISEDIAKAN ADMIN GRUP (JIKA JP TIDAK DI POST TIKET/BILL NYA GUGUR).</span></li>
+                  <li><span style="color: #ef4444; font-weight: bold;">✗</span> <span><strong>DILARANG EARLYBET &amp; BETTINGAN SEBELUM JAM 11 WIB (JAM RESET), DINYATAKAN TIDAK SAH.</strong></span></li>
+                </ul>
+              </div>
+
+              <a href="sportsbook.html" class="btn btn-primary btn-block">Pasang Parlay Over / Under di Sportsbook →</a>
             </div>
-            <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: var(--space-4); color: #cbd5e1;">
-              Juara 1 s/d 3 total jutaan rupiah + bonus weekend! Minimal odds 10, stake 50K wajib 3 tim pasaran HDP &amp; O/U.
-            </p>
-            <a href="#event-parlay-3tim" class="btn btn-primary btn-sm btn-block">Lihat Syarat &amp; Hadiah Lengkap ↓</a>
           </div>
         </div>
 
-        <!-- Promo Card 3: Event Parlay Over / Under Odds 1.78 -->
-        <div class="card fade-in" style="overflow: hidden; padding: 0; border: 1.5px solid #facc15;">
-          <picture>
-            <source srcset="assets/banners/hero-event-parlay-ou.webp?v=20260913-v2" type="image/webp">
-            <img src="assets/banners/hero-event-parlay-ou.jpg?v=20260913-v2" alt="Event Parlay Over / Under Odds 1.78 Gasterus" style="width: 100%; height: auto; display: block; aspect-ratio: 2 / 1; object-fit: cover;">
-          </picture>
-          <div style="padding: var(--space-4);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-3);">
-              <h3 style="font-size: 1.2rem; margin: 0; color: #f8fafc;">Event Parlay Over / Under</h3>
-              <span class="badge badge-warning" style="background: #facc15; color: #000; font-weight: 800;">ODDS 1.78</span>
+        <!-- Promo 4: Freebet Rp 10.000 Tanpa DP -->
+        <div id="promo-freebet-10k" class="promo-card fade-in" style="border-color: rgba(245, 158, 11, 0.4);">
+          <div class="promo-banner-wrap">
+            <picture>
+              <source srcset="assets/banners/hero-freebet-10k.webp?v=20260912-v3" type="image/webp">
+              <img src="assets/banners/hero-freebet-10k.jpg?v=20260912-v3" alt="Freebet 10.000 Tanpa DP Gasterus" loading="lazy">
+            </picture>
+          </div>
+          <div class="promo-body">
+            <div class="promo-header">
+              <h2 class="promo-title">Freebet Rp 10.000 Tanpa DP</h2>
+              <span class="badge badge-warning" style="font-weight: 800; background: #f59e0b; color: #000;">KLAIM SEKARANG</span>
             </div>
-            <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: var(--space-4); color: #cbd5e1;">
-              Spesial taruhan pasar Over/Under dengan odds minimal 1.78. Hadiah hingga Rp 8.500.000 untuk 5 s/d 10 tim!
+            <p class="promo-desc">
+              Bonus spesial Freebet Rp 10.000 khusus member baru tanpa perlu deposit awal! Berlaku untuk semua permainan Sportsbook, Live Casino, dan Togel di GASTERUS.
             </p>
-            <a href="#event-parlay-over-under" class="btn btn-outline btn-sm btn-block">Lihat Syarat &amp; Hadiah Lengkap ↓</a>
+            <button type="button" class="promo-toggle-btn" onclick="togglePromoDrawer(this)">
+              <span class="toggle-text">Lihat Syarat &amp; Hadiah Lengkap</span>
+              <span class="toggle-icon">↓</span>
+            </button>
+            <div class="promo-drawer">
+              <div class="promo-rules-box" style="border-color: rgba(245, 158, 11, 0.3);">
+                <div class="promo-rules-title" style="color: #f59e0b;">
+                  <span>📋</span> SYARAT DAN KETENTUAN FREEBET :
+                </div>
+                <ul class="promo-rules-list">
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Khusus pendaftaran member baru di platform resmi <strong>GASTERUS V3</strong>.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>Tanpa deposit awal</strong> — Saldo Freebet langsung dikreditkan setelah verifikasi nomor WA &amp; Rekening valid.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Berlaku untuk taruhan <strong>Sportsbook, Live Casino, dan Togel Online</strong>.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>1 Member / 1 IP Address / 1 Akun Bank hanya diperkenankan klaim 1 kali.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Kemenangan dapat di-withdraw setelah mencapai target turnover yang telah ditentukan.</span></li>
+                </ul>
+              </div>
+
+              <a href="member.html" class="btn btn-primary btn-block">Daftar &amp; Klaim Freebet di Member Area →</a>
+            </div>
           </div>
         </div>
 
-        <!-- Promo Card 4: Bonus Referral 3% -->
-        <div class="card fade-in" style="overflow: hidden; padding: 0; border: 1.5px solid #10b981;">
-          <picture>
-            <source srcset="assets/banners/hero-bonus-referral-3pct.webp?v=20260913-v1" type="image/webp">
-            <img src="assets/banners/hero-bonus-referral-3pct.jpg?v=20260913-v1" alt="Bonus Referral 3% Gasterus" style="width: 100%; height: auto; display: block; aspect-ratio: 2 / 1; object-fit: cover;">
-          </picture>
-          <div style="padding: var(--space-4);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-3);">
-              <h3 style="font-size: 1.2rem; margin: 0; color: #f8fafc;">Bonus Referral 3% Terbesar</h3>
+        <!-- Promo 5: Lomba Tebak 2D & 3D (3 Line) -->
+        <div id="event-lomba-2d3d" class="promo-card fade-in" style="border-color: rgba(56, 189, 248, 0.4);">
+          <div class="promo-banner-wrap">
+            <picture>
+              <source srcset="assets/banners/hero-lomba-2d3d.webp" type="image/webp">
+              <img src="assets/banners/hero-lomba-2d3d.jpg" alt="Lomba 2D &amp; 3D 3 Line HK SDY SGP Gasterus" loading="lazy">
+            </picture>
+          </div>
+          <div class="promo-body">
+            <div class="promo-header">
+              <h2 class="promo-title">Lomba Tebak 2D &amp; 3D (3 Line)</h2>
+              <span class="badge badge-warning" style="font-weight: 800;">PASARAN HK - SDY - SGP</span>
+            </div>
+            <p class="promo-desc">
+              Ikuti kompetisi tebak angka 2D &amp; 3D khusus 3 line setiap hari untuk pasaran resmi Hong Kong (HK), Sydney (SDY), dan Singapore (SGP). Hadiah tunai langsung cair ke saldo!
+            </p>
+            <button type="button" class="promo-toggle-btn" onclick="togglePromoDrawer(this)">
+              <span class="toggle-text">Lihat Syarat &amp; Hadiah Lengkap</span>
+              <span class="toggle-icon">↓</span>
+            </button>
+            <div class="promo-drawer">
+              <div style="font-weight: 800; color: #facc15; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <span>🏆</span> RINCIAN HADIAH LOMBA HARIAN
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: var(--space-4);">
+                <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px;">
+                  <div style="font-weight: 800; color: #38bdf8; font-size: 0.95rem; margin-bottom: 6px;">🥇 HADIAH 2D</div>
+                  <div style="font-size: 0.85rem; color: #e2e8f0; line-height: 1.6;">
+                    Juara 1: <strong>Rp 250.000</strong><br>
+                    Juara 2: <strong>Rp 150.000</strong><br>
+                    Juara 3: <strong>Rp 75.000</strong>
+                  </div>
+                </div>
+                <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(234, 179, 8, 0.4); border-radius: 8px; padding: 12px;">
+                  <div style="font-weight: 800; color: #facc15; font-size: 0.95rem; margin-bottom: 6px;">🏆 HADIAH 3D</div>
+                  <div style="font-size: 0.85rem; color: #e2e8f0; line-height: 1.6;">
+                    Juara 1: <strong>Rp 1.250.000</strong><br>
+                    Juara 2: <strong>Rp 800.000</strong><br>
+                    Juara 3: <strong>Rp 550.000</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Syarat dan Ketentuan Lomba -->
+              <div class="promo-rules-box" style="border-color: rgba(56, 189, 248, 0.3);">
+                <div class="promo-rules-title" style="color: #38bdf8;">
+                  <span>📋</span> SYARAT DAN KETENTUAN :
+                </div>
+                <ul class="promo-rules-list">
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Tebakan wajib di-post sebelum pasaran bersangkutan ditutup.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Format tebakan maksimal 3 Line untuk 2D atau 3 Line untuk 3D.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Wajib memiliki transaksi bettingan aktif pada pasaran tersebut di hari yang sama.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Pemenang ditentukan berdasarkan urutan posting tercepat yang tepat sasaran.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Hadiah tunai langsung masuk ke saldo utama tanpa potongan dan bebas turnover.</span></li>
+                </ul>
+              </div>
+
+              <a href="member.html" class="btn btn-primary btn-block">Ikuti Lomba Sekarang di Member Area →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Promo 6: Bonus Referral 3% -->
+        <div id="promo-referral-3pct" class="promo-card fade-in" style="border-color: rgba(16, 185, 129, 0.4);">
+          <div class="promo-banner-wrap">
+            <picture>
+              <source srcset="assets/banners/hero-bonus-referral-3pct.webp?v=20260913-v1" type="image/webp">
+              <img src="assets/banners/hero-bonus-referral-3pct.jpg?v=20260913-v1" alt="Bonus Referral 3% Gasterus" loading="lazy">
+            </picture>
+          </div>
+          <div class="promo-body">
+            <div class="promo-header">
+              <h2 class="promo-title">Bonus Referral 3% Terbesar</h2>
               <span class="badge badge-success">SEUMUR HIDUP</span>
             </div>
-            <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: var(--space-4); color: #cbd5e1;">
-              Ajak rekan bermain dengan link referral unik Anda dan nikmati komisi bonus referral hingga 3% otomatis tanpa batas turnover.
+            <p class="promo-desc">
+              Ajak rekan bermain dengan link referral unik Anda dan nikmati komisi bonus referral hingga 3% otomatis tanpa batas turnover seumur hidup.
             </p>
-            <a href="referral.html" class="btn btn-secondary btn-sm btn-block">Bagikan Kode Referral →</a>
+            <button type="button" class="promo-toggle-btn" onclick="togglePromoDrawer(this)">
+              <span class="toggle-text">Lihat Syarat &amp; Hadiah Lengkap</span>
+              <span class="toggle-icon">↓</span>
+            </button>
+            <div class="promo-drawer">
+              <div class="promo-rules-box" style="border-color: rgba(16, 185, 129, 0.3);">
+                <div class="promo-rules-title" style="color: #10b981;">
+                  <span>📋</span> MEKANISME BONUS REFERRAL :
+                </div>
+                <ul class="promo-rules-list">
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Komisi dihitung otomatis dari total perputaran taruhan member downline Anda.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Berlaku untuk seluruh permainan Togel Online, Slot, dan Sportsbook.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>Tanpa batas turnover</strong> — bonus referral masuk ke saldo kas dan bebas langsung di-withdraw.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Semakin banyak downline aktif, semakin besar pasif income mingguan yang Anda peroleh!</span></li>
+                </ul>
+              </div>
+
+              <a href="referral.html" class="btn btn-secondary btn-block">Bagikan Kode Referral Sekarang →</a>
+            </div>
           </div>
         </div>
 
-        <!-- Promo Card 4 -->
-        <div class="card fade-in">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-3);">
-            <h3 style="font-size: 1.25rem;">Diskon Togel Tertinggi 66%</h3>
-            <span class="badge badge-success">OTOMATIS</span>
+        <!-- Promo 7: Diskon Togel Tertinggi 66% -->
+        <div id="promo-diskon-togel" class="promo-card fade-in" style="border-color: rgba(16, 185, 129, 0.4);">
+          <div class="promo-body" style="padding-top: var(--space-5);">
+            <div class="promo-header">
+              <h2 class="promo-title">Diskon Togel Tertinggi Hingga 66%</h2>
+              <span class="badge badge-success">POTONGAN OTOMATIS</span>
+            </div>
+            <p class="promo-desc">
+              Potongan diskon langsung saat submit angka di semua pasaran resmi: 4D Diskon 66% (Hadiah x3000), 3D Diskon 59% (Hadiah x400), 2D Diskon 29% (Hadiah x70).
+            </p>
+            <button type="button" class="promo-toggle-btn" onclick="togglePromoDrawer(this)">
+              <span class="toggle-text">Lihat Syarat &amp; Hadiah Lengkap</span>
+              <span class="toggle-icon">↓</span>
+            </button>
+            <div class="promo-drawer">
+              <table class="promo-table">
+                <thead>
+                  <tr>
+                    <th>TIPE TARUHAN</th>
+                    <th>DISKON</th>
+                    <th style="text-align: right;">INDEKS HADIAH</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-weight: 700; color: #facc15;">4D</td>
+                    <td style="color: #4ade80; font-weight: 700;">66%</td>
+                    <td style="color: #f8fafc; font-weight: 800; text-align: right;">x 3.000</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 700; color: #38bdf8;">3D</td>
+                    <td style="color: #4ade80; font-weight: 700;">59%</td>
+                    <td style="color: #f8fafc; font-weight: 800; text-align: right;">x 400</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 700; color: #e2e8f0;">2D</td>
+                    <td style="color: #4ade80; font-weight: 700;">29%</td>
+                    <td style="color: #f8fafc; font-weight: 800; text-align: right;">x 70</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="promo-rules-box" style="border-color: rgba(16, 185, 129, 0.3);">
+                <div class="promo-rules-title" style="color: #10b981;">
+                  <span>📋</span> KETENTUAN DISKON TOGEL :
+                </div>
+                <ul class="promo-rules-list">
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Diskon langsung otomatis mengurangi modal bayar saat betting disubmit.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Berlaku di seluruh pasaran resmi (Sydney, Singapore, Hong Kong, Toto Macau, dll).</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Tanpa batasan line (bebas invest) dan pembayaran kemenangan 100% lunas terjamin.</span></li>
+                </ul>
+              </div>
+
+              <a href="member.html" class="btn btn-primary btn-block">Pasang Angka Sekarang di Member Area →</a>
+            </div>
           </div>
-          <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: var(--space-4);">
-            Dapatkan potongan langsung saat memasang angka: 4D Diskon 66% (Hadiah x3000), 3D Diskon 59% (Hadiah x400), 2D Diskon 29% (Hadiah x70).
-          </p>
-          <a href="member.html" class="btn btn-primary btn-sm btn-block">Pasang Angka Sekarang →</a>
         </div>
 
-        <!-- Promo Card 5 -->
-        <div class="card fade-in">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-3);">
-            <h3 style="font-size: 1.25rem;">Cashback Mingguan Sportsbook 5%</h3>
-            <span class="badge badge-warning">TIAP SENIN</span>
+        <!-- Promo 8: Cashback Mingguan Sportsbook 5% -->
+        <div id="promo-cashback-sportsbook" class="promo-card fade-in" style="border-color: rgba(245, 158, 11, 0.4);">
+          <div class="promo-body" style="padding-top: var(--space-5);">
+            <div class="promo-header">
+              <h2 class="promo-title">Cashback Mingguan Sportsbook 5%</h2>
+              <span class="badge badge-warning">TIAP SENIN</span>
+            </div>
+            <p class="promo-desc">
+              Garansi proteksi kekalahan taruhan bola dibagikan setiap hari Senin langsung masuk ke saldo utama tanpa turnover (bebas langsung ditarik tunai).
+            </p>
+            <button type="button" class="promo-toggle-btn" onclick="togglePromoDrawer(this)">
+              <span class="toggle-text">Lihat Syarat &amp; Hadiah Lengkap</span>
+              <span class="toggle-icon">↓</span>
+            </button>
+            <div class="promo-drawer">
+              <div class="promo-rules-box" style="border-color: rgba(245, 158, 11, 0.3);">
+                <div class="promo-rules-title" style="color: #f59e0b;">
+                  <span>📋</span> KETENTUAN CASHBACK SPORTSBOOK :
+                </div>
+                <ul class="promo-rules-list">
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Dihitung dari total kekalahan bersih (lose) Sportsbook periode Senin - Minggu.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Minimal kekalahan bersih Rp 500.000 dalam 1 minggu periode.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span>Dibagikan otomatis setiap hari Senin siang mulai pukul 12.00 WIB langsung ke saldo utama.</span></li>
+                  <li><span style="color: #22c55e; font-weight: bold;">✓</span> <span><strong>Tanpa turnover (TO)</strong> — saldo cashback bebas dimainkan atau langsung di-withdraw.</span></li>
+                </ul>
+              </div>
+
+              <a href="sportsbook.html" class="btn btn-primary btn-block">Mainkan Sportsbook Sekarang →</a>
+            </div>
           </div>
-          <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: var(--space-4);">
-            Garansi kekalahan taruhan bola dibagikan setiap hari Senin langsung masuk ke saldo utama tanpa turnover (bebas langsung ditarik).
-          </p>
-          <a href="sportsbook.html" class="btn btn-outline btn-sm btn-block">Mainkan Sportsbook →</a>
         </div>
+
       </div>
     </div>
   </main>
@@ -542,6 +803,41 @@
         if (e.key === 'Escape') closeNav();
       });
     })();
+
+    function togglePromoDrawer(button) {
+      var card = button.closest('.promo-card');
+      if (!card) return;
+      var drawer = card.querySelector('.promo-drawer');
+      if (!drawer) return;
+      var textEl = button.querySelector('.toggle-text');
+      var isOpen = drawer.classList.contains('is-open');
+
+      if (isOpen) {
+        drawer.classList.remove('is-open');
+        button.classList.remove('is-active');
+        if (textEl) textEl.textContent = 'Lihat Syarat & Hadiah Lengkap';
+      } else {
+        drawer.classList.add('is-open');
+        button.classList.add('is-active');
+        if (textEl) textEl.textContent = 'Tutup Syarat & Ketentuan';
+      }
+    }
+
+    // Auto-open drawer if navigated with hash (e.g. #event-parlay-3tim)
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.location.hash) {
+        try {
+          var targetEl = document.querySelector(window.location.hash);
+          if (targetEl && targetEl.classList.contains('promo-card')) {
+            var btn = targetEl.querySelector('.promo-toggle-btn');
+            if (btn) togglePromoDrawer(btn);
+            setTimeout(function () {
+              targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
+          }
+        } catch (e) {}
+      }
+    });
   </script>
   </div>
 </body>
