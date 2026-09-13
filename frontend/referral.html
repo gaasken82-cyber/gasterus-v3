@@ -2,29 +2,21 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Program Afiliasi Referral ? GASTERUS V3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Program Afiliasi Referral — GASTERUS V3</title>
   <meta name="description" content="Program kemitraan dan komisi referral seumur hidup dengan mengajak teman bergabung di Gasterus.">
-
-  <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="css/mobile-blue.css?v=20260912-logo-v4">
-  <link rel="stylesheet" href="/css/animations.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="manifest" href="manifest.json">
-
+  <link rel="stylesheet" href="css/mobile-blue.css?v=20260913-ref-v2">
+  <link rel="stylesheet" href="/css/animations.css">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gasterus.fun/">
   <meta property="og:image" content="https://gasterus.fun/favicon.svg">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
-  <meta name="twitter:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
-  <meta name="twitter:image" content="https://gasterus.fun/favicon.svg">
   <meta name="theme-color" content="#2563eb">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -40,110 +32,244 @@
 <body class="page-referral">
   <div class="site">
 
-  <!-- Navigation Drawer -->
-  <div class="nav-drawer-backdrop" id="navBackdrop"></div>
-  <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
-    <div class="nav-drawer-head">
-      <span class="nav-drawer-title">Menu</span>
-      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">?</button>
-    </div>
-    <div class="nav-drawer-body">
-      <a class="nav-drawer-item" href="/index.html">Beranda</a>
-      <a class="nav-drawer-item" href="/member.html">Togel &amp; Slot</a>
-      <a class="nav-drawer-item" href="/sportsbook.html">Sportsbook</a>
-      <a class="nav-drawer-item" href="/number-history.html">Result</a>
-      <a class="nav-drawer-item" href="/bet-history.html">Riwayat Bet</a>
-      <a class="nav-drawer-item" href="/deposit.html">Deposit</a>
-      <a class="nav-drawer-item" href="/withdraw.html">Withdraw</a>
-      <a class="nav-drawer-item" href="/promotion.html">Promo</a>
-      <a class="nav-drawer-item" href="/referral.html">Referral</a>
-    </div>
-  </nav>
+    <!-- Header -->
+    <header class="brand-bar">
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu"></button>
+      <a href="/member.html" class="brand-title">
+        <span class="logo-shine-wrap"><img src="/assets/logo.webp?v=20260913-ref-v2" alt="GASTERUS" class="brand-logo-img"></span>
+      </a>
+      <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
+    </header>
 
-
-    <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">?</button>
-  <header class="app-header">
-    <div class="container">
-      <a href="/member.html" class="brand-logo"><span class="logo-shine-wrap"><img src="/assets/logo.png?v=20260912-logo-v4" alt="GASTERUS" class="brand-logo-img"></span></a>
-
-      <div class="header-actions">
-        <a href="/member.html" class="btn btn-secondary btn-sm">? Member Area</a>
+    <!-- Marquee -->
+    <div class="marquee-bar">
+      <span class="marquee-label">INFO</span>
+      <div class="marquee-track">
+        <span class="marquee-text">Komisi Referral Seumur Hidup • Ajak Teman Dapat Komisi Harian • Bonus Tanpa Batas Setiap Hari</span>
       </div>
     </div>
-  </header>
 
-  <main class="app-main">
-    <div class="container" style="max-width: 720px;">
-      <div class="card fade-in" style="margin-bottom: var(--space-6);">
-        <h1 style="font-size: 1.75rem; margin-bottom: var(--space-2);">Tautan Referral Anda</h1>
-        <p style="font-size: 0.9rem; margin-bottom: var(--space-6);">Bagikan tautan ini ke media sosial atau teman untuk mulai menghasilkan komisi harian.</p>
+    <!-- Page Title -->
+    <div class="kasir-header">
+      <div class="kasir-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="url(#refGrad)"/>
+          <circle cx="9" cy="9" r="3" stroke="#fff" stroke-width="1.8"/>
+          <circle cx="16.5" cy="9" r="2.2" stroke="#fff" stroke-width="1.5" opacity="0.85"/>
+          <path d="M4 19c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M14.5 15.5c2.2.4 4 2.3 4 4.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
+          <defs>
+            <linearGradient id="refGrad" x1="0" y1="0" x2="24" y2="24">
+              <stop stop-color="#a78bfa"/>
+              <stop offset="1" stop-color="#7c3aed"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <h1 class="kasir-title">Referral & Afiliasi</h1>
+      <p class="kasir-subtitle">Komisi seumur hidup dari setiap teman yang Anda ajak</p>
+    </div>
 
-        <div class="form-group">
-          <label class="form-label">Tautan Pendaftaran Referral</label>
-          <div style="display: flex; gap: var(--space-2);">
-            <input type="text" id="referral-link-input" class="form-control" readonly value="https://gasterus.fun/register.html?ref=MYCODE" style="font-family: var(--font-mono); font-weight: 600;">
-            <button type="button" class="btn btn-primary" onclick="copyRefLink()">Salin Tautan</button>
+    <!-- Stats Grid -->
+    <div class="ref-stats-grid">
+      <div class="ref-stat-card">
+        <span class="ref-stat-icon ref-stat-icon-total">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </span>
+        <div class="ref-stat-value" id="stat-total-downline">0</div>
+        <div class="ref-stat-label">Total Diajak</div>
+      </div>
+      <div class="ref-stat-card">
+        <span class="ref-stat-icon ref-stat-icon-active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <path d="M22 4L12 14.01l-3-3"/>
+          </svg>
+        </span>
+        <div class="ref-stat-value ref-value-green" id="stat-active-downline">0</div>
+        <div class="ref-stat-label">Member Aktif</div>
+      </div>
+      <div class="ref-stat-card">
+        <span class="ref-stat-icon ref-stat-icon-commission">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </span>
+        <div class="ref-stat-value ref-value-gold" id="stat-total-commission">Rp 0</div>
+        <div class="ref-stat-label">Total Komisi</div>
+      </div>
+    </div>
+
+    <!-- Referral Link Card -->
+    <div class="ref-link-section">
+      <div class="ref-link-card">
+        <div class="ref-link-head">
+          <span class="ref-link-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+          </span>
+          <h3>Tautan Referral Anda</h3>
+        </div>
+        <div class="ref-link-body">
+          <div class="ref-link-box" id="referral-link-input" title="Klik Salin untuk menyalin">https://gasterus.fun/register.html?ref=MYCODE</div>
+          <button type="button" class="btn-submit ref-copy-btn" onclick="copyRefLink()">
+            <span class="btn-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </span>
+            Salin Tautan
+          </button>
+          <span class="form-hint">Bagikan tautan ini ke media sosial atau teman untuk mulai menghasilkan komisi harian</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="ref-steps-section">
+      <div class="section-head">
+        <h3 class="section-title">Cara Kerja</h3>
+      </div>
+      <div class="ref-steps-grid">
+        <div class="ref-step-card">
+          <span class="ref-step-num">1</span>
+          <div class="ref-step-title">Bagikan Tautan</div>
+          <p class="ref-step-desc">Salin dan bagikan link referral unik Anda ke teman, grup, atau media sosial.</p>
+        </div>
+        <div class="ref-step-card">
+          <span class="ref-step-num">2</span>
+          <div class="ref-step-title">Teman Mendaftar</div>
+          <p class="ref-step-desc">Teman mendaftar melalui tautan Anda dan otomatis tercatat sebagai downline Anda.</p>
+        </div>
+        <div class="ref-step-card">
+          <span class="ref-step-num">3</span>
+          <div class="ref-step-title">Terima Komisi</div>
+          <p class="ref-step-desc">Komisi masuk otomatis ke saldo Anda setiap kali downline bertransaksi — seumur hidup.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Commission Info -->
+    <div class="ref-rate-section">
+      <div class="section-head">
+        <h3 class="section-title">Struktur Komisi</h3>
+      </div>
+      <div class="info-card">
+        <div class="info-card-body">
+          <div class="info-row">
+            <span class="info-label">Komisi Rollingan</span>
+            <span class="info-value ref-value-gold">Hingga 1%</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Komisi New Member</span>
+            <span class="info-value ref-value-gold">Hingga 15%</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Masa Berlaku</span>
+            <span class="info-value">Seumur Hidup</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Pencairan Komisi</span>
+            <span class="info-value">Otomatis / Harian</span>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="card fade-in">
-        <h3 style="font-size: 1.15rem; margin-bottom: var(--space-4);">Statistik Jaringan Downline</h3>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); text-align: center;">
-          <div style="background: var(--bg-surface-elevated); padding: var(--space-4); border-radius: var(--radius-md);">
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-gold);" id="stat-total-downline">0</div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary);">Total Member Diajak</div>
-          </div>
-          <div style="background: var(--bg-surface-elevated); padding: var(--space-4); border-radius: var(--radius-md);">
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--status-success);" id="stat-active-downline">0</div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary);">Member Aktif</div>
-          </div>
-          <div style="background: var(--bg-surface-elevated); padding: var(--space-4); border-radius: var(--radius-md);">
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--brand-primary);" id="stat-total-commission">Rp 0</div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary);">Total Komisi Masuk</div>
-          </div>
-        </div>
+    <!-- Navigation Drawer -->
+    <div class="nav-drawer-backdrop" id="navBackdrop"></div>
+    <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
+      <div class="nav-drawer-head">
+        <span class="nav-drawer-title">Menu</span>
+        <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
       </div>
-    </div>
-  </main>
+      <div class="nav-drawer-body">
+        <a class="nav-drawer-item" href="/index.html">Beranda</a>
+        <a class="nav-drawer-item" href="/member.html">Togel & Slot</a>
+        <a class="nav-drawer-item" href="/sportsbook.html">Sportsbook</a>
+        <a class="nav-drawer-item" href="/number-history.html">Result</a>
+        <a class="nav-drawer-item" href="/bet-history.html">Riwayat Bet</a>
+        <a class="nav-drawer-item" href="/deposit.html">Deposit</a>
+        <a class="nav-drawer-item" href="/withdraw.html">Withdraw</a>
+        <a class="nav-drawer-item" href="/promotion.html">Promo</a>
+        <a class="nav-drawer-item" href="/referral.html">Referral</a>
+      </div>
+    </nav>
 
-  <footer class="app-footer">
-    <div class="footer-links">
-      <a href="privacy.html">Privacy</a>
-      <a href="rules.html">Cara Bermain</a>
-      <a href="terms.html">Terms</a>
-    </div>
-    <div class="container footer-bottom">
-      &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
-    </div>
-  </footer>
+    <!-- Footer -->
+    <footer>
+      <div class="footer-links">
+        <a href="privacy.html">Privacy</a>
+        <a href="responsible-play.html">Responsible Gaming</a>
+        <a href="terms.html">Terms</a>
+      </div>
+      <div>&copy; Copyright 2014 - 2026 GASTERUS. All Rights Reserved.</div>
+    </footer>
+
+  </div>
 
   <script type="module">
     import auth from '/js/auth.js';
-    import api from '/js/api.js';
-
     const user = auth.getUser();
     const refCode = user?.referral_code || user?.referralCode || 'GASTERUS';
-    const linkInput = document.getElementById('referral-link-input');
-    if (linkInput) {
-      linkInput.value = `${window.location.origin}/register.html?ref=${refCode}`;
+    const linkBox = document.getElementById('referral-link-input');
+    if (linkBox) {
+      linkBox.textContent = `${window.location.origin}/register.html?ref=${refCode}`;
     }
 
     window.copyRefLink = function() {
-      navigator.clipboard.writeText(linkInput.value);
-      alert('Tautan referral berhasil disalin!');
+      const text = linkBox ? linkBox.textContent.trim() : '';
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(function() {
+        const btn = document.querySelector('.ref-copy-btn');
+        if (!btn) return;
+        const label = btn.querySelector('span:last-child') || btn;
+        const orig = label.textContent;
+        btn.classList.add('copied');
+        label.textContent = '✓ Tersalin';
+        setTimeout(function() {
+          btn.classList.remove('copied');
+          label.textContent = orig;
+        }, 2000);
+      });
     };
   </script>
-<script>
-(function(){
-function openNav(){var d=document.getElementById('site-nav-drawer'),b=document.getElementById('navBackdrop');if(d)d.classList.add('open');if(b)b.classList.add('show');document.body.classList.add('nav-open');}
-function closeNav(){var d=document.getElementById('site-nav-drawer'),b=document.getElementById('navBackdrop');if(d)d.classList.remove('open');if(b)b.classList.remove('show');document.body.classList.remove('nav-open');}
-document.querySelectorAll('[data-nav-open]').forEach(function(t){t.addEventListener('click',function(e){e.preventDefault();openNav();});});
-document.querySelectorAll('[data-nav-close]').forEach(function(e){e.addEventListener('click',closeNav);});
-document.getElementById('navBackdrop')?.addEventListener('click',closeNav);
-document.addEventListener('keydown',function(e){if(e.key==='Escape')closeNav();});
-})();
-</script>
-  </div>
+  <script>
+    (function () {
+      function openNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.getElementById('navBackdrop');
+        if (drawer) drawer.classList.add('open');
+        if (backdrop) backdrop.classList.add('show');
+        document.body.classList.add('nav-open');
+      }
+      function closeNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.getElementById('navBackdrop');
+        if (drawer) drawer.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.classList.remove('nav-open');
+      }
+      document.querySelectorAll('[data-nav-open]').forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) { e.preventDefault(); openNav(); });
+      });
+      document.querySelectorAll('[data-nav-close]').forEach(function (el) {
+        el.addEventListener('click', closeNav);
+      });
+      document.getElementById('navBackdrop')?.addEventListener('click', closeNav);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeNav();
+      });
+    })();
+  </script>
 </body>
 </html>

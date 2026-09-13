@@ -4571,3 +4571,241 @@ body.nav-open .nav-drawer,
     height: 26px;
   }
 }
+
+/* ==========================================================================
+   REFERRAL PAGE PRO — Enterprise Affiliate
+   ========================================================================== */
+
+/* --- Stats Grid --- */
+.ref-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 20px 16px;
+}
+
+.ref-stat-card {
+  background: linear-gradient(180deg, #131f38 0%, #0c1524 100%);
+  border: 1px solid #22375a;
+  border-radius: 14px;
+  padding: 16px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  position: relative;
+  overflow: hidden;
+}
+
+.ref-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #a78bfa, transparent);
+  border-radius: 2px;
+}
+
+.ref-stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.ref-stat-icon-total {
+  background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%);
+  color: #ffffff;
+}
+
+.ref-stat-icon-active {
+  background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+  color: #ffffff;
+}
+
+.ref-stat-icon-commission {
+  background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+  color: #ffffff;
+}
+
+.ref-stat-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.1;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.ref-value-green {
+  color: #34d399;
+}
+
+.ref-value-gold {
+  color: #fbbf24;
+}
+
+.ref-stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.2px;
+}
+
+/* --- Referral Link Card --- */
+.ref-link-section {
+  padding: 0 20px 16px;
+}
+
+.ref-link-card {
+  background: linear-gradient(180deg, #141f3d 0%, #0d1528 100%);
+  border: 1px solid #4c3a9e;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.18), 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.ref-link-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: linear-gradient(90deg, #3b2a7a 0%, #221c4a 100%);
+  border-bottom: 1px solid #4c3a9e;
+}
+
+.ref-link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%);
+  border-radius: 10px;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.5);
+}
+
+.ref-link-head h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.ref-link-body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ref-link-box {
+  background: #0a0f1d;
+  border: 1.5px dashed #6d5bb8;
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #c4b5fd;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  line-height: 1.5;
+  user-select: all;
+}
+
+.ref-copy-btn {
+  margin-top: 2px;
+}
+
+.ref-copy-btn.copied {
+  background: linear-gradient(180deg, #34d399 0%, #059669 100%) !important;
+  box-shadow: 0 4px 0 #065f46, 0 6px 18px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+}
+
+.ref-copy-btn .btn-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* --- Steps Grid --- */
+.ref-steps-section {
+  padding: 0 20px 16px;
+}
+
+.ref-steps-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 381px) {
+  .ref-steps-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .ref-step-card {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+}
+
+.ref-step-card {
+  background: linear-gradient(180deg, #131f38 0%, #0c1524 100%);
+  border: 1px solid #22375a;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.ref-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%);
+  border-radius: 50%;
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.ref-step-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.ref-step-desc {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* --- Rate Section --- */
+.ref-rate-section {
+  padding: 0 20px 24px;
+}
