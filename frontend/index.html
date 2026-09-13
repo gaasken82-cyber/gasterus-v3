@@ -277,10 +277,9 @@
       </div>
 <div class="show-more-container">
   <button class="btn-show-more" id="showMoreBtn" type="button" onclick="toggleShowMore()">
-    <span class="btn-show-more-icon" id="showMoreIcon">▼</span>
     <span id="showMoreText">Show More Results</span>
+    <span class="btn-show-more-icon" id="showMoreIcon">▼</span>
   </button>
-  <div class="show-more-stats" id="showMoreStats"></div>
 </div>
     </section>
 
@@ -360,17 +359,14 @@
           var btn = document.getElementById('showMoreBtn');
           var icon = document.getElementById('showMoreIcon');
           var text = document.getElementById('showMoreText');
-          var stats = document.getElementById('showMoreStats');
           if (!btn) return;
           if (!allMarkets || allMarkets.length <= INITIAL_SHOW) {
             btn.style.display = 'none';
-            if (stats) stats.textContent = '';
             return;
           }
           btn.style.display = '';
           if (icon) icon.textContent = showMoreExpanded ? '▲' : '▼';
           if (text) text.textContent = showMoreExpanded ? 'Show Less Results' : 'Show More Results';
-          if (stats) stats.textContent = 'Menampilkan ' + Math.min(showMoreExpanded ? allMarkets.length : INITIAL_SHOW, allMarkets.length) + ' dari ' + allMarkets.length + ' pasaran';
         }
 
         function toggleShowMore() {
