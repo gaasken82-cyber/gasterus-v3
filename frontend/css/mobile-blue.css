@@ -2564,6 +2564,8 @@ body.nav-open .nav-drawer,
   font-size: 8px;
   color: #64748b;
   line-height: 1.4;
+}
+
 /* --- Login Page Styles --- */
 .page-login .login-container {
   display: flex;
@@ -2759,7 +2761,6 @@ body.nav-open .nav-drawer,
 
 .page-login .login-back-home:hover {
   color: #cbd5e1;
-}
 }
 
 /* ==========================================================================
