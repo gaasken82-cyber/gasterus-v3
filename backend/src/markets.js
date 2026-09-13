@@ -26,10 +26,12 @@ function mapMarket(row,{includeHistorical=false}={}){
   const drawDate=liveTrusted?row.draw_date:historyAvailable?row.history_draw_date:row.draw_date;
   const drawTime=liveTrusted?row.draw_time:historyAvailable?row.history_draw_time:row.draw_time;
   const sourceUpdatedAt=liveTrusted?row.source_updated_at:historyAvailable?(row.history_source_updated_at||row.history_created_at):row.source_updated_at;
-  const bettingStatus=String(row.betting_status||'SUSPENDED').toUpperCase();
+  const rawBettingStatus=String(row.betting_status||'SUSPENDED').toUpperCase();
   const bettingPeriod=String(row.betting_period||'').trim()||null;
   const closeAt=row.close_at||null;
   const closeMs=closeAt?new Date(closeAt).getTime():NaN;
+  // Real-time status: jika closeAt sudah lewati, status selalu CLOSED terlepas dari DB
+  const bettingStatus = (rawBettingStatus === 'OPEN' && Number.isFinite(closeMs) && closeMs <= Date.now()) ? 'CLOSED' : rawBettingStatus;
   const authorityReady=liveVerificationStatus==='VERIFIED';
   const readinessReason=bettingReadinessReason({authorityReady,bettingStatus,bettingPeriod,closeAt});
   const bettingReady=readinessReason===null;
@@ -109,8 +111,11 @@ export function mapConfig(r,games=[]){
   const gameList=LOTTERY_GAMES.map(def=>{const g=byCode.get(def.code);return {...publicGameDefinition(def),enabled:Boolean(g?.enabled),discountPercent:Number(g?.discount_percent||0),payoutMultiplier:Number(g?.payout_multiplier||0),maxStakePerSelection:Number(g?.max_stake_per_selection||0),selectionOptions:Array.isArray(g?.selection_options)?g.selection_options:[]};});
   const authorityReady=String(r.result_verification_status||'')==='VERIFIED';
   const closeMs=r.close_at?new Date(r.close_at).getTime():NaN;
-  const readinessReason=bettingReadinessReason({authorityReady,bettingStatus:r.betting_status,bettingPeriod:r.betting_period,closeAt:r.close_at});
+  const rawBettingStatus=String(r.betting_status||'SUSPENDED').toUpperCase();
+  // Real-time status: jika closeAt sudah lewati, status selalu CLOSED terlepas dari DB
+  const bettingStatus = (rawBettingStatus === 'OPEN' && Number.isFinite(closeMs) && closeMs <= Date.now()) ? 'CLOSED' : rawBettingStatus;
+  const readinessReason=bettingReadinessReason({authorityReady,bettingStatus,bettingPeriod:r.betting_period,closeAt:r.close_at});
   const bettingReady=readinessReason===null;
-  return {marketId:r.market_id,slug:r.slug,code:r.code,name:r.name,providerPath:r.provider_path,period:r.betting_period||null,resultPeriod:r.result_period||null,bettingStatus:r.betting_status,closeAt:r.close_at,authorityReady,bettingReady,readinessReason,minStake:Number(r.min_stake),maxStakePerItem:Number(r.max_stake_per_item),maxOrderTotal:Number(r.max_order_total),maxPayoutPerOrder:Number(r.max_payout_per_order||2000000000),maxRows:r.max_rows,cancelWindowSeconds:r.cancel_window_seconds,discounts:{'2D':r.discount_2d,'3D':r.discount_3d,'4D':r.discount_4d},payouts:{'2D':r.payout_2d,'3D':r.payout_3d,'4D':r.payout_4d},games:gameList,updatedAt:r.updated_at};
+  return {marketId:r.market_id,slug:r.slug,code:r.code,name:r.name,providerPath:r.provider_path,period:r.betting_period||null,resultPeriod:r.result_period||null,bettingStatus,closeAt:r.close_at,authorityReady,bettingReady,readinessReason,minStake:Number(r.min_stake),maxStakePerItem:Number(r.max_stake_per_item),maxOrderTotal:Number(r.max_order_total),maxPayoutPerOrder:Number(r.max_payout_per_order||2000000000),maxRows:r.max_rows,cancelWindowSeconds:r.cancel_window_seconds,discounts:{'2D':r.discount_2d,'3D':r.discount_3d,'4D':r.discount_4d},payouts:{'2D':r.payout_2d,'3D':r.payout_3d,'4D':r.payout_4d},games:gameList,updatedAt:r.updated_at};
 }
 export async function listBettingMarkets({status,q,limit=200}={}){const values=[];const where=[];if(status){values.push(String(status).toUpperCase());where.push(`c.betting_status=$${values.length}`)}if(q){values.push(`%${String(q).slice(0,80)}%`);where.push(`m.name ILIKE $${values.length}`)}values.push(Math.min(Number(limit)||200,500));const clause=where.length?`WHERE ${where.join(' AND ')}`:'';await query(`INSERT INTO market_betting_configs(market_id) SELECT id FROM markets ON CONFLICT DO NOTHING`);const result=await query(`SELECT c.*,m.slug,m.code,m.name,m.provider_path,m.period AS result_period,m.status AS source_status,m.verification_status AS result_verification_status FROM market_betting_configs c JOIN markets m ON m.id=c.market_id ${clause} ORDER BY m.sort_order LIMIT $${values.length}`,values);const output=[];for(const row of result.rows){await ensureLotteryConfigs({query},row.market_id);const games=(await query(`SELECT * FROM lottery_game_configs WHERE market_id=$1`,[row.market_id])).rows;output.push(mapConfig(row,games));}return output;}

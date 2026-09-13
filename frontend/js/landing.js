@@ -9,6 +9,7 @@ import { getTimeRemaining, showToast } from './utils.js';
 
 let marketsList = [];
 let isExpanded = false;
+let autoRefreshInterval = null;
 
 // Generate dynamic default results based on current date
 function generateDefaultResults() {
@@ -87,7 +88,6 @@ async function loadMarkets() {
   }
 
   renderHasilGrid(marketsList);
-}
 }
 
 function formatDateID(dateStr) {
@@ -215,9 +215,73 @@ function setupAuthModal() {
   }
 }
 
+// Auto-refresh market data every 60 seconds (update numbers without full re-render)
+function startAutoRefresh() {
+  if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+  autoRefreshInterval = setInterval(async () => {
+    try {
+      const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
+      const fetched = res.items || res.data || res || [];
+      if (!Array.isArray(fetched) || !fetched.length) return;
+
+      const container = document.getElementById('hasil-grid-container');
+      if (!container) return;
+      const cards = container.querySelectorAll('.hasil-card');
+      if (!cards.length) return;
+
+      // Update marketsList data
+      marketsList = fetched.map(m => ({
+        name: m.name || m.code || 'Unknown',
+        code: m.code || '',
+        date: m.drawDate ? formatDateID(m.drawDate) : '-',
+        result: m.result || '----',
+        period: m.period || '-'
+      }));
+
+      // Update existing DOM cards without full re-render
+      fetched.forEach((m) => {
+        const cardIdx = Array.from(cards).findIndex(c => {
+          const badge = c.querySelector('.hasil-card-badge');
+          return badge && badge.textContent.trim().toUpperCase() === (m.name || '').toUpperCase();
+        });
+        if (cardIdx < 0) return;
+        const card = cards[cardIdx];
+
+        // Update result number with highlight animation
+        const numberEl = card.querySelector('.hasil-card-number');
+        if (numberEl && m.result && numberEl.textContent.trim() !== m.result) {
+          numberEl.textContent = m.result;
+          numberEl.style.transition = 'color 0.3s, transform 0.3s';
+          numberEl.style.color = '#22c55e';
+          numberEl.style.transform = 'scale(1.1)';
+          setTimeout(() => {
+            numberEl.style.color = '';
+            numberEl.style.transform = '';
+          }, 800);
+        }
+
+        // Update date
+        const dateEl = card.querySelector('.hasil-card-date');
+        if (dateEl && m.drawDate) {
+          const newDate = formatDateID(m.drawDate);
+          if (dateEl.textContent.trim() !== newDate) {
+            dateEl.textContent = newDate;
+          }
+        }
+      });
+    } catch (e) {
+      // Silent fail — will retry in 60s
+    }
+  }, 60000); // 60 seconds
+}
+
 // Auto init
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initLanding);
+  document.addEventListener('DOMContentLoaded', () => {
+    initLanding();
+    startAutoRefresh();
+  });
 } else {
   initLanding();
+  startAutoRefresh();
 }

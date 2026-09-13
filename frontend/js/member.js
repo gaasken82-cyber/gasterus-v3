@@ -7,6 +7,7 @@ import auth from './auth.js';
 import { formatNumber, formatRupiah, getTimeRemaining, showToast } from './utils.js';
 
 let timerInterval = null;
+let autoRefreshInterval = null;
 
 export async function initMember() {
   if (!auth.isLoggedIn()) {
@@ -233,13 +234,107 @@ function startMarketAutoUpdate() {
   }, 1000);
 }
 
+// Auto-refresh market data from API every 60 seconds
+function startAutoRefresh() {
+  if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+  autoRefreshInterval = setInterval(async () => {
+    try {
+      const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
+      const markets = res.items || res.data || res || [];
+      if (!Array.isArray(markets) || !markets.length) return;
+
+      const container = document.getElementById('member-markets-container');
+      if (!container) return;
+      const cards = container.querySelectorAll('.member-market-card');
+      if (!cards.length) return;
+
+      markets.forEach((m) => {
+        // Find matching card by market name
+        const cardIdx = Array.from(cards).findIndex(c => {
+          const nameEl = c.querySelector('h4');
+          return nameEl && nameEl.textContent.trim().toUpperCase() === (m.name || '').toUpperCase();
+        });
+        if (cardIdx < 0) return;
+        const card = cards[cardIdx];
+
+        // Update result balls
+        const ballsContainer = card.querySelector('div[style*="display:flex; gap:4px"]');
+        if (ballsContainer && m.result) {
+          const newDigits = String(m.result).split('');
+          const currentBalls = ballsContainer.querySelectorAll('.ball-num');
+          if (currentBalls.length === newDigits.length) {
+            newDigits.forEach((digit, i) => {
+              if (currentBalls[i] && currentBalls[i].textContent !== digit) {
+                currentBalls[i].textContent = digit;
+                currentBalls[i].style.transition = 'background 0.3s';
+                currentBalls[i].style.background = '#fef08a';
+                setTimeout(() => { if (currentBalls[i]) currentBalls[i].style.background = ''; }, 600);
+              }
+            });
+          }
+        }
+
+        // Update period
+        const periodEl = card.querySelector('div[style*="Periode:"]');
+        if (periodEl && m.period) {
+          periodEl.textContent = 'Periode: #' + m.period;
+        }
+
+        // Update status badge
+        const statusBadge = card.querySelector('.badge');
+        if (statusBadge) {
+          const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
+          statusBadge.textContent = isClosed ? 'TUTUP' : 'BUKA';
+          statusBadge.className = isClosed ? 'badge badge-danger' : 'badge badge-success';
+        }
+
+        // Update close time for countdown
+        const countdownEl = card.querySelector('.countdown-timer');
+        if (countdownEl && m.closeAt) {
+          countdownEl.setAttribute('data-close', m.closeAt);
+        }
+
+        // Update button state
+        const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
+        const btnEl = card.querySelector('.btn-play');
+        if (btnEl) {
+          if (isClosed) {
+            if (btnEl.tagName === 'A') {
+              // Replace <a> with <button disabled>
+              const newBtn = document.createElement('button');
+              newBtn.type = 'button';
+              newBtn.className = 'btn btn-secondary btn-sm btn-block btn-play';
+              newBtn.disabled = true;
+              newBtn.textContent = 'Pasaran Tutup';
+              btnEl.replaceWith(newBtn);
+            }
+          } else {
+            if (btnEl.tagName === 'BUTTON' && btnEl.disabled) {
+              // Replace <button disabled> with <a>
+              const newBtn = document.createElement('a');
+              newBtn.href = '/market-play.html?code=' + (m.code || m.slug);
+              newBtn.className = 'btn btn-primary btn-sm btn-block btn-play';
+              newBtn.textContent = '▶ BET DISINI';
+              btnEl.replaceWith(newBtn);
+            }
+          }
+        }
+      });
+    } catch (e) {
+      // Silent fail — will retry in 60s
+    }
+  }, 60000); // 60 seconds
+}
+
 // Auto init
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initMember();
     startMarketAutoUpdate();
+    startAutoRefresh();
   });
 } else {
   initMember();
   startMarketAutoUpdate();
+  startAutoRefresh();
 }

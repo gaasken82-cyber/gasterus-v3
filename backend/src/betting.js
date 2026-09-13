@@ -42,7 +42,11 @@ async function configInTx(marketId,client){
   const games=(await client.query(`SELECT * FROM lottery_game_configs WHERE market_id=$1 ORDER BY game_code`,[marketId])).rows;
   const gameMap=new Map(games.map(g=>[g.game_code,{gameCode:g.game_code,enabled:Boolean(g.enabled),discount:Number(g.discount_percent),payoutMultiplier:Number(g.payout_multiplier),maxStakePerSelection:Number(g.max_stake_per_selection),selectionOptions:Array.isArray(g.selection_options)?g.selection_options:[]} ]));
   const authorityReady=String(r.result_verification_status||'')==='VERIFIED';
-  return{marketId:r.market_id,slug:r.slug,code:r.code,name:r.name,providerPath:r.provider_path,period:r.betting_period||null,resultPeriod:r.result_period||null,bettingStatus:r.betting_status,closeAt:r.close_at,authorityReady,minStake:Number(r.min_stake),maxStakePerItem:Number(r.max_stake_per_item),maxOrderTotal:Number(r.max_order_total),maxPayoutPerOrder:Number(r.max_payout_per_order||2000000000),maxRows:r.max_rows,cancelWindowSeconds:r.cancel_window_seconds,gameMap};
+  const closeMs=r.close_at?new Date(r.close_at).getTime():NaN;
+  const rawBettingStatus=String(r.betting_status||'SUSPENDED').toUpperCase();
+  // Real-time status: jika closeAt sudah lewati, status selalu CLOSED terlepas dari DB
+  const bettingStatus = (rawBettingStatus === 'OPEN' && Number.isFinite(closeMs) && closeMs <= Date.now()) ? 'CLOSED' : rawBettingStatus;
+  return{marketId:r.market_id,slug:r.slug,code:r.code,name:r.name,providerPath:r.provider_path,period:r.betting_period||null,resultPeriod:r.result_period||null,bettingStatus,closeAt:r.close_at,authorityReady,minStake:Number(r.min_stake),maxStakePerItem:Number(r.max_stake_per_item),maxOrderTotal:Number(r.max_order_total),maxPayoutPerOrder:Number(r.max_payout_per_order||2000000000),maxRows:r.max_rows,cancelWindowSeconds:r.cancel_window_seconds,gameMap};
 }
 
 function assertOpen(config,inputPeriod){
