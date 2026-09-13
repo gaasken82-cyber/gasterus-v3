@@ -351,25 +351,71 @@
           });
         }
 
+        // Show More state
+        let allMarkets = [];
+        let showMoreExpanded = false;
+        var INITIAL_SHOW = 12;
+
+        function updateShowMoreUI() {
+          var btn = document.getElementById('showMoreBtn');
+          var icon = document.getElementById('showMoreIcon');
+          var text = document.getElementById('showMoreText');
+          var stats = document.getElementById('showMoreStats');
+          if (!btn) return;
+          if (!allMarkets || allMarkets.length <= INITIAL_SHOW) {
+            btn.style.display = 'none';
+            if (stats) stats.textContent = '';
+            return;
+          }
+          btn.style.display = '';
+          if (icon) icon.textContent = showMoreExpanded ? '▲' : '▼';
+          if (text) text.textContent = showMoreExpanded ? 'Show Less Results' : 'Show More Results';
+          if (stats) stats.textContent = 'Menampilkan ' + Math.min(showMoreExpanded ? allMarkets.length : INITIAL_SHOW, allMarkets.length) + ' dari ' + allMarkets.length + ' pasaran';
+        }
+
+        function toggleShowMore() {
+          showMoreExpanded = !showMoreExpanded;
+          applyMarkets(allMarkets);
+        }
+        window.toggleShowMore = toggleShowMore;
+
+        function applyMarkets(items) {
+          allMarkets = Array.isArray(items) ? items : [];
+          var limit = showMoreExpanded ? allMarkets.length : INITIAL_SHOW;
+          if (!grid) return;
+          if (!allMarkets.length) {
+            grid.innerHTML = '<div class="res-card" style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #888;"><div style="font-size: 28px; margin-bottom: 8px;">📭</div><div>Pasaran belum tersedia</div></div>';
+            updateShowMoreUI();
+            return;
+          }
+          grid.innerHTML = allMarkets.slice(0, limit).map(buildCardHTML).join('');
+          updateShowMoreUI();
+          if (dateEl && allMarkets.length > 0) {
+            var latest = allMarkets.reduce(function(a, b) {
+              var da = a.drawDate || a.updatedAt || '';
+              var db = b.drawDate || b.updatedAt || '';
+              return da > db ? a : b;
+            });
+            dateEl.textContent = latest.drawDate ? formatDateID(latest.drawDate) : 'Live';
+          }
+        }
+
         async function fetchLiveResults() {
           if (!grid) return;
           try {
             const res = await fetch('/api/public/markets', { headers: { Accept: 'application/json' } }).then(r => r.json());
             const raw = res.data || res.items || res || [];
-            const items = Array.isArray(raw) ? raw : [];
-            renderMarkets(items);
-
-            if (dateEl && items.length > 0) {
-              const latest = items.reduce((a, b) => {
-                const da = a.drawDate || a.updatedAt || '';
-                const db = b.drawDate || b.updatedAt || '';
-                return da > db ? a : b;
-              });
-              dateEl.textContent = latest.drawDate ? formatDateID(latest.drawDate) : 'Live';
-            }
+            applyMarkets(Array.isArray(raw) ? raw : []);
           } catch (err) {
-            console.warn('[Live Draw] Gagal fetch dari backend:', err);
-            grid.innerHTML = '<div class="res-card" style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #888;"><div style="font-size: 28px; margin-bottom: 8px;">⚠️</div><div>Gagal memuat hasil. Silakan muat ulang.</div></div>';
+            console.warn('[Live Draw] Gagal fetch dari backend, memakai data fallback:', err);
+            try {
+              const fb = await fetch('/public_markets.json', { headers: { Accept: 'application/json' } }).then(r => r.json());
+              const rawFb = fb.data || fb.items || fb || [];
+              applyMarkets(Array.isArray(rawFb) ? rawFb : []);
+            } catch (fbErr) {
+              console.warn('[Live Draw] Fallback juga gagal:', fbErr);
+              grid.innerHTML = '<div class="res-card" style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #888;"><div style="font-size: 28px; margin-bottom: 8px;">⚠️</div><div>Gagal memuat hasil. Silakan muat ulang.</div></div>';
+            }
           }
         }
 
@@ -550,53 +596,6 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape")closeNav();}
 })();
 </script>
 <script type="module">`nimport auth from '/js/auth.js';`ndocument.addEventListener('DOMContentLoaded', () => {`n  if (auth.isLoggedIn()) window.location.href = '/member.html';`n});`n</script>
-
-<script>
-// Live Draw Loader — Fetch dinamis dari backend, fallback ke data statis jika gagal
-(function loadLiveDraw() {
-  var dateEl = document.getElementById('resDate');
-  var grid = document.getElementById('resultsGrid');
-
-  // Tampilkan tanggal hari ini
-  if (dateEl) {
-    var now = new Date();
-    dateEl.textContent = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-  }
-
-  if (!grid) return;
-
-  fetch('/api/public/markets?limit=24&_=' + Date.now(), { cache: 'no-store' })
-    .then(function(res) { return res.ok ? res.json() : Promise.reject(res.status); })
-    .then(function(data) {
-      var markets = (data && (data.items || data.data)) || [];
-      if (!markets.length) return;
-
-      grid.innerHTML = markets.map(function(m) {
-        var result = m.result || '----';
-        var drawDate = '-';
-        if (m.drawDate) {
-          try {
-            var d = new Date(m.drawDate);
-            drawDate = ('0' + d.getDate()).slice(-2) + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + d.getFullYear();
-          } catch(e) {}
-        }
-        var name = (m.name || m.code || '').toUpperCase();
-        return '<div class="res-card" data-market="' + name.toLowerCase() + '">' +
-          '<div class="res-name">' + name + '</div>' +
-          '<div class="res-card-body">' +
-            '<div class="res-date">' + drawDate + '</div>' +
-            '<div class="res-number">' + result + '</div>' +
-          '</div>' +
-        '</div>';
-      }).join('');
-    })
-    .catch(function(err) {
-      // Fallback: data statis tetap tampil, hanya update tanggal
-      console.warn('[LiveDraw] API tidak tersedia, menggunakan data statis.', err);
-    });
-})();
-</script>
-
 
 <script>
 // Hero Banner 3D Smooth Slider Controller
