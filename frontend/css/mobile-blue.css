@@ -1439,7 +1439,7 @@ select.reg-input {
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   min-width: 0;
-  flex: 1;
+  flex: 0 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1447,8 +1447,10 @@ select.reg-input {
 }
 
 .reg-captcha-img img {
+  display: block;
+  height: 44px;
+  width: auto;
   max-width: 100%;
-  height: auto;
 }
 
 .reg-captcha-refresh {
