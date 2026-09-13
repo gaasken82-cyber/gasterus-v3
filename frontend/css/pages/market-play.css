@@ -302,3 +302,81 @@
     font-size: 1.2rem;
   }
 }
+
+/* ==========================================================================
+   6. MARKET-PLAY SPECIFIC OVERRIDES (v=20260913-mp1)
+   ========================================================================== */
+
+/* --- Logo lebih kecil & proporsional di header market-play (selaras halaman member) --- */
+.brand-logo .brand-logo-img {
+  height: 34px;
+  max-width: 150px;
+}
+
+@media (max-width: 480px) {
+  .brand-logo .brand-logo-img {
+    height: 28px;
+    max-width: 118px;
+  }
+  /* Cegah header overflow di layar kecil: aksi kanan cukup lewat nav drawer */
+  .app-header .header-actions {
+    display: none;
+  }
+}
+
+/* --- Footer links (styling dari mobile-blue.css tidak ikut termuat di stack modular) --- */
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-4) 0;
+  font-size: 0.8rem;
+}
+
+.footer-links a {
+  color: var(--text-secondary);
+}
+
+.footer-links a:hover {
+  color: var(--brand-primary);
+}
+
+/* --- Header pasaran: countdown tidak memaksa overflow di layar sempit --- */
+@media (max-width: 640px) {
+  .play-header #market-countdown {
+    font-size: 1.25rem;
+  }
+}
+
+/* --- Mobile bet-row: pastikan 4 kolom isi (angka/tipe/nominal/hapus) selalu terlihat --- */
+@media (max-width: 640px) {
+  .bet-row {
+    grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1fr) 30px;
+    grid-template-areas:
+      "no  select select remove"
+      "no  game   stake  stake";
+  }
+  .bet-row > span:first-child {
+    grid-area: no;
+  }
+  .bet-row .bet-selection {
+    grid-area: select;
+  }
+  .bet-row .bet-game {
+    grid-area: game;
+  }
+  .bet-row .bet-stake {
+    grid-area: stake;
+  }
+  .bet-row .btn-remove-row {
+    grid-area: remove;
+    height: 34px;
+    max-width: 30px;
+  }
+  /* Baris header tabel disembunyikan di mobile — pastikan benar-benar tidak menyisakan ruang */
+  .quick-bet-card > .bet-row {
+    display: none;
+  }
+}
+
