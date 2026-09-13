@@ -1331,20 +1331,23 @@ footer, .site-footer {
 
 .reg-field {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  padding: 0 4px;
 }
 
 .reg-label {
   flex-shrink: 0;
-  width: 120px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #cbd5e1;
+  width: 110px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
   line-height: 1.4;
-  text-align: left;
+  text-align: right;
+  padding-top: 12px;
+  letter-spacing: 0.3px;
 }
 
 .reg-label span {
