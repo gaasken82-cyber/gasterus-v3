@@ -44,7 +44,7 @@
     <!-- Header -->
     <header class="brand-bar">
       <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">☰</button>
-      <a href="/index.html" class="brand-title">
+      <a href="/member.html" class="brand-title">
         <img src="/assets/logo.png?v=20260912-logo-v2" alt="GASTERUS" class="brand-logo-img" decoding="async">
       </a>
       <div style="display:flex; gap:6px; align-items:center;">
@@ -98,38 +98,112 @@
       <input type="text" id="game-search-input" placeholder="Cari game atau pasaran…" aria-label="Cari Game">
     </div>
 
-    <!-- Promo Banner Carousel (enterprise) -->
-    <div class="promo-carousel" id="promo-carousel">
-      <div class="promo-slide promo-slide-1">
-        <div class="promo-content">
-          <div class="promo-tag">PROMO</div>
-          <div class="promo-title">BONUS MEMBER BARU</div>
-          <div class="promo-desc">Kesempatan menang lebih besar untuk member GASTERUS.</div>
-          <a class="promo-cta" href="promotion.html">Lihat Promo →</a>
+    <!-- Hero Banner Frame (sama dengan index.html) -->
+    <section class="hero-banner-3d">
+      <div class="banner-slider-wrapper" id="heroBannerSlider" aria-label="Banner Promosi Gasterus">
+        <div class="banner-slides-track">
+          <!-- Slide 1: IDNSPORTOTO The Limited Edition -->
+          <div class="banner-slide active" data-slide="0">
+            <a href="sportsbook.html" class="hero-banner-link" aria-label="Selamat Datang di IDNSPORTOTO The Limited Edition - Toto &amp; Sportsbook">
+              <picture>
+                <source srcset="assets/banners/hero-idnsportoto-limited.webp?v=20260913-v2" type="image/webp">
+                <img src="assets/banners/hero-idnsportoto-limited.jpg?v=20260913-v2" alt="Selamat Datang di IDNSPORTOTO The Limited Edition" class="hero-banner-img" width="1024" height="512" fetchpriority="high" loading="eager">
+              </picture>
+            </a>
+          </div>
+          <!-- Slide 2: Freebet 10.000 Tanpa DP -->
+          <div class="banner-slide" data-slide="1">
+            <a href="promotion.html" class="hero-banner-link" aria-label="Freebet 10.000 Tanpa DP Gasterus Sportbook &amp; Toto">
+              <picture>
+                <source srcset="assets/banners/hero-freebet-10k.webp?v=20260913-v2" type="image/webp">
+                <img src="assets/banners/hero-freebet-10k.jpg?v=20260913-v2" alt="Freebet 10.000 Tanpa DP Gasterus" class="hero-banner-img" width="1024" height="512" loading="lazy">
+              </picture>
+            </a>
+          </div>
+          <!-- Slide 3: Event Parlay 3 Tim -->
+          <div class="banner-slide" data-slide="2">
+            <a href="sportsbook.html" class="hero-banner-link" aria-label="Event Parlay 3 Tim Gasterus - Tiga Pilihan Satu Peluang">
+              <picture>
+                <source srcset="assets/banners/hero-event-parlay-3tim.webp?v=20260913-v1" type="image/webp">
+                <img src="assets/banners/hero-event-parlay-3tim.jpg?v=20260913-v1" alt="Event Parlay 3 Tim Gasterus" class="hero-banner-img" width="1024" height="512" loading="lazy">
+              </picture>
+            </a>
+          </div>
+          <!-- Slide 4: Event Parlay Paus 4 Tim -->
+          <div class="banner-slide" data-slide="3">
+            <a href="sportsbook.html" class="hero-banner-link" aria-label="Event Parlay Paus 4 Tim Gasterus">
+              <picture>
+                <source srcset="assets/banners/hero-event-parlay-paus.webp?v=20260913-v2" type="image/webp">
+                <img src="assets/banners/hero-event-parlay-paus.jpg?v=20260913-v2" alt="Event Parlay Paus 4 Tim Gasterus" class="hero-banner-img" width="1024" height="512" loading="lazy">
+              </picture>
+            </a>
+          </div>
+          <!-- Slide 5: Event Parlay Over / Under Odds 1.78 -->
+          <div class="banner-slide" data-slide="4">
+            <a href="sportsbook.html" class="hero-banner-link" aria-label="Event Parlay Over / Under Odds 1.78 Gasterus">
+              <picture>
+                <source srcset="assets/banners/hero-event-parlay-ou.webp?v=20260913-v2" type="image/webp">
+                <img src="assets/banners/hero-event-parlay-ou.jpg?v=20260913-v2" alt="Event Parlay Over / Under Odds 1.78 Gasterus" class="hero-banner-img" width="1024" height="512" loading="lazy">
+              </picture>
+            </a>
+          </div>
+          <!-- Slide 6: Bonus Referral 3% -->
+          <div class="banner-slide" data-slide="5">
+            <a href="referral.html" class="hero-banner-link" aria-label="Bonus Referral 3% Ajak Teman Gasterus">
+              <picture>
+                <source srcset="assets/banners/hero-bonus-referral-3pct.webp?v=20260913-v2" type="image/webp">
+                <img src="assets/banners/hero-bonus-referral-3pct.jpg?v=20260913-v2" alt="Bonus Referral 3% Gasterus" class="hero-banner-img" width="1024" height="512" loading="lazy">
+              </picture>
+            </a>
+          </div>
+          <!-- Slide 7: Lomba 2D & 3D 3 Line -->
+          <div class="banner-slide" data-slide="6">
+            <a href="promotion.html" class="hero-banner-link" aria-label="Lomba 2D &amp; 3D 3 Line HK - SDY - SGP Total Hadiah Jutaan Rupiah">
+              <picture>
+                <source srcset="assets/banners/hero-lomba-2d3d-orig.webp?v=20260913-v2" type="image/webp">
+                <img src="assets/banners/hero-lomba-2d3d-orig.jpg?v=20260913-v2" alt="Lomba 2D &amp; 3D 3 Line HK - SDY - SGP Gasterus" class="hero-banner-img" width="1024" height="512" loading="lazy">
+              </picture>
+            </a>
+          </div>
+          <!-- Slide 8: King Kong Pools Live Result -->
+          <div class="banner-slide" data-slide="7">
+            <a href="market-play.html" class="hero-banner-link" aria-label="King Kong Pools Live Result Gasterus">
+              <picture>
+                <source srcset="assets/banners/hero-kingkong-pools.webp?v=20260913-v2" type="image/webp">
+                <img src="assets/banners/hero-kingkong-pools.jpg?v=20260913-v2" alt="King Kong Pools Live Result" class="hero-banner-img" width="1024" height="512" loading="lazy">
+              </picture>
+            </a>
+          </div>
+          <!-- Slide 9: Live Streaming Hongkong Lotto -->
+          <div class="banner-slide" data-slide="8">
+            <a href="market-play.html" class="hero-banner-link" aria-label="Saksikan Live Streaming Pengundian Hongkong Lotto Setiap Pk 23:00">
+              <picture>
+                <source srcset="assets/banners/hero-hongkong-lotto.webp?v=20260913-v2" type="image/webp">
+                <img src="assets/banners/hero-hongkong-lotto.jpg?v=20260913-v2" alt="Hongkong Lotto Live Streaming" class="hero-banner-img" width="1024" height="512" loading="lazy">
+              </picture>
+            </a>
+          </div>
+        </div>
+
+        <!-- Tombol Navigasi 3D Prev / Next -->
+        <button class="banner-nav-btn banner-nav-prev" id="bannerPrev" type="button" aria-label="Banner Sebelumnya">&#8249;</button>
+        <button class="banner-nav-btn banner-nav-next" id="bannerNext" type="button" aria-label="Banner Berikutnya">&#8250;</button>
+
+        <!-- Indikator Dots -->
+        <div class="banner-dots" id="bannerDots" role="tablist" aria-label="Pilih Banner">
+          <button class="banner-dot active" data-index="0" aria-label="Slide 1: IDNSPORTOTO Limited"></button>
+          <button class="banner-dot" data-index="1" aria-label="Slide 2: Freebet 10.000"></button>
+          <button class="banner-dot" data-index="2" aria-label="Slide 3: Parlay 3 Tim"></button>
+          <button class="banner-dot" data-index="3" aria-label="Slide 4: Parlay Paus 4 Tim"></button>
+          <button class="banner-dot" data-index="4" aria-label="Slide 5: Parlay Over Under"></button>
+          <button class="banner-dot" data-index="5" aria-label="Slide 6: Bonus Referral 3%"></button>
+          <button class="banner-dot" data-index="6" aria-label="Slide 7: Lomba 2D &amp; 3D"></button>
+          <button class="banner-dot" data-index="7" aria-label="Slide 8: King Kong Pools"></button>
+          <button class="banner-dot" data-index="8" aria-label="Slide 9: Hongkong Lotto"></button>
         </div>
       </div>
-      <div class="promo-slide promo-slide-2">
-        <div class="promo-content">
-          <div class="promo-tag">EVENT</div>
-          <div class="promo-title">DIAMOND SPORTS</div>
-          <div class="promo-desc">Pasang taruhan Sportsbook dan raih hadiah mingguan.</div>
-          <a class="promo-cta" href="sportsbook.html">Main Sekarang →</a>
-        </div>
-      </div>
-      <div class="promo-slide promo-slide-3" style="padding:0; background:none;">
-        <a href="promotion.html" style="display:block; width:100%; height:100%; text-decoration:none;" aria-label="Freebet 10.000 Tanpa DP Gasterus">
-          <picture>
-            <source srcset="assets/banners/hero-freebet-10k.webp?v=20260912-v3" type="image/webp">
-            <img src="assets/banners/hero-freebet-10k.jpg?v=20260912-v3" alt="Freebet 10.000 Tanpa DP Gasterus" style="width:100%; height:100%; object-fit:cover; border-radius:10px;">
-          </picture>
-        </a>
-      </div>
-      <div class="promo-dots">
-        <span class="promo-dot" data-slide="0"></span>
-        <span class="promo-dot" data-slide="1"></span>
-        <span class="promo-dot" data-slide="2"></span>
-      </div>
-    </div>
+    </section>
+
 
     <!-- Link Alternatif + QR APK -->
     <div class="official-apk-card">
@@ -285,27 +359,90 @@
           closeNav();
         });
       });
-      /* Promo banner carousel */
-      var promoSlides = Array.prototype.slice.call(document.querySelectorAll('.promo-slide'));
-      var promoDots = Array.prototype.slice.call(document.querySelectorAll('.promo-dot'));
-      var promoIndex = 0;
-      function showPromo(i) {
-        promoSlides.forEach(function (sl, x) { sl.classList.toggle('active', x === i); });
-        promoDots.forEach(function (d, x) { d.classList.toggle('active', x === i); });
-      }
-      promoDots.forEach(function (d) {
-        d.addEventListener('click', function () {
-          promoIndex = parseInt(d.getAttribute('data-slide'), 10) || 0;
-          showPromo(promoIndex);
+      /* Hero Banner 3D Smooth Slider Controller (sama dengan index.html) */
+      (function initHero3DSlider() {
+        var slider = document.getElementById('heroBannerSlider');
+        if (!slider) return;
+
+        var slides = slider.querySelectorAll('.banner-slide');
+        var dots = slider.querySelectorAll('.banner-dot');
+        var prevBtn = document.getElementById('bannerPrev');
+        var nextBtn = document.getElementById('bannerNext');
+        if (!slides.length) return;
+
+        var currentIndex = 0;
+        var timer = null;
+        var isHovered = false;
+
+        function updateSlide(nextIndex) {
+          var prevIndex = currentIndex;
+          currentIndex = (nextIndex + slides.length) % slides.length;
+
+          slides.forEach(function(slide, i) {
+            slide.classList.remove('active', 'prev-slide');
+            if (i === currentIndex) {
+              slide.classList.add('active');
+            } else if (i === prevIndex) {
+              slide.classList.add('prev-slide');
+            }
+          });
+
+          dots.forEach(function(dot, i) {
+            if (i === currentIndex) {
+              dot.classList.add('active');
+            } else {
+              dot.classList.remove('active');
+            }
+          });
+        }
+
+        function nextSlide() { updateSlide(currentIndex + 1); }
+        function prevSlide() { updateSlide(currentIndex - 1); }
+
+        function startAuto() {
+          stopAuto();
+          timer = setInterval(function() {
+            if (!isHovered) nextSlide();
+          }, 4500);
+        }
+
+        function stopAuto() {
+          if (timer) { clearInterval(timer); timer = null; }
+        }
+
+        if (nextBtn) nextBtn.addEventListener('click', function(e) { e.preventDefault(); nextSlide(); startAuto(); });
+        if (prevBtn) prevBtn.addEventListener('click', function(e) { e.preventDefault(); prevSlide(); startAuto(); });
+
+        dots.forEach(function(dot, i) {
+          dot.addEventListener('click', function(e) { e.preventDefault(); updateSlide(i); startAuto(); });
         });
-      });
-      if (promoSlides.length > 0) {
-        showPromo(0);
-        setInterval(function () {
-          promoIndex = (promoIndex + 1) % promoSlides.length;
-          showPromo(promoIndex);
-        }, 4500);
-      }
+
+        slider.addEventListener('mouseenter', function() { isHovered = true; });
+        slider.addEventListener('mouseleave', function() { isHovered = false; });
+
+        /* Touch Swipe for Mobile */
+        var touchStartX = 0;
+        var touchEndX = 0;
+
+        slider.addEventListener('touchstart', function(e) {
+          isHovered = true;
+          if (e.changedTouches && e.changedTouches[0]) touchStartX = e.changedTouches[0].clientX;
+        }, { passive: true });
+
+        slider.addEventListener('touchend', function(e) {
+          isHovered = false;
+          if (e.changedTouches && e.changedTouches[0]) {
+            touchEndX = e.changedTouches[0].clientX;
+            var diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 35) {
+              if (diff > 0) nextSlide(); else prevSlide();
+              startAuto();
+            }
+          }
+        }, { passive: true });
+
+        startAuto();
+      })();
       document.querySelectorAll('[data-modal-open]').forEach(function (trigger) {
         trigger.addEventListener('click', function (e) {
           e.preventDefault();
