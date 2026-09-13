@@ -61,6 +61,7 @@ export async function initLanding() {
   await loadMarkets();
 }
 
+
 async function loadMarkets() {
   const container = document.getElementById('hasil-grid-container');
   if (!container) return;
@@ -70,31 +71,23 @@ async function loadMarkets() {
     const fetched = res.items || res.data || res || [];
 
     if (Array.isArray(fetched) && fetched.length > 0) {
-      // Merge with default list to guarantee clean labels and real numbers
-      const defaults = generateDefaultResults();
-      marketsList = defaults.map(def => {
-        const found = fetched.find(f =>
-          f.code?.toUpperCase() === def.code ||
-          f.slug?.toLowerCase().includes(def.name.toLowerCase().replace(/\s+/g, '-')) ||
-          f.name?.toLowerCase().includes(def.name.toLowerCase())
-        );
-        return {
-          name: def.name,
-          code: def.code,
-          date: found?.drawDate ? formatDateID(found.drawDate) : def.date,
-          result: (found?.result && /^\d{3,6}$/.test(found.result)) ? found.result : def.result,
-          period: found?.period || def.period
-        };
-      });
+      marketsList = fetched.map(m => ({
+        name: m.name || m.code || 'Unknown',
+        code: m.code || '',
+        date: m.drawDate ? formatDateID(m.drawDate) : '-',
+        result: m.result || '----',
+        period: m.period || '-'
+      }));
     } else {
-      marketsList = generateDefaultResults();
+      marketsList = [];
     }
   } catch (err) {
-    console.warn('API connection fallback, using default pool list');
-    marketsList = generateDefaultResults();
+    console.warn('Failed to load markets:', err);
+    marketsList = [];
   }
 
   renderHasilGrid(marketsList);
+}
 }
 
 function formatDateID(dateStr) {
