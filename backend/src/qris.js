@@ -20,6 +20,52 @@ import { danaConfigured, generateQris } from './qris-dana.js';
 const MIN_AMOUNT=10_000;
 const MAX_AMOUNT=200_000_000;
 
+/**
+ * Generate QRIS EMVCo payload for MANUAL mode
+ * Creates a scannable QR code compatible with most Indonesian e-wallets/banks
+ * @param {Object} params
+ * @param {number} params.amount - Deposit amount
+ * @param {string} params.orderId - Order ID for reference
+ * @param {string} params.providerRef - Provider reference
+ * @param {string} params.memberUsername - Member username
+ * @returns {string} EMVCo QRIS payload string
+ */
+function generateQrisEmvcoPayload({ amount, orderId, providerRef, memberUsername }) {
+  // EMVCo QRIS format for domestic transactions
+  const amountStr = String(amount);
+  const amountField = `5502${amountStr.length.toString().padStart(2, '0')}${amountStr}`;
+  const countryCode = '5802ID';
+  const merchantName = `5911GASTERUS`;
+  const merchantCity = `6008JAKARTA`;
+  const additionalData = `62${(15 + providerRef.length).toString().padStart(2, '0')}0112${providerRef}`;
+
+  // Build payload with CRC
+  const payload = `000201010212${amountField}${countryCode}${merchantName}${merchantCity}${additionalData}6304`;
+  const crc = calculateCrc16Ccitt(payload);
+  return payload + crc;
+}
+
+/**
+ * Calculate CRC16 CCITT for EMVCo QR payload
+ * @param {string} data - Payload string without CRC
+ * @returns {string} 4-character hex CRC
+ */
+function calculateCrc16Ccitt(data) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < data.length; i++) {
+    crc ^= data.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      if (crc & 0x8000) {
+        crc = (crc << 1) ^ 0x1021;
+      } else {
+        crc = crc << 1;
+      }
+      crc &= 0xFFFF;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
 function qrisOutput(r,extra={}){
   return{
     orderId:r.id,
@@ -74,7 +120,10 @@ export async function createQrisDeposit(session,input,ip=''){
       const pm=(await client.query(`SELECT qr_image FROM payment_methods WHERE method_type='QRIS' AND is_active=TRUE AND qr_image IS NOT NULL ORDER BY sort_order LIMIT 1`)).rows[0];
       qrImage=pm?.qr_image||config.qrisStaticImageUrl||null;
     }
-    if(!qrPayload)qrPayload=config.qrisStaticPayload||null;
+    if(!qrPayload){
+      // Generate QRIS EMVCo payload for MANUAL mode (no DANA API needed)
+      qrPayload = generateQrisEmvcoPayload({ amount, orderId, providerRef, memberUsername: member.username });
+    }
 
     await client.query(`INSERT INTO qris_deposit_orders(id,member_id,wallet_request_id,amount,currency,request_key,provider_code,provider_ref,merchant_trans_id,qr_payload,qr_image,status,settle_mode,expires_at)
       VALUES($1,$2,$3,$4,$5,$6,'DANA',$7,$8,$9,$10,'WAITING',$11,$12)`,
