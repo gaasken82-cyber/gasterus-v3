@@ -275,7 +275,13 @@
           <div>Memuat hasil live dari VegasNet...</div>
         </div>
       </div>
-      <button class="btn-more" id="showMoreBtn" type="button" onclick="window.location.href='number-history.html';">Show More Results</button>
+<div class="show-more-container">
+  <button class="btn-show-more" id="showMoreBtn" type="button" onclick="toggleShowMore()">
+    <span class="btn-show-more-icon" id="showMoreIcon">▼</span>
+    <span id="showMoreText">Show More Results</span>
+  </button>
+  <div class="show-more-stats" id="showMoreStats"></div>
+</div>
     </section>
 
     <script type="module">
