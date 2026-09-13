@@ -124,6 +124,23 @@ function setupDepositForm() {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Mengirim Permintaan...';
 
+      /* QRIS auto deposit: generate dynamic QR + auto credit via webhook.
+         Falls back to the legacy manual flow when the endpoint is unavailable. */
+      const methodText = form.paymentMethodId?.selectedOptions?.[0]?.textContent || '';
+      if (/QRIS/i.test(methodText)) {
+        try {
+          const res = await api.post('/member/qris/create-order', { amount, idempotencyKey: payload.idempotencyKey });
+          const order = (res && res.data) ? res.data : res;
+          if (order && order.orderId) {
+            openQrisModal(order, form);
+            return;
+          }
+        } catch (qrisErr) {
+          console.warn('QRIS auto deposit unavailable, using manual flow', qrisErr);
+          showToast('Mode QRIS otomatis tidak tersedia, permintaan dikirim manual.', 'warning');
+        }
+      }
+
       await api.post('/member/wallet-requests', payload);
       showToast('Permintaan deposit telah terkirim! Admin akan memproses segera.', 'success');
       form.reset();
@@ -222,3 +239,86 @@ async function loadTransactionHistory(type) {
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Belum ada data riwayat transaksi.</td></tr>`;
   }
 }
+
+/* ============================================================
+   QRIS Auto Deposit Modal — dynamic QR + polling until payment
+   is confirmed by the provider webhook (balance auto credited).
+   ============================================================ */
+let _qrisPollTimer = null;
+
+function openQrisModal(order, form) {
+  closeQrisModal();
+
+  const auto = order.settleMode === 'AUTO';
+  const qrSrc = order.qrImage
+    ? order.qrImage
+    : (order.qrPayload
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(order.qrPayload)}`
+      : '');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'qris-modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(2,8,20,.82);display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.innerHTML = `
+    <div style="background:#0f1c30;border:1px solid #2c405a;border-radius:16px;max-width:360px;width:100%;padding:22px;text-align:center;color:#eef3f8;font-family:Inter,Arial,sans-serif;">
+      <div style="font-weight:800;font-size:1.05rem;margin-bottom:4px;">Scan QRIS untuk Deposit</div>
+      <div style="font-size:.8rem;color:#92a2b6;margin-bottom:14px;">Nominal: <strong style="color:#e2b84f;">Rp ${Number(order.amount).toLocaleString('id-ID')}</strong></div>
+      <div id="qris-image-box" style="background:#fff;border-radius:12px;padding:12px;display:inline-block;min-width:260px;min-height:260px;line-height:260px;">
+        ${qrSrc ? `<img src="${qrSrc}" alt="QRIS" style="width:260px;height:260px;display:inline-block;vertical-align:middle;">` : '<span style="font-size:.8rem;color:#333;">QRIS tidak tersedia</span>'}
+      </div>
+      <div id="qris-status" style="margin-top:14px;font-size:.85rem;color:#f5dc8a;">⏳ Menunggu pembayaran…</div>
+      <div id="qris-timer" style="margin-top:4px;font-size:.75rem;color:#92a2b6;"></div>
+      <button id="qris-close-btn" type="button" style="margin-top:16px;padding:9px 22px;border-radius:8px;border:1px solid #405570;background:#12243a;color:#fff;cursor:pointer;font-weight:700;">Tutup</button>
+      ${auto ? '' : '<div style="margin-top:10px;font-size:.72rem;color:#92a2b6;">Saldo akan masuk setelah admin mengonfirmasi pembayaran Anda.</div>'}
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('qris-close-btn').addEventListener('click', closeQrisModal);
+
+  // Countdown
+  const expiresAt = new Date(order.expiresAt).getTime();
+  const timerEl = document.getElementById('qris-timer');
+  const tick = () => {
+    const left = expiresAt - Date.now();
+    if (left <= 0) { if (timerEl) timerEl.textContent = 'Kedaluwarsa.'; return; }
+    const m = Math.floor(left / 60000), s = Math.floor((left % 60000) / 1000);
+    if (timerEl) timerEl.textContent = `Berlaku ${m}:${String(s).padStart(2, '0')} menit`;
+  };
+  tick();
+  const countdown = setInterval(tick, 1000);
+  overlay._countdown = countdown;
+
+  // Poll status every 3s until PAID / EXPIRED / closed
+  _qrisPollTimer = setInterval(async () => {
+    try {
+      const res = await api.get(`/member/qris/${order.orderId}/status`);
+      const st = (res && res.data) ? res.data : res;
+      const statusEl = document.getElementById('qris-status');
+      if (!statusEl) return;
+      if (st.balanceCredited || st.status === 'PAID') {
+        statusEl.textContent = '✅ Pembayaran diterima! Saldo telah masuk.';
+        statusEl.style.color = '#29b56d';
+        if (overlay._countdown) clearInterval(overlay._countdown);
+        clearInterval(_qrisPollTimer); _qrisPollTimer = null;
+        setTimeout(async () => {
+          closeQrisModal();
+          try { await auth.fetchMe(); auth.updateHeaderAuthUI(); } catch (e) { /* ignore */ }
+          await loadTransactionHistory('DEPOSIT');
+          showToast('Deposit berhasil! Saldo telah ditambahkan.', 'success');
+        }, 1800);
+      } else if (st.status === 'EXPIRED') {
+        statusEl.textContent = '⚠️ Transaksi kedaluwarsa. Silakan buat deposit baru.';
+        statusEl.style.color = '#df5a62';
+        if (overlay._countdown) clearInterval(overlay._countdown);
+        clearInterval(_qrisPollTimer); _qrisPollTimer = null;
+      }
+    } catch (e) { /* keep polling; transient network errors are ignored */ }
+  }, 3000);
+}
+
+function closeQrisModal() {
+  if (_qrisPollTimer) { clearInterval(_qrisPollTimer); _qrisPollTimer = null; }
+  const existing = document.getElementById('qris-modal-overlay');
+  if (existing && existing._countdown) clearInterval(existing._countdown);
+  if (existing) existing.remove();
+}
+

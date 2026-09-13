@@ -253,6 +253,9 @@
       }
     }
     loadHistory();
+
+    // Auto-update: refresh every 30 seconds
+    setInterval(loadHistory, 30000);
   </script>
 <script>
     (function () {

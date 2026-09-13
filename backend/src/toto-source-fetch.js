@@ -35,7 +35,11 @@ export const TOTO_SOURCES = Object.freeze([
     showIds: [
       2, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 21, 30, 38, 39, 40, 42, 43, 44,
       45, 48, 49, 51, 54, 55, 57, 59, 60, 61, 63, 65, 66, 67, 70, 71, 74, 76,
-      77, 84, 88, 89, 94, 98, 101, 110, 113, 114, 115, 116, 138, 139, 157, 166
+      77, 84, 88, 89, 94, 98, 101, 110, 113, 114, 115, 116, 138, 139, 157, 166,
+      // Additional Sydney Pool show_ids (VegasNet uses multiple IDs for Sydney)
+      3, 4, 5, 6, 7, 8, 14, 20, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33,
+      34, 35, 36, 37, 41, 46, 47, 50, 52, 53, 56, 58, 62, 64, 68, 69, 72, 73,
+      75, 78, 79, 80, 81, 82, 83, 85, 86, 87, 90, 91, 92, 93, 95, 96, 97, 99, 100
     ]
   },
   // Backup board (proven live, browser-rendered): aggregates ALL pools incl.
@@ -170,6 +174,12 @@ async function collectOneSource(source, fetchImpl) {
       const url = `${source.url}?show_id=${group.join(',')}`;
       try {
         const document = await fetchTotoDocument({ ...source, url }, fetchImpl);
+        // Log HTML for Sydney Pool (show_id 98) for debugging
+        if (group.includes(98)) {
+          console.log(`[VEGASNET DEBUG] Sydney Pool (show_id 98) HTML response (${document.html.length} chars):`);
+          console.log(document.html.substring(0, 2000));
+          console.log('---END VEGASNET DEBUG---');
+        }
         return { url, html: document.html, status: document.status };
       } catch (error) {
         return { url, html: '', status: null, error: clean(error.message) };

@@ -98,7 +98,8 @@ export async function registerMember(input,ip='') {
 }
 export async function loginMember(input,ip='',userAgent='') {
   const username=String(input.username||'').trim();
-  const {rows}=await query(`SELECT u.*,a.current_balance FROM users u JOIN ledger_accounts a ON a.owner_user_id=u.id WHERE u.username=$1`,[username]);
+  let {rows}=await query(`SELECT u.*,a.current_balance FROM users u JOIN ledger_accounts a ON a.owner_user_id=u.id WHERE u.username=$1`,[username]);
+  if(!rows.length&&username)rows=(await query(`SELECT u.*,a.current_balance FROM users u JOIN ledger_accounts a ON a.owner_user_id=u.id WHERE lower(u.username)=lower($1)`,[username])).rows;
   const user=rows[0]; const valid=Boolean(user&&await verifyPassword(input.password,user.password_hash));
   if(!valid){await recordSecurityEvent({memberId:user?.id||null,channel:'MEMBER',eventType:'MEMBER_LOGIN_FAILED',severity:'MEDIUM',usernameHint:username,ip,userAgent});assert(false,401,'Username atau password salah.','LOGIN_FAILED');}
   if(user.status!=='ACTIVE'){await recordSecurityEvent({memberId:user.id,channel:'MEMBER',eventType:'MEMBER_LOGIN_BLOCKED',severity:'HIGH',usernameHint:username,ip,userAgent,details:{status:user.status}});assert(false,403,'Akun tidak aktif.','ACCOUNT_INACTIVE');}

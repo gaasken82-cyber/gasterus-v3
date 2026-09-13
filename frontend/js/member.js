@@ -142,13 +142,13 @@ function setupLogout() {
   });
 }
 
-// Event-driven: update numbers exactly when close time arrives
+// Event-driven: update numbers exactly when each market's close time arrives
 const scheduledUpdates = new Map();
 
 function startMarketAutoUpdate() {
   const scheduleUpdate = (closeAt, marketIndex) => {
     if (!closeAt) return;
-    const delay = new Date(closeAt).getTime() - Date.now() + 2000; // 2s after close
+    const delay = new Date(closeAt).getTime() - Date.now() + 3000; // 3s after close
     if (delay <= 0) return;
 
     // Clear existing timeout for this market
@@ -157,7 +157,7 @@ function startMarketAutoUpdate() {
     }
 
     const timeoutId = setTimeout(async () => {
-      // Fetch latest data at close time
+      // Fetch latest data at this market's close time
       try {
         const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
         const markets = res.items || res.data || res || [];
@@ -168,9 +168,14 @@ function startMarketAutoUpdate() {
         const cards = container.querySelectorAll('.member-market-card');
         if (!cards.length) return;
 
-        markets.forEach((m, idx) => {
-          if (idx >= cards.length) return;
-          const card = cards[idx];
+        // Find the market by code/slug and update only that one
+        markets.forEach((m) => {
+          const cardIdx = Array.from(cards).findIndex(c => {
+            const nameEl = c.querySelector('h4');
+            return nameEl && nameEl.textContent.trim().toUpperCase() === (m.name || '').toUpperCase();
+          });
+          if (cardIdx < 0) return;
+          const card = cards[cardIdx];
 
           // Update result balls
           const ballsContainer = card.querySelector('div[style*="display:flex; gap:4px"]');
@@ -203,9 +208,9 @@ function startMarketAutoUpdate() {
             statusBadge.className = isClosed ? 'badge badge-danger' : 'badge badge-success';
           }
 
-          // Schedule next update if new closeAt exists
+          // Schedule next update for this market using its new closeAt
           if (m.closeAt) {
-            scheduleUpdate(m.closeAt, idx);
+            scheduleUpdate(m.closeAt, cardIdx);
           }
         });
       } catch (e) {

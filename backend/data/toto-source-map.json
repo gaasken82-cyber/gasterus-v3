@@ -53,7 +53,15 @@
   "sources": {
    "poskopaito": "Sydney Pools",
    "masterlive": "SYDNEY",
-   "vegasnet": "SYDNEY"
+   "vegasnet": [
+    "SYDNEY",
+    "Sydney",
+    "Sydney Pools",
+    "Sydney Pool",
+    "SYDNEY POOL",
+    "SYDNEYPOOLS",
+    "SYDNEYPOOL"
+   ]
   }
  },
  {

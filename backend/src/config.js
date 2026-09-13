@@ -222,7 +222,22 @@ export const config = Object.freeze({
   sportsbookRealtimeEnabled: bool('SPORTSBOOK_REALTIME_ENABLED', true),
   sportsbookRealtimePollMs: int('SPORTSBOOK_REALTIME_POLL_MS', 2000, 1000, 15000),
   sportsbookRealtimeHeartbeatSeconds: int('SPORTSBOOK_REALTIME_HEARTBEAT_SECONDS', 15, 5, 60),
-  sportsbookRealtimeMaxClients: int('SPORTSBOOK_REALTIME_MAX_CLIENTS', 2500, 10, 20000)
+  sportsbookRealtimeMaxClients: int('SPORTSBOOK_REALTIME_MAX_CLIENTS', 2500, 10, 20000),
+
+  // QRIS auto deposit (DANA OpenAPI / QRIS Acquirer). When credentials are
+  // absent the system automatically falls back to MANUAL mode (static QRIS +
+  // existing admin approval flow), so deposits never break.
+  qrisAutoProvider: text('QRIS_AUTO_PROVIDER', 'DANA'),
+  danaApiUrl: text('DANA_API_URL', 'https://api.dana.id'),
+  danaGenerateQrisPath: text('DANA_GENERATE_QRIS_PATH', '/dana-web/v1.0/qr/generate-qr'),
+  danaMid: text('DANA_MID', ''),
+  danaMerchantId: optionalSecret('DANA_MERCHANT_ID'),
+  danaPrivateKeyPem: optionalSecret('DANA_PRIVATE_KEY'),
+  danaWebhookSecret: optionalSecret('DANA_WEBHOOK_SECRET'),
+  qrisOrderTtlMinutes: int('QRIS_ORDER_TTL_MINUTES', 30, 5, 1440),
+  qrisProviderTimeoutMs: int('QRIS_PROVIDER_TIMEOUT_MS', 12000, 2000, 30000),
+  qrisStaticPayload: text('QRIS_STATIC_PAYLOAD', ''),
+  qrisStaticImageUrl: text('QRIS_STATIC_IMAGE_URL', '')
 });
 
 const mfaKey = Buffer.from(config.mfaEncryptionKeyBase64, 'base64');

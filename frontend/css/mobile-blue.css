@@ -1332,17 +1332,18 @@ footer, .site-footer {
 .reg-field {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .reg-label {
   flex-shrink: 0;
-  width: 105px;
+  width: 120px;
   font-size: 12px;
-  font-weight: 700;
-  color: #e2e8f0;
-  line-height: 1.35;
+  font-weight: 600;
+  color: #cbd5e1;
+  line-height: 1.4;
   text-align: left;
 }
 
@@ -1350,25 +1351,37 @@ footer, .site-footer {
   color: #ef4444;
 }
 
+.reg-input-col {
+  flex: 1;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .reg-input {
   width: 100%;
-  max-width: 240px;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 14px;
   color: #1e293b;
   font-size: 13px;
   font-family: 'Inter', system-ui, sans-serif;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   box-sizing: border-box;
+}
+
+.reg-input::placeholder {
+  color: #94a3b8;
+  font-size: 12px;
 }
 
 .reg-input:focus {
   border-color: #2563eb;
-  transform: translateZ(6px);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.28), inset 0 2px 4px rgba(15,23,42,0.04), 0 8px 16px rgba(37,99,235,0.16);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 /* Validation state — class-based (menang atas :focus, sinkron dgn centang) */
@@ -1449,28 +1462,36 @@ select.reg-input {
   margin-bottom: 8px;
 }
 
+.reg-captcha-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
 .reg-captcha-img {
   background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
   min-width: 0;
   flex: 0 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  padding: 4px 8px;
 }
 
 .reg-captcha-img img {
   display: block;
-  height: 44px;
+  height: 40px;
   width: auto;
   max-width: 100%;
 }
 
 .reg-captcha-refresh {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
   border-radius: 10px;
   color: #ffffff;
@@ -1481,17 +1502,17 @@ select.reg-input {
   border: 1.5px solid #60a5fa;
   cursor: pointer;
   flex-shrink: 0;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
   transition: all 0.15s ease;
 }
 .reg-captcha-refresh:hover {
   background: linear-gradient(180deg, #60a5fa 0%, #2563eb 50%, #1d4ed8 100%);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 4px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
 }
 .reg-captcha-refresh:active {
   background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.2);
   transform: translateY(1px);
 }
 

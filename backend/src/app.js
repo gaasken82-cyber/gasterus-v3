@@ -23,9 +23,11 @@ import { listMemberNotifications, markMemberNotificationRead, markAllMemberNotif
 import { backofficeSummary, deleteBanner, deletePromotion, getMemberDetail, listBanners, listPaymentMethods, listPromotions, listSettings, publicDepositConfig, publicSiteConfig, resetMemberPassword, revokeMemberSessions, saveSetting, setMemberStatus, setPaymentMethodActive, updateMember, upsertBanner, upsertPaymentMethod, upsertPromotion } from './backoffice.js';
 import { adminUpdateResponsiblePlay, createMemberSupportCase, createReconciliation, getPlayer360, getResponsiblePlay, listCompliance, listMemberSupportCases, listReconciliations, listRiskAlerts, listSecurityEvents, listSupportCases, operationsSummary, reportCenter, resolveRiskAlert, reviewKyc, runRiskScan, updateMemberResponsiblePlay, updateSupportCase } from './operations.js';
 import { ingestProviderEvent, moneyIntegritySummary } from './money.js';
+import { createQrisDeposit, handleQrisNotify, qrisOrderStatus, rawBody } from './qris.js';
 import { createRegistrationCaptcha, registrationAccountNumberAvailability, registrationEmailAvailability, registrationUsernameAvailability, verifyRegistrationCaptcha } from './registration.js';
 import { createSportsbookCashoutOffer, listMemberSportsbookCashoutOffers, acceptSportsbookCashout, sportsbookCashoutMetrics } from './sportsbook-cashout.js';
 import { openSportsbookRealtimeStream, sportsbookRealtimeStatus } from './sportsbook-realtime.js';
+import { totoMarketsHealth, totoMarketsDetail, simpleHealth } from './health-check.js';
 
 const startedAt=Date.now();const metrics={requests:0,errors:0,rateLimited:0,latencyTotal:0};
 const route=(method,pattern,handler,options={})=>({method,pattern,handler,...options});
@@ -39,6 +41,12 @@ async function optionalMemberSession(request){internal(request,'member');try{ret
 async function ownerSession(request,permission){internal(request,'admin');const s=await session(request,'OWNER');if(permission)requirePermission(s,permission);return s;}
 
 
+// ============================================================================
+// PHASE 1 CRITICAL: Health Check Endpoints for Toto Markets
+// ============================================================================
+add('GET',new RegExp('^/api/health/toto-markets$'),totoMarketsHealth);
+add('GET',new RegExp('^/api/health/toto-markets/detail$'),totoMarketsDetail);
+add('GET',new RegExp('^/api/health/simple$'),simpleHealth);
 
 add('GET',/^\/health$/,async({res})=>ok(res,{status:'ok',service:'core',uptimeSeconds:Math.floor((Date.now()-startedAt)/1000)}));
 add('GET',/^\/ready$/,async({res})=>{const [database,cache]=await Promise.all([checkDatabase(),checkRedis()]);ok(res,{status:'ready',database,cache});});
@@ -59,6 +67,11 @@ add('GET',/^\/api\/member\/payment-methods$/,async({req,res})=>{await memberSess
 add('POST',/^\/api\/member\/logout$/,async({req,res})=>{const s=await memberSession(req);requireCsrf(req,s);await logout(req,'MEMBER');ok(res,{ok:true},200,{'set-cookie':clearSessionCookie('MEMBER')});});
 add('POST',/^\/api\/member\/rules\/accept$/,async({req,res})=>{const s=await memberSession(req);requireCsrf(req,s);ok(res,{acceptedAt:await acceptRules(s.userId)});});
 add('GET',/^\/api\/member\/wallet-requests$/,async({req,res})=>{const s=await memberSession(req);ok(res,await listMemberRequests(s.userId));});
+add('POST',/^\/api\/member\/qris\/create-order$/,async({req,res,ip})=>{const s=await memberSession(req);requireCsrf(req,s);await rateLimit(req,'member-qris-create',10,60);ok(res,await createQrisDeposit(s,await body(req),ip),201);});
+add('GET',/^\/api\/member\/qris\/(?<id>[0-9a-f-]+)\/status$/,async({req,res,params})=>{const s=await memberSession(req);ok(res,await qrisOrderStatus(s,params.id));});
+// External payment provider webhook (DANA Finish Notify). Signature-verified;
+// no member session / CSRF required by design.
+add('POST',/^\/api\/payment\/qris\/notify$/,async({req,res})=>{const raw=await rawBody(req);ok(res,await handleQrisNotify(raw,req.headers));});
 add('POST',/^\/api\/member\/wallet-requests$/,async({req,res,ip})=>{const s=await memberSession(req);requireCsrf(req,s);await rateLimit(req,'member-wallet',12,60);ok(res,await createWalletRequest(s,await body(req,2600000),ip),201);});
 
 add('GET',/^\/api\/member\/responsible-play$/,async({req,res})=>{const s=await memberSession(req);ok(res,await getResponsiblePlay(s.userId));});

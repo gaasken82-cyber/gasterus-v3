@@ -18,8 +18,31 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function initRegister() {
   auth.updateHeaderAuthUI();
+  
+  // Jika user sudah login, tampilkan pesan dan sembunyikan form
   if (auth.isLoggedIn()) {
-    window.location.href = '/member.html';
+    const form = document.getElementById('register-form');
+    const alreadyLoggedInMsg = document.getElementById('already-logged-in-message');
+    
+    if (form) form.style.display = 'none';
+    if (alreadyLoggedInMsg) alreadyLoggedInMsg.style.display = 'block';
+    
+    // Update header untuk menampilkan info user
+    const headerTitle = document.querySelector('.reg-title');
+    if (headerTitle) headerTitle.textContent = 'ANDA SUDAH LOGIN';
+    
+    // Setup logout button
+    const logoutBtn = document.getElementById('btn-logout-from-register');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        auth.logout();
+        showToast('Anda telah logout. Silakan daftar akun baru.', 'success');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      });
+    }
+    
     return;
   }
 

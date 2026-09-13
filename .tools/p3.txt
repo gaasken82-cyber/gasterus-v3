@@ -1,0 +1,1 @@
+﻿e0a8a3d Sembunyikan hamburger di register + kecilkan captcha
