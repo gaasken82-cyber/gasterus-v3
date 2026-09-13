@@ -10,37 +10,52 @@ import { getTimeRemaining, showToast } from './utils.js';
 let marketsList = [];
 let isExpanded = false;
 
-// 24 Authentic Official Pool Results matching the CindoToto Live Board for 08 Sept 2026
-const DEFAULT_CINDOTOTO_RESULTS = [
-  { name: '5D TOTO MACAU', code: '5TMP', date: '07-09-2026', result: '95200', period: '2489' },
-  { name: 'KING KONG 4D', code: 'KK4P', date: '07-09-2026', result: '2264', period: '1832' },
-  { name: 'SYDNEY', code: 'SDY', date: '07-09-2026', result: '0680', period: '2891' },
-  { name: 'HONGKONG', code: 'HK', date: '07-09-2026', result: '3007', period: '1421' },
-  { name: '4D TOTO MACAU', code: '4TMP', date: '08-09-2026', result: '2400', period: '4191' },
-  { name: 'NEWYORK', code: 'NY', date: '08-09-2026', result: '0441', period: '0931' },
-  { name: 'SINGAPORE', code: 'SGP', date: '07-09-2026', result: '0024', period: '2982' },
-  { name: 'MEDELLIN', code: 'MDL', date: '07-09-2026', result: '0204', period: '0812' },
-  { name: 'EMERLAD', code: 'EMR', date: '07-09-2026', result: '1530', period: '1294' },
-  { name: 'PRAGUE', code: 'PRG', date: '07-09-2026', result: '4106', period: '0754' },
-  { name: 'SEATTLE', code: 'STL', date: '07-09-2026', result: '3654', period: '1138' },
-  { name: 'WELLINGTON', code: 'WLG', date: '07-09-2026', result: '9233', period: '0642' },
-  { name: 'CALIFORNIA', code: 'CAL', date: '08-09-2026', result: '5284', period: '3819' },
-  { name: 'CAMBODIA', code: 'CMD', date: '07-09-2026', result: '3935', period: '3313' },
-  { name: 'BULLSEYE', code: 'BLY', date: '07-09-2026', result: '4143', period: '2094' },
-  { name: 'CHINA', code: 'CHN', date: '07-09-2026', result: '3490', period: '1683' },
-  { name: 'JEPANG', code: 'JPN', date: '07-09-2026', result: '0475', period: '0924' },
-  { name: 'PCSO', code: 'PCSO', date: '07-09-2026', result: '7254', period: '4410' },
-  { name: 'TAIWAN', code: 'TW', date: '07-09-2026', result: '3424', period: '1206' },
-  { name: 'AUCKLAND', code: 'AKL', date: '07-09-2026', result: '2673', period: '0582' },
-  { name: 'CHRISTCHURCH', code: 'CHC', date: '07-09-2026', result: '6546', period: '0714' },
-  { name: 'HAMILTON', code: 'HML', date: '07-09-2026', result: '9571', period: '0491' },
-  { name: 'TAURANGA', code: 'TRG', date: '07-09-2026', result: '1198', period: '0834' },
-  { name: 'DUNEDIN', code: 'DND', date: '07-09-2026', result: '8953', period: '0372' }
-];
+// Generate dynamic default results based on current date
+function generateDefaultResults() {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const formatDate = (d) => {
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  };
+
+  const todayStr = formatDate(today);
+  const yesterdayStr = formatDate(yesterday);
+
+  return [
+    { name: 'SYDNEY', code: 'SDY', date: todayStr, result: '----', period: '----' },
+    { name: 'HONGKONG', code: 'HK', date: todayStr, result: '----', period: '----' },
+    { name: 'SINGAPORE', code: 'SGP', date: todayStr, result: '----', period: '----' },
+    { name: '4D TOTO MACAU', code: '4TMP', date: todayStr, result: '----', period: '----' },
+    { name: '5D TOTO MACAU', code: '5TMP', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'KING KONG 4D', code: 'KK4P', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'NEWYORK', code: 'NY', date: todayStr, result: '----', period: '----' },
+    { name: 'CALIFORNIA', code: 'CAL', date: todayStr, result: '----', period: '----' },
+    { name: 'CAMBODIA', code: 'CMD', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'CHINA', code: 'CHN', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'TAIWAN', code: 'TW', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'PCSO', code: 'PCSO', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'JEPANG', code: 'JPN', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'AUCKLAND', code: 'AKL', date: todayStr, result: '----', period: '----' },
+    { name: 'CHRISTCHURCH', code: 'CHC', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'WELLINGTON', code: 'WLG', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'HAMILTON', code: 'HML', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'TAURANGA', code: 'TRG', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'DUNEDIN', code: 'DND', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'MEDELLIN', code: 'MDL', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'EMERLAD', code: 'EMR', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'PRAGUE', code: 'PRG', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'SEATTLE', code: 'STL', date: yesterdayStr, result: '----', period: '----' },
+    { name: 'BULLSEYE', code: 'BLY', date: yesterdayStr, result: '----', period: '----' }
+  ];
+}
 
 export async function initLanding() {
   auth.updateHeaderAuthUI();
-  setupAuthModal();
   setupSearchFilter();
   setupShowMoreButton();
   await loadMarkets();
@@ -56,7 +71,8 @@ async function loadMarkets() {
 
     if (Array.isArray(fetched) && fetched.length > 0) {
       // Merge with default list to guarantee clean labels and real numbers
-      marketsList = DEFAULT_CINDOTOTO_RESULTS.map(def => {
+      const defaults = generateDefaultResults();
+      marketsList = defaults.map(def => {
         const found = fetched.find(f =>
           f.code?.toUpperCase() === def.code ||
           f.slug?.toLowerCase().includes(def.name.toLowerCase().replace(/\s+/g, '-')) ||
@@ -71,11 +87,11 @@ async function loadMarkets() {
         };
       });
     } else {
-      marketsList = [...DEFAULT_CINDOTOTO_RESULTS];
+      marketsList = generateDefaultResults();
     }
   } catch (err) {
-    console.warn('API connection fallback, using CindoToto official board dataset');
-    marketsList = [...DEFAULT_CINDOTOTO_RESULTS];
+    console.warn('API connection fallback, using default pool list');
+    marketsList = generateDefaultResults();
   }
 
   renderHasilGrid(marketsList);

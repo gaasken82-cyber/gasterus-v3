@@ -483,16 +483,6 @@
 
     </script>
 
-<script>
-(function(){
-function openNav(){var d=document.getElementById("site-nav-drawer"),b=document.getElementById("navBackdrop");if(d)d.classList.add("open");if(b)b.classList.add("show");document.body.classList.add("nav-open");}
-function closeNav(){var d=document.getElementById("site-nav-drawer"),b=document.getElementById("navBackdrop");if(d)d.classList.remove("open");if(b)b.classList.remove("show");document.body.classList.remove("nav-open");}
-document.querySelectorAll("[data-nav-open]").forEach(function(t){t.addEventListener("click",function(e){e.preventDefault();openNav();});});
-document.querySelectorAll("[data-nav-close]").forEach(function(e){e.addEventListener("click",closeNav);});
-document.getElementById("navBackdrop")?.addEventListener("click",closeNav);
-document.addEventListener("keydown",function(e){if(e.key==="Escape")closeNav();});
-})();
-</script>
 <script type="module">
 import auth from '/js/auth.js';
 import { showToast } from '/js/utils.js';
@@ -525,8 +515,24 @@ if (loginForm && btnLogin) {
       btnLogin.textContent = 'Log in';
     }
   });
-  }
+}
 </script>
+
+<script>
+(function(){
+    </script>
+
+<script>
+(function(){
+function openNav(){var d=document.getElementById("site-nav-drawer"),b=document.getElementById("navBackdrop");if(d)d.classList.add("open");if(b)b.classList.add("show");document.body.classList.add("nav-open");}
+function closeNav(){var d=document.getElementById("site-nav-drawer"),b=document.getElementById("navBackdrop");if(d)d.classList.remove("open");if(b)b.classList.remove("show");document.body.classList.remove("nav-open");}
+document.querySelectorAll("[data-nav-open]").forEach(function(t){t.addEventListener("click",function(e){e.preventDefault();openNav();});});
+document.querySelectorAll("[data-nav-close]").forEach(function(e){e.addEventListener("click",closeNav);});
+document.getElementById("navBackdrop")?.addEventListener("click",closeNav);
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeNav();});
+})();
+</script>
+<script type="module">`nimport auth from '/js/auth.js';`ndocument.addEventListener('DOMContentLoaded', () => {`n  if (auth.isLoggedIn()) window.location.href = '/member.html';`n});`n</script>
 
 <script>
 // Live Draw Loader — Fetch dinamis dari backend, fallback ke data statis jika gagal
@@ -542,7 +548,7 @@ if (loginForm && btnLogin) {
 
   if (!grid) return;
 
-  fetch('/api/public/markets?limit=24')
+  fetch('/api/public/markets?limit=24&_=' + Date.now(), { cache: 'no-store' })
     .then(function(res) { return res.ok ? res.json() : Promise.reject(res.status); })
     .then(function(data) {
       var markets = (data && (data.items || data.data)) || [];
