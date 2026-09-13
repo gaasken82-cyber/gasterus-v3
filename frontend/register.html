@@ -3,30 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Daftar Akun Baru � GASTERUS</title>
-  <link rel="stylesheet" href="/css/animations.css">
+  <title>Daftar Akun Baru — GASTERUS</title>
   <meta name="description" content="Daftar akun resmi Gasterus gratis. Proses cepat 1 menit.">
-
+  <link rel="stylesheet" href="/css/animations.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="manifest" href="manifest.json">
-
-
-  <link rel="stylesheet" href="css/mobile-blue.css?v=20260912-logo-v4">
+  <link rel="stylesheet" href="css/mobile-blue.css?v=20260913-reg-rt">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gasterus.fun/">
   <meta property="og:image" content="https://gasterus.fun/favicon.svg">
-  <meta property="og:image:width" content="64">
-  <meta property="og:image:height" content="64">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
-  <meta name="twitter:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
-  <meta name="twitter:image" content="https://gasterus.fun/favicon.svg">
-  <meta name="theme-color" content="#2563eb">
+  <meta name="theme-color" content="#0a0f1a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -38,30 +29,335 @@
   }
 </script>
 <style>
-  /* Sembunyikan hamburger di halaman register */
-  .page-register .menu-toggle { display: none !important; }
+/* ==========================================================================
+   REGISTER PAGE — Pixel Reconstruction (ref viewport 408x838)
+   Label kiri / input kanan, bar judul gelap, section amber, tombol besar.
+   ========================================================================== */
+
+.page-register .site { background-color: #0a0f1a; }
+
+/* Header: logo kiri + Live Chat kuning kanan (tanpa hamburger) */
+.page-register .menu-toggle { display: none !important; }
+.page-register .brand-bar {
+  min-height: 52px;
+  padding: 8px 12px;
+  background: #05080f;
+  border-bottom: 1px solid #1c2740;
+  gap: 10px;
+}
+.page-register .brand-logo-img { height: 34px; max-width: 170px; }
+.page-register .btn-livechat {
+  background: linear-gradient(180deg, #ffe14d 0%, #f7c600 100%);
+  color: #1a1a1a;
+  border: 1px solid #ffe98a;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* Judul Register: bar gelap + garis pemisah tipis */
+.reg-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  padding: 13px 12px 11px;
+  margin: 0;
+  background: rgba(0, 0, 0, 0.32);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  text-shadow: none;
+  text-align: left;
+  letter-spacing: 0.2px;
+}
+.reg-divider { display: none; }
+
+/* Form container */
+.reg-form {
+  padding: 14px 12px 18px;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* Row: label kiri — input kanan */
+.reg-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 13px;
+  padding: 0;
+}
+.reg-label {
+  flex: 0 0 96px;
+  width: 96px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f1f5f9;
+  line-height: 1.45;
+  text-align: left;
+  padding-top: 10px;
+  letter-spacing: 0;
+}
+.reg-label span { color: #ff4d4d; margin-left: 2px; }
+
+.reg-input-col {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Input: putih, rounded 6px, tinggi 38px */
+.reg-input {
+  width: 100%;
+  max-width: none;
+  height: 38px;
+  background: #ffffff;
+  border: 1px solid #d9dee7;
+  border-radius: 6px;
+  padding: 0 12px;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+  appearance: none;
+}
+.reg-input::placeholder { color: #9aa4b2; font-weight: 400; }
+.reg-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+/* Select (Nama Bank): custom chevron seperti screenshot */
+select.reg-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+/* Nomor HP: prefix +62 abu terang */
+.reg-phone-wrap {
+  display: flex;
+  align-items: stretch;
+  max-width: none;
+  background: #ffffff;
+  border: 1px solid #d9dee7;
+  border-radius: 6px;
+  overflow: hidden;
+  height: 38px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.reg-phone-prefix {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef1f5;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 11px;
+  border-right: 1px solid #d9dee7;
+  flex-shrink: 0;
+}
+.reg-phone-wrap input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #1e293b;
+  outline: none;
+  height: auto;
+}
+.reg-phone-wrap input::placeholder { color: #9aa4b2; font-weight: 400; }
+.reg-phone-wrap:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+/* Referral row: teks "-" sejajar posisi input */
+.reg-referral-value {
+  flex: 1;
+  min-width: 0;
+  padding-top: 10px;
+  font-size: 13px;
+  color: #f1f5f9;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* Status validasi */
+.reg-username-status {
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-top: 1px;
+  min-height: 0;
+}
+
+/* Section Pengaturan Bank: amber + garis bawah tipis */
+.reg-section-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: #f7c600;
+  padding: 4px 0 0;
+  margin: 20px 0 10px;
+  text-shadow: none;
+  border-bottom: 1px solid rgba(247, 198, 0, 0.35);
+  padding-bottom: 8px;
+}
+
+/* Captcha: gambar + tombol refresh kuning di kanan; input di baris bawah */
+.reg-captcha-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex: none;
+}
+.reg-captcha-img {
+  width: 150px;
+  height: 44px;
+  flex: 0 0 auto;
+  background: #ffffff;
+  border: 1px solid #cfd6e0;
+  border-radius: 6px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 3px;
+}
+.reg-captcha-img img { display: block; max-width: 100%; height: 100%; width: auto; object-fit: contain; }
+.reg-captcha-refresh {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  background: linear-gradient(180deg, #ffe14d 0%, #f7c600 100%);
+  border: 1px solid #ffe98a;
+  border-radius: 7px;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+.reg-captcha-refresh:hover { filter: brightness(1.06); }
+.reg-captcha-refresh:active { transform: translateY(1px); }
+.reg-captcha-refresh:disabled { opacity: 0.55; cursor: wait; }
+
+/* Checkbox list */
+.reg-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #f1f5f9;
+  margin-bottom: 8px;
+  padding: 0;
+  line-height: 1.45;
+  text-shadow: none;
+}
+.reg-checkbox a { color: #ffd83d; text-decoration: none; font-weight: 600; }
+.reg-checkbox input[type="checkbox"] {
+  accent-color: #2563eb;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  cursor: pointer;
+}
+
+/* Tombol Daftar: besar, full width, merah gradient seperti referensi */
+.btn-register-submit {
+  display: block;
+  width: 100%;
+  margin: 14px 0 0;
+  height: 52px;
+  background: linear-gradient(180deg, #ef3b36 0%, #d92121 55%, #b31414 100%);
+  color: #ffffff;
+  border: 1px solid #ff6b66;
+  border-radius: 9px;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 3px 0 #7a0d0d, 0 6px 16px rgba(217, 33, 33, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+.btn-register-submit:hover { filter: brightness(1.07); }
+.btn-register-submit:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #7a0d0d, 0 2px 6px rgba(217, 33, 33, 0.4);
+}
+.btn-register-submit:disabled { opacity: 0.65; cursor: not-allowed; }
+
+/* Footer: hitam pekat, copyright kecil tengah */
+.page-register footer,
+.page-register .site > footer {
+  background: #02040a;
+  border-top: 1px solid #141d33;
+  padding: 16px 12px 18px;
+}
+.page-register footer .footer-links { display: none; }
+.page-register footer div:last-child { color: #7c8798; font-size: 11px; }
+
+/* Pesan sudah login */
+#already-logged-in-message { display: none; padding: 14px 12px; font-size: 13px; color: #fbbf24; }
+#already-logged-in-message button {
+  margin-top: 10px; height: 40px; padding: 0 18px;
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #fff; border: none; border-radius: 8px; font-weight: 800; cursor: pointer;
+}
+
+@media (max-width: 380px) {
+  .reg-label { flex: 0 0 88px; width: 88px; font-size: 11.5px; }
+  .btn-register-submit { font-size: 19px; }
+}
 </style>
 </head>
 <body class="page-register">
   <div class="site">
 
-    <!-- Header -->
+    <!-- Header: logo kiri + Live Chat kuning kanan -->
     <header class="brand-bar">
       <a href="/index.html" class="brand-title">
-        <span class="logo-shine-wrap"><img src="/assets/logo.png?v=20260912-logo-v4" alt="GASTERUS" class="brand-logo-img"></span>
+        <span class="logo-shine-wrap"><img src="/assets/logo.webp?v=20260913-reg-rt" alt="GASTERUS" class="brand-logo-img"></span>
       </a>
       <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
     </header>
 
-    <!-- Register Title -->
-    <div class="reg-title">Register</div>
-    <div class="reg-divider"></div>
+    <!-- Judul bar -->
+    <div class="reg-title" id="register-page-title">Register</div>
+
+    <!-- Pesan sudah login -->
+    <div id="already-logged-in-message">
+      Anda sudah login. Untuk mendaftar akun baru, silakan logout terlebih dahulu.
+      <div><button type="button" id="btn-logout-from-register">Logout Sekarang</button></div>
+    </div>
 
     <!-- Register Form -->
     <form class="reg-form" id="register-form">
 
       <div class="reg-field">
-        <label class="reg-label">Username <span>*</span></label>
+        <label class="reg-label" for="reg-username">Username <span>*</span></label>
         <div class="reg-input-col">
           <input class="reg-input" type="text" id="reg-username" name="username" placeholder="Username" required autocomplete="username">
           <span class="reg-username-status" id="username-status"></span>
@@ -69,7 +365,7 @@
       </div>
 
       <div class="reg-field">
-        <label class="reg-label">Password <span>*</span></label>
+        <label class="reg-label" for="reg-password">Password <span>*</span></label>
         <div class="reg-input-col">
           <input class="reg-input" type="password" id="reg-password" name="password" placeholder="Password" required autocomplete="new-password">
           <span class="reg-username-status" id="password-status"></span>
@@ -77,7 +373,7 @@
       </div>
 
       <div class="reg-field">
-        <label class="reg-label">Konfirmasi Password <span>*</span></label>
+        <label class="reg-label" for="reg-password-confirm">Konfirmasi Password <span>*</span></label>
         <div class="reg-input-col">
           <input class="reg-input" type="password" id="reg-password-confirm" name="passwordConfirm" placeholder="Konfirmasi Password" required autocomplete="new-password">
           <span class="reg-username-status" id="confirm-status"></span>
@@ -85,7 +381,7 @@
       </div>
 
       <div class="reg-field">
-        <label class="reg-label">Email <span>*</span></label>
+        <label class="reg-label" for="reg-email">Email <span>*</span></label>
         <div class="reg-input-col">
           <input class="reg-input" type="email" id="reg-email" name="email" placeholder="Alamat email anda" required autocomplete="email">
           <span class="reg-username-status" id="email-status"></span>
@@ -93,7 +389,7 @@
       </div>
 
       <div class="reg-field">
-        <label class="reg-label">No. Telp/HP <span>*</span></label>
+        <label class="reg-label" for="reg-phone">No. Telp/HP <span>*</span></label>
         <div class="reg-input-col">
           <div class="reg-phone-wrap">
             <span class="reg-phone-prefix">+62</span>
@@ -104,34 +400,35 @@
       </div>
 
       <div class="reg-field">
-        <label class="reg-label">Referral</label>
+        <span class="reg-label">Referral</span>
         <span class="reg-referral-value">-</span>
         <input type="hidden" name="referralCode" id="reg-referral" value="">
       </div>
 
       <!-- Pengaturan Bank Section -->
       <div class="reg-section-title">Pengaturan Bank</div>
-      <div class="reg-divider"></div>
 
       <div class="reg-field">
-        <label class="reg-label">Nama Bank <span>*</span></label>
-        <select class="reg-input" id="reg-bank-name" name="bankName" required>
-          <option value="BCA">BCA</option>
-          <option value="MANDIRI">MANDIRI</option>
-          <option value="BNI">BNI</option>
-          <option value="BRI">BRI</option>
-          <option value="CIMB">CIMB NIAGA</option>
-          <option value="PERMATA">BANK PERMATA</option>
-          <option value="DANAMON">BANK DANAMON</option>
-          <option value="DANA">DANA</option>
-          <option value="OVO">OVO</option>
-          <option value="GOPAY">GOPAY</option>
-          <option value="LINKAJA">LINKAJA</option>
-        </select>
+        <label class="reg-label" for="reg-bank-name">Nama Bank <span>*</span></label>
+        <div class="reg-input-col">
+          <select class="reg-input" id="reg-bank-name" name="bankName" required>
+            <option value="BCA">BCA</option>
+            <option value="MANDIRI">MANDIRI</option>
+            <option value="BNI">BNI</option>
+            <option value="BRI">BRI</option>
+            <option value="CIMB">CIMB NIAGA</option>
+            <option value="PERMATA">BANK PERMATA</option>
+            <option value="DANAMON">BANK DANAMON</option>
+            <option value="DANA">DANA</option>
+            <option value="OVO">OVO</option>
+            <option value="GOPAY">GOPAY</option>
+            <option value="LINKAJA">LINKAJA</option>
+          </select>
+        </div>
       </div>
 
       <div class="reg-field">
-        <label class="reg-label">Nama Rekening <span>*</span></label>
+        <label class="reg-label" for="reg-account-name">Nama Rekening <span>*</span></label>
         <div class="reg-input-col">
           <input class="reg-input" type="text" id="reg-account-name" name="accountName" placeholder="Nama rekening anda" required>
           <span class="reg-username-status" id="account-name-status"></span>
@@ -139,7 +436,7 @@
       </div>
 
       <div class="reg-field">
-        <label class="reg-label">Nomor Rekening <span>*</span></label>
+        <label class="reg-label" for="reg-account-number">Nomor Rekening <span>*</span></label>
         <div class="reg-input-col">
           <input class="reg-input" type="text" id="reg-account-number" name="accountNumber" placeholder="Nomor rekening" required>
           <span class="reg-username-status" id="account-number-status"></span>
@@ -148,13 +445,13 @@
 
       <!-- Captcha -->
       <div class="reg-field">
-        <label class="reg-label">Captcha <span>*</span></label>
+        <span class="reg-label">Captcha <span>*</span></span>
         <div class="reg-input-col">
           <div class="reg-captcha-row">
             <div class="reg-captcha-img" id="captcha-container">
               <!-- Dynamic SVG -->
             </div>
-            <button type="button" class="reg-captcha-refresh" id="btn-refresh-captcha" aria-label="Refresh captcha"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+            <button type="button" class="reg-captcha-refresh" id="btn-refresh-captcha" aria-label="Refresh captcha"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
           </div>
           <input class="reg-input" type="text" id="reg-captcha-code" name="captchaCode" placeholder="Captcha" required maxlength="6" style="text-transform: uppercase;">
         </div>
@@ -168,26 +465,25 @@
         <input type="checkbox" required> Saya setuju dengan <a href="rules.html">peraturan yang berlaku</a>
       </label>
 
-      <!-- Submit Button (di dalam form agar form.querySelector('button[type="submit"]') tidak null) -->
+      <!-- Submit -->
       <button type="submit" class="btn-register-submit">Daftar</button>
 
-      <div style="text-align:center; margin-top:14px; font-size:13px; color:#94a3b8;">
-        Sudah punya akun? <a href="login.html" style="color:#38bdf8; font-weight:700; text-decoration:none;">Masuk di sini</a>
+      <div style="text-align:center; margin-top:14px; font-size:12px; color:#94a3b8;">
+        Sudah punya akun? <a href="login.html" style="color:#ffd83d; font-weight:700; text-decoration:none;">Masuk di sini</a>
       </div>
 
     </form>
 
-    
   <!-- Navigation Drawer -->
   <div class="nav-drawer-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
     <div class="nav-drawer-head">
       <span class="nav-drawer-title">Menu</span>
-      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">?</button>
+      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
     </div>
     <div class="nav-drawer-body">
       <a class="nav-drawer-item" href="/index.html">Beranda</a>
-      <a class="nav-drawer-item" href="/member.html">Togel &amp; Slot</a>
+      <a class="nav-drawer-item" href="/member.html">Togel & Slot</a>
       <a class="nav-drawer-item" href="/sportsbook.html">Sportsbook</a>
       <a class="nav-drawer-item" href="/number-history.html">Result</a>
       <a class="nav-drawer-item" href="/bet-history.html">Riwayat Bet</a>
@@ -203,7 +499,6 @@
     </div>
   </nav>
 
-
     <!-- Footer -->
     <footer>
       <div class="footer-links">
@@ -211,12 +506,12 @@
         <a href="rules.html">Cara Bermain</a>
         <a href="terms.html">Terms</a>
       </div>
-      <div>&copy; Copyright 2014 - 2026 GASTERUS. All Rights Reserved.</div>
+      <div>&copy; Copyright 2014 - 2026. All Rights Reserved.</div>
     </footer>
 
   </div>
 
-  <script type="module" src="js/register.js?v=reg2"></script>
+  <script type="module" src="js/register.js?v=reg3"></script>
 <script>
 (function(){
 function openNav(){var d=document.getElementById('site-nav-drawer'),b=document.getElementById('navBackdrop');if(d)d.classList.add('open');if(b)b.classList.add('show');document.body.classList.add('nav-open');}
