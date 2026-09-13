@@ -1633,14 +1633,25 @@ select.reg-input {
   justify-content: center;
   background: #ffffff;
   border-radius: 6px;
-  padding: 6px;
+  padding: 8px;
+  min-height: 60px;
+  min-width: 56px;
 }
 .official-apk-right img.app-logo-img {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 6px;
   object-fit: contain;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+.apk-download-btn {
+  text-decoration: none;
+  cursor: pointer;
+}
+.apk-download-btn:hover {
+  opacity: 0.85;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
 }
 .provider-header-bar {
   margin: 12px 10px 8px;
