@@ -142,9 +142,78 @@ function setupLogout() {
   });
 }
 
+// Auto-update market numbers every 30 seconds (no layout change)
+function startMarketAutoUpdate() {
+  setInterval(async () => {
+    try {
+      const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
+      const markets = res.items || res.data || res || [];
+      if (!Array.isArray(markets) || !markets.length) return;
+
+      const container = document.getElementById('member-markets-container');
+      if (!container) return;
+
+      const cards = container.querySelectorAll('.member-market-card');
+      if (!cards.length) return;
+
+      markets.forEach((m, idx) => {
+        if (idx >= cards.length) return;
+        const card = cards[idx];
+
+        // Update period number
+        const periodEl = card.querySelector('div[style*="Periode:"]');
+        if (periodEl && m.period) {
+          const newPeriod = '#' + m.period;
+          if (periodEl.textContent.trim() !== 'Periode: ' + newPeriod) {
+            periodEl.textContent = 'Periode: ' + newPeriod;
+          }
+        }
+
+        // Update result balls
+        const ballsContainer = card.querySelector('div[style*="display:flex; gap:4px"]');
+        if (ballsContainer && m.result) {
+          const newDigits = String(m.result).split('');
+          const currentBalls = ballsContainer.querySelectorAll('.ball-num');
+          if (currentBalls.length === newDigits.length) {
+            newDigits.forEach((digit, i) => {
+              if (currentBalls[i] && currentBalls[i].textContent !== digit) {
+                currentBalls[i].textContent = digit;
+                // Subtle highlight animation
+                currentBalls[i].style.transition = 'background 0.3s';
+                currentBalls[i].style.background = '#fef08a';
+                setTimeout(() => {
+                  if (currentBalls[i]) currentBalls[i].style.background = '';
+                }, 600);
+              }
+            });
+          }
+        }
+
+        // Update status badge
+        const statusBadge = card.querySelector('.badge');
+        if (statusBadge) {
+          const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
+          const newStatus = isClosed ? 'TUTUP' : 'BUKA';
+          const newClass = isClosed ? 'badge badge-danger' : 'badge badge-success';
+          if (statusBadge.textContent.trim() !== newStatus) {
+            statusBadge.textContent = newStatus;
+            statusBadge.className = newClass;
+          }
+        }
+      });
+    } catch (e) {
+      // Silent fail — don't disrupt user experience
+    }
+  }, 30000); // Update every 30 seconds
+}
+
 // Auto init
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initMember);
+  document.addEventListener('DOMContentLoaded', () => {
+    initMember();
+    startMarketAutoUpdate();
+  });
 } else {
   initMember();
+  startMarketAutoUpdate();
 }
