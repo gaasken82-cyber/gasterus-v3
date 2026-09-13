@@ -42,7 +42,7 @@
   <header class="app-header">
     <div class="container">
       <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">?</button>
-      <a href="/index.html" class="brand-logo"><span class="logo-shine-wrap"><img src="/assets/logo.png?v=20260912-logo-v4" alt="GASTERUS" class="brand-logo-img"></span></a>
+      <a href="/member.html" class="brand-logo"><span class="logo-shine-wrap"><img src="/assets/logo.png?v=20260912-logo-v4" alt="GASTERUS" class="brand-logo-img"></span></a>
 
       <div class="header-actions">
         <a href="/member.html" class="btn btn-secondary btn-sm">? Member Area</a>
@@ -87,6 +87,43 @@
           <div class="history-meta">
             <span class="source-pill">VegasNet ? Real-time</span>
             <span id="history-updated-at" style="color: var(--text-secondary);">?</span>
+          </div>
+        </div>
+
+        <!-- Vegasnet Live Result Widget -->
+        <div class="vegasnet-widget-section" style="margin-bottom: 24px;">
+          <div class="vegasnet-widget-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite;"></span>
+              <span style="font-size: 13px; font-weight: 700; color: #e2e8f0;">LIVE RESULT - VEGASNET</span>
+            </div>
+            <span style="font-size: 11px; color: #94a3b8;">Real-time Auto Update</span>
+          </div>
+          <div class="vegasnet-iframe-wrapper" style="background: #0a0f1a; border: 1.5px solid rgba(56, 189, 248, 0.3); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);">
+            <iframe src="https://widgets.vegasnet.info/result1.php" width="100%" height="400" scrolling="no" style="border:0; display: block;" title="Vegasnet Live Results"></iframe>
+          </div>
+        </div>
+
+        <!-- Specific Pool Widgets -->
+        <div class="vegasnet-pools-section" style="margin-bottom: 24px;">
+          <div style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px;">Pasaran Populer</div>
+          <div class="vegasnet-pools-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+            <div class="vegasnet-pool-card" style="background: #0a0f1a; border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; overflow: hidden;">
+              <div style="padding: 8px 12px; background: linear-gradient(90deg, #1e40af, #2563eb); font-size: 11px; font-weight: 700; color: #fff;">SYDNEY / HONGKONG / SINGAPORE</div>
+              <iframe src="https://widgets.vegasnet.info/result.php?show_id=98,4,96" width="100%" height="120" scrolling="no" style="border:0; display: block;"></iframe>
+            </div>
+            <div class="vegasnet-pool-card" style="background: #0a0f1a; border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; overflow: hidden;">
+              <div style="padding: 8px 12px; background: linear-gradient(90deg, #1e40af, #2563eb); font-size: 11px; font-weight: 700; color: #fff;">MACAU / CHINA / CALIFORNIA</div>
+              <iframe src="https://widgets.vegasnet.info/result.php?show_id=115,83,78" width="100%" height="120" scrolling="no" style="border:0; display: block;"></iframe>
+            </div>
+            <div class="vegasnet-pool-card" style="background: #0a0f1a; border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; overflow: hidden;">
+              <div style="padding: 8px 12px; background: linear-gradient(90deg, #1e40af, #2563eb); font-size: 11px; font-weight: 700; color: #fff;">WELLINGTON / FLORIDA / ILLINOIS</div>
+              <iframe src="https://widgets.vegasnet.info/result.php?show_id=113,157,166" width="100%" height="120" scrolling="no" style="border:0; display: block;"></iframe>
+            </div>
+            <div class="vegasnet-pool-card" style="background: #0a0f1a; border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; overflow: hidden;">
+              <div style="padding: 8px 12px; background: linear-gradient(90deg, #1e40af, #2563eb); font-size: 11px; font-weight: 700; color: #fff;">VIRGINIA / DELAWARE / WASHINGTON</div>
+              <iframe src="https://widgets.vegasnet.info/result.php?show_id=114,116,139" width="100%" height="120" scrolling="no" style="border:0; display: block;"></iframe>
+            </div>
           </div>
         </div>
 
