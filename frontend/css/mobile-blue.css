@@ -4740,51 +4740,56 @@ body.nav-open .nav-drawer,
   align-items: center;
 }
 
-/* --- Steps Grid --- */
+/* --- Steps Grid: Compact 3-Column Enterprise --- */
 .ref-steps-section {
   padding: 0 20px 16px;
 }
 
 .ref-steps-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-}
-
-@media (min-width: 381px) {
-  .ref-steps-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .ref-step-card {
-    flex-direction: column;
-    text-align: center;
-    align-items: center;
-  }
+  align-items: stretch;
 }
 
 .ref-step-card {
   background: linear-gradient(180deg, #131f38 0%, #0c1524 100%);
   border: 1px solid #22375a;
-  border-radius: 14px;
-  padding: 14px;
+  border-radius: 12px;
+  padding: 14px 8px 12px;
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 12px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  min-width: 0;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  position: relative;
+  overflow: hidden;
+}
+
+.ref-step-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #7c3aed, transparent);
+  border-radius: 2px;
 }
 
 .ref-step-num {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%);
   border-radius: 50%;
   color: #ffffff;
   font-family: 'Outfit', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 900;
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(124, 58, 237, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
@@ -4792,17 +4797,23 @@ body.nav-open .nav-drawer,
 
 .ref-step-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   color: #ffffff;
-  margin-bottom: 4px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .ref-step-desc {
-  font-size: 11px;
+  font-size: 10px;
   color: #94a3b8;
-  line-height: 1.5;
+  line-height: 1.4;
   margin: 0;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 /* --- Rate Section --- */
