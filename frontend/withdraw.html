@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Tarik Dana (Withdraw) ? GASTERUS V3</title>
+  <title>Tarik Dana (Withdraw) — GASTERUS V3</title>
   <meta name="description" content="Penarikan dana kemenangan Togel & Sportsbook cepat dan aman langsung masuk ke rekening bank terdaftar Anda.">
 
   <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/mobile-blue.css?v=20260912-logo-v4">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/mobile-blue.css?v=20260913-trx-pro">
   <link rel="stylesheet" href="/css/animations.css">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
@@ -35,31 +37,219 @@
     });
   }
 </script>
+<!-- Start of LiveChat Widget -->
+<script>
+    window.__lc = window.__lc || {};
+    window.__lc.organizationId = "1307d136-f672-4179-bff1-e66b47d98133";
+    window.__lc.integration_name = "manual_onboarding";
+    window.__lc.product_name = "text";
+    ;(function(n,t,c){function i(n){return e._h?e._h.apply(null,n):e._q.push(n)}var e={_q:[],_h:null,_v:"2.0",on:function(){i(["on",c.call(arguments)])},once:function(){i(["once",c.call(arguments)])},off:function(){i(["off",c.call(arguments)])},get:function(){if(!e._h)throw new Error("[LiveChatWidget] You can't use getters before load.");return i(["get",c.call(arguments)])},call:function(){i(["call",c.call(arguments)])},init:function(){var n=t.createElement("script");n.async=!0;n.type="text/javascript";n.src="https://cdn.livechatinc.com/tracking.js",t.head.appendChild(n)}};!n.__lc.asyncInit&&e.init(),n.LiveChatWidget=n.LiveChatWidget||e}(window,document,[].slice))
+</script>
+<noscript><a href="https://www.text.com/chat-with-ai-agent/1307d136-f672-4179-bff1-e66b47d98133/" rel="nofollow">Chat with AI Agent</a>, powered by <a href="https://www.text.com/" rel="noopener nofollow" target="_blank">Text</a></noscript>
+<!-- End of LiveChat Widget -->
 </head>
 <body class="page-withdraw">
   <div class="site">
 
-  <header class="app-header">
-    <div class="container">
-      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">?</button>
-      <a href="/member.html" class="brand-logo"><span class="logo-shine-wrap"><img src="/assets/logo.png?v=20260912-logo-v4" alt="GASTERUS" class="brand-logo-img"></span></a>
+  <!-- Header -->
+  <header class="brand-bar">
+    <button type="button" class="menu-toggle" data-nav-open aria-label="Menu"></button>
+    <a href="/member.html" class="brand-title">
+      <span class="logo-shine-wrap"><img src="/assets/logo.webp?v=20260913-trx-pro" alt="GASTERUS" class="brand-logo-img"></span>
+    </a>
+    <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
+  </header>
 
-      <div class="header-actions">
-        <a href="/member.html" class="btn btn-secondary btn-sm">? Member Area</a>
+  <!-- User Bar -->
+  <div class="member-user-bar">
+    <div class="member-user-info">
+      <div class="user-name"><span class="user-display-name">Member</span></div>
+      <div class="user-balance">Balance: IDR. <span class="user-display-balance">0</span></div>
+    </div>
+    <button type="button" class="btn-refresh-balance" id="btn-refresh-withdraw" aria-label="Refresh Saldo">
+      <span class="refresh-icon">↻</span> Refresh
+    </button>
+  </div>
+
+  <!-- Marquee -->
+  <div class="marquee-bar">
+    <span class="marquee-label">INFO</span>
+    <div class="marquee-track">
+      <span class="marquee-text">Selamat datang di GASTERUS • Deposit & Withdraw Super Cepat • Bonus Tanpa Batas Setiap Hari</span>
+    </div>
+  </div>
+
+  <!-- Page Title -->
+  <div class="kasir-header">
+    <div class="kasir-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="24" height="24" rx="6" fill="url(#wdGrad)"/>
+        <path d="M12 5v10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        <path d="M8.5 11.5L12 15l3.5-3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5 19h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        <defs>
+          <linearGradient id="wdGrad" x1="0" y1="0" x2="24" y2="24">
+            <stop stop-color="#f59e0b"/>
+            <stop offset="1" stop-color="#d97706"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <h1 class="kasir-title">Penarikan Dana</h1>
+    <p class="kasir-subtitle">Dana kemenangan dikirim otomatis ke rekening terdaftar Anda</p>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="kasir-tabs">
+    <a href="deposit.html" class="kasir-tab">
+      <span class="tab-icon tab-icon-deposit">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <path d="M3 10h18"/>
+          <path d="M8 15h8"/>
+        </svg>
+      </span>
+      <span class="tab-label">Deposit</span>
+    </a>
+    <a href="withdraw.html" class="kasir-tab active">
+      <span class="tab-icon tab-icon-withdraw">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <path d="M3 10h18"/>
+          <path d="M12 7v6"/>
+          <path d="M9 10l3 3 3-3"/>
+        </svg>
+      </span>
+      <span class="tab-label">Withdraw</span>
+    </a>
+    <a href="bet-history.html" class="kasir-tab">
+      <span class="tab-icon tab-icon-history">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 8v4l3 3"/>
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 3v3"/>
+        </svg>
+      </span>
+      <span class="tab-label">Riwayat</span>
+    </a>
+  </div>
+
+  <main class="app-main">
+    <div class="container tx-container">
+      <div class="tx-card fade-in">
+        <div class="wd-card-head">
+          <span class="wd-badge">PENARIKAN DANA</span>
+          <h1 class="wd-title">Formulir Withdraw</h1>
+          <p class="wd-subtitle">Dana kemenangan akan dikirimkan otomatis ke rekening bank terdaftar Anda.</p>
+        </div>
+
+        <form id="withdraw-form">
+          <!-- Member Bank Info Card -->
+          <div class="bank-destination-box">
+            <svg class="bank-dest-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 21h18"/>
+              <path d="M5 21V7l7-4 7 4v14"/>
+              <path d="M9 21v-8h6v8"/>
+              <path d="M9 9h.01M15 9h.01"/>
+            </svg>
+            <div class="bank-dest-text">
+              <div class="bank-dest-label">Rekening Tujuan Pencairan</div>
+              <strong id="member-bank-info" class="bank-dest-value">Memuat data rekening...</strong>
+            </div>
+          </div>
+
+          <!-- Amount Input -->
+          <div class="form-group">
+            <label class="form-label" for="withdraw-amount-input">Nominal Penarikan (Rp) <span class="req-star">*</span></label>
+            <div class="input-prefix">
+              <span class="prefix">Rp</span>
+              <input type="number" id="withdraw-amount-input" name="amount" class="form-input wd-amount-input" placeholder="Min. 50.000" min="50000" step="1" required>
+            </div>
+            <span class="form-hint">Minimal penarikan Rp 50.000</span>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="preset-amounts wd-preset-grid">
+            <button type="button" class="preset-btn" data-value="50000">50K</button>
+            <button type="button" class="preset-btn" data-value="100000">100K</button>
+            <button type="button" class="preset-btn" data-value="250000">250K</button>
+            <button type="button" class="preset-btn" data-value="500000">500K</button>
+            <button type="button" class="preset-btn" data-value="1000000">1Jt</button>
+            <button type="button" class="preset-btn" data-value="2000000">2Jt</button>
+          </div>
+
+          <!-- Security Password Confirmation -->
+          <div class="form-group">
+            <label class="form-label" for="withdraw-password">Kata Sandi Akun (Verifikasi Keamanan) <span class="req-star">*</span></label>
+            <div class="input-prefix input-prefix-pw">
+              <span class="prefix">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input type="password" id="withdraw-password" name="password" class="form-input" placeholder="Masukkan kata sandi Anda" required autocomplete="current-password">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit wd-submit">
+            <span class="btn-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v10"/>
+                <path d="M8.5 11.5L12 15l3.5-3.5"/>
+                <path d="M5 19h14"/>
+              </svg>
+            </span>
+            Tarik Dana Sekarang
+          </button>
+        </form>
+      </div>
+
+      <!-- History Card -->
+      <div class="tx-history-card">
+        <div class="tx-history-head">
+          <span class="tx-history-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 8v4l3 3"/>
+              <circle cx="12" cy="12" r="9"/>
+            </svg>
+          </span>
+          <h3>Riwayat Penarikan Dana</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>Nominal</th>
+                <th>Status</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody id="tx-history-tbody">
+              <tr>
+                <td colspan="4" class="loading-cell">
+                  <div class="loading-spinner"></div>
+                  Memuat riwayat...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </header>
-  
+  </main>
+
   <!-- Navigation Drawer -->
   <div class="nav-drawer-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
     <div class="nav-drawer-head">
       <span class="nav-drawer-title">Menu</span>
-      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">?</button>
+      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
     </div>
     <div class="nav-drawer-body">
       <a class="nav-drawer-item" href="/index.html">Beranda</a>
-      <a class="nav-drawer-item" href="/member.html">Togel &amp; Slot</a>
+      <a class="nav-drawer-item" href="/member.html">Togel & Slot</a>
       <a class="nav-drawer-item" href="/sportsbook.html">Sportsbook</a>
       <a class="nav-drawer-item" href="/number-history.html">Result</a>
       <a class="nav-drawer-item" href="/bet-history.html">Riwayat Bet</a>
@@ -74,78 +264,16 @@
       </div>
     </div>
   </nav>
-  <main class="app-main">
-    <div class="container tx-container">
-      <div class="tx-card fade-in">
-        <div style="text-align: center; margin-bottom: var(--space-6);">
-          <span class="badge badge-warning" style="margin-bottom: var(--space-2);">PENARIKAN DANA</span>
-          <h1 style="font-size: 1.75rem;">Formulir Withdraw</h1>
-          <p style="font-size: 0.85rem;">Dana kemenangan akan dikirimkan otomatis ke rekening bank terdaftar Anda.</p>
-        </div>
 
-        <form id="withdraw-form">
-          <!-- Member Bank Info Card -->
-          <div class="bank-destination-box">
-            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Rekening Tujuan Pencairan:</div>
-            <strong id="member-bank-info" style="font-size: 1.05rem; color: var(--text-gold);">Memuat data rekening...</strong>
-          </div>
-
-          <!-- Amount Input -->
-          <div class="form-group">
-            <label class="form-label" for="withdraw-amount-input">Nominal Penarikan (Rp) <span style="color: var(--status-danger);">*</span></label>
-            <input type="number" id="withdraw-amount-input" name="amount" class="form-control" placeholder="Min. 50.000" min="50000" step="10000" required style="font-size: 1.15rem; font-weight: 700;">
-          </div>
-
-          <!-- Quick Presets -->
-          <div class="nominal-preset-grid">
-            <button type="button" class="preset-btn" data-value="50000">Rp 50.000</button>
-            <button type="button" class="preset-btn" data-value="100000">Rp 100.000</button>
-            <button type="button" class="preset-btn" data-value="250000">Rp 250.000</button>
-            <button type="button" class="preset-btn" data-value="500000">Rp 500.000</button>
-            <button type="button" class="preset-btn" data-value="1000000">Rp 1.000.000</button>
-            <button type="button" class="preset-btn" data-value="2000000">Rp 2.000.000</button>
-          </div>
-
-          <!-- Security Password Confirmation -->
-          <div class="form-group">
-            <label class="form-label" for="withdraw-password">Kata Sandi Akun (Verifikasi Keamanan) <span style="color: var(--status-danger);">*</span></label>
-            <input type="password" id="withdraw-password" name="password" class="form-control" placeholder="Masukkan kata sandi Anda" required autocomplete="current-password">
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top: var(--space-4);">
-            Tarik Dana Sekarang
-          </button>
-        </form>
-      </div>
-
-      <!-- History Card -->
-      <div class="card">
-        <h3 style="font-size: 1.1rem; margin-bottom: var(--space-4);">Riwayat Penarikan Dana</h3>
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Waktu</th>
-                <th>Nominal</th>
-                <th>Status</th>
-                <th>Keterangan</th>
-              </tr>
-            </thead>
-            <tbody id="tx-history-tbody">
-              <!-- Dynamically rendered -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </main>
-
+  <!-- Footer -->
   <footer class="app-footer">
-          <div class="footer-links"><a href="privacy.html">Privacy</a><a href="rules.html">Cara Bermain</a><a href="terms.html">Terms</a></div>
-      <div class="container footer-bottom">
+    <div class="footer-links"><a href="privacy.html">Privacy</a><a href="rules.html">Cara Bermain</a><a href="terms.html">Terms</a></div>
+    <div class="container footer-bottom">
       &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
     </div>
   </footer>
+
+  </div>
 
   <script type="module">
     import { initWithdraw } from '/js/transaction.js';
@@ -178,7 +306,22 @@
         if (e.key === 'Escape') closeNav();
       });
     })();
+
+    // Preset amounts for withdraw
+    document.querySelectorAll('.preset-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var val = this.dataset.value;
+        var input = document.getElementById('withdraw-amount-input');
+        if (input) input.value = val;
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Refresh button
+    document.getElementById('btn-refresh-withdraw')?.addEventListener('click', function() {
+      location.reload();
+    });
   </script>
-  </div>
 </body>
 </html>

@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="css/mobile-blue.css?v=20260912-logo-v4">
+  <link rel="stylesheet" href="css/mobile-blue.css?v=20260913-trx-pro">
   <link rel="stylesheet" href="/css/animations.css">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
@@ -46,10 +46,45 @@
     <header class="brand-bar">
       <button type="button" class="menu-toggle" data-nav-open aria-label="Menu"></button>
       <a href="/member.html" class="brand-title">
-        <span class="logo-shine-wrap"><img src="/assets/logo.png?v=20260912-logo-v4" alt="GASTERUS" class="brand-logo-img"></span>
+        <span class="logo-shine-wrap"><img src="/assets/logo.webp?v=20260913-trx-pro" alt="GASTERUS" class="brand-logo-img"></span>
       </a>
       <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
     </header>
+
+    <!-- Kasir Tabs -->
+    <div class="kasir-tabs tx-tabs-space">
+      <a href="deposit.html" class="kasir-tab">
+        <span class="tab-icon tab-icon-deposit">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="18" height="14" rx="2"/>
+            <path d="M3 10h18"/>
+            <path d="M8 15h8"/>
+          </svg>
+        </span>
+        <span class="tab-label">Deposit</span>
+      </a>
+      <a href="withdraw.html" class="kasir-tab">
+        <span class="tab-icon tab-icon-withdraw">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="18" height="14" rx="2"/>
+            <path d="M3 10h18"/>
+            <path d="M12 7v6"/>
+            <path d="M9 10l3 3 3-3"/>
+          </svg>
+        </span>
+        <span class="tab-label">Withdraw</span>
+      </a>
+      <a href="bet-history.html" class="kasir-tab active">
+        <span class="tab-icon tab-icon-history">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 8v4l3 3"/>
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 3v3"/>
+          </svg>
+        </span>
+        <span class="tab-label">Riwayat</span>
+      </a>
+    </div>
 
     <!-- Page Title -->
     <div class="page-header">
@@ -76,7 +111,13 @@
     <!-- Togel History Card -->
     <div class="history-card" id="togel-history">
       <div class="history-card-header">
-        <span class="history-icon">🎯</span>
+        <span class="history-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="6" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>
+          </svg>
+        </span>
         <h3>Riwayat Togel</h3>
       </div>
       <div class="table-responsive">
@@ -106,7 +147,15 @@
     <!-- Sportsbook History Card -->
     <div class="history-card" id="sportsbook-history" style="display:none;">
       <div class="history-card-header">
-        <span class="history-icon">⚽</span>
+        <span class="history-icon history-icon-sport">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="5" cy="12" r="3"/>
+            <circle cx="19" cy="12" r="3"/>
+            <path d="M8 12h8"/>
+            <path d="M3 9c1.5-2 4-3.5 9-3.5s7.5 1.5 9 3.5"/>
+            <path d="M3 15c1.5 2 4 3.5 9 3.5s7.5-1.5 9-3.5"/>
+          </svg>
+        </span>
         <h3>Riwayat Sportsbook</h3>
       </div>
       <div class="table-responsive">
@@ -136,7 +185,12 @@
 
     <!-- Empty State -->
     <div class="empty-state" id="empty-state" style="display:none;">
-      <div class="empty-icon">📋</div>
+      <div class="empty-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6"/>
+        </svg>
+      </div>
       <h3>Belum Ada Riwayat</h3>
       <p>Anda belum memiliki riwayat taruhan. Mulai bermain sekarang!</p>
       <a href="/market-play.html" class="btn-primary">Pasang Taruhan</a>
