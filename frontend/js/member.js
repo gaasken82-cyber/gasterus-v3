@@ -142,69 +142,90 @@ function setupLogout() {
   });
 }
 
-// Auto-update market numbers every 30 seconds (no layout change)
+// Event-driven: update numbers exactly when close time arrives
+const scheduledUpdates = new Map();
+
 function startMarketAutoUpdate() {
-  setInterval(async () => {
+  const scheduleUpdate = (closeAt, marketIndex) => {
+    if (!closeAt) return;
+    const delay = new Date(closeAt).getTime() - Date.now() + 2000; // 2s after close
+    if (delay <= 0) return;
+
+    // Clear existing timeout for this market
+    if (scheduledUpdates.has(marketIndex)) {
+      clearTimeout(scheduledUpdates.get(marketIndex));
+    }
+
+    const timeoutId = setTimeout(async () => {
+      // Fetch latest data at close time
+      try {
+        const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
+        const markets = res.items || res.data || res || [];
+        if (!Array.isArray(markets) || !markets.length) return;
+
+        const container = document.getElementById('member-markets-container');
+        if (!container) return;
+        const cards = container.querySelectorAll('.member-market-card');
+        if (!cards.length) return;
+
+        markets.forEach((m, idx) => {
+          if (idx >= cards.length) return;
+          const card = cards[idx];
+
+          // Update result balls
+          const ballsContainer = card.querySelector('div[style*="display:flex; gap:4px"]');
+          if (ballsContainer && m.result) {
+            const newDigits = String(m.result).split('');
+            const currentBalls = ballsContainer.querySelectorAll('.ball-num');
+            if (currentBalls.length === newDigits.length) {
+              newDigits.forEach((digit, i) => {
+                if (currentBalls[i] && currentBalls[i].textContent !== digit) {
+                  currentBalls[i].textContent = digit;
+                  currentBalls[i].style.transition = 'background 0.3s';
+                  currentBalls[i].style.background = '#fef08a';
+                  setTimeout(() => { if (currentBalls[i]) currentBalls[i].style.background = ''; }, 600);
+                }
+              });
+            }
+          }
+
+          // Update period
+          const periodEl = card.querySelector('div[style*="Periode:"]');
+          if (periodEl && m.period) {
+            periodEl.textContent = 'Periode: #' + m.period;
+          }
+
+          // Update status
+          const statusBadge = card.querySelector('.badge');
+          if (statusBadge) {
+            const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
+            statusBadge.textContent = isClosed ? 'TUTUP' : 'BUKA';
+            statusBadge.className = isClosed ? 'badge badge-danger' : 'badge badge-success';
+          }
+
+          // Schedule next update if new closeAt exists
+          if (m.closeAt) {
+            scheduleUpdate(m.closeAt, idx);
+          }
+        });
+      } catch (e) {
+        // Silent fail
+      }
+    }, delay);
+
+    scheduledUpdates.set(marketIndex, timeoutId);
+  };
+
+  // Initial schedule after markets load
+  setTimeout(async () => {
     try {
       const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
       const markets = res.items || res.data || res || [];
-      if (!Array.isArray(markets) || !markets.length) return;
-
-      const container = document.getElementById('member-markets-container');
-      if (!container) return;
-
-      const cards = container.querySelectorAll('.member-market-card');
-      if (!cards.length) return;
-
       markets.forEach((m, idx) => {
-        if (idx >= cards.length) return;
-        const card = cards[idx];
-
-        // Update period number
-        const periodEl = card.querySelector('div[style*="Periode:"]');
-        if (periodEl && m.period) {
-          const newPeriod = '#' + m.period;
-          if (periodEl.textContent.trim() !== 'Periode: ' + newPeriod) {
-            periodEl.textContent = 'Periode: ' + newPeriod;
-          }
-        }
-
-        // Update result balls
-        const ballsContainer = card.querySelector('div[style*="display:flex; gap:4px"]');
-        if (ballsContainer && m.result) {
-          const newDigits = String(m.result).split('');
-          const currentBalls = ballsContainer.querySelectorAll('.ball-num');
-          if (currentBalls.length === newDigits.length) {
-            newDigits.forEach((digit, i) => {
-              if (currentBalls[i] && currentBalls[i].textContent !== digit) {
-                currentBalls[i].textContent = digit;
-                // Subtle highlight animation
-                currentBalls[i].style.transition = 'background 0.3s';
-                currentBalls[i].style.background = '#fef08a';
-                setTimeout(() => {
-                  if (currentBalls[i]) currentBalls[i].style.background = '';
-                }, 600);
-              }
-            });
-          }
-        }
-
-        // Update status badge
-        const statusBadge = card.querySelector('.badge');
-        if (statusBadge) {
-          const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
-          const newStatus = isClosed ? 'TUTUP' : 'BUKA';
-          const newClass = isClosed ? 'badge badge-danger' : 'badge badge-success';
-          if (statusBadge.textContent.trim() !== newStatus) {
-            statusBadge.textContent = newStatus;
-            statusBadge.className = newClass;
-          }
-        }
+        if (m.closeAt) scheduleUpdate(m.closeAt, idx);
       });
-    } catch (e) {
-      // Silent fail — don't disrupt user experience
-    }
-  }, 30000); // Update every 30 seconds
+    } catch (e) { /* silent */ }
+  }, 1000);
 }
 
 // Auto init
