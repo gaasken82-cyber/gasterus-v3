@@ -1335,11 +1335,12 @@ footer, .site-footer {
 
 .reg-label {
   flex-shrink: 0;
-  width: 122px;
+  width: 105px;
   font-size: 12px;
   font-weight: 700;
   color: #e2e8f0;
   line-height: 1.35;
+  text-align: left;
 }
 
 .reg-label span {
@@ -1351,7 +1352,7 @@ footer, .site-footer {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  padding: 11px 14px;
+  padding: 8px 12px;
   color: #1e293b;
   font-size: 13px;
   font-family: 'Inter', system-ui, sans-serif;
@@ -1460,24 +1461,30 @@ select.reg-input {
 }
 
 .reg-captcha-refresh {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
-  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+  border-radius: 10px;
   color: #ffffff;
   font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
+  border: 1.5px solid #60a5fa;
   cursor: pointer;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-  transition: filter 0.15s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.15s ease;
 }
-
+.reg-captcha-refresh:hover {
+  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 50%, #1d4ed8 100%);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
 .reg-captcha-refresh:active {
-  filter: brightness(0.85);
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  transform: translateY(1px);
 }
 
 .reg-checkbox {
