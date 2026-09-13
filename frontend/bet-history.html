@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Riwayat Taruhan & Invoice ? GASTERUS V3</title>
+  <title>Riwayat Taruhan — GASTERUS V3</title>
   <meta name="description" content="Riwayat invoice taruhan Togel dan Sportsbook member Gasterus v3 lengkap dengan status kemenangan.">
-
-  <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/mobile-blue.css?v=20260912-logo-v4">
   <link rel="stylesheet" href="/css/animations.css">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
@@ -18,12 +17,6 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gasterus.fun/">
   <meta property="og:image" content="https://gasterus.fun/favicon.svg">
-  <meta property="og:image:width" content="64">
-  <meta property="og:image:height" content="64">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
-  <meta name="twitter:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
-  <meta name="twitter:image" content="https://gasterus.fun/favicon.svg">
   <meta name="theme-color" content="#2563eb">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -35,32 +28,132 @@
     });
   }
 </script>
+<!-- Start of LiveChat Widget -->
+<script>
+    window.__lc = window.__lc || {};
+    window.__lc.organizationId = "1307d136-f672-4179-bff1-e66b47d98133";
+    window.__lc.integration_name = "manual_onboarding";
+    window.__lc.product_name = "text";
+    ;(function(n,t,c){function i(n){return e._h?e._h.apply(null,n):e._q.push(n)}var e={_q:[],_h:null,_v:"2.0",on:function(){i(["on",c.call(arguments)])},once:function(){i(["once",c.call(arguments)])},off:function(){i(["off",c.call(arguments)])},get:function(){if(!e._h)throw new Error("[LiveChatWidget] You can't use getters before load.");return i(["get",c.call(arguments)])},call:function(){i(["call",c.call(arguments)])},init:function(){var n=t.createElement("script");n.async=!0,n.type="text/javascript";n.src="https://cdn.livechatinc.com/tracking.js",t.head.appendChild(n)}};!n.__lc.asyncInit&&e.init(),n.LiveChatWidget=n.LiveChatWidget||e}(window,document,[].slice))
+</script>
+<noscript><a href="https://www.text.com/chat-with-ai-agent/1307d136-f672-4179-bff1-e66b47d98133/" rel="nofollow">Chat with AI Agent</a>, powered by <a href="https://www.text.com/" rel="noopener nofollow" target="_blank">Text</a></noscript>
+<!-- End of LiveChat Widget -->
 </head>
 <body class="page-bet-history">
   <div class="site">
 
-  <header class="app-header">
-    <div class="container">
-      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu">?</button>
-      <a href="/member.html" class="brand-logo"><span class="logo-shine-wrap"><img src="/assets/logo.png?v=20260912-logo-v4" alt="GASTERUS" class="brand-logo-img"></span></a>
+    <!-- Header -->
+    <header class="brand-bar">
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu"></button>
+      <a href="/member.html" class="brand-title">
+        <span class="logo-shine-wrap"><img src="/assets/logo.png?v=20260912-logo-v4" alt="GASTERUS" class="brand-logo-img"></span>
+      </a>
+      <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
+    </header>
 
-      <div class="header-actions">
-        <a href="/member.html" class="btn btn-secondary btn-sm">? Member Area</a>
+    <!-- Page Title -->
+    <div class="page-header">
+      <h1 class="page-title">Riwayat Taruhan</h1>
+      <p class="page-subtitle">Daftar seluruh invoice taruhan Togel dan Sportsbook Anda</p>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">Semua</button>
+      <button class="filter-tab" data-filter="togel">Togel</button>
+      <button class="filter-tab" data-filter="sportsbook">Sportsbook</button>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="status-filter">
+      <button class="status-btn active" data-status="">Semua</button>
+      <button class="status-btn" data-status="OPEN">Open</button>
+      <button class="status-btn" data-status="WON">Menang</button>
+      <button class="status-btn" data-status="LOST">Kalah</button>
+      <button class="status-btn" data-status="VOID">Void</button>
+    </div>
+
+    <!-- Togel History Card -->
+    <div class="history-card" id="togel-history">
+      <div class="history-card-header">
+        <span class="history-icon">🎯</span>
+        <h3>Riwayat Togel</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Waktu</th>
+              <th>Pasaran</th>
+              <th>Pilihan</th>
+              <th>Bayar</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="togel-tbody">
+            <tr>
+              <td colspan="6" class="loading-cell">
+                <div class="loading-spinner"></div>
+                Memuat data riwayat...
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
-  </header>
 
-  
+    <!-- Sportsbook History Card -->
+    <div class="history-card" id="sportsbook-history" style="display:none;">
+      <div class="history-card-header">
+        <span class="history-icon">⚽</span>
+        <h3>Riwayat Sportsbook</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Waktu</th>
+              <th>Event</th>
+              <th>Odds</th>
+              <th>Stake</th>
+              <th>Return</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="sportsbook-tbody">
+            <tr>
+              <td colspan="7" class="loading-cell">
+                <div class="loading-spinner"></div>
+                Memuat data sportsbook...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="empty-state" style="display:none;">
+      <div class="empty-icon">📋</div>
+      <h3>Belum Ada Riwayat</h3>
+      <p>Anda belum memiliki riwayat taruhan. Mulai bermain sekarang!</p>
+      <a href="/market-play.html" class="btn-primary">Pasang Taruhan</a>
+    </div>
+
+  </div>
+
   <!-- Navigation Drawer -->
   <div class="nav-drawer-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
     <div class="nav-drawer-head">
       <span class="nav-drawer-title">Menu</span>
-      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">?</button>
+      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
     </div>
     <div class="nav-drawer-body">
       <a class="nav-drawer-item" href="/index.html">Beranda</a>
-      <a class="nav-drawer-item" href="/member.html">Togel &amp; Slot</a>
+      <a class="nav-drawer-item" href="/member.html">Togel & Slot</a>
       <a class="nav-drawer-item" href="/sportsbook.html">Sportsbook</a>
       <a class="nav-drawer-item" href="/number-history.html">Result</a>
       <a class="nav-drawer-item" href="/bet-history.html">Riwayat Bet</a>
@@ -68,208 +161,20 @@
       <a class="nav-drawer-item" href="/withdraw.html">Withdraw</a>
       <a class="nav-drawer-item" href="/promotion.html">Promo</a>
       <a class="nav-drawer-item" href="/referral.html">Referral</a>
-      <div style="margin-top:16px; border-top:1px solid #1e293b; padding-top:12px;">
-        <a class="nav-drawer-item" href="/rules.html">Cara Bermain</a>
-        <a class="nav-drawer-item" href="/privacy.html">Privasi</a>
-        <a class="nav-drawer-item" href="/terms.html">Ketentuan</a>
-      </div>
     </div>
   </nav>
 
-  <main class="app-main">
-    <div class="container">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
-        <div>
-          <h1 style="font-size: 1.75rem;">Riwayat Taruhan Member</h1>
-          <p style="font-size: 0.9rem;">Daftar seluruh invoice taruhan angka TOTO dan Sportsbook Anda.</p>
-        </div>
-      </div>
-
-      <div class="card fade-in" style="margin-bottom: var(--space-4);">
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-          <a class="btn btn-secondary btn-sm" href="/bet-history.html" data-game-link="all">Semua</a>
-          <a class="btn btn-secondary btn-sm" href="/bet-history.html?game=togel" data-game-link="togel">Togel</a>
-          <a class="btn btn-secondary btn-sm" href="/bet-history.html?game=sportsbook" data-game-link="sportsbook">Sportsbook</a>
-          <span style="flex:1"></span>
-          <a class="btn btn-secondary btn-sm" href="?game=sportsbook" data-status-link="">Semua status</a>
-          <a class="btn btn-secondary btn-sm" href="?game=sportsbook&amp;status=OPEN" data-status-link="OPEN">Open</a>
-          <a class="btn btn-secondary btn-sm" href="?game=sportsbook&amp;status=WON" data-status-link="WON">Won</a>
-          <a class="btn btn-secondary btn-sm" href="?game=sportsbook&amp;status=LOST" data-status-link="LOST">Lost</a>
-          <a class="btn btn-secondary btn-sm" href="?game=sportsbook&amp;status=VOID" data-status-link="VOID">Void</a>
-          <a class="btn btn-secondary btn-sm" href="?game=sportsbook&amp;status=CASHED_OUT" data-status-link="CASHED_OUT">Cash Out</a>
-        </div>
-      </div>
-
-      <div class="card fade-in" id="sb-history-card" hidden>
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Invoice</th>
-                <th>Waktu</th>
-                <th>Event / Market</th>
-                <th>Odds</th>
-                <th>Stake</th>
-                <th>Return</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="sb-bets-table-body">
-              <tr>
-                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: var(--space-6);">
-                  Sedang memuat riwayat sportsbook...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card fade-in">
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>No. Invoice</th>
-                <th>Waktu Pasang</th>
-                <th>Pasaran / Game</th>
-                <th>Detail Pilihan</th>
-                <th>Bayar Bersih</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="bets-table-body">
-              <tr>
-                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: var(--space-6);">
-                  Sedang memuat data riwayat taruhan...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="privacy.html">Privacy</a>
+      <a href="responsible-play.html">Responsible Gaming</a>
+      <a href="terms.html">Terms</a>
     </div>
-  </main>
-
-  <footer class="app-footer">
-    
-      <div class="footer-links">
-        <a href="privacy.html">Privacy</a>
-        <a href="responsible-play.html">Responsible Gaming</a>
-        <a href="terms.html">Terms</a>
-      </div>
-
-      <div class="container footer-bottom">
-      &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
-    </div>
+    <div>&copy; Copyright 2014 - 2026 GASTERUS. All Rights Reserved.</div>
   </footer>
 
-  <script type="module">
-    import api from '/js/api.js';
-    import auth from '/js/auth.js';
-    import { formatRupiah, formatDateTime } from '/js/utils.js';
-
-    const esc = (v) => String(v ?? '')
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    const sbStatusBadge = (s) => {
-      const st = String(s || 'OPEN').toUpperCase();
-      if (st === 'WON') return '<span class="badge badge-success">MENANG</span>';
-      if (st === 'LOST') return '<span class="badge badge-danger">KALAH</span>';
-      if (st === 'VOID' || st === 'CANCELLED') return '<span class="badge badge-info">VOID</span>';
-      if (st === 'CASHED_OUT') return '<span class="badge badge-info">CASH OUT</span>';
-      if (st.startsWith('PARTIAL')) return '<span class="badge badge-warning">PARTIAL</span>';
-      return '<span class="badge badge-warning">OPEN</span>';
-    };
-
-    async function loadSportsbookBets(game, status) {
-      const card = document.getElementById('sb-history-card');
-      const tbody = document.getElementById('sb-bets-table-body');
-      const showSb = !game || game === 'sportsbook';
-      if (card) card.hidden = !showSb;
-      if (!showSb || !tbody) return;
-      document.querySelectorAll('[data-game-link]').forEach((a) => {
-        const g = a.getAttribute('data-game-link');
-        const active = (game || 'all') === g || (!game && g === 'all');
-        if (active) a.classList.add('active'); else a.classList.remove('active');
-      });
-      document.querySelectorAll('[data-status-link]').forEach((a) => {
-        const active = String(a.getAttribute('data-status-link') || '') === String(status || '');
-        if (active) a.classList.add('active'); else a.classList.remove('active');
-      });
-      try {
-        const q = status ? `?status=${encodeURIComponent(status)}&limit=50` : '?limit=50';
-        const res = await api.get(`/member/sportsbook/bets${q}`);
-        const rows = res?.data?.items || res?.data || res || [];
-        const list = Array.isArray(rows) ? rows : [];
-        if (!list.length) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">Belum ada tiket sportsbook${status ? ` status ${esc(status)}` : ''}.</td></tr>`;
-          return;
-        }
-        tbody.innerHTML = list.map((t) => {
-          const legs = Array.isArray(t.legs) ? t.legs : [];
-          const detail = legs.map((l) => `${esc(l.home || '')} vs ${esc(l.away || '')} ? ${esc(l.marketLabel || l.marketType || '')}${l.marketLine ? ` (${esc(String(l.marketLine))})` : ''} ? ${esc(l.selectionLabel || '')}`).join('<br>') || '-';
-          const ret = Number(t.payout || 0) > 0 ? t.payout : (t.status === 'OPEN' ? (t.potentialPayout || 0) : 0);
-          return `<tr>
-              <td><strong style="font-family:var(--font-mono);">${esc(t.invoice || String(t.id || '').slice(0, 10))}</strong><br><span style="font-size:0.75rem;color:var(--text-muted);">${esc(t.betType || '')}${t.selectionCount ? ` ? ${t.selectionCount} leg` : ''}</span></td>
-              <td>${formatDateTime(t.acceptedAt || t.createdAt)}${t.settledAt ? `<br><span style="font-size:0.75rem;color:var(--text-muted);">Settle: ${formatDateTime(t.settledAt)}</span>` : ''}</td>
-              <td style="font-size:0.8rem;">${detail}</td>
-              <td style="font-family:var(--font-mono);">${Number(t.totalOdds || 0).toFixed(2)}</td>
-              <td style="color:var(--text-gold); font-weight:600;">${formatRupiah(t.totalStake || 0)}</td>
-              <td style="font-weight:600;">${formatRupiah(ret || 0)}</td>
-              <td>${sbStatusBadge(t.status)}</td>
-            </tr>`;
-        }).join('');
-      } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">Gagal mengambil riwayat sportsbook.</td></tr>`;
-      }
-    }
-
-    async function loadBets() {
-      if (!auth.isLoggedIn()) {
-        window.location.href = '/index.html';
-        return;
-      }
-
-      const tbody = document.getElementById('bets-table-body');
-      try {
-        const res = await api.get('/member/bets');
-        const bets = res.items || res.data || res || [];
-
-        if (!bets.length) {
-          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">Belum ada riwayat taruhan yang tercatat.</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = bets.map(b => {
-          let statusBadge = '<span class="badge badge-warning">PENDING</span>';
-          if (b.status === 'WON') statusBadge = '<span class="badge badge-success">MENANG</span>';
-          else if (b.status === 'LOST') statusBadge = '<span class="badge badge-danger">KALAH</span>';
-          else if (b.status === 'CANCELLED') statusBadge = '<span class="badge badge-info">DIBATALKAN</span>';
-
-          const itemsSummary = (b.items || []).map(i => `${i.selection} (${i.game_code || i.gameCode || '4D'})`).join(', ') || '-';
-
-          return `
-            <tr>
-              <td><strong style="font-family:var(--font-mono);">${b.invoice_no || b.invoiceNo || b.id.slice(0, 10)}</strong></td>
-              <td>${formatDateTime(b.created_at || b.createdAt)}</td>
-              <td>${b.market_name || b.marketName || 'Togel'}</td>
-              <td>${itemsSummary}</td>
-              <td style="color:var(--text-gold); font-weight:600;">${formatRupiah(b.net_stake || b.netStake || b.total_stake || 0)}</td>
-              <td>${statusBadge}</td>
-            </tr>
-          `;
-        }).join('');
-      } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">Gagal mengambil data atau belum ada taruhan.</td></tr>`;
-      }
-    }
-
-    loadBets();
-    const params = new URLSearchParams(window.location.search || '');
-    loadSportsbookBets((params.get('game') || 'all').toLowerCase(), (params.get('status') || '').toUpperCase());
-  </script>
-<script>
+  <script>
     (function () {
       function openNav() {
         var drawer = document.getElementById('site-nav-drawer');
@@ -291,13 +196,149 @@
       document.querySelectorAll('[data-nav-close]').forEach(function (el) {
         el.addEventListener('click', closeNav);
       });
-      var bd = document.querySelector('.nav-drawer-backdrop');
-      if (bd) bd.addEventListener('click', closeNav);
+      document.querySelector('.nav-drawer-backdrop')?.addEventListener('click', closeNav);
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeNav();
       });
     })();
   </script>
-  </div>
+
+  <script type="module">
+    import api from '/js/api.js';
+    import auth from '/js/auth.js';
+    import { formatRupiah, formatDateTime } from '/js/utils.js';
+
+    const esc = (v) => String(v ?? '')
+      .replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>')
+      .replace(/"/g, '"').replace(/'/g, '&#039;');
+
+    function statusBadge(status) {
+      const s = String(status || 'PENDING').toUpperCase();
+      if (s === 'WON' || s === 'SETTLED') return '<span class="badge badge-success">MENANG</span>';
+      if (s === 'LOST') return '<span class="badge badge-danger">KALAH</span>';
+      if (s === 'VOID' || s === 'CANCELLED') return '<span class="badge badge-info">VOID</span>';
+      if (s === 'CASHED_OUT') return '<span class="badge badge-info">CASH OUT</span>';
+      return '<span class="badge badge-warning">PENDING</span>';
+    }
+
+    // Filter handlers
+    let currentFilter = 'all';
+    let currentStatus = '';
+
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentFilter = tab.dataset.filter;
+        loadHistory();
+      });
+    });
+
+    document.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStatus = btn.dataset.status;
+        loadHistory();
+      });
+    });
+
+    async function loadHistory() {
+      const token = localStorage.getItem('gasterus_token') || sessionStorage.getItem('gasterus_token');
+      if (!token) { location.href = '/index.html'; return; }
+
+      const togelHistory = document.getElementById('togel-history');
+      const sportsbookHistory = document.getElementById('sportsbook-history');
+      const emptyState = document.getElementById('empty-state');
+
+      // Show/hide based on filter
+      if (currentFilter === 'all') {
+        togelHistory.style.display = '';
+        sportsbookHistory.style.display = '';
+      } else if (currentFilter === 'togel') {
+        togelHistory.style.display = '';
+        sportsbookHistory.style.display = 'none';
+      } else if (currentFilter === 'sportsbook') {
+        togelHistory.style.display = 'none';
+        sportsbookHistory.style.display = '';
+      }
+
+      // Load Togel bets
+      if (currentFilter === 'all' || currentFilter === 'togel') {
+        await loadTogelBets(token);
+      }
+
+      // Load Sportsbook bets
+      if (currentFilter === 'all' || currentFilter === 'sportsbook') {
+        await loadSportsbookBets(token);
+      }
+    }
+
+    async function loadTogelBets(token) {
+      const tbody = document.getElementById('togel-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" class="loading-cell"><div class="loading-spinner"></div>Memuat data...</td></tr>';
+
+      try {
+        const res = await api.get('/member/bets?limit=50');
+        const bets = Array.isArray(res) ? res : (res.items || res.data || []);
+        const filtered = currentStatus ? bets.filter(b => b.status === currentStatus) : bets;
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">Belum ada riwayat taruhan togel</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(bet => `
+          <tr>
+            <td class="invoice-cell">#${esc(bet.id?.slice(0, 8) || 'N/A')}</td>
+            <td>${formatDateTime(bet.createdAt)}</td>
+            <td>${esc(bet.marketName || bet.market || '-')}</td>
+            <td class="selection-cell">${esc(bet.selections || bet.notes || '-')}</td>
+            <td class="amount-cell">${formatRupiah(bet.amount)}</td>
+            <td>${statusBadge(bet.status)}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="error-cell">Gagal memuat data: ${esc(err.message)}</td></tr>`;
+      }
+    }
+
+    async function loadSportsbookBets(token) {
+      const tbody = document.getElementById('sportsbook-tbody');
+      tbody.innerHTML = '<tr><td colspan="7" class="loading-cell"><div class="loading-spinner"></div>Memuat data...</td></tr>';
+
+      try {
+        const res = await api.get('/member/sportsbook/bets?limit=50');
+        const bets = Array.isArray(res) ? res : (res.items || res.data || []);
+        const filtered = currentStatus ? bets.filter(b => b.status === currentStatus) : bets;
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Belum ada riwayat sportsbook</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(bet => `
+          <tr>
+            <td class="invoice-cell">#${esc(bet.id?.slice(0, 8) || 'N/A')}</td>
+            <td>${formatDateTime(bet.createdAt)}</td>
+            <td>${esc(bet.eventName || bet.event || '-')}</td>
+            <td class="odds-cell">${esc(bet.odds || '-')}</td>
+            <td class="amount-cell">${formatRupiah(bet.stake || bet.amount)}</td>
+            <td class="amount-cell">${formatRupiah(bet.potentialReturn || bet.return || 0)}</td>
+            <td>${statusBadge(bet.status)}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="error-cell">Gagal memuat data: ${esc(err.message)}</td></tr>`;
+      }
+    }
+
+    // Initial load
+    if (!auth.isLoggedIn()) {
+      location.href = '/index.html';
+    } else {
+      loadHistory();
+    }
+  </script>
 </body>
 </html>
