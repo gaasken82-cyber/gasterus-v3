@@ -371,10 +371,31 @@
   </div>
 
   <script type="module">
-    import { initDeposit } from '/js/transaction.js';
+    import { initDeposit } from '/js/transaction.js?v=20260914-qris-fix';
     initDeposit();
   </script>
   <script>
+    // Fallback: if module fails to load, run inline fallback
+    window.addEventListener('load', function() {
+      // Update username from localStorage if not already updated
+      setTimeout(function() {
+        var nameEl = document.querySelector('.user-display-name');
+        if (nameEl && nameEl.textContent === 'Member') {
+          try {
+            var userData = localStorage.getItem('gasterus_user');
+            if (userData) {
+              var user = JSON.parse(userData);
+              if (user.username) nameEl.textContent = user.username;
+              if (user.balance !== undefined) {
+                var balEl = document.querySelector('.user-display-balance');
+                if (balEl) balEl.textContent = Number(user.balance).toLocaleString('id-ID');
+              }
+            }
+          } catch(e) {}
+        }
+      }, 1000);
+    });
+
     // Navigation
     (function () {
       function openNav() {
