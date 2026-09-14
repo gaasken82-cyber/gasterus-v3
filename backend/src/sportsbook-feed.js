@@ -61,7 +61,6 @@ function validateAllHandicapOdds(events = []) {
 
 const LIFECYCLE_GENERATION = 'r6915';
 const CACHE_KEY = 'sportsbook:aggregated-feed:v11';
-seedRegistry();
 const LIFECYCLE_KEY = 'sportsbook:provider-lifecycle:v6';
 const MARKET_LIFECYCLE_KEY = 'sportsbook:market-lifecycle:v6';
 const REFRESH_MS = config.sportsFeedRefreshSeconds * 1000;
@@ -399,7 +398,6 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
     throw new AppError(503, 'Belum ada sumber sportsbook yang dikonfigurasi pada core service.', 'SPORTS_PROVIDERS_NOT_CONFIGURED');
   }
   const previousLifecycle = await readProviderLifecycle();
-  if (config.sportsSourceRegistryEnabled) maintainRegistry();
   // Gunakan hanya Sportmonks sebagai sumber data (menghindari odds tidak normal dari provider lain)
   const descriptors = [
     { code: 'sportmonks', enabled: config.sportmonksEnabled && Boolean(config.sportmonksKey), fetcher: fetchSportmonks }
@@ -437,7 +435,6 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
     }, lifecycleOptions());
     nextLifecycle[status.code] = next;
     if (transition) transitions.push(transition);
-    if (config.sportsSourceRegistryEnabled && !status.skipped) recordResult(status.code, Boolean(status.transportHealthy), status.warnings?.[0] || '');
     return {
       ...status,
       state: next.state,
