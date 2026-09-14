@@ -31,7 +31,6 @@ function validateAllHandicapOdds(events = []) {
       if (market.line !== 0 && market.line !== null && market.line !== '') return true;
       
       const selections = market.selections || [];
-      if (selections.length < 2) return true;
       
       const odds = selections.map(s => Number(s.odds)).filter(o => o > 1);
       if (odds.length < 2) return true;
