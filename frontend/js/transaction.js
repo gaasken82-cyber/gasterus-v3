@@ -328,11 +328,8 @@ function openQrisModal(order, form) {
   closeQrisModal();
 
   const auto = order.settleMode === 'AUTO';
-  const qrSrc = order.qrImage
-    ? order.qrImage
-    : (order.qrPayload
-      ? `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(order.qrPayload)}`
-      : '');
+  // Use static QRIS barcode image
+  const qrSrc = '/assets/qris-barcode.png';
 
   const overlay = document.createElement('div');
   overlay.id = 'qris-modal-overlay';
