@@ -1594,15 +1594,16 @@ select.reg-input {
   font-weight: 600;
 }
 .btn-refresh-balance {
-  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(180deg, #059669 0%, #047857 100%);
   color: #ffffff;
-  border: 1px solid #34d399;
-  border-radius: 999px;
-  padding: 5px 14px;
-  font-size: 12px;
-  font-weight: 800;
+  border: 1px solid #10b981;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: none;
+  letter-spacing: 0.3px;
 }
 .member-cat-row-1 {
   display: grid;
@@ -3263,45 +3264,40 @@ body.nav-open .nav-drawer,
   text-decoration: none;
 }
 
-/* --- Refresh Balance Button - 3D Professional --- */
+/* --- Refresh Balance Button - Compact Professional --- */
 .btn-refresh-balance {
-  background: linear-gradient(180deg, #10b981 0%, #059669 50%, #047857 100%);
+  background: #059669;
   color: #ffffff;
-  border: 1px solid #34d399;
-  border-radius: 999px;
-  padding: 8px 18px;
-  font-size: 12px;
-  font-weight: 800;
+  border: 1px solid #10b981;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  box-shadow: 0 3px 0 #065f46, 0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  transition: all 0.15s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  gap: 3px;
+  box-shadow: none;
+  transition: background 0.15s ease;
+  letter-spacing: 0.2px;
 }
 
 .btn-refresh-balance:hover {
-  background: linear-gradient(180deg, #34d399 0%, #10b981 50%, #059669 100%);
-  box-shadow: 0 4px 0 #065f46, 0 6px 20px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  transform: translateY(-2px);
+  background: #047857;
 }
 
 .btn-refresh-balance:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 0 #065f46, 0 2px 8px rgba(16, 185, 129, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  background: #065f46;
 }
 
 .btn-refresh-balance:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
 .btn-refresh-balance .refresh-icon {
   display: inline-block;
-  font-size: 14px;
+  font-size: 10px;
   transition: transform 0.3s ease;
 }
 

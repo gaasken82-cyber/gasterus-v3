@@ -537,7 +537,7 @@ export const DRAW_SCHEDULE = Object.freeze({
   '5d-toto-macau-pool': ['11:00', '18:00'],
   '4d-toto-macau-pool': ['11:00', '18:00'],
   'hongkong-pool': ['15:00', '01:00'],
-  'sydney-pool': ['12:00', '20:00'],
+  'sydney': ['12:00', '20:00'],
   'singapore-pool': ['17:00', '23:00'],
   'china-pool': ['14:30', '22:30'],
   'jepang-pool': ['10:00', '20:00'],
