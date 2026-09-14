@@ -784,7 +784,10 @@ async function fetchAllPages(base, endpoint, params, maxPages = 10) {
 }
 
 export async function fetchSportmonks() {
-  if (!config.sportmonksEnabled || !config.sportmonksKey) return { provider: 'sportmonks', enabled: false, events: [] };
+  if (!config.sportmonksEnabled || !config.sportmonksKey) {
+    logger.warn('Sportmonks disabled or missing API key');
+    return { provider: 'sportmonks', enabled: false, events: [] };
+  }
   
   const base = config.sportmonksBaseUrl.replace(/\/$/, '');
   const now = Date.now();
