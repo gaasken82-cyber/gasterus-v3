@@ -219,12 +219,56 @@
 
   <script type="module">
     import auth from '/js/auth.js';
-    const user = auth.getUser();
-    const refCode = user?.referral_code || user?.referralCode || 'GASTERUS';
-    const linkBox = document.getElementById('referral-link-input');
-    if (linkBox) {
-      linkBox.textContent = `${window.location.origin}/register.html?ref=${refCode}`;
+    import api from '/js/api.js';
+
+    // Redirect ke login jika belum login
+    if (!auth.isLoggedIn()) {
+      window.location.href = '/index.html';
     }
+
+    const linkBox = document.getElementById('referral-link-input');
+
+    // Fallback awal dari localStorage agar tidak kosong
+    const cachedUser = auth.getUser();
+    const cachedCode = cachedUser?.referral_code || cachedUser?.referralCode || null;
+    if (linkBox && cachedCode) {
+      linkBox.textContent = `${window.location.origin}/register.html?ref=${cachedCode}`;
+    }
+
+    // Fetch data referral dari backend (inviteCode yang benar)
+    async function loadReferral() {
+      try {
+        const res = await api.get('/member/referral');
+        const data = res.data || res;
+
+        // Isi link referral dengan invite_code dari backend
+        const inviteCode = data.inviteCode || data.invite_code || cachedCode || 'GASTERUS';
+        if (linkBox) {
+          linkBox.textContent = `${window.location.origin}/register.html?ref=${inviteCode}`;
+        }
+
+        // Isi stats
+        const totals = data.totals || {};
+        const totalDownlineEl = document.getElementById('stat-total-downline');
+        const activeDownlineEl = document.getElementById('stat-active-downline');
+        const totalCommEl = document.getElementById('stat-total-commission');
+
+        if (totalDownlineEl) totalDownlineEl.textContent = totals.invited ?? data.invited?.length ?? 0;
+        if (activeDownlineEl) activeDownlineEl.textContent = totals.qualified ?? totals.registered ?? 0;
+        if (totalCommEl) {
+          // Komisi ditampilkan sebagai Rp 0 jika belum ada data komisi dari API ini
+          totalCommEl.textContent = 'Rp 0';
+        }
+      } catch (err) {
+        console.warn('Gagal memuat data referral:', err?.message || err);
+        // Jika gagal tapi ada cache, biarkan fallback yang tampil
+        if (linkBox && !cachedCode) {
+          linkBox.textContent = `${window.location.origin}/register.html?ref=GASTERUS`;
+        }
+      }
+    }
+
+    loadReferral();
 
     window.copyRefLink = function() {
       const text = linkBox ? linkBox.textContent.trim() : '';
@@ -240,6 +284,27 @@
           btn.classList.remove('copied');
           label.textContent = orig;
         }, 2000);
+      }).catch(function() {
+        // Fallback untuk browser yang tidak support clipboard API
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        const btn = document.querySelector('.ref-copy-btn');
+        if (btn) {
+          const label = btn.querySelector('span:last-child') || btn;
+          const orig = label.textContent;
+          btn.classList.add('copied');
+          label.textContent = '✓ Tersalin';
+          setTimeout(function() {
+            btn.classList.remove('copied');
+            label.textContent = orig;
+          }, 2000);
+        }
       });
     };
   </script>
