@@ -119,10 +119,30 @@ const server = createServer(async (req,res) => {
     if (url.pathname.startsWith('/admin-api/')) return proxy(req,res,ADMIN_PORT,`${url.pathname.replace(/^\/admin-api/,'/api')}${url.search}`);
     return proxy(req,res,ADMIN_PORT,`${url.pathname}${url.search}`);
   }
-  // R6.94 hardening: member host must never expose the management prefix or admin APIs.
+  // R6.94 hardening: member host must never expose raw admin APIs.
+  // When no dedicated ADMIN_HOST is set (single-domain), the obfuscated admin path prefix
+  // must remain reachable so the back-office is not locked out entirely.
   if (MEMBER_HOST && host === MEMBER_HOST) {
     const prefixRe = new RegExp(`^${ADMIN_PATH_PREFIX.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?:/|$)`,'i');
-    if (/^\/(?:admin(?:\/|$)|admin-api(?:\/|$)|api\/owner(?:\/|$))/i.test(url.pathname) || prefixRe.test(url.pathname)) return text(res,404,'Not found');
+    // Raw admin API routes are always blocked on the member host.
+    if (/^\/(?:admin-api(?:\/|$)|api\/owner(?:\/|$))/i.test(url.pathname)) return text(res,404,'Not found');
+    // /admin → redirect to obfuscated prefix (only when sharing domain with member)
+    if (/^\/admin(?:\/|$)/i.test(url.pathname)) {
+      if (!ADMIN_HOST) {
+        const rest = url.pathname.slice('/admin'.length) || '/';
+        res.writeHead(308,{location:`${ADMIN_PATH_PREFIX}${rest}${url.search}`,'cache-control':'no-store'}); return res.end();
+      }
+      return text(res,404,'Not found');
+    }
+    // ADMIN_PATH_PREFIX → proxy to admin server (only when no dedicated ADMIN_HOST)
+    if (prefixRe.test(url.pathname)) {
+      if (!ADMIN_HOST) {
+        if (url.pathname === ADMIN_PATH_PREFIX) { res.writeHead(308,{location:`${ADMIN_PATH_PREFIX}/`,'cache-control':'no-store'}); return res.end(); }
+        const stripped = url.pathname.slice(ADMIN_PATH_PREFIX.length) || '/';
+        return proxy(req,res,ADMIN_PORT,`${stripped}${url.search}`);
+      }
+      return text(res,404,'Not found');
+    }
     return proxy(req,res,MEMBER_PORT,`${url.pathname}${url.search}`);
   }
 
