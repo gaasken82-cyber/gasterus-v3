@@ -21,7 +21,7 @@ window.AdminShell=(()=>{
     if(clock){const tick=()=>{clock.textContent=new Date().toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',day:'2-digit',month:'short'})};tick();setInterval(tick,1000);}
     return{content};
   }
-  async function auth(){const me=await ASEAN_API.request('/admin-api/owner/me');ASEAN_API.csrf=me.csrfToken;const badge=document.getElementById('adminRole');if(badge)badge.textContent=(me.roles||[]).join(' • ')||'ADMIN';const logout=document.getElementById('globalLogout');if(logout)logout.onclick=async()=>{await ASEAN_API.request('/admin-api/owner/logout',{method:'POST',headers:{'x-csrf-token':ASEAN_API.csrf},body:'{}'}).catch(()=>{});location.href='index.html'};return me;}
+  async function auth(){const me=await ASEAN_API.request('/admin-api/owner/me');ASEAN_API.csrf=me.csrfToken;const badge=document.getElementById('adminRole');if(badge)badge.textContent=(me.roles||[]).join(' • ')||'ADMIN';const logout=document.getElementById('globalLogout');if(logout)logout.onclick=async()=>{await ASEAN_API.request('/admin-api/owner/logout',{method:'POST',body:'{}'}).catch(()=>{});location.href='index.html'};return me;}
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const date=v=>v?new Date(v).toLocaleString('id-ID'):'-';
   return{mount,auth,esc,date};
