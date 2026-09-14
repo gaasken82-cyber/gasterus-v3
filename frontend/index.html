@@ -577,9 +577,6 @@ if (loginForm && btnLogin) {
 }
 </script>
 
-<script>
-(function(){
-    </script>
 
 <script>
 (function(){
@@ -591,7 +588,12 @@ document.getElementById("navBackdrop")?.addEventListener("click",closeNav);
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeNav();});
 })();
 </script>
-<script type="module">`nimport auth from '/js/auth.js';`ndocument.addEventListener('DOMContentLoaded', () => {`n  if (auth.isLoggedIn()) window.location.href = '/member.html';`n});`n</script>
+<script type="module">
+import auth from '/js/auth.js';
+document.addEventListener('DOMContentLoaded', () => {
+  if (auth.isLoggedIn()) window.location.href = '/member.html';
+});
+</script>
 
 <script>
 // Hero Banner 3D Smooth Slider Controller
