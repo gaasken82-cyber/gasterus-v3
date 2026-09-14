@@ -8,7 +8,7 @@ types.setTypeParser(20, value => Number(value));
 // Keep PostgreSQL DATE values as YYYY-MM-DD strings. DATE is a calendar value, not an instant.
 configurePostgresTypeParsers(types);
 export const pool = new Pool({
-  connectionString: config.databaseUrl,
+  connectionString: process.env.DATABASE_URL_OVERRIDE || config.databaseUrl,
   max: config.pgPoolMax,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
