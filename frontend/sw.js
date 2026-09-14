@@ -3,7 +3,7 @@
    Untuk PWA: Offline caching dasar
    ========================================================================== */
 
-const CACHE_NAME = 'gasterus-v3-cache-v12-qris-fix';
+const CACHE_NAME = 'gasterus-v3-cache-v13-qris-barcode-fixed';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
