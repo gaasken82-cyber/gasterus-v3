@@ -294,18 +294,24 @@ function renderStatusMeta() {
 
 /**
  * Indo Odds Calculation:
- * - If Decimal Odds >= 2.00: Indo odds = +(Decimal - 1.00) (Positive, BLACK)
- * - If Decimal Odds < 2.00: Indo odds = -1.00 / (Decimal - 1.00) (Negative, RED)
- * Returns { text: string, isNeg: boolean }
+ * - If Decimal Odds >= 2.00: Indo odds = +(Decimal - 1.00) (Positive, UNDERDOG)
+ * - If Decimal Odds < 2.00: Indo odds = 1.00 / (Decimal - 1.00) (Positive, FAVORIT)
+ * Returns { text: string, isNeg: boolean, fav: boolean }
+ * 
+ * Format tampilan: angka positif saja (tanpa tanda minus)
+ * - Underdog: 2.50 artinya taruhan 1 menang 2.50
+ * - Favorit: 8.47 artinya taruhan 8.47 menang 1.00
  */
 function formatIndoOdds(decOdds) {
   const d = Number(decOdds);
-  if (!Number.isFinite(d) || d <= 1) return { text: '—', isNeg: false };
+  if (!Number.isFinite(d) || d <= 1) return { text: '—', isNeg: false, fav: false };
   if (d >= 2.00) {
-    return { text: (d - 1).toFixed(2), isNeg: false };
+    // Underdog: tampilkan angka positif (contoh: 2.50)
+    return { text: (d - 1).toFixed(2), isNeg: false, fav: false };
   } else {
-    const val = -1.0 / (d - 1.0);
-    return { text: val.toFixed(2), isNeg: true };
+    // Favorit: tampilkan angka positif tanpa minus (contoh: 8.47 bukan -8.47)
+    const val = 1.0 / (d - 1.0);
+    return { text: val.toFixed(2), isNeg: true, fav: true };
   }
 }
 

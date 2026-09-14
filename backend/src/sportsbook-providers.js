@@ -434,9 +434,27 @@ export async function fetchSharpApi() {
   return { provider: 'sharpapi', enabled: true, events: normalizeSharpApiRows(payload), errors: [] };
 }
 
+function isHandicapOddsValid(selections, line) {
+  // Untuk handicap 0 (pick'em), odds kedua tim harus seimbang (sekitar 1.70-2.10)
+  // Jika terlalu tidak seimbang, return false (market akan dihapus)
+  if (line === 0 || line === null || line === '') {
+    const odds = selections.map(s => s.odds).filter(o => o > 1);
+    if (odds.length >= 2) {
+      const minOdds = Math.min(...odds);
+      const maxOdds = Math.max(...odds);
+      // Jika odds terendah < 1.50 atau ratio > 3x, data tidak valid (1X2 tercampur)
+      if (minOdds < 1.50 || (maxOdds / minOdds) > 3) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 function oddsApiMarket(event, market, source = 'the-odds-api') {
   const type = marketType(market.key, market.key);
   const period = periodFromName(market.name || market.key, market.key);
+  const marketLine = market.outcomes?.[0]?.point ?? null;
   const grouped = new Map();
   for (const outcome of market.outcomes || []) {
     const line = outcome.point ?? null;
@@ -453,12 +471,22 @@ function oddsApiMarket(event, market, source = 'the-odds-api') {
     const previous = grouped.get(key);
     if (!previous || selection.odds > previous.odds) grouped.set(key, selection);
   }
+  let selections = [...grouped.values()];
+  
+  // Validasi odds handicap - jika tidak valid, return null (hapus market)
+  // Ini mencegah odds 1X2 tercampur ke handicap 0
+  if (type === 'HANDICAP' && (marketLine === 0 || marketLine === null)) {
+    if (!isHandicapOddsValid(selections, marketLine)) {
+      return null; // Hapus market ini - odds tidak valid
+    }
+  }
+  
   return normalizedMarket(event.id, {
     key: market.key,
     name: marketLabel(type, market.name || market.key, market.key),
     type,
     period,
-    selections: [...grouped.values()],
+    selections,
     source,
     updatedAt: market.last_update
   });
@@ -716,71 +744,129 @@ function sportmonksMarket(event, rows) {
   });
 }
 
+// Cache untuk data Sportmonks dengan TTL 2 menit
+const sportmonksCache = new Map();
+const SPORTMONKS_CACHE_TTL = 2 * 60 * 1000; // 2 menit
+
+// Fetch semua halaman data dari Sportmonks dengan pagination
+async function fetchAllPages(base, endpoint, params, maxPages = 10) {
+  const allData = [];
+  let page = 1;
+  let hasMore = true;
+  
+  while (hasMore && page <= maxPages) {
+    const url = new URL(`${base}${endpoint}`);
+    url.searchParams.set('api_token', config.sportmonksKey);
+    url.searchParams.set('page', String(page));
+    url.searchParams.set('per_page', '50');
+    for (const [key, value] of Object.entries(params)) {
+      url.searchParams.set(key, value);
+    }
+    
+    try {
+      const payload = await requestJson(url, { label: `Sportmonks page ${page}` });
+      const data = payload?.data || [];
+      if (data.length === 0) {
+        hasMore = false;
+      } else {
+        allData.push(...data);
+        // Cek apakah masih ada halaman berikutnya
+        hasMore = data.length >= 50 && payload?.pagination?.has_more;
+        page++;
+      }
+    } catch (error) {
+      logger.warn(`Sportmonks pagination error page ${page}: ${error.message}`);
+      hasMore = false;
+    }
+  }
+  
+  return allData;
+}
+
 export async function fetchSportmonks() {
   if (!config.sportmonksEnabled || !config.sportmonksKey) return { provider: 'sportmonks', enabled: false, events: [] };
+  
   const base = config.sportmonksBaseUrl.replace(/\/$/, '');
+  const now = Date.now();
+  const cacheKey = `sportmonks:all-events:${utcDate(0)}`;
+  
+  // Cek cache terlebih dahulu (TTL 2 menit)
+  const cached = sportmonksCache.get(cacheKey);
+  if (cached && now - cached.fetchedAt < SPORTMONKS_CACHE_TTL) {
+    logger.info('Sportmonks: returning cached data', { age: Math.round((now - cached.fetchedAt) / 1000) + 's' });
+    return { provider: 'sportmonks', enabled: true, events: cached.events, errors: [] };
+  }
+  
   const daysAhead = Math.max(0, Number(config.sportmonksDaysAhead) || 0);
   const dates = [];
   for (let offset = 0; offset <= daysAhead; offset += 1) dates.push(utcDate(offset));
-  const metaResults = await Promise.allSettled(dates.map(date => cachedRequest(`sportmonks:fixtures:${date}`, config.sportmonksRefreshSeconds * 1000, async () => {
-    const url = new URL(`${base}/football/fixtures/date/${date}`);
-    url.searchParams.set('api_token', config.sportmonksKey);
-    url.searchParams.set('include', 'state;participants;league.country');
-    url.searchParams.set('per_page', '50');
-    return requestJson(url, { label: 'Sportmonks fixtures' });
-  })));
-  const errors = metaResults.filter(result => result.status === 'rejected').map(result => clean(result.reason?.message || 'request failed'));
-  const candidates = [];
+  
+  const errors = [];
+  const allFixtures = [];
   const seen = new Set();
-  for (const result of metaResults) {
-    if (result.status !== 'fulfilled') continue;
-    for (const fixture of result.value?.data || []) {
-      const id = String(fixture?.id ?? '');
-      if (!id || seen.has(id)) continue;
-      seen.add(id);
-      const state = sportmonksState(fixture.state);
-      if (state !== 'SCHEDULED' && state !== 'LIVE') continue;
-      if (fixture.has_odds === false) continue;
-      candidates.push({ fixture, start: Number(fixture.starting_at_timestamp) * 1000 || Date.parse(fixture.starting_at || '') || 0 });
-    }
-  }
-  const now = Date.now();
-  const maxEvents = Math.max(0, Number(config.sportmonksMaxTotalEvents) || 0);
-  const selected = candidates
-    .filter(item => !item.start || item.start >= now - 3 * 60 * 60 * 1000)
-    .sort((a, b) => a.start - b.start)
-    .slice(0, maxEvents)
-    .map(item => item.fixture);
-  const refreshMs = Math.max(30, Number(config.sportmonksOddsRefreshSeconds) || 180) * 1000;
-  const parallel = Math.max(1, Math.min(12, Number(config.sportmonksMaxParallel) || 6));
-  const events = [];
-  for (let index = 0; index < selected.length; index += parallel) {
-    const settled = await Promise.allSettled(selected.slice(index, index + parallel).map(async fixture => {
-      const fixtureId = String(fixture.id);
-      const cached = sportmonksEventCache.get(fixtureId);
-      if (cached?.event && now - cached.fetchedAt < refreshMs) return cached.event;
-      const url = new URL(`${base}/football/fixtures/${fixtureId}`);
-      url.searchParams.set('api_token', config.sportmonksKey);
-      url.searchParams.set('include', 'odds;scores');
-      const payload = await requestJson(url, { label: 'Sportmonks odds' });
-      const event = normalizeSportmonksFixture(payload?.data || fixture, payload?.data?.odds || []);
-      if (event && event.markets.length) sportmonksEventCache.set(fixtureId, { fetchedAt: Date.now(), event });
-      return event && event.markets.length ? event : null;
-    }));
-    for (const result of settled) {
-      if (result.status === 'fulfilled') {
-        if (result.value) events.push(result.value);
-      } else if (errors.length < 5) {
-        errors.push(clean(result.reason?.message || 'request failed'));
+  
+  // Fetch fixtures untuk setiap tanggal dengan pagination
+  for (const date of dates) {
+    try {
+      // Gunakan include untuk mendapatkan semua data dalam satu request
+      const fixtures = await fetchAllPages(base, `/football/fixtures/date/${date}`, {
+        include: 'state;participants;league.country;odds;scores'
+      });
+      
+      for (const fixture of fixtures) {
+        const id = String(fixture?.id ?? '');
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        
+        const state = sportmonksState(fixture.state);
+        if (state !== 'SCHEDULED' && state !== 'LIVE') continue;
+        if (fixture.has_odds === false) continue;
+        
+        allFixtures.push(fixture);
       }
+    } catch (error) {
+      errors.push(`Date ${date}: ${error.message}`);
     }
   }
-  // Bounded per-fixture cache: keep only the most recent 2x cap entries.
-  const keep = Math.max(1, maxEvents || 1) * 2;
-  if (sportmonksEventCache.size > keep * 2) {
-    const oldest = [...sportmonksEventCache.entries()].sort((a, b) => a[1].fetchedAt - b[1].fetchedAt);
-    for (const [key] of oldest.slice(0, sportmonksEventCache.size - keep)) sportmonksEventCache.delete(key);
+  
+  // Filter dan urutkan fixtures
+  const maxEvents = Math.max(0, Number(config.sportmonksMaxTotalEvents) || 0);
+  const selected = allFixtures
+    .filter(f => {
+      const start = Number(f.starting_at_timestamp) * 1000 || Date.parse(f.starting_at || '') || 0;
+      return !start || start >= now - 3 * 60 * 60 * 1000;
+    })
+    .sort((a, b) => {
+      const aStart = Number(a.starting_at_timestamp) * 1000 || Date.parse(a.starting_at || '') || 0;
+      const bStart = Number(b.starting_at_timestamp) * 1000 || Date.parse(b.starting_at || '') || 0;
+      return aStart - bStart;
+    })
+    .slice(0, maxEvents);
+  
+  // Normalize fixtures menjadi events
+  const events = [];
+  for (const fixture of selected) {
+    try {
+      const event = normalizeSportmonksFixture(fixture, fixture.odds || []);
+      if (event && event.markets.length) {
+        events.push(event);
+      }
+    } catch (error) {
+      errors.push(`Fixture ${fixture.id}: ${error.message}`);
+    }
   }
+  
+  // Simpan ke cache
+  sportmonksCache.set(cacheKey, { fetchedAt: now, events });
+  
+  // Bounded cache: hapus entri lama jika terlalu banyak
+  if (sportmonksCache.size > 10) {
+    const oldest = [...sportmonksCache.entries()].sort((a, b) => a[1].fetchedAt - b[1].fetchedAt);
+    for (const [key] of oldest.slice(0, sportmonksCache.size - 5)) {
+      sportmonksCache.delete(key);
+    }
+  }
+  
   return { provider: 'sportmonks', enabled: true, events: events.slice(0, MAX_PROVIDER_EVENTS), errors };
 }
 

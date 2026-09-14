@@ -6,10 +6,7 @@ import { logger } from './logger.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { fetchSharpApi, fetchApiSports, fetchTheOddsApi, fetchTheSportsDb, fetchSportmonks, mergeProviderEvents, publicEvent } from './sportsbook-providers.js';
-import { fetchPublicMarketFeed } from './sportsbook-public-market.js';
-import { fetchFootballDataIo } from './sportsbook-footballdataio.js';
-import { seedRegistry, maintainRegistry, isActive, recordResult, registrySummary } from './sportsbook-source-registry.js';
+import { fetchSportmonks, mergeProviderEvents, publicEvent } from './sportsbook-providers.js';
 import { advanceProviderLifecycle, publicProviderLifecycle, shouldProbeProvider, transitionProviderLifecycle } from './sportsbook-provider-lifecycle.js';
 import { recordSportsbookMarketTransitions, recordSportsbookProviderTransitions, sportsbookPricingExposureSnapshot } from './sportsbook-operations.js';
 import { applySportsbookRiskRepricing } from './sportsbook-risk-pricing.js';
@@ -19,6 +16,48 @@ import { applySportsbookTradingControls, listActiveSportsbookTradingControls, re
 import { eventSettlementAuthority, settlementAuthoritySummary } from './sportsbook-settlement-authority.js';
 import { enrichTeamArtwork } from './sportsbook-team-artwork.js';
 import { compactMemberMarkets, projectMemberMarkets } from './sportsbook-member-projection.js';
+
+/**
+ * Validasi odds handicap untuk mencegah odds tidak normal
+ * Odds handicap 0 (pick'em) harus seimbang (sekitar 1.70-2.10)
+ * Jika terlalu tidak seimbang, hapus market (jangan tampilkan)
+ */
+function validateAllHandicapOdds(events = []) {
+  return events.map(event => ({
+    ...event,
+    markets: (event.markets || []).filter(market => {
+      // Hanya validasi handicap market dengan line 0 atau null
+      if (market.type !== 'HANDICAP') return true;
+      if (market.line !== 0 && market.line !== null && market.line !== '') return true;
+      
+      const selections = market.selections || [];
+      if (selections.length < 2) return true;
+      
+      const odds = selections.map(s => Number(s.odds)).filter(o => o > 1);
+      if (odds.length < 2) return true;
+      
+      const minOdds = Math.min(...odds);
+      const maxOdds = Math.max(...odds);
+      
+      // Jika odds terendah < 1.50 atau ratio > 3x, data tidak valid (1X2 tercampur)
+      const isAbnormal = minOdds < 1.50 || (maxOdds / minOdds) > 3;
+      
+      if (isAbnormal) {
+        logger.warn('Abnormal handicap odds detected, removing market', {
+          event: `${event.home?.name} vs ${event.away?.name}`,
+          line: market.line,
+          odds: odds.join(', '),
+          minOdds,
+          maxOdds,
+          ratio: (maxOdds / minOdds).toFixed(2)
+        });
+        return false; // Hapus market ini
+      }
+      
+      return true;
+    })
+  }));
+}
 
 const LIFECYCLE_GENERATION = 'r6915';
 const CACHE_KEY = 'sportsbook:aggregated-feed:v11';
@@ -361,15 +400,10 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
   }
   const previousLifecycle = await readProviderLifecycle();
   if (config.sportsSourceRegistryEnabled) maintainRegistry();
+  // Gunakan hanya Sportmonks sebagai sumber data (menghindari odds tidak normal dari provider lain)
   const descriptors = [
-    { code: 'public-market', enabled: Boolean(config.publicMarketEnabled), fetcher: fetchPublicMarketFeed },
-    { code: 'sharpapi', enabled: config.sharpApiEnabled && Boolean(config.sharpApiKey), fetcher: fetchSharpApi },
-    { code: 'api-sports', enabled: config.apiSportsEnabled && Boolean(config.apiSportsKey), fetcher: fetchApiSports },
-    { code: 'the-odds-api', enabled: config.theOddsApiEnabled && Boolean(config.theOddsApiKey), fetcher: fetchTheOddsApi },
-    { code: 'sportmonks', enabled: config.sportmonksEnabled && Boolean(config.sportmonksKey), fetcher: fetchSportmonks },
-    { code: 'thesportsdb', enabled: config.theSportsDbEnabled && Boolean(config.theSportsDbKey), fetcher: fetchTheSportsDb },
-    { code: 'footballdata-io', enabled: config.footballDataIoEnabled && Boolean(config.footballDataIoKey), fetcher: fetchFootballDataIo }
-  ].filter(descriptor => !config.sportsSourceRegistryEnabled || isActive(descriptor.code));
+    { code: 'sportmonks', enabled: config.sportmonksEnabled && Boolean(config.sportmonksKey), fetcher: fetchSportmonks }
+  ];
   const settled = await Promise.all(descriptors.map(descriptor => {
     const lifecycle = previousLifecycle[descriptor.code];
     if (descriptor.enabled && lifecycle?.state === 'OPEN_CIRCUIT' && !shouldProbeProvider(lifecycle)) {
@@ -432,6 +466,8 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
   // Feed-level safety: a finished/suspended event or a prematch event whose kickoff
   // has passed without confirmed live state must not remain counted or rendered as bettable.
   events = enforceEventBettingWindow(events, Date.now());
+  // Validasi odds handicap untuk mencegah odds tidak normal (misal: 1.068 vs 9.196)
+  events = validateAllHandicapOdds(events);
   let snapshotFallback = false;
   let snapshotCapturedAt = null;
   if (!events.length) {
