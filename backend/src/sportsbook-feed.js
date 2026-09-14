@@ -6,7 +6,7 @@ import { logger } from './logger.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { fetchSportmonks, mergeProviderEvents, publicEvent } from './sportsbook-providers.js';
+import { fetchSportmonks, fetchSharpApi, fetchApiSports, fetchTheOddsApi, mergeProviderEvents, publicEvent } from './sportsbook-providers.js';
 import { advanceProviderLifecycle, publicProviderLifecycle, shouldProbeProvider, transitionProviderLifecycle } from './sportsbook-provider-lifecycle.js';
 import { recordSportsbookMarketTransitions, recordSportsbookProviderTransitions, sportsbookPricingExposureSnapshot } from './sportsbook-operations.js';
 import { applySportsbookRiskRepricing } from './sportsbook-risk-pricing.js';
@@ -398,10 +398,13 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
     throw new AppError(503, 'Belum ada sumber sportsbook yang dikonfigurasi pada core service.', 'SPORTS_PROVIDERS_NOT_CONFIGURED');
   }
   const previousLifecycle = await readProviderLifecycle();
-  // Gunakan hanya Sportmonks sebagai sumber data (menghindari odds tidak normal dari provider lain)
+  // Gunakan Sportmonks sebagai sumber utama, dengan fallback ke provider lain jika gagal
   const descriptors = [
-    { code: 'sportmonks', enabled: config.sportmonksEnabled && Boolean(config.sportmonksKey), fetcher: fetchSportmonks }
-  ];
+    { code: 'sportmonks', enabled: config.sportmonksEnabled && Boolean(config.sportmonksKey), fetcher: fetchSportmonks },
+    { code: 'sharpapi', enabled: config.sharpApiEnabled && Boolean(config.sharpApiKey), fetcher: fetchSharpApi },
+    { code: 'api-sports', enabled: config.apiSportsEnabled && Boolean(config.apiSportsKey), fetcher: fetchApiSports },
+    { code: 'the-odds-api', enabled: config.theOddsApiEnabled && Boolean(config.theOddsApiKey), fetcher: fetchTheOddsApi }
+  ].filter(d => d.enabled);
   const settled = await Promise.all(descriptors.map(descriptor => {
     const lifecycle = previousLifecycle[descriptor.code];
     if (descriptor.enabled && lifecycle?.state === 'OPEN_CIRCUIT' && !shouldProbeProvider(lifecycle)) {
