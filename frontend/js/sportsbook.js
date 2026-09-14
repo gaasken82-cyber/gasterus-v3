@@ -326,8 +326,9 @@ function isTodayEvent(e) {
   if (!Number.isFinite(evTs)) return false;
   const nowTs = Date.now();
   const diffHours = (evTs - nowTs) / (1000 * 60 * 60);
-  // Window: started up to 3 h ago, or starts within next 26 h
-  if (diffHours >= -3 && diffHours <= 26) return true;
+  // Window: started up to 3 h ago, or starts within next 7 days (168 hours)
+  // Expanded from 26h to 7 days to show more upcoming events from public-market feed
+  if (diffHours >= -3 && diffHours <= 168) return true;
   // Fallback: same calendar date in WIB
   return todayDateWIB(evTs) === todayDateWIB(nowTs);
 }
@@ -485,6 +486,8 @@ let slipSheetOpen = false;
 let activeSlipTab = 'single'; // 'single' | 'parlay'
 
 function openSlipSheet() {
+  // Don't open mobile sheet on desktop - betslip is already visible in sidebar
+  if (window.innerWidth > 1024) return;
   const sheet = el('sb-slip-sheet');
   const overlay = el('sb-slip-overlay');
   if (!sheet) return;
@@ -1230,6 +1233,8 @@ function renderBetslip() {
   const desktop = el('betslip-body');
   const mobileBody = el('sb-mobile-sheet'); // inside sb-slip-sheet-body
   const isDesktop = window.innerWidth > 1024;
+  
+  // Only render to the appropriate target based on screen size to avoid double views
   const target = isDesktop ? desktop : mobileBody;
   if (!target && !desktop && !mobileBody) return;
 
@@ -1249,8 +1254,9 @@ function renderBetslip() {
 
   if (!selected.size) {
     const emptyHtml = '<div class="sb-slip-empty">Pilih odds pada pertandingan untuk memasang taruhan.</div>';
-    if (desktop) desktop.innerHTML = emptyHtml;
-    if (mobileBody) mobileBody.innerHTML = emptyHtml;
+    // Only render to the active target
+    if (isDesktop && desktop) desktop.innerHTML = emptyHtml;
+    else if (!isDesktop && mobileBody) mobileBody.innerHTML = emptyHtml;
     return;
   }
 
@@ -1289,9 +1295,14 @@ function renderBetslip() {
     <button type="button" id="btn-place-bet" class="sb-btn sb-btn-place sb-btn-block"${(placing || overBalance) ? ' disabled' : ''}>${placing ? '⏳ Memproses…' : '⚽ Pasang Taruhan'}</button>
     <button type="button" id="btn-clear-slip" class="sb-btn sb-btn-ghost sb-btn-block sb-btn-sm">Kosongkan betslip</button>`;
 
-  // Render to both desktop and active mobile target
-  if (desktop) { desktop.innerHTML = html; bindBetslipEvents(desktop); }
-  if (mobileBody && mobileBody !== desktop) { mobileBody.innerHTML = html; bindBetslipEvents(mobileBody); }
+  // Render ONLY to the active target based on screen size to prevent double views
+  if (isDesktop && desktop) { 
+    desktop.innerHTML = html; 
+    bindBetslipEvents(desktop); 
+  } else if (!isDesktop && mobileBody) { 
+    mobileBody.innerHTML = html; 
+    bindBetslipEvents(mobileBody); 
+  }
 
   if (stake >= bettingConfig.minStake) requestQuote();
 }
@@ -1489,6 +1500,20 @@ function setupSlipSheet() {
     if (e.key === 'Escape' && slipSheetOpen) closeSlipSheet();
   });
 }
+
+// Handle window resize to re-render betslip in correct container
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    // Close mobile sheet if resizing to desktop
+    if (window.innerWidth > 1024 && slipSheetOpen) {
+      closeSlipSheet();
+    }
+    // Re-render betslip in the correct container
+    renderBetslip();
+  }, 250);
+});
 
 // Auto init
 if (document.readyState === 'loading') {

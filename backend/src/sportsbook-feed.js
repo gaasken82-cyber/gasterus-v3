@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { fetchSportmonks, fetchSharpApi, fetchApiSports, fetchTheOddsApi, mergeProviderEvents, publicEvent } from './sportsbook-providers.js';
+import { fetchPublicMarketFeed } from './sportsbook-public-market.js';
 import { advanceProviderLifecycle, publicProviderLifecycle, shouldProbeProvider, transitionProviderLifecycle } from './sportsbook-provider-lifecycle.js';
 import { recordSportsbookMarketTransitions, recordSportsbookProviderTransitions, sportsbookPricingExposureSnapshot } from './sportsbook-operations.js';
 import { applySportsbookRiskRepricing } from './sportsbook-risk-pricing.js';
@@ -395,8 +396,9 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
     throw new AppError(503, 'Belum ada sumber sportsbook yang dikonfigurasi pada core service.', 'SPORTS_PROVIDERS_NOT_CONFIGURED');
   }
   const previousLifecycle = await readProviderLifecycle();
-  // Gunakan Sportmonks sebagai sumber utama, dengan fallback ke provider lain jika gagal
+  // Gunakan public-market (gratis) sebagai sumber utama, dengan fallback ke provider berbayar jika dikonfigurasi
   const descriptors = [
+    { code: 'public-market', enabled: Boolean(config.publicMarketEnabled), fetcher: fetchPublicMarketFeed },
     { code: 'sportmonks', enabled: config.sportmonksEnabled && Boolean(config.sportmonksKey), fetcher: fetchSportmonks },
     { code: 'sharpapi', enabled: config.sharpApiEnabled && Boolean(config.sharpApiKey), fetcher: fetchSharpApi },
     { code: 'api-sports', enabled: config.apiSportsEnabled && Boolean(config.apiSportsKey), fetcher: fetchApiSports },
