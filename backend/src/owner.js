@@ -32,10 +32,11 @@ async function releaseWithdrawal(client,row,actorId,reason){
 async function executeWallet(client,row,actorId){
   const isDeposit=row.request_type==='DEPOSIT';
   const amount=Number(row.amount);const policy=await moneyPolicy(client);let ledger;let balanceAfter;
+  const integration=row.payment_snapshot?.integrationMode||'MANUAL';
+  const isManualOverride=Boolean(isDeposit&&integration==='PROVIDER'&&row.provider_status!=='CONFIRMED'&&actorId);
   if(isDeposit){
-    const integration=row.payment_snapshot?.integrationMode||'MANUAL';
-    if(integration==='PROVIDER'&&policy.requireProviderConfirmation!==false)assert(row.provider_status==='CONFIRMED',409,'Konfirmasi payment provider belum diterima.','PROVIDER_CONFIRMATION_REQUIRED');
-    ledger=await postTransfer(client,{memberId:row.member_id,systemCode:SYSTEM_ACCOUNTS.CLEARING,memberDelta:amount,type:'WALLET_DEPOSIT_SETTLED',referenceType:'WALLET_REQUEST',referenceId:row.id,idempotencyKey:`wallet-settle:${row.id}`,metadata:{requestType:row.request_type,providerCode:row.provider_code||null,providerReference:row.provider_reference||null},actorId});
+    if(integration==='PROVIDER'&&policy.requireProviderConfirmation!==false&&!actorId)assert(row.provider_status==='CONFIRMED',409,'Konfirmasi payment provider belum diterima.','PROVIDER_CONFIRMATION_REQUIRED');
+    ledger=await postTransfer(client,{memberId:row.member_id,systemCode:SYSTEM_ACCOUNTS.CLEARING,memberDelta:amount,type:'WALLET_DEPOSIT_SETTLED',referenceType:'WALLET_REQUEST',referenceId:row.id,idempotencyKey:`wallet-settle:${row.id}`,metadata:{requestType:row.request_type,providerCode:row.provider_code||null,providerReference:row.provider_reference||null,manualOverride:isManualOverride},actorId});
     balanceAfter=ledger.after;
   }else{
     row=await ensureWithdrawalReserved(client,row,actorId);
@@ -43,7 +44,7 @@ async function executeWallet(client,row,actorId){
     balanceAfter=Number((await memberAccount(client,row.member_id,true)).current_balance);
   }
   await client.query(`UPDATE wallet_requests SET status='APPROVED',funds_state='SETTLED',reviewed_by=COALESCE(reviewed_by,$1),reviewed_at=COALESCE(reviewed_at,now()),settled_at=now(),updated_at=now() WHERE id=$2`,[actorId,row.id]);
-  await recordMoneyEvent(client,{walletRequestId:row.id,memberId:row.member_id,eventType:isDeposit?'DEPOSIT_SETTLED':'WITHDRAW_SETTLED',amount,currency:row.currency||MONEY_CURRENCY,actorId,metadata:{balanceAfter,providerCode:row.provider_code||null,providerReference:row.provider_reference||null}});
+  await recordMoneyEvent(client,{walletRequestId:row.id,memberId:row.member_id,eventType:isDeposit?'DEPOSIT_SETTLED':'WITHDRAW_SETTLED',amount,currency:row.currency||MONEY_CURRENCY,actorId,metadata:{balanceAfter,providerCode:row.provider_code||null,providerReference:row.provider_reference||null,manualOverride:isManualOverride}});
   await createMemberNotification(client,{memberId:row.member_id,type:isDeposit?'DEPOSIT_APPROVED':'WITHDRAW_APPROVED',title:isDeposit?'Deposit Berhasil Disetujui':'Withdraw Berhasil Disetujui',message:isDeposit?`Saldo sebesar IDR ${amount.toLocaleString('id-ID')} telah masuk ke saldo Anda.`:`Withdraw sebesar IDR ${amount.toLocaleString('id-ID')} telah disetujui dan dana yang sebelumnya ditahan telah diselesaikan.`,amount,referenceType:'WALLET_REQUEST',referenceId:row.id,actionUrl:'history.html',priority:'HIGH',metadata:{requestType:row.request_type,balanceAfter}});
   return{...ledger,balanceAfter,after:balanceAfter};
 }
@@ -76,7 +77,8 @@ export async function reviewWallet(session,id,{decision,reason},ip=''){
     }
     if(Number(row.amount)>=config.highValueThreshold && !session.roles.includes('OWNER')){const approvalId=randomUUID();await client.query(`UPDATE wallet_requests SET status='AWAITING_SECOND_APPROVAL',reviewed_by=$1,reviewed_at=now(),updated_at=now() WHERE id=$2`,[session.userId,id]);await client.query(`INSERT INTO approval_requests(id,action_type,payload,requested_by,expires_at) VALUES($1,'HIGH_VALUE_WALLET',$2::jsonb,$3,now()+make_interval(secs => $4))`,[approvalId,JSON.stringify({walletRequestId:id,requestType:row.request_type,amount:Number(row.amount),currency:row.currency||MONEY_CURRENCY,payoutSnapshot:row.payout_snapshot||null,paymentSnapshot:row.payment_snapshot||null,providerCode:row.provider_code||null,providerReference:row.provider_reference||null}),session.userId,config.approvalTtl]);await recordMoneyEvent(client,{walletRequestId:row.id,memberId:row.member_id,eventType:'SECOND_APPROVAL_REQUIRED',amount:Number(row.amount),currency:row.currency||MONEY_CURRENCY,actorId:session.userId,metadata:{approvalId}});await audit({actorId:session.userId,actorRole:session.roles.join(','),action:'WALLET_APPROVAL_REQUESTED',targetType:'APPROVAL',targetId:approvalId,details:{walletRequestId:id,amount:Number(row.amount)},ip,client});return{id,status:'AWAITING_SECOND_APPROVAL',approvalRequired:true,approvalId};}
     if(row.request_type==='WITHDRAW'){await authorizeWithdrawalPayout(client,row,session.userId);await audit({actorId:session.userId,actorRole:session.roles.join(','),action:'WALLET_WITHDRAW_AUTHORIZED',targetType:'WALLET_REQUEST',targetId:id,details:{amount:Number(row.amount),fundsState:'RESERVED'},ip,client});return{id,status:'PROCESSING',approvalRequired:false,fundsState:'RESERVED'};}
-    const ledger=await executeWallet(client,row,session.userId);await audit({actorId:session.userId,actorRole:session.roles.join(','),action:'WALLET_REQUEST_APPROVED',targetType:'WALLET_REQUEST',targetId:id,details:{amount:Number(row.amount),balanceAfter:ledger.after},ip,client});return{id,status:'APPROVED',approvalRequired:false,balanceAfter:ledger.after};
+    const isManualOverride=Boolean(row.request_type==='DEPOSIT'&&(row.payment_snapshot?.integrationMode||'MANUAL')==='PROVIDER'&&row.provider_status!=='CONFIRMED');
+    const ledger=await executeWallet(client,row,session.userId);await audit({actorId:session.userId,actorRole:session.roles.join(','),action:'WALLET_REQUEST_APPROVED',targetType:'WALLET_REQUEST',targetId:id,details:{amount:Number(row.amount),balanceAfter:ledger.after,manualOverride:isManualOverride},ip,client});return{id,status:'APPROVED',approvalRequired:false,balanceAfter:ledger.after};
   },{isolation:'SERIALIZABLE'});
 }
 
