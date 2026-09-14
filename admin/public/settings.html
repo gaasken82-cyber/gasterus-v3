@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>SBOTOTO Admin | Settings</title><link href="enterprise.css" rel="stylesheet"/><script src="api.js"></script><script src="admin-shell.js"></script>
-<link href="enterprise-ui-r6820.css?v=6820-maxpremium" rel="stylesheet"/></head><body class="enterprise-r6820">
+<link href="enterprise-ui-r6820.css?v=6820-maxpremium" rel="stylesheet"/>
+<link href="enterprise-3d-r7000.css?v=7000-3d-glass" rel="stylesheet"/></head><body class="enterprise-r6820 enterprise-3d-r7000">
 <div class="split"><section class="card"><div class="card-head"><div><h2>System Settings</h2><p>Konfigurasi operasional tersimpan di database.</p></div><button class="btn" id="reload">REFRESH</button></div><div class="stack" id="settingsList"></div></section><section class="stack"><section class="card"><div class="card-head"><div><h2>Role Assignment</h2><p>Perubahan role memakai approval workflow.</p></div></div><div class="field"><label>User ID</label><input id="roleUser"/></div><div class="field" style="margin-top:10px"><label>Role</label><select id="roleCode"><option>SUPERVISOR</option><option>FINANCE</option><option>RESULT_OPERATOR</option><option>SUPPORT</option><option>SECURITY</option></select></div><button class="btn primary" id="assignRole" style="margin-top:12px">REQUEST ROLE CHANGE</button></section><section class="card"><div class="card-head"><div><h2>Security Model</h2></div></div><div class="notice">MFA wajib untuk akun pengelola. Audit log append-only. Perubahan role dan transaksi bernilai tinggi memakai prinsip four-eyes approval.</div></section></section></div>
 <script>
 AdminShell.mount('settings.html','System Settings','Configuration • RBAC • Security Controls');const esc=AdminShell.esc;let settings=[];
@@ -9,4 +10,5 @@ async function load(){settings=await ASEAN_API.request('/admin-api/owner/setting
 assignRole.onclick=async()=>{if(!roleUser.value.trim())return alert('User ID wajib diisi.');try{const d=await ASEAN_API.request('/admin-api/owner/roles/assign',{method:'POST',headers:{'x-csrf-token':ASEAN_API.csrf},body:JSON.stringify({userId:roleUser.value.trim(),roleCode:roleCode.value})});alert('Permintaan role dibuat: '+d.id)}catch(e){alert(e.message)}};
 (async()=>{try{await AdminShell.auth();await load()}catch(e){location.href='index.html'}})();
 </script>
-<script src="enterprise-ui-r6820.js?v=6820-maxpremium"></script></body></html>
+<script src="enterprise-ui-r6820.js?v=6820-maxpremium"></script><script src="enterprise-3d-r7000.js?v=7000-3d-glass"></script>
+</body></html>

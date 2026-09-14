@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>SBOTOTO Admin | Overview</title><link href="enterprise.css" rel="stylesheet"/><script src="api.js"></script><script src="admin-shell.js"></script>
-<link href="enterprise-ui-r6820.css?v=6820-maxpremium" rel="stylesheet"/></head><body class="enterprise-r6820">
+<link href="enterprise-ui-r6820.css?v=6820-maxpremium" rel="stylesheet"/>
+<link href="enterprise-3d-r7000.css?v=7000-3d-glass" rel="stylesheet"/></head><body class="enterprise-r6820 enterprise-3d-r7000">
 <div class="grid kpi-grid" id="kpis"></div>
 <div class="split" style="margin-top:14px"><section class="card"><div class="card-head"><div><h2>Finance Queue</h2><p>Deposit dan withdraw yang memerlukan tindakan.</p></div><div class="toolbar"><select class="btn" id="walletFilter"><option value="">SEMUA</option><option>PENDING</option><option>AWAITING_SECOND_APPROVAL</option><option>PROCESSING</option><option>APPROVED</option><option>FAILED</option><option>REJECTED</option><option>REVERSED</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Member</th><th>Jenis</th><th>Nominal</th><th>Metode / Tujuan</th><th>Status</th><th>Dana</th><th>Aksi</th></tr></thead><tbody id="walletRows"></tbody></table></div></section>
 <section class="stack"><section class="card"><div class="card-head"><div><h2>System Control</h2><p>Status inti operasi.</p></div></div><div class="muted" id="systemBox">Memuat...</div></section><section class="card"><div class="card-head"><div><h2>Pending Approval</h2><p>Tindakan sensitif yang menunggu second approval.</p></div></div><strong id="approvalCount" style="font-size:34px;color:var(--gold2)">0</strong><div style="margin-top:12px"><a class="btn primary" href="approvals.html" style="display:inline-flex;align-items:center;text-decoration:none">BUKA APPROVALS</a></div></section></section></div>
@@ -16,4 +17,5 @@ async function loadSystem(){const c=await ASEAN_API.request('/admin-api/owner/co
 walletRows.addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(b)return review(b.dataset.id,b.dataset.d).catch(x=>alert(x.message));const p=e.target.closest('[data-p]');if(p)payout(p.dataset.id,p.dataset.p).catch(x=>alert(x.message))});walletFilter.onchange=()=>loadFinance().catch(x=>alert(x.message));
 (async()=>{try{me=await AdminShell.auth();await Promise.all([loadSummary(),loadFinance(),loadAudit(),loadSystem()]);}catch(e){location.href='index.html'}})();
 </script>
-<script src="enterprise-ui-r6820.js?v=6820-maxpremium"></script></body></html>
+<script src="enterprise-ui-r6820.js?v=6820-maxpremium"></script><script src="enterprise-3d-r7000.js?v=7000-3d-glass"></script>
+</body></html>

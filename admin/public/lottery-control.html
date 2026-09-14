@@ -9,8 +9,9 @@
 </style>
 <script src="api.js"></script>
 
-<link href="enterprise-ui-r6820.css?v=6820-maxpremium" rel="stylesheet"/></head>
-<body class="enterprise-r6820">
+<link href="enterprise-ui-r6820.css?v=6820-maxpremium" rel="stylesheet"/>
+<link href="enterprise-3d-r7000.css?v=7000-3d-glass" rel="stylesheet"/></head>
+<body class="enterprise-r6820 enterprise-3d-r7000">
 <header class="top"><div class="brand">SBOTOTO ADMIN • LOTTERY RISK</div><nav class="nav"><button class="btn" data-href="dashboard.html">DASHBOARD</button><button class="btn" data-href="members.html">MEMBERS</button><button class="btn" data-href="payments.html">PAYMENTS</button><button class="btn" data-href="content.html">CMS</button><button class="btn" data-href="bets.html">BETTING</button><button class="btn" data-href="lottery-control.html">LOTTERY RISK</button><button class="btn" data-href="approvals.html">PERSETUJUAN</button><button class="btn" id="logout">KELUAR</button></nav></header>
 <main class="wrap">
 <div class="notice"><b>Kontrol enterprise:</b> permainan lanjutan tetap terkunci sampai payout dan exposure dikonfigurasi. Engine yang belum memiliki kontrak settlement eksplisit tidak dapat diaktifkan. Perubahan dicatat ke audit log.</div>
@@ -43,4 +44,5 @@ saveLimit.onclick=async()=>{if(!current)return;const payload={gameCode:limitGame
 document.querySelectorAll('[data-href]').forEach(b=>b.onclick=()=>location.href=b.dataset.href);logout.onclick=async()=>{await ASEAN_API.request('/admin-api/owner/logout',{method:'POST',headers:{'x-csrf-token':csrf},body:'{}'}).catch(()=>{});location.href='index.html'};load();
 </script>
 
-<script src="enterprise-ui-r6820.js?v=6820-maxpremium"></script></body></html>
+<script src="enterprise-ui-r6820.js?v=6820-maxpremium"></script><script src="enterprise-3d-r7000.js?v=7000-3d-glass"></script>
+</body></html>
