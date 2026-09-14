@@ -1041,12 +1041,20 @@ function marketIdentity(market) {
   return `${market.type}|${market.period}|${market.line ?? ''}|${slug(market.label)}`;
 }
 function sourcePriority(source, live) {
-  if (source === 'sharpapi') return 50;
+  if (live) {
+    if (source === 'api-sports') return 30;
+    if (source === 'the-odds-api') return 20;
+    if (source === 'sportmonks') return 10;
+    return 0;
+  }
+
   if (source === 'footballdata-io') return 55;
+  if (source === 'sharpapi') return 50;
   if (source === 'public-market') return 40;
-  if (live) return source === 'api-sports' ? 30 : source === 'the-odds-api' ? 20 : 10;
+
   return source === 'the-odds-api' ? 30 : source === 'api-sports' ? 20 : 10;
 }
+
 function marketBettingAvailable(market) {
   return Boolean(market && !market.suspended && (market.selections || []).some(selection => !selection.suspended && Number(selection.odds) > 1));
 }
