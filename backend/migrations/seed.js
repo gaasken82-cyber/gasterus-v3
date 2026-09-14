@@ -15,10 +15,18 @@ await tx(async client => {
     await client.query(`
       INSERT INTO markets(slug, code, name, result, period, draw_date, category, tags, status, provider_path, source_key, sort_order, verification_status, source_updated_at)
       VALUES($1, $2, $3, $4, $5, $6::date, $7, $8::jsonb, $9, $10, $11, $12, 'VERIFIED', now())
-      ON CONFLICT(slug) DO UPDATE SET
+      ON CONFLICT(provider_path) DO UPDATE SET
+        slug = EXCLUDED.slug,
+        code = EXCLUDED.code,
+        name = EXCLUDED.name,
         result = EXCLUDED.result,
         period = COALESCE(EXCLUDED.period, markets.period),
         draw_date = COALESCE(EXCLUDED.draw_date, markets.draw_date),
+        category = EXCLUDED.category,
+        tags = EXCLUDED.tags,
+        status = EXCLUDED.status,
+        source_key = EXCLUDED.source_key,
+        sort_order = EXCLUDED.sort_order,
         verification_status = 'VERIFIED',
         source_updated_at = now()
     `, [
