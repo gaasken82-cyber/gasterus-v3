@@ -454,9 +454,29 @@
       }
     });
 
-    // Refresh button
-    document.getElementById('btn-refresh-deposit').addEventListener('click', function() {
-      location.reload();
+    // Refresh button — fetch latest user data without reload
+    document.getElementById('btn-refresh-deposit').addEventListener('click', async function() {
+      var btn = this;
+      btn.disabled = true;
+      try {
+        var { auth } = await import('/js/auth.js');
+        await auth.fetchMe();
+        auth.updateHeaderAuthUI();
+        var user = auth.getUser();
+        if (user) {
+          var nameEl = document.querySelector('.user-display-name');
+          var balanceEl = document.querySelector('.user-display-balance');
+          if (nameEl) nameEl.textContent = user.username || 'Member';
+          if (balanceEl) {
+            var bal = Number(user.balance || (user.wallet && user.wallet.balance) || 0);
+            balanceEl.textContent = new Intl.NumberFormat('id-ID').format(bal);
+          }
+        }
+      } catch (e) {
+        // ignore
+      } finally {
+        btn.disabled = false;
+      }
     });
   </script>
 </body>

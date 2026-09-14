@@ -15,11 +15,28 @@ export async function initDeposit() {
     window.location.href = '/index.html';
     return;
   }
+  // Fetch fresh user data from server, then update UI
+  try { await auth.fetchMe(); } catch (e) { /* use cached */ }
   auth.updateHeaderAuthUI();
+  updateDepositUserBar();
   setupNominalPresets('deposit-amount-input');
+  setupNominalPresets('qris-amount-input');
   await loadPaymentMethods();
   setupDepositForm();
+  setupQrisDepositForm();
   await loadTransactionHistory('DEPOSIT');
+}
+
+function updateDepositUserBar() {
+  const user = auth.getUser();
+  if (!user) return;
+  const nameEl = document.querySelector('.user-display-name');
+  const balanceEl = document.querySelector('.user-display-balance');
+  if (nameEl) nameEl.textContent = user.username || 'Member';
+  if (balanceEl) {
+    const bal = Number(user.balance || user.wallet?.balance || 0);
+    balanceEl.textContent = new Intl.NumberFormat('id-ID').format(bal);
+  }
 }
 
 export async function initWithdraw() {
@@ -27,7 +44,10 @@ export async function initWithdraw() {
     window.location.href = '/index.html';
     return;
   }
+  // Fetch fresh user data from server, then update UI
+  try { await auth.fetchMe(); } catch (e) { /* use cached */ }
   auth.updateHeaderAuthUI();
+  updateDepositUserBar();
   setupNominalPresets('withdraw-amount-input');
   setupWithdrawForm();
   await loadTransactionHistory('WITHDRAW');
@@ -37,11 +57,18 @@ function setupNominalPresets(inputId) {
   const input = document.getElementById(inputId);
   if (!input) return;
 
-  document.querySelectorAll('.preset-btn').forEach(btn => {
+  // Scope preset buttons to the same form/container as the target input
+  const container = input.closest('form') || input.closest('.deposit-form-container');
+  if (!container) return;
+
+  container.querySelectorAll('.preset-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const val = btn.getAttribute('data-value');
       if (val) {
         input.value = val;
+        // Visual feedback - only within the same container
+        container.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
       }
     });
   });
@@ -150,6 +177,57 @@ function setupDepositForm() {
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Kirim Konfirmasi Deposit';
+    }
+  });
+}
+
+function setupQrisDepositForm() {
+  const form = document.getElementById('qris-deposit-form');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const amount = Number(form.amount.value);
+
+    if (!amount || amount < 10000) {
+      showToast('Jumlah minimal deposit QRIS adalah Rp 10.000.', 'warning');
+      return;
+    }
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    try {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Membuat QRIS...';
+
+      const idempotencyKey = generateIdempotencyKey();
+      const res = await api.post('/member/qris/create-order', { amount, idempotencyKey });
+      const order = (res && res.data) ? res.data : res;
+      if (order && order.orderId) {
+        openQrisModal(order, form);
+      } else {
+        throw new Error('Gagal membuat order QRIS.');
+      }
+    } catch (qrisErr) {
+      console.warn('QRIS auto deposit unavailable', qrisErr);
+      // Fallback: submit as manual deposit request
+      try {
+        const payload = {
+          requestType: 'DEPOSIT',
+          amount,
+          paymentMethodId: null,
+          idempotencyKey: generateIdempotencyKey(),
+          note: 'QRIS (manual)'
+        };
+        await api.post('/member/wallet-requests', payload);
+        showToast('Mode QRIS otomatis tidak tersedia, permintaan dikirim manual. Admin akan memproses segera.', 'warning');
+        form.reset();
+        await loadTransactionHistory('DEPOSIT');
+      } catch (err) {
+        showToast(qrisErr.message || err.message || 'Gagal membuat deposit QRIS.', 'danger');
+      }
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Bayar dengan QRIS';
     }
   });
 }
