@@ -74,53 +74,156 @@ function setupNominalPresets(inputId) {
   });
 }
 
-async function loadPaymentMethods() {
-  const selectEl = document.getElementById('payment-method-select');
-  if (!selectEl) return;
+let _currentBankMethods = [];
+let _selectedMethodId = null;
 
-  // Fallback bank yang valid agar form deposit tidak error saat endpoint down
-  const fallbackMethods = [
-    { id: 'bca', name: 'BCA', account_number: '0821-xxxx-xxxx', account_name: 'PT GASTERUS INDO NUSANTARA' },
-    { id: 'mandiri', name: 'Mandiri', account_number: '1234-xxxx-xxxx', account_name: 'PT GASTERUS INDO NUSANTARA' },
-    { id: 'qris', name: 'QRIS', account_number: '', account_name: 'QRIS GASTERUS' }
-  ];
-
-  let methods = fallbackMethods;
-  try {
-    const res = await api.get('/member/payment-methods');
-    if (Array.isArray(res) && res.length > 0) {
-      methods = res;
-    } else {
-      console.warn('Payment methods endpoint returned empty array, using fallback');
-    }
-  } catch (err) {
-    console.warn('Payment methods endpoint error, using fallback bank options', err);
-  }
-
-  selectEl.innerHTML = methods.map(m => `
-    <option value="${m.id}"
-      data-acc="${m.account_number || ''}"
-      data-name="${m.account_name || ''}">
-      ${m.name} (${m.account_number ? m.account_number : 'QRIS'})
-    </option>
-  `).join('');
-
-  selectEl.addEventListener('change', updateDestinationBankInfo);
-  updateDestinationBankInfo();
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+    return '&#' + c.charCodeAt(0) + ';';
+  });
 }
 
-function updateDestinationBankInfo() {
-  const select = document.getElementById('payment-method-select');
+async function loadPaymentMethods() {
+  const grid = document.getElementById('payment-methods-grid');
+  if (!grid) return;
+
+  let methods = [];
+  try {
+    const res = await api.get('/member/payment-methods');
+    methods = (res && Array.isArray(res.data)) ? res.data : (Array.isArray(res) ? res : []);
+  } catch (err) {
+    console.warn('Gagal memuat metode pembayaran dari server:', err);
+  }
+
+  // Filter only active methods
+  const activeMethods = methods.filter(m => m.isActive === true);
+  _currentBankMethods = activeMethods.filter(m => m.methodType === 'BANK' || m.methodType === 'EWALLET');
+  const qrisMethod = activeMethods.find(m => m.methodType === 'QRIS');
+
+  const noBankAlert = document.getElementById('no-bank-alert');
+  const bankInfoCard = document.getElementById('bank-info-card');
+  const depositForm = document.getElementById('deposit-form');
+
+  if (!_currentBankMethods.length && !qrisMethod) {
+    grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 18px; color: #94a3b8; font-size: 11px;">Belum ada metode pembayaran yang tersedia.</div>';
+    if (noBankAlert) {
+      noBankAlert.textContent = 'Metode deposit bank sedang tidak tersedia.';
+      noBankAlert.style.display = '';
+    }
+    if (bankInfoCard) bankInfoCard.style.display = 'none';
+    if (depositForm) depositForm.style.display = 'none';
+    return;
+  }
+
+  // Render method buttons
+  let html = '';
+  _currentBankMethods.forEach((m, idx) => {
+    const slug = (m.code || m.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    html += `
+      <button type="button" class="payment-method${idx === 0 ? ' active' : ''}" data-id="${m.id}" data-type="BANK">
+        <span class="method-icon-wrap">
+          <img src="assets/mobile-bank-logos/${slug}.svg" alt="${escapeHtml(m.name)}" class="method-icon" width="36" height="36" loading="lazy" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline-block';">
+          <span class="method-icon-fallback" style="display:none; font-size:10px; font-weight:800; color:#0f172a;">${escapeHtml(m.name.slice(0, 4))}</span>
+        </span>
+        <span class="method-name">${escapeHtml(m.name)}</span>
+      </button>
+    `;
+  });
+
+  if (qrisMethod) {
+    html += `
+      <button type="button" class="payment-method${_currentBankMethods.length === 0 ? ' active' : ''}" data-id="${qrisMethod.id}" data-type="QRIS">
+        <span class="method-icon-wrap method-icon-qris">
+          <img src="assets/mobile-bank-logos/qris.svg" alt="QRIS" class="method-icon" width="36" height="36" loading="lazy">
+        </span>
+        <span class="method-name">QRIS</span>
+      </button>
+    `;
+  }
+
+  grid.innerHTML = html;
+
+  // Add click listeners to payment-method buttons
+  grid.querySelectorAll('.payment-method').forEach(btn => {
+    btn.addEventListener('click', () => {
+      grid.querySelectorAll('.payment-method').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const type = btn.getAttribute('data-type');
+      const id = btn.getAttribute('data-id');
+
+      const bankForm = document.getElementById('bank-form');
+      const qrisForm = document.getElementById('qris-form');
+
+      if (type === 'QRIS') {
+        if (bankForm) bankForm.style.display = 'none';
+        if (qrisForm) qrisForm.style.display = '';
+      } else {
+        if (bankForm) bankForm.style.display = '';
+        if (qrisForm) qrisForm.style.display = 'none';
+        selectBankMethod(id);
+      }
+    });
+  });
+
+  if (_currentBankMethods.length > 0) {
+    selectBankMethod(_currentBankMethods[0].id);
+  } else if (qrisMethod) {
+    const bankForm = document.getElementById('bank-form');
+    const qrisForm = document.getElementById('qris-form');
+    if (bankForm) bankForm.style.display = 'none';
+    if (qrisForm) qrisForm.style.display = '';
+  }
+}
+
+function selectBankMethod(methodId) {
+  const method = _currentBankMethods.find(m => m.id === methodId) || _currentBankMethods[0];
+  const noBankAlert = document.getElementById('no-bank-alert');
+  const bankInfoCard = document.getElementById('bank-info-card');
+  const form = document.getElementById('deposit-form');
+
+  if (!method) {
+    if (noBankAlert) {
+      noBankAlert.textContent = 'Metode deposit bank sedang tidak tersedia.';
+      noBankAlert.style.display = '';
+    }
+    if (bankInfoCard) bankInfoCard.style.display = 'none';
+    if (form) form.style.display = 'none';
+    return;
+  }
+
+  _selectedMethodId = method.id;
+  if (noBankAlert) noBankAlert.style.display = 'none';
+  if (bankInfoCard) bankInfoCard.style.display = '';
+  if (form) form.style.display = '';
+
   const destName = document.getElementById('dest-bank-name');
   const destAcc = document.getElementById('dest-bank-account');
   const destHolder = document.getElementById('dest-account-holder');
+  const minMaxRow = document.getElementById('dest-min-max-row');
+  const minMaxVal = document.getElementById('dest-min-max');
+  const hiddenMethodId = document.getElementById('deposit-payment-method-id');
+  const amountInput = document.getElementById('deposit-amount-input');
+  const limitHint = document.getElementById('deposit-limit-hint');
 
-  if (!select || !select.selectedOptions[0]) return;
-  const opt = select.selectedOptions[0];
+  if (destName) destName.textContent = method.name;
+  if (destAcc) destAcc.textContent = method.accountNumber || '-';
+  if (destHolder) destHolder.textContent = method.accountName || '-';
+  if (hiddenMethodId) hiddenMethodId.value = method.id;
 
-  if (destName) destName.textContent = opt.text.split('(')[0].trim();
-  if (destAcc) destAcc.textContent = opt.getAttribute('data-acc') || '0821-xxxx-xxxx';
-  if (destHolder) destHolder.textContent = opt.getAttribute('data-name') || 'PT GASTERUS INDO NUSANTARA';
+  const minAmt = Number(method.minAmount || 10000);
+  const maxAmt = Number(method.maxAmount || 200000000);
+
+  if (amountInput) {
+    amountInput.min = minAmt;
+    amountInput.max = maxAmt;
+  }
+  if (limitHint) {
+    limitHint.textContent = `Minimal deposit Rp ${minAmt.toLocaleString('id-ID')} (Maks: Rp ${maxAmt.toLocaleString('id-ID')})`;
+  }
+  if (minMaxRow && minMaxVal) {
+    minMaxVal.textContent = `Rp ${minAmt.toLocaleString('id-ID')} – Rp ${maxAmt.toLocaleString('id-ID')}`;
+    minMaxRow.style.display = '';
+  }
 }
 
 function setupDepositForm() {
@@ -130,53 +233,71 @@ function setupDepositForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const amount = Number(form.amount.value);
-    const methodId = form.paymentMethodId?.value;
+    const methodId = form.paymentMethodId?.value || _selectedMethodId;
+    const refNumber = form.referenceNumber?.value?.trim() || '';
     const note = form.note?.value?.trim() || '';
 
-    if (!amount || amount < 10000) {
-      showToast('Jumlah minimal deposit adalah Rp 10.000.', 'warning');
+    const successBanner = document.getElementById('deposit-success-banner');
+    if (successBanner) successBanner.style.display = 'none';
+
+    if (!methodId) {
+      showToast('Pilih metode pembayaran deposit.', 'warning');
+      return;
+    }
+
+    const currentMethod = _currentBankMethods.find(m => m.id === methodId);
+    const minAmt = currentMethod ? Number(currentMethod.minAmount || 10000) : 10000;
+    const maxAmt = currentMethod ? Number(currentMethod.maxAmount || 200000000) : 200000000;
+
+    if (!amount || amount < minAmt) {
+      showToast(`Jumlah minimal deposit adalah Rp ${minAmt.toLocaleString('id-ID')}.`, 'warning');
+      return;
+    }
+    if (amount > maxAmt) {
+      showToast(`Jumlah maksimal deposit adalah Rp ${maxAmt.toLocaleString('id-ID')}.`, 'warning');
+      return;
+    }
+    if (!refNumber || refNumber.length < 2) {
+      showToast('Isi nomor / nama rekening pengirim untuk konfirmasi transfer.', 'warning');
       return;
     }
 
     const payload = {
       requestType: 'DEPOSIT',
       amount,
-      paymentMethodId: methodId || null,
-      idempotencyKey: generateIdempotencyKey(),
-      note: note || undefined
+      paymentMethodId: methodId,
+      referenceNumber: refNumber,
+      note: note || undefined,
+      idempotencyKey: generateIdempotencyKey()
     };
 
-    const submitBtn = form.querySelector('button[type="submit"]');
-    try {
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Mengirim Permintaan...';
+    const submitBtn = document.getElementById('btn-submit-deposit') || form.querySelector('button[type="submit"]');
+    const submitText = document.getElementById('btn-submit-text');
+    const origText = submitText ? submitText.textContent : (submitBtn ? submitBtn.textContent : 'Kirim Pengajuan Deposit');
 
-      /* QRIS auto deposit: generate dynamic QR + auto credit via webhook.
-         Falls back to the legacy manual flow when the endpoint is unavailable. */
-      const methodText = form.paymentMethodId?.selectedOptions?.[0]?.textContent || '';
-      if (/QRIS/i.test(methodText)) {
-        try {
-          const res = await api.post('/member/qris/create-order', { amount, idempotencyKey: payload.idempotencyKey });
-          const order = (res && res.data) ? res.data : res;
-          if (order && order.orderId) {
-            openQrisModal(order, form);
-            return;
-          }
-        } catch (qrisErr) {
-          console.warn('QRIS auto deposit unavailable, using manual flow', qrisErr);
-          showToast('Mode QRIS otomatis tidak tersedia, permintaan dikirim manual.', 'warning');
-        }
-      }
+    try {
+      if (submitBtn) submitBtn.disabled = true;
+      if (submitText) submitText.textContent = 'Mengirim Pengajuan...';
+      else if (submitBtn) submitBtn.textContent = 'Mengirim Pengajuan...';
 
       await api.post('/member/wallet-requests', payload);
-      showToast('Permintaan deposit telah terkirim! Admin akan memproses segera.', 'success');
+
+      if (successBanner) {
+        successBanner.textContent = 'Pengajuan deposit berhasil dikirim dan sedang menunggu konfirmasi admin.';
+        successBanner.style.display = '';
+      }
+      showToast('Pengajuan deposit berhasil dikirim dan sedang menunggu konfirmasi admin.', 'success');
+
       form.reset();
+      const hiddenMethodId = document.getElementById('deposit-payment-method-id');
+      if (hiddenMethodId && _selectedMethodId) hiddenMethodId.value = _selectedMethodId;
       await loadTransactionHistory('DEPOSIT');
     } catch (err) {
-      showToast(err.message || 'Gagal mengirim permintaan deposit.', 'danger');
+      showToast(err.message || 'Gagal mengirim pengajuan deposit.', 'danger');
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Kirim Konfirmasi Deposit';
+      if (submitBtn) submitBtn.disabled = false;
+      if (submitText) submitText.textContent = origText;
+      else if (submitBtn) submitBtn.textContent = origText;
     }
   });
 }
@@ -237,10 +358,14 @@ function setupWithdrawForm() {
   if (!form) return;
 
   const user = auth.getUser();
-  if (user) {
-    const bankInfoEl = document.getElementById('member-bank-info');
-    if (bankInfoEl) {
-      bankInfoEl.textContent = `${user.bankName || 'BCA'} - ${user.accountNumber || 'xxxx'} (a/n ${user.accountName || user.username})`;
+  const bankInfoEl = document.getElementById('member-bank-info');
+  if (bankInfoEl) {
+    if (user && user.bankName && user.accountNumber) {
+      bankInfoEl.textContent = `${user.bankName} - ${user.accountNumber} (a/n ${user.accountName || user.username})`;
+      bankInfoEl.style.color = '';
+    } else {
+      bankInfoEl.textContent = 'Rekening belum dilengkapi — lengkapi di Profil sebelum withdraw.';
+      bankInfoEl.style.color = '#f87171';
     }
   }
 
@@ -272,10 +397,11 @@ function setupWithdrawForm() {
       submitBtn.textContent = 'Memproses Penarikan...';
 
       await api.post('/member/wallet-requests', payload);
-      showToast('Permintaan penarikan dana berhasil diajukan.', 'success');
+      showToast('Permintaan penarikan dana berhasil diajukan. Status: PENDING.', 'success');
       form.reset();
       await auth.fetchMe();
       auth.updateHeaderAuthUI();
+      updateDepositUserBar();
       await loadTransactionHistory('WITHDRAW');
     } catch (err) {
       showToast(err.message || 'Gagal mengajukan penarikan dana.', 'danger');
@@ -290,31 +416,78 @@ async function loadTransactionHistory(type) {
   const tbody = document.getElementById('tx-history-tbody');
   if (!tbody) return;
 
+  const isDeposit = type === 'DEPOSIT';
+  const colSpan = isDeposit ? 5 : 5;
+
   try {
-    const list = await api.get('/member/wallet-requests');
-    const filtered = (Array.isArray(list) ? list : []).filter(item => item.requestType === type);
+    const res = await api.get('/member/wallet-requests');
+    const list = (res && Array.isArray(res.data)) ? res.data : (Array.isArray(res) ? res : []);
+    const filtered = list.filter(item => item.requestType === type);
 
     if (!filtered.length) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">Belum ada riwayat pengajuan ${type.toLowerCase()}.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center; padding:24px; color:#94a3b8; font-size:12px;">Belum ada riwayat pengajuan ${type.toLowerCase()}.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = filtered.map(item => {
-      let badge = '<span class="badge badge-warning">PENDING</span>';
-      if (item.status === 'APPROVED' || item.status === 'SETTLED') badge = '<span class="badge badge-success">BERHASIL</span>';
-      else if (item.status === 'REJECTED') badge = '<span class="badge badge-danger">DITOLAK</span>';
+      // Status badge — untuk WITHDRAW: APPROVED = EXECUTED (dana sudah cair)
+      let badge;
+      if (item.status === 'PENDING') {
+        badge = '<span style="background:rgba(234,179,8,0.18); color:#facc15; border:1px solid rgba(234,179,8,0.4); padding:3px 8px; border-radius:6px; font-size:10.5px; font-weight:800; white-space:nowrap;">PENDING</span>';
+      } else if (item.status === 'PROCESSING') {
+        badge = '<span style="background:rgba(59,130,246,0.18); color:#60a5fa; border:1px solid rgba(59,130,246,0.4); padding:3px 8px; border-radius:6px; font-size:10.5px; font-weight:800; white-space:nowrap;">DIPROSES</span>';
+      } else if (item.status === 'APPROVED' || item.status === 'SETTLED') {
+        const label = (!isDeposit && item.status === 'APPROVED') ? 'EXECUTED' : 'APPROVED';
+        badge = `<span style="background:rgba(34,197,94,0.18); color:#4ade80; border:1px solid rgba(34,197,94,0.4); padding:3px 8px; border-radius:6px; font-size:10.5px; font-weight:800; white-space:nowrap;">${label}</span>`;
+      } else if (item.status === 'REJECTED' || item.status === 'FAILED') {
+        badge = '<span style="background:rgba(239,68,68,0.18); color:#f87171; border:1px solid rgba(239,68,68,0.4); padding:3px 8px; border-radius:6px; font-size:10.5px; font-weight:800; white-space:nowrap;">DITOLAK</span>';
+      } else if (item.status === 'AWAITING_SECOND_APPROVAL') {
+        badge = '<span style="background:rgba(168,85,247,0.18); color:#c084fc; border:1px solid rgba(168,85,247,0.4); padding:3px 8px; border-radius:6px; font-size:10.5px; font-weight:800; white-space:nowrap;">REVIEW</span>';
+      } else {
+        badge = `<span style="background:rgba(148,163,184,0.12); color:#94a3b8; border:1px solid rgba(148,163,184,0.3); padding:3px 8px; border-radius:6px; font-size:10.5px; font-weight:800; white-space:nowrap;">${escapeHtml(item.status)}</span>`;
+      }
 
-      return `
-        <tr>
-          <td>${formatDateTime(item.createdAt)}</td>
-          <td style="font-weight:700; color:var(--text-gold);">${formatRupiah(item.amount)}</td>
-          <td>${badge}</td>
-          <td style="font-size:0.8rem; color:var(--text-secondary);">${item.note || item.rejectionReason || '-'}</td>
-        </tr>
-      `;
+      // Method / destination label
+      const methodLabel = isDeposit
+        ? (item.paymentMethod?.name || '-')
+        : (() => {
+            const ps = item.payoutSnapshot;
+            if (ps && ps.bankName) {
+              return `${ps.bankName} ${ps.accountNumber ? '• ' + ps.accountNumber : ''}`;
+            }
+            return '-';
+          })();
+
+      const keterangan = [
+        item.referenceNumber ? `Ref: ${item.referenceNumber}` : '',
+        item.note || '',
+        item.rejectionReason ? `Alasan: ${item.rejectionReason}` : ''
+      ].filter(Boolean).join(' • ') || '-';
+
+      if (isDeposit) {
+        return `
+          <tr>
+            <td style="font-size:11px; color:#94a3b8; white-space:nowrap;">${formatDateTime(item.createdAt)}</td>
+            <td style="font-size:11.5px; font-weight:700; color:#e2e8f0;">${escapeHtml(methodLabel)}</td>
+            <td style="font-size:12px; font-weight:800; color:#38bdf8;">${formatRupiah(item.amount)}</td>
+            <td>${badge}</td>
+            <td style="font-size:11px; color:#94a3b8; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(keterangan)}">${escapeHtml(keterangan)}</td>
+          </tr>
+        `;
+      } else {
+        return `
+          <tr>
+            <td style="font-size:11px; color:#94a3b8; white-space:nowrap;">${formatDateTime(item.createdAt)}</td>
+            <td style="font-weight:700; color:var(--text-gold,#e2b84f);">${formatRupiah(item.amount)}</td>
+            <td style="font-size:11px; color:#cbd5e1;">${escapeHtml(methodLabel)}</td>
+            <td>${badge}</td>
+            <td style="font-size:11px; color:var(--text-secondary,#94a3b8); max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(keterangan)}">${escapeHtml(keterangan)}</td>
+          </tr>
+        `;
+      }
     }).join('');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Belum ada data riwayat transaksi.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">Belum ada data riwayat transaksi.</td></tr>`;
   }
 }
 
