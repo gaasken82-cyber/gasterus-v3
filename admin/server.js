@@ -162,7 +162,7 @@ const server = createServer((request, response) => {
   if (url.pathname === '/health') return send(response, 200, JSON.stringify({ status: 'ok' }), 'application/json; charset=utf-8');
   if (url.pathname === '/ready') return checkCore(response);
   response.setHeader('x-robots-tag', 'noindex, nofollow, noarchive, nosnippet');
-  if (url.pathname.startsWith('/member') || url.pathname.startsWith('/api/member') || url.pathname.startsWith('/member-api')) return send(response, 404, 'Not found');
+  if (url.pathname === '/member' || url.pathname.startsWith('/member/') || url.pathname.startsWith('/api/member') || url.pathname.startsWith('/member-api')) return send(response, 404, 'Not found');
   if (url.pathname.startsWith('/api/owner/')) return proxy(request, response, `${url.pathname}${url.search}`);
   if (!['GET', 'HEAD'].includes(request.method ?? 'GET')) return send(response, 405, 'Method not allowed');
   serveStatic(request, response, url.pathname);
