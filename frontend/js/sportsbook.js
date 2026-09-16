@@ -40,6 +40,67 @@ let lastStake = 0; // fallback stake saat input tidak ada di DOM (mobile sheet t
 
 const el = (id) => document.getElementById(id);
 const selKey = (ev, mk, sk) => `${ev}|${mk}|${sk}`;
+
+// Visual Odds Movement Tracking
+const previousOddsMap = new Map(); // selKey -> number (decimal odds)
+const oddsMovementMap = new Map(); // selKey -> { direction: 'up' | 'down', timestamp: number }
+let isInitialSnapshot = true;
+
+function trackOddsMovement(events) {
+  if (!Array.isArray(events)) return false;
+  const now = Date.now();
+  let anyMoved = false;
+
+  for (const ev of events) {
+    if (!ev || !Array.isArray(ev.markets)) continue;
+    for (const mk of ev.markets) {
+      if (!mk || !Array.isArray(mk.selections)) continue;
+      for (const sk of mk.selections) {
+        if (!sk || sk.suspended) continue;
+        const key = selKey(ev.id, mk.id, sk.key);
+        const curOdds = Number(sk.odds);
+        if (!Number.isFinite(curOdds) || curOdds <= 1) continue;
+
+        if (isInitialSnapshot) {
+          // Rule 5: Initial load does not trigger flash or arrows
+          previousOddsMap.set(key, curOdds);
+        } else {
+          if (previousOddsMap.has(key)) {
+            const prevOdds = previousOddsMap.get(key);
+            // Rule 14: Only trigger if odds actually changed
+            if (Math.abs(curOdds - prevOdds) >= 0.001) {
+              const direction = curOdds > prevOdds ? 'up' : 'down';
+              oddsMovementMap.set(key, { direction, timestamp: now });
+              previousOddsMap.set(key, curOdds);
+              anyMoved = true;
+              scheduleOddsMovementCleanup(key, 1000);
+            }
+          } else {
+            // New selection appearing after first load
+            previousOddsMap.set(key, curOdds);
+          }
+        }
+      }
+    }
+  }
+
+  if (isInitialSnapshot && events.length > 0) {
+    isInitialSnapshot = false;
+  }
+  return anyMoved;
+}
+
+function scheduleOddsMovementCleanup(key, delayMs = 1000) {
+  setTimeout(() => {
+    oddsMovementMap.delete(key);
+    const elements = document.querySelectorAll(`[data-sel="${key}"]`);
+    elements.forEach(btn => {
+      btn.classList.remove('sb-odd-movement-up', 'sb-odd-movement-down');
+      const arrows = btn.querySelectorAll('.sb-odd-movement-arrow');
+      arrows.forEach(a => a.remove());
+    });
+  }, delayMs);
+}
 const fmt = (n) => (Number.isFinite(Number(n)) ? new Intl.NumberFormat('id-ID').format(Number(n)) : '0');
 const isLiveEvent = (e) => Boolean(e?.live) || String(e?.status || '').toUpperCase() === 'LIVE';
 const isFinishedEvent = (e) => String(e?.status || '').toUpperCase() === 'FINISHED';
@@ -219,6 +280,7 @@ function onSnapshot(snapshot) {
     source: snapshot.source || {}
   };
   if (snapshot.betting) bettingConfig = { ...bettingConfig, ...snapshot.betting };
+  const oddsMovedInFeed = trackOddsMovement(feed.events);
   const oddsMoved = syncSelectedOdds(feed.events);
   pruneSelections(feed.events);
   if (oddsMoved) {
@@ -229,7 +291,7 @@ function onSnapshot(snapshot) {
 
   const eventsEl = el('sb-events');
   const needsFirstRender = !eventsEl || !eventsEl.innerHTML;
-  if (revision !== lastRenderRevision || needsFirstRender) {
+  if (revision !== lastRenderRevision || needsFirstRender || oddsMovedInFeed) {
     lastRenderRevision = revision;
     try { renderAll(); }
     catch (e) {
@@ -767,14 +829,27 @@ function renderQuickOddBtn(e, m, s, label) {
   const lineStr = line != null ? (Number(line) > 0 ? `+${Number(line).toFixed(2)}` : Number(line).toFixed(2)) : '';
   const oddsColor = indo.isNeg ? 'color:#dc2626;' : 'color:#111827;';
 
+  let movementClass = '';
+  let movementArrow = '';
+  const move = oddsMovementMap.get(key);
+  if (move && (Date.now() - move.timestamp) < 1100) {
+    if (move.direction === 'up') {
+      movementClass = ' sb-odd-movement-up';
+      movementArrow = '<span class="sb-odd-movement-arrow up" aria-label="Odds naik">↑</span>';
+    } else if (move.direction === 'down') {
+      movementClass = ' sb-odd-movement-down';
+      movementArrow = '<span class="sb-odd-movement-arrow down" aria-label="Odds turun">↓</span>';
+    }
+  }
+
   return `
-    <button type="button" class="sb-quick-odd-btn sb-odd-cell" 
+    <button type="button" class="sb-quick-odd-btn sb-odd-cell${movementClass}"
       data-sel="${escapeHtml(key)}" data-evid="${escapeHtml(e.id)}" data-mk="${escapeHtml(m.id)}" data-sk="${escapeHtml(s.key)}" 
       data-odds="${s.odds}" data-pv="${escapeHtml(s.priceVersion || '')}">
       <span>${label}</span>
       <div style="text-align:right;">
         ${lineStr ? `<div style="font-size:9px; color:#0284c7; font-weight:700;">${lineStr}</div>` : ''}
-        <div style="font-size:11px; font-weight:800; ${oddsColor}">${indo.text}</div>
+        <div style="font-size:11px; font-weight:800; ${oddsColor}">${indo.text}${movementArrow}</div>
       </div>
     </button>
   `;
@@ -835,8 +910,22 @@ function renderOddCell(e, m, s, lineOverride, forceDecimal = false) {
   const oddsText = forceDecimal ? decOdds.toFixed(2) : indo.text;
   const oddsClass = forceDecimal ? 'pos' : (indo.isNeg ? 'neg' : 'pos');
 
+  // Visual Odds Movement
+  let movementClass = '';
+  let movementArrow = '';
+  const move = oddsMovementMap.get(key);
+  if (move && (Date.now() - move.timestamp) < 1100) {
+    if (move.direction === 'up') {
+      movementClass = ' sb-odd-movement-up';
+      movementArrow = '<span class="sb-odd-movement-arrow up" aria-label="Odds naik">↑</span>';
+    } else if (move.direction === 'down') {
+      movementClass = ' sb-odd-movement-down';
+      movementArrow = '<span class="sb-odd-movement-arrow down" aria-label="Odds turun">↓</span>';
+    }
+  }
+
   return `
-    <button type="button" class="sb-odd-cell${isChosen ? ' chosen' : ''}" 
+    <button type="button" class="sb-odd-cell${isChosen ? ' chosen' : ''}${movementClass}"
       data-sel="${escapeHtml(key)}" 
       data-evid="${escapeHtml(e.id)}" 
       data-mk="${escapeHtml(m.id)}" 
@@ -846,7 +935,7 @@ function renderOddCell(e, m, s, lineOverride, forceDecimal = false) {
       aria-pressed="${isChosen ? 'true' : 'false'}"
       title="${escapeHtml(s.label || s.key)} @ ${decOdds.toFixed(2)}">
       ${lineFormatted ? `<span class="sb-cell-line">${escapeHtml(lineFormatted)}</span>` : ''}
-      <span class="sb-cell-odds ${oddsClass}">${oddsText}</span>
+      <span class="sb-cell-odds ${oddsClass}">${oddsText}${movementArrow}</span>
     </button>
   `;
 }
