@@ -22,7 +22,7 @@ const svg=name=>`<svg class="ui-icon-svg" aria-hidden="true" viewBox="0 0 24 24"
 function cleanLegacy(root=document){root.querySelectorAll?.('[data-modern-icon], [data-e-icon], .e-icon, .r9-icon-host').forEach(node=>{if(!node.hasAttribute('data-ui-icon'))node.remove()})}
 function render(root=document){root.querySelectorAll?.('[data-ui-icon]').forEach(host=>{const name=host.getAttribute('data-ui-icon')||'help';host.classList.add('ui-icon-host');host.replaceChildren();host.insertAdjacentHTML('afterbegin',svg(name))});cleanLegacy(root)}
 
-const BRAND_LOGO='assets/sbototo-logo.png';
+const BRAND_LOGO='assets/gasterus-logo.png';
 function brandContext(el){
  const small=el.querySelector?.('small');
  if(small?.textContent?.trim())return small.textContent.trim();

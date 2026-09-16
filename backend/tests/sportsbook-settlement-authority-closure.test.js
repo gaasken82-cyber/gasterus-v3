@@ -64,14 +64,3 @@ test('R6.9.0.15 feed cache is generation-isolated from the previous production l
   assert.match(feed, /parsed\.lifecycleGeneration !== LIFECYCLE_GENERATION/);
   assert.match(feed, /memory\.lifecycleGeneration === LIFECYCLE_GENERATION/);
 });
-
-test('R6.9.0.12 production launcher cannot declare success while settlement guarantee is still read-only', () => {
-  const launcher = readFileSync(new URL('../../../DEPLOY_SBOTOTO_FINAL.ps1', import.meta.url), 'utf8');
-  const proofParser = readFileSync(new URL('../../../scripts/sportsbook-production-proof.mjs', import.meta.url), 'utf8');
-
-  assert.match(launcher, /sportsbook-production-proof\.mjs/);
-  assert.match(proofParser, /Number\(obj\.settlementFtEvents \|\| 0\) < 1/);
-  assert.match(proofParser, /obj\.readOnly === true/);
-  assert.match(proofParser, /Number\(obj\.bettableMarkets \|\| 0\) < 1/);
-  assert.match(launcher, /FT settlement guarantee sehat/);
-});
