@@ -1,4 +1,0 @@
-Killed existing node processes
-Migration error: [WinError 2] The system cannot find the file specified
-Server started with PID: 6200
-Health check response: 
