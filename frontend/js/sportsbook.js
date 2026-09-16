@@ -104,6 +104,124 @@ function scheduleOddsMovementCleanup(key, delayMs = 1000) {
 const fmt = (n) => (Number.isFinite(Number(n)) ? new Intl.NumberFormat('id-ID').format(Number(n)) : '0');
 const isLiveEvent = (e) => Boolean(e?.live) || String(e?.status || '').toUpperCase() === 'LIVE';
 const isFinishedEvent = (e) => String(e?.status || '').toUpperCase() === 'FINISHED';
+
+// Realtime Live Match Clock Tracking
+const liveClockState = new Map(); // eventId -> { isPaused, prefix, isInjury, baseMin, plusMin, totalSec, display, snapshotTime }
+let liveClockTimer = null;
+
+function parseLiveClock(clockStr) {
+  const str = String(clockStr || "1H 0'").trim();
+  const upper = str.toUpperCase();
+  if (/^(HT|FT|HALF\s*TIME|HALFTIME|FULL\s*TIME|FINISHED|AET|BREAK|PEN|PENALTIES)\b/i.test(upper)) {
+    return { isPaused: true, display: str };
+  }
+  const colonMatch = str.match(/^(?:(1H|2H|ET)\s+)?(\d+):(\d+)$/i);
+  if (colonMatch) {
+    const prefix = colonMatch[1] ? colonMatch[1].toUpperCase() + ' ' : '';
+    const m = parseInt(colonMatch[2], 10);
+    const s = parseInt(colonMatch[3], 10);
+    return { isPaused: false, prefix, isInjury: false, totalSec: m * 60 + s, display: str };
+  }
+  const injuryMatch = str.match(/^(?:(1H|2H|ET)\s+)?(\d+)\+(\d+)(?:'|’)?$/i);
+  if (injuryMatch) {
+    const prefix = injuryMatch[1] ? injuryMatch[1].toUpperCase() + ' ' : '';
+    const baseMin = parseInt(injuryMatch[2], 10);
+    const plusMin = parseInt(injuryMatch[3], 10);
+    return { isPaused: false, prefix, isInjury: true, baseMin, plusMin, totalSec: (baseMin + plusMin) * 60, display: str };
+  }
+  const regMatch = str.match(/^(?:(1H|2H|ET)\s+)?(\d+)(?:'|’)?$/i);
+  if (regMatch) {
+    const prefix = regMatch[1] ? regMatch[1].toUpperCase() + ' ' : '';
+    const minutes = parseInt(regMatch[2], 10);
+    return { isPaused: false, prefix, isInjury: false, totalSec: minutes * 60, display: str };
+  }
+  return { isPaused: true, display: str };
+}
+
+function formatLiveClockDisplay(item, elapsedSec = 0) {
+  if (!item || item.isPaused) return item?.display || "1H 0'";
+  const currentTotalSec = item.totalSec + elapsedSec;
+  const m = Math.floor(currentTotalSec / 60);
+  const s = currentTotalSec % 60;
+  const sStr = String(s).padStart(2, '0');
+  if (item.isInjury) {
+    return `${item.prefix}${item.baseMin}+${item.plusMin}' ${sStr}"`;
+  }
+  return `${item.prefix}${m}:${sStr}`;
+}
+
+function getLiveClockDisplay(e) {
+  const evId = String(e?.id || '');
+  const state = liveClockState.get(evId);
+  if (!state) {
+    const parsed = parseLiveClock(e?.clock);
+    return formatLiveClockDisplay(parsed, 0);
+  }
+  if (state.isPaused) return state.display;
+  const elapsedSec = Math.floor((Date.now() - state.snapshotTime) / 1000);
+  return formatLiveClockDisplay(state, elapsedSec);
+}
+
+function syncLiveClocks(events) {
+  if (!Array.isArray(events)) return;
+  const now = Date.now();
+  const liveIds = new Set();
+
+  for (const ev of events) {
+    if (!ev || !isLiveEvent(ev)) continue;
+    const evId = String(ev.id);
+    liveIds.add(evId);
+    const parsed = parseLiveClock(ev.clock);
+    liveClockState.set(evId, {
+      ...parsed,
+      snapshotTime: now
+    });
+  }
+
+  for (const id of liveClockState.keys()) {
+    if (!liveIds.has(id)) {
+      liveClockState.delete(id);
+    }
+  }
+
+  if (liveClockState.size > 0) {
+    startLiveClockTimer();
+  } else {
+    stopLiveClockTimer();
+  }
+}
+
+function startLiveClockTimer() {
+  if (!liveClockTimer) {
+    liveClockTimer = setInterval(tickLiveClocks, 1000);
+  }
+}
+
+function stopLiveClockTimer() {
+  if (liveClockTimer) {
+    clearInterval(liveClockTimer);
+    liveClockTimer = null;
+  }
+}
+
+function tickLiveClocks() {
+  if (!liveClockState.size) {
+    stopLiveClockTimer();
+    return;
+  }
+  const now = Date.now();
+  const elements = document.querySelectorAll('.sb-live-clock-sm[data-live-clock-id], .sb-match-live-clock[data-live-clock-id]');
+  elements.forEach((node) => {
+    const id = node.getAttribute('data-live-clock-id');
+    const state = liveClockState.get(id);
+    if (!state || state.isPaused) return;
+    const elapsedSec = Math.floor((now - state.snapshotTime) / 1000);
+    const text = formatLiveClockDisplay(state, elapsedSec);
+    if (node.textContent !== text) {
+      node.textContent = text;
+    }
+  });
+}
 function saveFavs() { try { localStorage.setItem(FAV_KEY, JSON.stringify([...favLeagues])); } catch { /* ignore */ } }
 function toggleFavLeague(league) {
   const l = String(league || '');
@@ -280,6 +398,7 @@ function onSnapshot(snapshot) {
     source: snapshot.source || {}
   };
   if (snapshot.betting) bettingConfig = { ...bettingConfig, ...snapshot.betting };
+  syncLiveClocks(feed.events);
   const oddsMovedInFeed = trackOddsMovement(feed.events);
   const oddsMoved = syncSelectedOdds(feed.events);
   pruneSelections(feed.events);
@@ -799,7 +918,7 @@ function renderLiveCarousel() {
           <div>
             <div>
               <span class="sb-live-badge-sm">LANGSUNG</span>
-              <span class="sb-live-clock-sm">${escapeHtml(String(e.clock || "1H 0'"))}</span>
+              <span class="sb-live-clock-sm" data-live-clock-id="${escapeHtml(e.id)}">${escapeHtml(getLiveClockDisplay(e))}</span>
             </div>
             <div class="sb-live-team-row">
               <span>${escapeHtml(e.home?.name || 'Home')}</span>
@@ -1003,17 +1122,17 @@ function renderMatch(e) {
       <!-- Teams Row -->
       <div class="sb-teams-row">
         <div class="sb-team-col ${isHomeFav ? 'is-fav' : ''}">
-          ${escapeHtml(home.name || 'Home')}
+          ${home.logo ? `<img class="sb-team-logo" src="${escapeHtml(home.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<span class="sb-team-name">${escapeHtml(home.name || 'Home')}</span>
         </div>
         <div class="sb-score-col">
           ${isLive 
             ? `<span class="sb-match-live-score">${home.score ?? 0} - ${away.score ?? 0}</span>
-               <span class="sb-match-live-clock">${escapeHtml(String(e.clock || "1H 0'"))}</span>`
+               <span class="sb-match-live-clock" data-live-clock-id="${escapeHtml(e.id)}">${escapeHtml(getLiveClockDisplay(e))}</span>`
             : `<span class="sb-match-date">${formatKickoffDate(e.startTime)}</span>
                <span class="sb-match-kickoff">${timeLabel(e.startTime)}</span>`}
         </div>
         <div class="sb-team-col away ${isAwayFav ? 'is-fav' : ''}">
-          ${escapeHtml(away.name || 'Away')}
+          <span class="sb-team-name">${escapeHtml(away.name || 'Away')}</span>${away.logo ? `<img class="sb-team-logo" src="${escapeHtml(away.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}
         </div>
       </div>
 

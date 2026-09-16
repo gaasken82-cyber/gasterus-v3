@@ -441,6 +441,8 @@ body.sb-page {
   padding: 2px 5px;
   border-radius: 4px;
   margin-bottom: 4px;
+  animation: sbLivePulse 2s ease-in-out infinite;
+  will-change: opacity;
 }
 .sb-live-clock-sm {
   font-size: 10px;
@@ -654,6 +656,26 @@ body.sb-page {
 .sb-badge-slanted-live span {
   transform: skewX(14deg);
 }
+.sb-badge-slanted-live:not([style]) {
+  animation: sbLivePulse 2s ease-in-out infinite;
+  will-change: opacity;
+}
+
+@keyframes sbLivePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.76;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-badge-slanted-live:not([style]),
+  .sb-live-badge-sm {
+    animation: none;
+  }
+}
 .sb-badge-slanted-league {
   background: #1d72b8;
   color: #ffffff;
@@ -688,15 +710,30 @@ body.sb-page {
   gap: 8px;
 }
 .sb-team-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
   font-weight: 700;
   color: var(--sb-text-dark);
+  min-width: 0;
 }
 .sb-team-col.is-fav {
   color: var(--sb-fav-red); /* Favorite team highlighted in RED */
 }
 .sb-team-col.away {
+  justify-content: flex-end;
   text-align: right;
+}
+.sb-team-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.sb-team-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sb-score-col {
   text-align: center;
