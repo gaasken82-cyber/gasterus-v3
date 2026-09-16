@@ -154,6 +154,8 @@ function stableFeedRevision(events = [], providerLifecycle = {}) {
       hash.update(`M|${market.id}|${market.source || ''}|${market.suspended ? 1 : 0}
 `);
       for (const selection of [...(market.selections || [])].sort((a, b) => String(a.key).localeCompare(String(b.key)))) {
+        hash.update(`S|${selection.key}|${selection.odds ?? ''}|${selection.priceVersion || ''}|${selection.suspended ? 1 : 0}
+`);
       }
     }
   }
