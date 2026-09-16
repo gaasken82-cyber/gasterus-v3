@@ -686,11 +686,18 @@ function closeSlipSheet() {
   const sheet = el('sb-slip-sheet');
   const overlay = el('sb-slip-overlay');
   if (!sheet) return;
+  const bnavSlip = el('bnav-slip');
+  if (sheet.contains(document.activeElement)) {
+    if (bnavSlip && typeof bnavSlip.focus === 'function') {
+      bnavSlip.focus({ preventScroll: true });
+    } else if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+  }
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
   if (overlay) overlay.classList.remove('active');
   slipSheetOpen = false;
-  const bnavSlip = el('bnav-slip');
   if (bnavSlip) bnavSlip.classList.remove('active');
 }
 
