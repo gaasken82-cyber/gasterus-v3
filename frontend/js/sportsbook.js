@@ -553,20 +553,16 @@ function isTodayEvent(e) {
   if (!Number.isFinite(evTs)) return false;
   const nowTs = Date.now();
   const diffHours = (evTs - nowTs) / (1000 * 60 * 60);
-  // Window: started up to 3 h ago, or starts within next 7 days (168 hours)
-  // Expanded from 26h to 7 days to show more upcoming events from public-market feed
-  if (diffHours >= -3 && diffHours <= 168) return true;
-  // Fallback: same calendar date in WIB
+  // Standar Sportsbook "Hari Ini": dimulai dalam matchday berjalan (-3 jam hingga +26 jam)
+  if (diffHours >= -3 && diffHours <= 26) return true;
+  // Fallback: tanggal kalender yang sama dalam WIB
   return todayDateWIB(evTs) === todayDateWIB(nowTs);
 }
 
 function isFutureEvent(e) {
   if (!e?.startTime) return false;
-  const evTs = new Date(e.startTime).getTime();
-  if (!Number.isFinite(evTs)) return false;
-  const nowTs = Date.now();
-  // "Early" = starts more than 26 h from now (beyond today window)
-  return evTs - nowTs > 26 * 60 * 60 * 1000;
+  // "Pasar Awal" (Early Market): semua pertandingan mendatang di luar jadwal Hari Ini & bukan Live
+  return !isTodayEvent(e) && !isLiveEvent(e);
 }
 
 // ---------------------------------------------------------------------------
@@ -843,11 +839,13 @@ function updateCategoryCounts() {
   const todayCount = events.filter(isTodayEvent).length;
   const earlyCount = events.filter(isFutureEvent).length;
 
+  const cAll = el('count-all');
   const cLive = el('count-live');
   const cToday = el('count-today');
   const cEarly = el('count-early');
   const cOutright = el('count-outright');
 
+  if (cAll) cAll.textContent = String(events.length);
   if (cLive) cLive.textContent = String(liveCount);
   if (cToday) cToday.textContent = String(todayCount);
   if (cEarly) cEarly.textContent = String(earlyCount);
