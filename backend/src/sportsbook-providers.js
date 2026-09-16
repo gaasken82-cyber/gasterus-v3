@@ -607,7 +607,7 @@ export async function fetchTheOddsApi() {
 // number of outbound odds requests per refresh cycle.
 const sportmonksEventCache = new Map();
 const SPORTMONKS_LIVE_STATES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE', 'INT', 'INPLAY']);
-const SPORTMONKS_FINISHED_STATES = new Set(['FT', 'AET', 'PEN', 'WO', 'AWARD', 'FINISHED', 'ENDED']);
+const SPORTMONKS_FINISHED_STATES = new Set(['FT', 'AET', 'PEN', 'FINISHED', 'ENDED']);
 const SPORTMONKS_SUSPENDED_STATES = new Set(['CANCL', 'POSTP', 'SUSP', 'SU', 'ABAND', 'DELAYED', 'CANCELED', 'CANCELLED', 'POSTPONED', 'SUSPENDED', 'ABANDONED']);
 function sportmonksState(raw) {
   const short = clean(raw?.short_name || raw?.name || raw?.state || '', 40).toUpperCase();

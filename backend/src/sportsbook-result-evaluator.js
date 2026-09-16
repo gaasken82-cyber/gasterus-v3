@@ -64,8 +64,10 @@ function settlementAuthorityReady(event, isHalf) {
 
 function providerSettlementDisposition(event) {
   const provider = rawStatus(event.providerStatus);
-  if (provider === 'CANC') return 'VOID';
-  if (['PST', 'SUSP', 'ABD', 'INT', 'TBD'].includes(provider)) return 'PENDING';
+  // Safety: status administratif Sportmonks (CANCL/Cancelled, POSTP/Postponed,
+  // ABAND/Abandoned, WO/AWARD) tidak boleh pernah masuk settlement normal.
+  if (['CANC', 'CANCL', 'CANCELED', 'CANCELLED'].includes(provider)) return 'VOID';
+  if (['PST', 'POSTP', 'POSTPONED', 'SUSP', 'ABD', 'ABAND', 'ABANDONED', 'INT', 'TBD', 'WO', 'AWARD', 'WALKOVER', 'AWARDED'].includes(provider)) return 'PENDING';
   if (event.status === 'SUSPENDED') return 'PENDING';
   return 'NORMAL';
 }
