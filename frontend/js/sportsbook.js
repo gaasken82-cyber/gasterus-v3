@@ -44,7 +44,43 @@ const selKey = (ev, mk, sk) => `${ev}|${mk}|${sk}`;
 // Visual Odds Movement Tracking
 const previousOddsMap = new Map(); // selKey -> number (decimal odds)
 const oddsMovementMap = new Map(); // selKey -> { direction: 'up' | 'down', timestamp: number }
+const oddsCleanupTimers = new Map(); // selKey -> timeoutId
 let isInitialSnapshot = true;
+
+function updateOddsInDOM(key, direction, curOdds, sk, mk) {
+  const elements = document.querySelectorAll(`[data-sel="${key}"]`);
+  if (!elements.length) return;
+  const is1x2 = String(mk?.type || '').toUpperCase() === '1X2';
+  const indo = formatIndoOdds(curOdds);
+  const oddsText = is1x2 ? Number(curOdds).toFixed(2) : indo.text;
+  const oddsClass = is1x2 ? 'pos' : (indo.isNeg ? 'neg' : 'pos');
+  const arrowHtml = direction === 'up'
+    ? '<span class="sb-odd-movement-arrow up" aria-label="Odds naik">↑</span>'
+    : '<span class="sb-odd-movement-arrow down" aria-label="Odds turun">↓</span>';
+  const moveClass = direction === 'up' ? 'sb-odd-movement-up' : 'sb-odd-movement-down';
+
+  elements.forEach(btn => {
+    btn.setAttribute('data-odds', curOdds);
+    if (sk?.priceVersion) btn.setAttribute('data-pv', sk.priceVersion);
+
+    const oddsSpan = btn.querySelector('.sb-cell-odds');
+    if (oddsSpan) {
+      oddsSpan.className = `sb-cell-odds ${oddsClass}`;
+      oddsSpan.innerHTML = `${escapeHtml(oddsText)}${arrowHtml}`;
+    } else {
+      const quickText = btn.querySelector('div[style*="font-size:11px"]');
+      if (quickText) {
+        const color = indo.isNeg ? 'color:#dc2626;' : 'color:#111827;';
+        quickText.style.cssText = `font-size:11px; font-weight:800; ${color}`;
+        quickText.innerHTML = `${escapeHtml(indo.text)}${arrowHtml}`;
+      }
+    }
+
+    btn.classList.remove('sb-odd-movement-up', 'sb-odd-movement-down');
+    void btn.offsetWidth; // Force reflow to restart CSS animation
+    btn.classList.add(moveClass);
+  });
+}
 
 function trackOddsMovement(events) {
   if (!Array.isArray(events)) return false;
@@ -73,6 +109,7 @@ function trackOddsMovement(events) {
               oddsMovementMap.set(key, { direction, timestamp: now });
               previousOddsMap.set(key, curOdds);
               anyMoved = true;
+              updateOddsInDOM(key, direction, curOdds, sk, mk);
               scheduleOddsMovementCleanup(key, 1000);
             }
           } else {
@@ -91,7 +128,11 @@ function trackOddsMovement(events) {
 }
 
 function scheduleOddsMovementCleanup(key, delayMs = 1000) {
-  setTimeout(() => {
+  if (oddsCleanupTimers.has(key)) {
+    clearTimeout(oddsCleanupTimers.get(key));
+  }
+  const timer = setTimeout(() => {
+    oddsCleanupTimers.delete(key);
     oddsMovementMap.delete(key);
     const elements = document.querySelectorAll(`[data-sel="${key}"]`);
     elements.forEach(btn => {
@@ -100,6 +141,7 @@ function scheduleOddsMovementCleanup(key, delayMs = 1000) {
       arrows.forEach(a => a.remove());
     });
   }, delayMs);
+  oddsCleanupTimers.set(key, timer);
 }
 const fmt = (n) => (Number.isFinite(Number(n)) ? new Intl.NumberFormat('id-ID').format(Number(n)) : '0');
 const isLiveEvent = (e) => Boolean(e?.live) || String(e?.status || '').toUpperCase() === 'LIVE';
@@ -410,7 +452,7 @@ function onSnapshot(snapshot) {
 
   const eventsEl = el('sb-events');
   const needsFirstRender = !eventsEl || !eventsEl.innerHTML;
-  if (revision !== lastRenderRevision || needsFirstRender || oddsMovedInFeed) {
+  if (revision !== lastRenderRevision || needsFirstRender) {
     lastRenderRevision = revision;
     try { renderAll(); }
     catch (e) {
