@@ -912,14 +912,19 @@ body.sb-page {
 
 @keyframes sbOddFlashGreen {
   0% {
-    background-color: #dcfce7;
-    border-color: #22c55e;
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.35);
+    background-color: #00ff00; /* Bright lime */
+    border-color: #008000;   /* Darker green */
+    box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.45);
   }
-  60% {
-    background-color: #f0fdf4;
-    border-color: #86efac;
-    box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2);
+  40% {
+    background-color: #66ff66; /* Light green */
+    border-color: #00b300;   /* Medium green */
+    box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.3);
+  }
+  75% {
+    background-color: #99ff99; /* Softer green */
+    border-color: #33cc33;   /* Softer border */
+    box-shadow: 0 0 0 1px rgba(0, 255, 0, 0.15);
   }
   100% {
     background-color: #ffffff;
@@ -930,14 +935,19 @@ body.sb-page {
 
 @keyframes sbOddFlashRed {
   0% {
-    background-color: #fee2e2;
-    border-color: #ef4444;
-    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.35);
+    background-color: #ff0000; /* Bright red */
+    border-color: #800000;   /* Darker red */
+    box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.45);
   }
-  60% {
-    background-color: #fef2f2;
-    border-color: #fca5a5;
-    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2);
+  40% {
+    background-color: #ff6666; /* Light red */
+    border-color: #b30000;   /* Medium red */
+    box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.3);
+  }
+  75% {
+    background-color: #ff9999; /* Softer red */
+    border-color: #cc3333;   /* Softer border */
+    box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.15);
   }
   100% {
     background-color: #ffffff;
