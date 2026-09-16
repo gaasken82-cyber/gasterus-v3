@@ -377,8 +377,8 @@
             <td>${formatDateTime(bet.createdAt)}</td>
             <td>${esc(bet.eventName || bet.event || '-')}</td>
             <td class="odds-cell">${esc(bet.odds || '-')}</td>
-            <td class="amount-cell">${formatRupiah(bet.stake || bet.amount)}</td>
-            <td class="amount-cell">${formatRupiah(bet.potentialReturn || bet.return || 0)}</td>
+            <td class="amount-cell">${formatRupiah(Number(bet.totalStake ?? bet.unitStake ?? bet.amount ?? 0))}</td>
+            <td class="amount-cell">${formatRupiah(bet.potentialPayout || bet.potentialReturn || bet.return || 0)}</td>
             <td>${statusBadge(bet.status)}</td>
           </tr>
         `).join('');

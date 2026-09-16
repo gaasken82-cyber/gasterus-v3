@@ -515,6 +515,14 @@ function closeSlipSheet() {
 
 function setSlipTab(tab) {
   activeSlipTab = tab;
+  // Single mode hanya mendukung 1 selection — batasi dengan aman + pesan jelas.
+  if (tab === 'single' && selected.size > 1) {
+    const [firstKey, firstLeg] = [...selected.entries()][0];
+    selected.clear();
+    selected.set(firstKey, firstLeg);
+    quote = null;
+    showToast('Mode Single hanya mendukung 1 pilihan. Pilihan lain dihapus — gunakan tab Parlay untuk mix parlay.', 'warning');
+  }
   // Update mobile sheet tabs
   document.querySelectorAll('.sb-slip-tab').forEach((t) => {
     t.classList.toggle('active', t.getAttribute('data-slip-tab') === tab);
@@ -586,7 +594,7 @@ async function openUserBetsModal(title) {
           <span style="color:#2563eb;">${escapeHtml(b.status || 'ACTIVE')}</span>
         </div>
         <div style="font-size:11px; color:#64748b; margin-top:4px;">
-          Stake: ${formatRupiah(b.stake || 0)} · Odds: ${Number(b.totalOdds || 1).toFixed(2)} · Potensi: ${formatRupiah(b.potentialPayout || 0)}
+          Stake: ${formatRupiah(Number(b.totalStake ?? b.unitStake ?? 0))} · Odds: ${Number(b.totalOdds || 1).toFixed(2)} · Potensi: ${formatRupiah(b.potentialPayout || 0)}
         </div>
       </div>
     `).join('');
@@ -1171,6 +1179,11 @@ function handleOddClick(btn) {
     showToast(`Maksimal ${bettingConfig.maxLegs} pilihan per tiket.`, 'warning');
     return;
   }
+  // Single mode: maksimal 1 selection — jangan ubah otomatis menjadi Mix Parlay.
+  if (activeSlipTab === 'single' && selected.size >= 1) {
+    showToast('Mode Single hanya mendukung 1 pilihan. Buka tab Parlay untuk mix parlay.', 'warning');
+    return;
+  }
   const event = feed.events.find((e) => e.id === btn.getAttribute('data-evid'));
   const market = event?.markets?.find((m) => m.id === btn.getAttribute('data-mk'));
   const selection = market?.selections?.find((s) => s.key === btn.getAttribute('data-sk'));
@@ -1206,7 +1219,11 @@ function handleOddClick(btn) {
 // ---------------------------------------------------------------------------
 // Betslip — WAM-style accumulator, backed by Gasterus server quotes
 // ---------------------------------------------------------------------------
-function betType() { return selected.size > 1 ? 'PARLAY' : 'SINGLE'; }
+function betType() {
+  // Tab Single = selalu SINGLE bet (tidak pernah otomatis jadi Mix Parlay).
+  if (activeSlipTab === 'single') return 'SINGLE';
+  return selected.size > 1 ? 'PARLAY' : 'SINGLE';
+}
 
 function totalOdds() {
   let acc = 1;
