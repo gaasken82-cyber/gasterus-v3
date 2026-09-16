@@ -31,6 +31,7 @@ const FAV_KEY = 'gasterus_sb_fav_leagues';
 let favLeagues = new Set();
 try { favLeagues = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch { favLeagues = new Set(); }
 let lastRenderRevision = '';
+let lastStructureRevision = '';
 let bettingConfig = { minStake: 1000, maxStake: 50000000, maxLegs: 12, quoteRequired: true };
 let streamClosed = false;
 let restRefreshTimer = null;
@@ -452,7 +453,10 @@ function onSnapshot(snapshot) {
 
   const eventsEl = el('sb-events');
   const needsFirstRender = !eventsEl || !eventsEl.innerHTML;
-  if (revision !== lastRenderRevision || needsFirstRender) {
+  const structRev = feed.events.map(e => `${e.id}:${e.status}:${e.live?1:0}:${e.home?.score ?? ''}-${e.away?.score ?? ''}:${(e.markets||[]).map(m=>`${m.id}:${m.suspended?1:0}`).join(',')}`).join(';');
+  const structureChanged = structRev !== lastStructureRevision;
+  if (structureChanged || needsFirstRender) {
+    lastStructureRevision = structRev;
     lastRenderRevision = revision;
     try { renderAll(); }
     catch (e) {
