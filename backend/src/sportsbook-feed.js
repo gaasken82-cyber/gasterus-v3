@@ -216,7 +216,7 @@ function providerHasPricedMarkets(result) {
 }
 function enabledProviders() {
   return [
-    { name: 'SBOTOTO Public Market Feed', code: 'public-market', enabled: Boolean(config.publicMarketEnabled) },
+    { name: 'Gasterus Public Market Feed', code: 'public-market', enabled: Boolean(config.publicMarketEnabled) },
     { name: 'SharpAPI', code: 'sharpapi', enabled: config.sharpApiEnabled && Boolean(config.sharpApiKey) },
     { name: 'API-Sports', code: 'api-sports', enabled: config.apiSportsEnabled && Boolean(config.apiSportsKey) },
     { name: 'The Odds API', code: 'the-odds-api', enabled: config.theOddsApiEnabled && Boolean(config.theOddsApiKey) },
@@ -745,7 +745,7 @@ export async function sportsbookSnapshot(filters = {}, { memberView = true } = {
     stale,
     degraded: !memberHealthy,
     source: {
-      name: 'SBOTOTO Sportsbook Feed',
+      name: 'Gasterus Sportsbook Feed',
       mode: feed.snapshotFallback
         ? 'READ_ONLY_SNAPSHOT'
         : feed.readOnlySource && Number(feed.pricedMarkets || 0) > 0
@@ -813,7 +813,7 @@ export async function sportsbookSettlementSnapshot() {
   return {
     fetchedAt: feed.fetchedAt,
     feedRevision: feed.revision || null,
-    sourceName: settlementSources.length ? `SBOTOTO_AUTHORITY:${settlementSources.join('+')}` : 'SBOTOTO_AUTHORITY:UNAVAILABLE',
+    sourceName: settlementSources.length ? `GASTERUS_AUTHORITY:${settlementSources.join('+')}` : 'GASTERUS_AUTHORITY:UNAVAILABLE',
     settlementSources,
     events: feed.events.map((event, index) => ({
       ...publicEvent(event),

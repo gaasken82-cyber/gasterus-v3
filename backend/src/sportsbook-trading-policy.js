@@ -60,7 +60,7 @@ export function tradingPolicyFromControls(controls = [], identity = {}) {
   const stakeLimits = matches.map(control => control.maxStake).filter(value => Number.isSafeInteger(value) && value > 0);
   const versionToken = matches.length
     ? matches.map(control => `${control.scopeKey}@${control.version}`).sort().join('|')
-    : 'none';
+    : null;
   return {
     suspended: matches.some(control => control.suspended),
     maxStake: stakeLimits.length ? Math.min(...stakeLimits) : null,
