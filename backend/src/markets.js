@@ -113,6 +113,10 @@ export async function runMarketOpenCheck() {
   }
 }
 export function startMarketOpenScheduler(intervalMs = 60000) {
+  if (!config.marketAutoOpenEnabled) {
+    logger.info('Market open scheduler disabled', { flag: 'MARKET_AUTO_OPEN_ENABLED=false' });
+    return () => {};
+  }
   if (marketOpenInterval) clearInterval(marketOpenInterval);
   runMarketOpenCheck();
   marketOpenInterval = setInterval(runMarketOpenCheck, intervalMs);

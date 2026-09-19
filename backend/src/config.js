@@ -76,6 +76,12 @@ export const config = Object.freeze({
   // Tampilkan hasil REAL single-source (1 keluarga sumber) ke member sebagai display-only.
   // Betting/settlement TETAP butuh VERIFIED (authorityReady). Matikan dengan TOTO_PUBLISH_SINGLE_SOURCE=false.
   totoPublishSingleSource: bool('TOTO_PUBLISH_SINGLE_SOURCE', true),
+  // Sched auto-open eksperimental (markets.js). Default OFF: sistem lifecycle
+  // native (toto-collector + reconcileCashBettingWindows) adalah satu-satunya
+  // penulis status pasaran otomatis; scheduler ini hanya untuk situasi darurat
+  // operator. Set MARKET_AUTO_OPEN_ENABLED=true untuk mengaktifkan (dapat
+  // berbenturan dengan freshness gate collector -> status flap).
+  marketAutoOpenEnabled: bool('MARKET_AUTO_OPEN_ENABLED', false),
   // Per-source health & auto-failover. Ketika sebuah sumber gagal memproduksi hasil
   // sebanyak failThreshold berturut-turut, ia ditandai "degraded" dan tidak lagi dibakar
   // usaha render/CSS; setelah cooldown berlalu ia di-probe ulang untuk auto-heal.
