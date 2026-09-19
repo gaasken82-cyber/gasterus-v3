@@ -2,6 +2,7 @@ import { query } from './db.js';
 import { AppError } from './errors.js';
 import { LOTTERY_GAMES, publicGameDefinition } from './lottery-games.js';
 import { config } from './config.js';
+import { logger } from './logger.js';
 
 function bettingReadinessReason({ authorityReady, bettingStatus, bettingPeriod, closeAt }, now = Date.now()) {
   if (!authorityReady) return 'RESULT_AUTHORITY_NOT_READY';
@@ -41,6 +42,82 @@ function mapMarket(row,{includeHistorical=false}={}){
   // dan memicu label "MENUNGGU VERIFIKASI" yang tidak relevan bagi member.
   const stale=!resultTrusted&&(!sourceUpdatedAt||Date.now()-new Date(sourceUpdatedAt).getTime()>93600000);
   return {slug:row.slug,code:row.code,name:row.name,result,period,category:row.category,tags:row.tags||[],status:row.status,sortOrder:row.sort_order,sourceUpdatedAt,updatedAt:row.updated_at,stale,verificationStatus:historyAvailable?'VERIFIED_HISTORY':liveVerificationStatus,liveVerificationStatus,resultTrusted,resultHistorical:historyAvailable,drawDate,drawTime,lastCheckedAt:row.source_updated_at,bettingStatus,bettingPeriod,closeAt,authorityReady,bettingReady,readinessReason};
+}
+// ---------------------------------------------------------------------------
+// Auto-open scheduler: membuka kembali pasaran harian untuk periode berikutnya.
+// Latar belakang: startMarketCloseScheduler (app.js) hanya MENUTUP (CLOSED)
+// ketika close_at lewat; tidak ada mekanisme MEMBUKA pasaran untuk periode
+// berikutnya, sehingga pasaran tertutup tetap tertutup selamanya sampai
+// migrasi SQL manual dijalankan (021/022/023). Fungsi ini melengkapi siklusnya.
+//
+// Asumsi jadwal (berdasarkan pola data live production 2026-09 + migrasi 021/023):
+//   1. Pasaran TOTO di sini harian -> closeAt periode berikutnya = closeAt
+//      sebelumnya + 24 jam (di-loop maju sampai > now). Pola ini persis seperti
+//      KING KONG 4D / HONGKONG POOL (closeAt bergeser +24h tiap hari).
+//   2. bettingPeriod = tanggal UTC dari closeAt baru (mis. closeAt
+//      2026-09-20T09:43Z <-> bettingPeriod '2026-09-20', seperti data OPEN).
+//   3. Hanya pasaran VERIFIED (authority siap) dan m.status='open' yang dibuka
+//      (sesuai pola migrasi 021/022; otomatis mengecualikan NZ regional pools
+//      yang memang dinonaktifkan produk via migrasi 020, status 'closed').
+//   4. Pasaran SUSPENDED dengan close_at NULL dan betting_period NULL tidak
+//      bisa disimpulkan jadwalnya -> dibiarkan (dicatat di log, tidak diubah).
+let marketOpenInterval = null;
+export async function runMarketOpenCheck() {
+  try {
+    const { rows } = await query(
+      `SELECT c.market_id, m.slug, m.name, c.betting_status, c.betting_period, c.close_at
+         FROM market_betting_configs c
+         JOIN markets m ON m.id = c.market_id
+        WHERE c.betting_status IN ('CLOSED','SUSPENDED')
+          AND COALESCE(c.auto_reopen_blocked, FALSE) = FALSE
+          AND m.status = 'open'
+          AND m.verification_status = 'VERIFIED'
+          AND (c.close_at IS NOT NULL OR (c.betting_period IS NOT NULL AND btrim(c.betting_period) <> ''))`
+    );
+    if (!rows.length) return;
+    const now = Date.now();
+    const opened = [];
+    for (const row of rows) {
+      // Hitung closeAt periode berikutnya.
+      let nextCloseMs = NaN;
+      if (row.close_at) {
+        let t = new Date(row.close_at).getTime();
+        if (!Number.isFinite(t) || t > now) continue; // jadwal valid / belum waktunya buka
+        while (t <= now) t += 24 * 3600 * 1000; // loop maju per 24 jam (pasaran harian)
+        nextCloseMs = t;
+      } else {
+        // Fallback: pakai betting_period sebagai tanggal draw; tutup akhir hari
+        // UTC tanggal tersebut (pola migrasi 021: current_date + 1 day - 1 sec).
+        const d = new Date(`${String(row.betting_period).trim()}T00:00:00Z`).getTime();
+        if (!Number.isFinite(d)) continue;
+        nextCloseMs = d + 24 * 3600 * 1000 - 1000;
+        if (nextCloseMs <= now) continue; // periode itu sendiri sudah lewat total
+      }
+      const nextClose = new Date(nextCloseMs).toISOString();
+      const nextPeriod = nextClose.slice(0, 10); // YYYY-MM-DD (tanggal UTC, pola data OPEN)
+      await query(
+        `UPDATE market_betting_configs
+            SET betting_status='OPEN', betting_period=$2, close_at=$3,
+                updated_by=NULL, updated_at=now()
+          WHERE market_id=$1
+            AND betting_status IN ('CLOSED','SUSPENDED')`,
+        [row.market_id, nextPeriod, nextClose]
+      );
+      opened.push({ slug: row.slug, from: row.betting_status, period: nextPeriod, closeAt: nextClose });
+    }
+    if (opened.length) {
+      logger.info('Auto-opened markets for next period', { count: opened.length, markets: opened });
+    }
+  } catch (err) {
+    logger.error('Market open scheduler error', { error: err.message });
+  }
+}
+export function startMarketOpenScheduler(intervalMs = 60000) {
+  if (marketOpenInterval) clearInterval(marketOpenInterval);
+  runMarketOpenCheck();
+  marketOpenInterval = setInterval(runMarketOpenCheck, intervalMs);
+  logger.info('Market open scheduler started', { intervalMs });
+  return () => { if (marketOpenInterval) { clearInterval(marketOpenInterval); marketOpenInterval = null; } };
 }
 export async function listMarkets({category,q,limit=100,offset=0,includeHistorical=false}={}){
   const values=[];const where=[];
