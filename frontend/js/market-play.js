@@ -250,7 +250,11 @@ async function handleBetSubmit() {
   }
 
   const user = auth.getUser();
-  if (user && user.balance < totalNet) {
+  // totalNet hanya ada sebagai return value calculateTotals() — ambil dari sana
+  // (sebelumnya referensi langsung ke totalNet menyebabkan ReferenceError di
+  // handleBetSubmit sehingga tombol submit TOTO tidak pernah mengirim request).
+  const { totalNet } = calculateTotals();
+  if (user && Number(user.balance ?? 0) < totalNet) {
     showToast('Saldo Anda tidak mencukupi untuk memasang taruhan ini.', 'danger');
     return;
   }
