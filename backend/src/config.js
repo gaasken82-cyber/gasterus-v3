@@ -165,9 +165,9 @@ export const config = Object.freeze({
   sportsbookArtworkMaxLookupsPerMinute: int('SPORTSBOOK_ARTWORK_MAX_LOOKUPS_PER_MINUTE', 20, 1, 30),
   sportsbookArtworkMaxLookupsPerRefresh: int('SPORTSBOOK_ARTWORK_MAX_LOOKUPS_PER_REFRESH', 16, 1, 30),
   sportsbookArtworkTimeoutMs: int('SPORTSBOOK_ARTWORK_TIMEOUT_MS', 5000, 1000, 15000),
-  // R6.9.0.15: SBOTOTO-owned public market feed. No commercial odds-provider credential is required.
+  // R6.9.0.15: Gasterus-owned public market feed. No commercial odds-provider credential is required.
   // Upcoming fixtures + bookmaker anchor prices are collected from Football-Data's downloadable public CSV,
-  // then normalized and expanded by SBOTOTO's own probability/market engine.
+  // then normalized and expanded by Gasterus's own probability/market engine.
   publicMarketEnabled: bool('PUBLIC_MARKET_ENABLED', true),
   publicMarketOpenFootballEnabled: bool('PUBLIC_MARKET_OPENFOOTBALL_ENABLED', true),
   publicMarketFixturesUrl: text('PUBLIC_MARKET_FIXTURES_URL', 'https://www.football-data.co.uk/fixtures.csv'),

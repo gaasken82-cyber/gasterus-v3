@@ -256,14 +256,14 @@ function buildDerivedMarkets(eventId, anchor, updatedAt) {
     output.push(market(eventId, 'TOTALS', 'FT', line, 'Over / Under', [
       { label: `Over ${line}`, odds: totalOdds(full, line, true, margin) },
       { label: `Under ${line}`, odds: totalOdds(full, line, false, margin) }
-    ], updatedAt, { book: 'sbototo-model' }));
+    ], updatedAt, { book: 'gasterus-model' }));
   }
   for (const line of [-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2]) {
     if (anchor.handicap && Math.abs(anchor.handicap.line - line) < 1e-8) continue;
     output.push(market(eventId, 'HANDICAP', 'FT', line, 'Asian Handicap', [
       { label: 'Home', odds: asianOdds(full, line, 'HOME', margin), line },
       { label: 'Away', odds: asianOdds(full, -line, 'AWAY', margin), line: -line }
-    ], updatedAt, { book: 'sbototo-model' }));
+    ], updatedAt, { book: 'gasterus-model' }));
   }
 
   let bttsYes = 0, odd = 0, homeWin = 0, draw = 0, awayWin = 0;
@@ -275,19 +275,19 @@ function buildDerivedMarkets(eventId, anchor, updatedAt) {
     if (x.h <= 4 && x.a <= 4) exact.push({ label: `${x.h}-${x.a}`, p: x.p });
   }
   const [bttsY, bttsN] = twoWayBook(bttsYes, 1 - bttsYes, margin);
-  output.push(market(eventId, 'BTTS', 'FT', null, 'Both Teams To Score', [{ label: 'Yes', odds: bttsY }, { label: 'No', odds: bttsN }], updatedAt, { book: 'sbototo-model' }));
+  output.push(market(eventId, 'BTTS', 'FT', null, 'Both Teams To Score', [{ label: 'Yes', odds: bttsY }, { label: 'No', odds: bttsN }], updatedAt, { book: 'gasterus-model' }));
   output.push(market(eventId, 'DOUBLE_CHANCE', 'FT', null, 'Double Chance', [
     { label: '1X', odds: bookOddsFromProbability(homeWin + draw, margin) },
     { label: '12', odds: bookOddsFromProbability(homeWin + awayWin, margin) },
     { label: 'X2', odds: bookOddsFromProbability(draw + awayWin, margin) }
-  ], updatedAt, { book: 'sbototo-model' }));
+  ], updatedAt, { book: 'gasterus-model' }));
   output.push(market(eventId, 'DRAW_NO_BET', 'FT', null, 'Draw No Bet', [
     { label: 'Home', odds: pushAdjustedOdds(homeWin, draw, margin) },
     { label: 'Away', odds: pushAdjustedOdds(awayWin, draw, margin) }
-  ], updatedAt, { book: 'sbototo-model' }));
+  ], updatedAt, { book: 'gasterus-model' }));
   const [oddOdds, evenOdds] = twoWayBook(odd, 1 - odd, margin);
-  output.push(market(eventId, 'ODD_EVEN', 'FT', null, 'Odd / Even', [{ label: 'Odd', odds: oddOdds }, { label: 'Even', odds: evenOdds }], updatedAt, { book: 'sbototo-model' }));
-  output.push(market(eventId, 'CORRECT_SCORE', 'FT', null, 'Correct Score', exact.sort((a,b)=>b.p-a.p).slice(0, 14).map(x => ({ label: x.label, odds: bookOddsFromProbability(x.p, margin) })), updatedAt, { book: 'sbototo-model' }));
+  output.push(market(eventId, 'ODD_EVEN', 'FT', null, 'Odd / Even', [{ label: 'Odd', odds: oddOdds }, { label: 'Even', odds: evenOdds }], updatedAt, { book: 'gasterus-model' }));
+  output.push(market(eventId, 'CORRECT_SCORE', 'FT', null, 'Correct Score', exact.sort((a,b)=>b.p-a.p).slice(0, 14).map(x => ({ label: x.label, odds: bookOddsFromProbability(x.p, margin) })), updatedAt, { book: 'gasterus-model' }));
 
   for (const team of ['Home', 'Away']) {
     const isHome = team === 'Home';
@@ -295,7 +295,7 @@ function buildDerivedMarkets(eventId, anchor, updatedAt) {
       let over = 0, under = 0;
       for (const x of full) ((isHome ? x.h : x.a) > line ? over += x.p : under += x.p);
       const [o, u] = twoWayBook(over, under, margin);
-      output.push(market(eventId, 'TEAM_TOTAL', 'FT', line, `${team} Team Total`, [{ label: `${team} Over ${line}`, odds: o }, { label: `${team} Under ${line}`, odds: u }], updatedAt, { book: 'sbototo-model' }));
+      output.push(market(eventId, 'TEAM_TOTAL', 'FT', line, `${team} Team Total`, [{ label: `${team} Over ${line}`, odds: o }, { label: `${team} Under ${line}`, odds: u }], updatedAt, { book: 'gasterus-model' }));
     }
   }
 
@@ -307,20 +307,20 @@ function buildDerivedMarkets(eventId, anchor, updatedAt) {
     const key = `${resultSide(first.h, first.a)} / ${resultSide(first.h + second.h, first.a + second.a)}`;
     htft.set(key, (htft.get(key) || 0) + first.p * second.p);
   }
-  output.push(market(eventId, 'HT_FT', 'FT', null, 'Half Time / Full Time', [...htft.entries()].map(([label, p]) => ({ label, odds: bookOddsFromProbability(p, margin) })), updatedAt, { book: 'sbototo-model' }));
+  output.push(market(eventId, 'HT_FT', 'FT', null, 'Half Time / Full Time', [...htft.entries()].map(([label, p]) => ({ label, odds: bookOddsFromProbability(p, margin) })), updatedAt, { book: 'gasterus-model' }));
   output.push(market(eventId, '1X2', '1H', null, '1st Half 1X2', [
     { label: 'Home', odds: bookOddsFromProbability(halfProbs.home, margin) },
     { label: 'Draw', odds: bookOddsFromProbability(halfProbs.draw, margin) },
     { label: 'Away', odds: bookOddsFromProbability(halfProbs.away, margin) }
-  ], updatedAt, { book: 'sbototo-model' }));
+  ], updatedAt, { book: 'gasterus-model' }));
   for (const line of [0.5, 1.5, 2.5]) output.push(market(eventId, 'TOTALS', '1H', line, '1st Half Over / Under', [
     { label: `Over ${line}`, odds: totalOdds(half, line, true, margin) },
     { label: `Under ${line}`, odds: totalOdds(half, line, false, margin) }
-  ], updatedAt, { book: 'sbototo-model' }));
+  ], updatedAt, { book: 'gasterus-model' }));
   for (const line of [-1, -0.5, 0, 0.5, 1]) output.push(market(eventId, 'HANDICAP', '1H', line, '1st Half Asian Handicap', [
     { label: 'Home', odds: asianOdds(half, line, 'HOME', margin), line },
     { label: 'Away', odds: asianOdds(half, -line, 'AWAY', margin), line: -line }
-  ], updatedAt, { book: 'sbototo-model' }));
+  ], updatedAt, { book: 'gasterus-model' }));
 
   return output.filter(m => m && m.selections.length >= 2 && m.selections.every(s => Number.isFinite(s.odds) && s.odds > 1));
 }
@@ -366,7 +366,7 @@ export function normalizeOpenFootballFixture(item) {
   const eventId = hash('public-event', slug(home), slug(away), startTime);
   const markets = [market(eventId, '1X2', 'FT', null, '1X2', [
     { label:'Home', odds:oneXtwo.home }, { label:'Draw', odds:oneXtwo.draw }, { label:'Away', odds:oneXtwo.away }
-  ], updatedAt, { book:'sbototo-open-model', sourceMarketId:`openfootball:${comp.code || 'league'}:1x2`, mainLine:true })];
+  ], updatedAt, { book:'gasterus-open-model', sourceMarketId:`openfootball:${comp.code || 'league'}:1x2`, mainLine:true })];
   if (config.publicMarketDerivedMarketsEnabled) markets.push(...buildDerivedMarkets(eventId, { oneXtwo, total25:null, handicap:null }, updatedAt));
   const finished = Array.isArray(match.ft) && match.ft.length === 2;
   const periodScores = Array.isArray(match.ht) && match.ht.length === 2 ? { '1H': { home:match.ht[0], away:match.ht[1] } } : {};
@@ -377,7 +377,7 @@ export function normalizeOpenFootballFixture(item) {
     periodScores, availableMarketCount:markets.length, detailFetchedAt:updatedAt, markets,
     _refs:{[PROVIDER]:`openfootball:${comp.code || 'league'}:${home}:${away}:${startTime}`}, _sources:[PROVIDER],
     _settlementReadySources:[PROVIDER,'manual-ops'], _settlementMode:'PUBLIC_DATA_AUTO_WITH_MANUAL_FALLBACK',
-    _publicMarketAnchor:{oneXtwo,total25:null,handicap:null,model:'SBOTOTO_OPENFOOTBALL_POISSON_V1',lambdaHome:item?.anchor?.lambdaHome ?? null,lambdaAway:item?.anchor?.lambdaAway ?? null,sampleMatches:item?.anchor?.sampleMatches ?? 0},
+    _publicMarketAnchor:{oneXtwo,total25:null,handicap:null,model:'Gasterus_OPENFOOTBALL_POISSON_V1',lambdaHome:item?.anchor?.lambdaHome ?? null,lambdaAway:item?.anchor?.lambdaAway ?? null,sampleMatches:item?.anchor?.sampleMatches ?? 0},
     _publicMarketDiv:comp.code || '', _publicMarketOrigin:'openfootball-cc0',
     ...(finished ? {_publicResultProvenance:{source:'openfootball-cc0',date:startTime}} : {})
   };
@@ -463,7 +463,7 @@ async function requestText(url, { etag = null, lastModified = null } = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.publicMarketRequestTimeoutMs);
   try {
-    const headers = { accept: 'text/csv,text/plain,text/html;q=0.9,*/*;q=0.1', 'user-agent': 'SBOTOTO-Public-Market-Collector/1.0' };
+    const headers = { accept: 'text/csv,text/plain,text/html;q=0.9,*/*;q=0.1', 'user-agent': 'Gasterus-Public-Market-Collector/1.0' };
     if (etag) headers['if-none-match'] = etag;
     if (lastModified) headers['if-modified-since'] = lastModified;
     const response = await fetch(url, { headers, signal: controller.signal, redirect: 'follow' });
@@ -512,7 +512,7 @@ async function loadFresh() {
   let nextEtag = cache.etag, nextLastModified = cache.lastModified;
 
   // Source A: public bookmaker/market anchors when reachable. This is enrichment,
-  // not a single point of failure for the SBOTOTO-owned feed.
+  // not a single point of failure for the Gasterus-owned feed.
   try {
     const fixtureResponse = await requestText(config.publicMarketFixturesUrl, { etag: cache.etag, lastModified: cache.lastModified });
     if (fixtureResponse.notModified) {
@@ -534,7 +534,7 @@ async function loadFresh() {
     normalized.push(...cache.events.filter(event => event._publicMarketOrigin === 'football-data'));
   }
 
-  // Source B: CC0 OpenFootball schedules/results plus SBOTOTO's own deterministic
+  // Source B: CC0 OpenFootball schedules/results plus Gasterus's own deterministic
   // market model. This path requires no commercial odds credential and keeps the
   // trading feed alive when an odds-comparison endpoint rate-limits the collector.
   try {
@@ -546,10 +546,10 @@ async function loadFresh() {
     normalized.push(...cache.events.filter(event => event._publicMarketOrigin === 'openfootball-cc0'));
   }
 
-  if (!normalized.length) throw new Error(`All SBOTOTO public-market sources unavailable: ${warnings.join(' | ') || 'no events'}`);
+  if (!normalized.length) throw new Error(`All Gasterus public-market sources unavailable: ${warnings.join(' | ') || 'no events'}`);
 
   // Strictly prefer events that carry REAL market odds (football-data.co.uk
-  // bookmaker averages, or any commercial odds API) over the SBOTOTO Poisson
+  // bookmaker averages, or any commercial odds API) over the Gasterus Poisson
   // model events from OpenFootball. The model is only a fallback for fixtures
   // no real source covers. This guarantees the sportsbook follows market price
   // whenever a real-odds source is connected.
@@ -608,5 +608,5 @@ export const __publicMarket = {
 };
 
 // Re-used by sportsbook-footballdataio.js to expand real 1X2 odds into the full
-// market set (O/U, HDP, BTTS, DC, CS, ...) using SBOTOTO's probability engine.
+// market set (O/U, HDP, BTTS, DC, CS, ...) using Gasterus's probability engine.
 export { buildDerivedMarkets };

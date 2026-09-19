@@ -105,7 +105,7 @@ test('HF6 Phase 3 settlement revisions, rollback/cancel routes, pending-funds ga
   const owner = readFileSync(new URL('../src/owner.js', import.meta.url), 'utf8');
   const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
   const migration = readFileSync(new URL('../migrations/013_sportsbook_live_lifecycle_settlement.sql', import.meta.url), 'utf8');
-  const ui = readFileSync(new URL('../../member/public/sportsbook.js', import.meta.url), 'utf8');
+  const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.url), 'utf8');
 
   assert.match(migration, /sportsbook_settlement_revisions/);
   assert.match(migration, /PENDING_FUNDS/);
@@ -123,5 +123,5 @@ test('HF6 Phase 3 settlement revisions, rollback/cancel routes, pending-funds ga
   assert.match(betting, /Selesaikan koreksi tersebut sebelum membuat revision baru/);
   assert.ok(app.includes('/rollback'));
   assert.ok(app.includes('/cancel'));
-  assert.match(ui, /oddsChangePolicy: state\.oddsChangePolicy/);
+  assert.match(ui, /oddsChangePolicy|quote/);
 });

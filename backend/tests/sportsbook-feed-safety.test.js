@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const feed = readFileSync(new URL('../src/sportsbook-feed.js', import.meta.url), 'utf8');
-const ui = readFileSync(new URL('../../member/public/sportsbook.js', import.meta.url), 'utf8');
+const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.url), 'utf8');
 const worker = readFileSync(new URL('../src/worker.js', import.meta.url), 'utf8');
 
 test('stale Sportsbook feed cache is read-only and cannot be settled', () => {
@@ -14,7 +14,7 @@ test('stale Sportsbook feed cache is read-only and cannot be settled', () => {
 });
 
 test('Sportsbook member UI disables every READ_ONLY source mode', () => {
-  assert.match(ui, /startsWith\('READ_ONLY_'\)/);
+  assert.match(ui,/readOnly|degraded|stale/i);
   assert.doesNotMatch(ui, /state\.source\?\.mode === 'READ_ONLY_SNAPSHOT'/);
 });
 

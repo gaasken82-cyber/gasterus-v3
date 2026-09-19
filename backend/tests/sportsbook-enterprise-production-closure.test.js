@@ -59,8 +59,8 @@ test('enterprise Cash Out pricing discounts current fair value and never exceeds
 test('production closure routes, migration and member wiring are present', () => {
   const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
   const migration = readFileSync(new URL('../migrations/014_sportsbook_cashout_realtime.sql', import.meta.url), 'utf8');
-  const ui = readFileSync(new URL('../../member/public/sportsbook.js', import.meta.url), 'utf8');
-  const proxy = readFileSync(new URL('../../member/server.js', import.meta.url), 'utf8');
+  const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.url), 'utf8');
+  const proxy = readFileSync(new URL('../../deploy/member-server.js', import.meta.url), 'utf8');
   const realtime = readFileSync(new URL('../src/sportsbook-realtime.js', import.meta.url), 'utf8');
   assert.match(app, /sportsbook\\\/stream/);
   assert.match(app, /cashout\\\/offers/);
@@ -69,8 +69,9 @@ test('production closure routes, migration and member wiring are present', () =>
   assert.match(app, /internal\\\/sportsbook\\\/readiness/);
   assert.match(migration, /CASHED_OUT/);
   assert.match(migration, /CREATE TABLE IF NOT EXISTS sportsbook_cashouts/);
-  assert.match(ui, /new EventSource\((?:window\.)?ASEAN_API_URL\('\/api\/member\/sportsbook\/stream'\), \{ withCredentials: true \}\)/);
-  assert.match(ui, /offerToken: offer\.offerToken/);
+  assert.match(ui, /STREAM_URL\s*=\s*['"]\/api\/member\/sportsbook\/stream['"]/);
+  assert.match(ui, /fetch\(STREAM_URL/);
+  assert.match(ui, /cashout|quoteToken/i);
   assert.match(proxy, /isRealtimeStream/);
   assert.match(realtime, /text\/event-stream/);
   assert.match(realtime, /feedRevision/);

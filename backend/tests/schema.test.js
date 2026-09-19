@@ -7,7 +7,7 @@ const enterpriseBackofficeSchema=await readFile(new URL('../migrations/005_enter
 const enterpriseOperationsSchema=await readFile(new URL('../migrations/006_enterprise_operations.sql',import.meta.url),'utf8');
 const moneyIntegritySchema=await readFile(new URL('../migrations/007_money_integrity.sql',import.meta.url),'utf8');
 test('schema includes PostgreSQL ledger and approval controls',()=>{for(const token of ['ledger_accounts','ledger_transactions','ledger_entries','approval_requests','approved_by <> requested_by','prevent_audit_mutation'])assert.ok(schema.includes(token),token);});
-test('member and admin services remain isolated',async()=>{const member=await readFile(new URL('../../member/server.js',import.meta.url),'utf8');const admin=await readFile(new URL('../../admin/server.js',import.meta.url),'utf8');assert.ok(member.includes('hiddenManagementPath'));assert.ok(admin.includes("url.pathname.startsWith('/member')"));});
+test('member and admin services remain isolated',async()=>{const member=await readFile(new URL('../../deploy/member-server.js',import.meta.url),'utf8');const admin=await readFile(new URL('../../admin/server.js',import.meta.url),'utf8');assert.ok(member.includes('hiddenManagementPath'));assert.ok(admin.includes("url.pathname.startsWith('/member/')"));});
 
 test('sportsbook schema separates tickets and legs with idempotency',()=>{for(const token of ['sportsbook_tickets','sportsbook_legs','UNIQUE(member_id, idempotency_key)','UNIQUE(ticket_id, event_id)'])assert.ok(sportsbookSchema.includes(token),token);});
 

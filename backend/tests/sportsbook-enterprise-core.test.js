@@ -72,7 +72,7 @@ test('missing provider scores never coerce to zero during settlement', () => {
 });
 test('member bet contract requires provider price version and server-side risk limits', () => {
   const betting = readFileSync(new URL('../src/sportsbook-betting.js', import.meta.url), 'utf8');
-  const ui = readFileSync(new URL('../../member/public/sportsbook.js', import.meta.url), 'utf8');
+  const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.url), 'utf8');
   const migration = readFileSync(new URL('../migrations/010_sportsbook_enterprise_core.sql', import.meta.url), 'utf8');
   assert.match(betting, /SPORTSBOOK_PRICE_VERSION_REQUIRED/);
   assert.match(betting, /revalidateResolvedLegs/);

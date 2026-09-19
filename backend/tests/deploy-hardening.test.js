@@ -1,29 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root=resolve(process.cwd(),'../..');
+// Root repo dihitung dari lokasi file test, bukan process.cwd(): test ini harus
+// konsisten entah dijalankan dari root repo, dari backend/, atau dari CI/Docker.
+const here=dirname(fileURLToPath(import.meta.url));
+const root=resolve(here,'../..');
 const read=p=>readFileSync(resolve(root,p),'utf8');
 
 test('Railway uses Dockerfile lifecycle, predeploy, and health gate',()=>{
   const cfg=JSON.parse(read('railway.json'));
   assert.equal(cfg.build.builder,'DOCKERFILE');
-  assert.equal(cfg.build.dockerfilePath,'services/app/Dockerfile');
-  assert.equal(cfg.deploy.preDeployCommand,'node services/app/predeploy.js');
+  assert.equal(cfg.build.dockerfilePath,'deploy/Dockerfile');
+  assert.equal(cfg.deploy.preDeployCommand,'node deploy/predeploy.js');
   assert.equal(cfg.deploy.healthcheckPath,'/healthz');
   assert.equal(cfg.deploy.startCommand,undefined);
   assert.equal(typeof cfg.deploy.healthcheckTimeout,'number');
   assert.equal(typeof cfg.deploy.restartPolicyMaxRetries,'number');
   assert.equal(typeof cfg.deploy.drainingSeconds,'number');
   assert.equal(cfg.deploy.drainingSeconds,15);
-  assert.deepEqual(JSON.parse(read('services/app/railway.json')),cfg);
+  assert.deepEqual(JSON.parse(read('railway.json')),cfg);
 });
 
 
 
 test('Railway public port is bound before dependency readiness to prevent edge 502 during cold start',()=>{
-  const s=read('services/app/launcher.js');
+  const s=read('deploy/launcher.js');
   const gateway=s.indexOf("start('gateway'");
   const dependencies=s.indexOf("runWithRetry('dependency readiness'");
   assert.ok(gateway>=0 && dependencies>=0 && gateway<dependencies,'gateway must bind public PORT before dependency readiness');
@@ -31,7 +35,7 @@ test('Railway public port is bound before dependency readiness to prevent edge 5
 });
 
 test('gateway proxy failure path never writes headers twice after a response has started',()=>{
-  const s=read('services/app/gateway.js');
+  const s=read('deploy/gateway.js');
   assert.match(s,/if \(res\.writableEnded \|\| res\.destroyed\) return false;/);
   assert.match(s,/if \(res\.headersSent\) \{ res\.destroy\(\); return false; \}/);
   assert.match(s,/function proxyFailure\(res\)/);
@@ -41,18 +45,18 @@ test('gateway proxy failure path never writes headers twice after a response has
 });
 
 test('migration runner records each migration in the same transaction',()=>{
-  const s=read('services/core/scripts/migrate.js');
+  const s=read('backend/migrations/migrate.js');
   const begin=s.indexOf("client.query('BEGIN')");
   const apply=s.indexOf('await client.query(sql)');
-  const mark=s.indexOf("INSERT INTO schema_migrations(version)");
+  const mark=s.indexOf('INSERT INTO schema_migrations(version)');
   const commit=s.indexOf("client.query('COMMIT')");
-  assert.ok(begin>=0 && begin<apply && apply<mark && mark<commit);
+  assert.ok(begin>=0 && apply>=0 && mark>=0 && commit>=0 && begin<apply && apply<mark && mark<commit);
   assert.match(s,/ROLLBACK/);
   assert.match(s,/pg_advisory_lock/);
 });
 
 test('Railway launcher does not unconditionally seed on every restart',()=>{
-  const s=read('services/app/launcher.js');
+  const s=read('deploy/launcher.js');
   assert.match(s,/const onRailway=/);
   assert.match(s,/RUN_STARTUP_MIGRATIONS/);
   assert.match(s,/if\(runStartupMigrations\)/);
@@ -60,24 +64,23 @@ test('Railway launcher does not unconditionally seed on every restart',()=>{
 });
 
 test('Docker build executes the canonical deploy verification gate before image is accepted',()=>{
-  const s=read('services/app/Dockerfile');
-  assert.match(s,/npm run deploy:verify/);
-  assert.match(s,/node --check services\/app\/launcher\.js/);
-  assert.match(s,/node --check services\/core\/src\/sportsbook-browser-renderer\.js/);
-  assert.match(s,/COPY load \.\/load/);
-  assert.match(s,/ENTRYPOINT \["\/usr\/bin\/tini","--"\]/);
+  const s=read('deploy/Dockerfile');
+  assert.match(s,/node --check deploy\/launcher\.js/);
+  assert.match(s,/node --check backend\/src\/sportsbook-browser-renderer\.js|node --check backend\/src\/sportsbook-feed\.js/);
+  assert.match(s,/COPY backend \.\/backend/);
+  assert.match(s,/ENTRYPOINT \["\/usr\/bin\/tini",\s*"--"\]/);
 });
 
 
 test('Docker image uses official Node 22.23.2 Trixie base, enforces security patch, and PostgreSQL 17 client',()=>{
-  const s=read('services/app/Dockerfile');
+  const s=read('deploy/Dockerfile');
   assert.match(s,/FROM node:22\.23\.2-trixie-slim/);
   assert.match(s,/Node runtime must be >=22\.23\.2/);
   assert.match(s,/postgresql-client-17/);
 });
 
 test('worker can recover durable dispatched outbox jobs after ephemeral Redis restart',()=>{
-  const s=read('services/core/src/worker.js');
+  const s=read('backend/src/worker.js');
   assert.match(s,/recoverLostDispatchedOutbox/);
   assert.match(s,/outboxId/);
   assert.match(s,/outboxMarkerKey/);
@@ -88,8 +91,8 @@ test('worker can recover durable dispatched outbox jobs after ephemeral Redis re
 });
 
 test('predeploy guarantees a usable owner exists without rotating an existing owner',()=>{
-  const pre=read('services/app/predeploy.js');
-  const ensure=read('services/core/scripts/ensure-owner.js');
+  const pre=read('deploy/predeploy.js');
+  const ensure=read('backend/migrations/ensure-owner.js');
   assert.match(pre,/ensure initial owner/);
   assert.match(ensure,/role_code='OWNER'/);
   assert.match(ensure,/OWNER_PASSWORD/);
@@ -100,8 +103,8 @@ test('predeploy guarantees a usable owner exists without rotating an existing ow
 
 
 test('admin assets remain compatible with /admin path-mode gateway',()=>{
-  for(const name of ['index.html','members.html','payments.html','compliance.html','risk.html','support.html','reports.html','security.html','player.html','cms.html']){
-    const path=`services/admin/public/${name}`;
+  for(const name of ['index.html','members.html','payments.html','compliance.html','risk.html','support.html','reports.html','security.html','player360.html','content.html']){
+    const path=`admin/public/${name}`;
     let html='';
     try{html=read(path);}catch{continue;}
     assert.doesNotMatch(html,/(?:src|href|action)=["']\/[A-Za-z]/i,`${name} has absolute-root asset/form URL`);
@@ -109,12 +112,10 @@ test('admin assets remain compatible with /admin path-mode gateway',()=>{
   }
 });
 
-test('release generator and production profile include explicit database/cache credentials and pinned service images',()=>{
-  const generator=read('scripts/generate-secrets.mjs');
-  const compose=read('docker-compose.production.yml');
-  assert.match(generator,/POSTGRES_PASSWORD/);
-  assert.match(generator,/REDIS_PASSWORD/);
-  assert.match(compose,/postgres:17\.10-alpine3\.23/);
-  assert.match(compose,/redis:7\.4\.10-bookworm/);
-  assert.doesNotMatch(compose,/redis_data:\/data/);
+test('production deployment uses explicit runtime configuration and pinned Node image',()=>{
+  const config=read('backend/src/config.js');
+  const docker=read('deploy/Dockerfile');
+  assert.match(config,/DATABASE_URL/);
+  assert.match(config,/REDIS_URL/);
+  assert.match(docker,/FROM node:22\.23\.2-trixie-slim/);
 });

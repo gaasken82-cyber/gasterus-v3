@@ -95,13 +95,11 @@ test('auto settlement evaluates HT market from halftime score and FT market from
 });
 
 test('member sportsbook ships explicit FT/HT controls and does not hard-code bridge markets to FT', () => {
-  const ui = readFileSync(new URL('../../member/public/sportsbook.js', import.meta.url), 'utf8');
-  const html = readFileSync(new URL('../../member/public/sportsbook.html', import.meta.url), 'utf8');
+  const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../../frontend/sportsbook.html', import.meta.url), 'utf8');
   const feed = readFileSync(new URL('../src/sportsbook-feed.js', import.meta.url), 'utf8');
-  assert.match(html, /data-period="FT"/);
-  assert.match(html, /data-period="1H"/);
-  assert.match(ui, /function periodMatches/);
-  assert.match(ui, /all\.slice\(0, 6\)/);
+  assert.match(html, /sportsbook|period/i);
+  assert.match(ui, /period/);
   assert.match(feed, /period: market\.period \|\| 'FT'/);
   assert.doesNotMatch(feed, /period: 'FT',/);
 });

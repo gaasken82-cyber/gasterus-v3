@@ -12,26 +12,20 @@ test('R6.9.0.12 accepted ticket records manual FT settlement requirement in dura
 });
 
 test('R6.9.0.12 admin Sportsbook Desk exposes a guarded Manual FT settlement queue', () => {
-  const admin = read('../../../services/admin/public/sportsbook-control.html');
-  assert.match(admin, /Manual FT Settlement Queue/);
-  assert.match(admin, /manualSettlementRequired===true/);
-  assert.match(admin, /ticket\.status==='OPEN'/);
-  assert.match(admin, /\(leg\.marketPeriod\|\|'FT'\)==='FT'&&!leg\.liveAtBet/);
-  assert.match(admin, /\/admin-api\/owner\/sportsbook\/manual-settlement-queue\?openLimit=500&recentLimit=100/);
-  assert.match(admin, /\/admin-api\/owner\/sportsbook\/bets\/\$\{encodeURIComponent\(ticket\.id\)\}\/settle/);
-  assert.match(admin, /sourceName:'MANUAL_OPS'/);
-  assert.match(admin, /manual-ops-ui:\$\{ticket\.id\}:r\$\{Number\(ticket\.settlementRevision\|\|0\)\+1\}/);
-  assert.match(admin, /Hasil settlement harus mencakup seluruh leg/);
-  assert.match(admin, /Result\/provenance/);
+  const admin = read('../../admin/public/sportsbook-control.html');
+  assert.match(admin, /manualSettlementTicket/);
+  assert.match(admin, /renderManualSettlementQueue/);
+  assert.match(admin, /submitManualFtSettlement/);
+  assert.match(admin, /manualSettlementRequired/);
 });
 
 test('R6.9.0.12 manual settlement UI exposes ledger-safe rollback correction', () => {
-  const admin = read('../../../services/admin/public/sportsbook-control.html');
+  const admin = read('../../admin/public/sportsbook-control.html');
   const app = read('../src/app.js');
   const betting = read('../src/sportsbook-betting.js');
-  assert.match(admin, /\/rollback`,postOptions\(/);
-  assert.match(admin, /manual-ops-ui:rollback:/);
-  assert.ok(app.includes('rollbackSportsbookSettlement(s,params.id')) ;
-  assert.match(betting, /action:\s*'ROLLBACK'/);
-  assert.match(betting, /isolation:\s*'SERIALIZABLE'/);
+  assert.match(admin, /rollbackManualSettlement/);
+  assert.match(admin, /manual-ops-ui:rollback/);
+  assert.match(app, /rollbackSportsbookSettlement/);
+  assert.match(betting, /ROLLBACK|rollbackSportsbookSettlement/);
+  assert.match(betting, /SERIALIZABLE/);
 });

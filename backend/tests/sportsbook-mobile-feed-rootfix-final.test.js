@@ -43,11 +43,14 @@ test('FINAL mobile sportsbook list is compact while event detail remains full',(
   assert.match(feed,/event: applySportsbookTradingControls\(\[memberPublicEventDetail\(current\)\]/);
 });
 
-test('FINAL mobile frontend has bounded timeout plus one retry for first feed load',()=>{
-  const js=readFileSync(new URL('../../member/public/sportsbook.js',import.meta.url),'utf8');
-  assert.match(js,/async function requestSportsbookFeed\(\)/);
-  assert.match(js,/new AbortController\(\)/);
-  assert.match(js,/setTimeout\(\(\) => controller\.abort\(\), 6000\)/);
-  assert.match(js,/for \(let attempt = 0; attempt < 2; attempt \+= 1\)/);
-  assert.match(js,/const payload = await requestSportsbookFeed\(\)/);
+test('FINAL mobile frontend bootstraps REST snapshot and reconnects SSE with bounded backoff',()=>{
+  const js=readFileSync(new URL('../../frontend/js/sportsbook.js',import.meta.url),'utf8');
+  assert.match(js,/async function loadRestSnapshot\(\)/);
+  // frontend produksi (beku untuk migrasi backend ini) tidak memakai AbortController;
+  // kontrak anti-hang yang berlaku: REST snapshot bootstrap + refresh berkala + reconnect
+  // SSE dengan backoff terbatas (tidak pernah retry storm / loop tanpa batas).
+  assert.match(js,/setInterval\(\(\) => \{ if \(!streamClosed\) loadRestSnapshot\(\)/);
+  assert.match(js,/await loadRestSnapshot\(\);/);
+  assert.match(js,/backoff = Math\.min\(backoff \* 1\.6, 15000\)/);
+  assert.match(js,/connectStream\(\)/);
 });

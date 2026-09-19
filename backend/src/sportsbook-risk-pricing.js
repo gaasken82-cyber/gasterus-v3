@@ -40,12 +40,12 @@ export function applySportsbookRiskRepricing(events = [], exposures = [], { now 
           odds,
           updatedAt: repricedAt,
           anchorUpdatedAt: item.selection.anchorUpdatedAt || item.selection.updatedAt || market.updatedAt || null,
-          pricingModel: 'SBOTOTO_RISK_SHADE_V1',
+          pricingModel: 'GASTERUS_RISK_SHADE_V1',
           riskLiability: Math.trunc(item.liability),
           riskShadeBps: Math.round(item.shade * 10000)
         };
       });
-      return { ...market, updatedAt: repricedAt, selections: nextSelections, pricingModel: 'SBOTOTO_RISK_SHADE_V1' };
+      return { ...market, updatedAt: repricedAt, selections: nextSelections, pricingModel: 'GASTERUS_RISK_SHADE_V1' };
     })
   }));
 }

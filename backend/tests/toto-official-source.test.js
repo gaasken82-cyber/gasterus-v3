@@ -140,7 +140,10 @@ test('HF13 official fetches use a browser-compatible request profile without wea
       async text() { return '<html><body>no current result in fixture</body></html>'; }
     };
   };
-  const results = await collectOfficialTotoSources(fakeFetch);
+  const results = await collectOfficialTotoSources(fakeFetch, async () => ({
+    ok: false,
+    error: 'fixture browser fallback disabled'
+  }));
   assert.equal(results.length, TOTO_OFFICIAL_SOURCES.length);
   assert.equal(calls.length, TOTO_OFFICIAL_SOURCES.length);
   assert.equal(calls.every(call => /^https:\/\//.test(call.url)), true);

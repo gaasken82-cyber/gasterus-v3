@@ -27,7 +27,7 @@ test('R6.9.0.15 CSV parser preserves quoted bookmaker fields', () => {
   assert.equal(rows[0].B365H,'1.91');
 });
 
-test('R6.9.0.15 public fixture creates real anchor markets plus broad SBOTOTO-derived catalog', () => {
+test('R6.9.0.15 public fixture creates real anchor markets plus broad Gasterus-derived catalog', () => {
   const event=normalizeFootballDataFixture(fixtureRow,{updatedAt:'2026-08-17T12:00:00Z'});
   assert.ok(event);
   assert.equal(event.league,'Premier League');
@@ -119,7 +119,7 @@ test('R6.9.0.15 OpenFootball CC0 model creates deterministic non-random 1X2 anch
   const a = buildOpenFootballModelAnchor('Alpha FC', 'Delta FC', model, { marginBps: 450 });
   const b = buildOpenFootballModelAnchor('Alpha FC', 'Delta FC', model, { marginBps: 450 });
   assert.deepEqual(a, b);
-  assert.equal(a.oneXtwo.book, 'sbototo-open-model');
+  assert.equal(a.oneXtwo.book, 'gasterus-open-model');
   assert.ok(a.oneXtwo.home > 1 && a.oneXtwo.draw > 1 && a.oneXtwo.away > 1);
   assert.ok(a.lambdaHome > 0 && a.lambdaAway > 0);
   assert.equal(a.sampleMatches, 4);

@@ -1,12 +1,14 @@
-import { spawn } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { promisify } from 'node:util';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const execFileAsync = promisify(execFile);
 const renderCache = new Map();
 let queue = Promise.resolve();
-const persistentProfileDir = path.join(os.tmpdir(), `sbototo-sportsbook-chromium-profile-${process.pid}`);
+const persistentProfileDir = path.join(os.tmpdir(), `gasterus-sportsbook-chromium-profile-${process.pid}`);
 let renderSequence = 0;
 
 function nextProfileDir() {
@@ -32,11 +34,34 @@ function waitForChildExit(child, timeoutMs) {
 }
 
 async function terminateChild(child) {
-  if (!child || child.exitCode !== null || child.signalCode !== null) return;
-  try { child.kill('SIGTERM'); } catch {}
-  if (await waitForChildExit(child, 1200)) return;
-  try { child.kill('SIGKILL'); } catch {}
-  await waitForChildExit(child, 1200);
+  if (!child) return;
+  const pid = child.pid;
+  if (child.exitCode === null && child.signalCode === null) {
+    try { child.kill('SIGTERM'); } catch {}
+    if (!(await waitForChildExit(child, 1200))) {
+      try { child.kill('SIGKILL'); } catch {}
+      await waitForChildExit(child, 1200);
+    }
+  }
+  if (process.platform === 'win32' && pid) {
+    const script = [
+      `$root = ${pid}`,
+      '$all = @(Get-CimInstance Win32_Process)',
+      '$children = New-Object System.Collections.Generic.List[int]',
+      'function Add-Descendants([int]$parent) {',
+      '  foreach ($proc in $all | Where-Object { $_.ParentProcessId -eq $parent }) {',
+      '    $children.Add([int]$proc.ProcessId)',
+      '    Add-Descendants([int]$proc.ProcessId)',
+      '  }',
+      '}',
+      'Add-Descendants $root',
+      'foreach ($id in ($children | Sort-Object -Descending)) { Stop-Process -Id $id -Force -ErrorAction SilentlyContinue }'
+    ].join(';');
+    await execFileAsync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], {
+      windowsHide: true,
+      timeout: 5000
+    }).catch(() => {});
+  }
 }
 
 function executableCandidates(explicit = '') {
@@ -132,7 +157,6 @@ async function waitForDevtools(profileDir, child, timeoutMs) {
   let lastPort = null;
   let lastError = null;
   while (Date.now() - started < timeoutMs) {
-    if (child.exitCode !== null) throw new Error(`Chromium berhenti sebelum DevTools aktif (exit=${child.exitCode}).`);
     try {
       const lines = (await readFile(activeFile, 'utf8')).trim().split(/\r?\n/);
       const port = Number(lines[0]);
@@ -160,9 +184,6 @@ async function createPage(port, child, timeoutMs = 3000) {
   const started = Date.now();
   let lastError = null;
   while (Date.now() - started < timeoutMs) {
-    if (child?.exitCode !== null && child?.exitCode !== undefined) {
-      throw new Error(`Chromium berhenti sebelum tab dapat dibuat (exit=${child.exitCode}).`);
-    }
     try {
       const response = await fetchDevtools(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' }, 750);
       if (response.ok) return response.json();
@@ -186,7 +207,7 @@ async function renderOnce(url, options = {}) {
   const maxBytes = Math.max(1024 * 1024, Number(options.maxBytes || 8 * 1024 * 1024));
   // One fresh profile per render prevents Windows ProcessSingleton/DevTools state from
   // leaking across sequential Chromium launches. The parent directory remains
-  // process-scoped so cleanup is bounded to this SBOTOTO worker.
+  // process-scoped so cleanup is bounded to this Gasterus worker.
   const profileDir = nextProfileDir();
   await mkdir(profileDir, { recursive: true });
   const args = [

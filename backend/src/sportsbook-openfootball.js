@@ -56,7 +56,7 @@ async function requestRaw(url) {
   const controller = new AbortController();
   const timeout = setTimeout(()=>controller.abort(), Number(config.publicMarketRequestTimeoutMs || 10000));
   try {
-    const headers = { accept:'text/plain,*/*;q=0.2', 'user-agent':'SBOTOTO-OpenFootball-Collector/1.0' };
+    const headers = { accept:'text/plain,*/*;q=0.2', 'user-agent':'Gasterus-OpenFootball-Collector/1.0' };
     if (prior?.etag) headers['if-none-match'] = prior.etag;
     const response = await fetch(url,{headers,signal:controller.signal,redirect:'error'});
     if (response.status === 304 && prior) return prior;
@@ -150,7 +150,7 @@ export function buildOpenFootballModelAnchor(home,away,model,{marginBps=450}={})
   const {lambdaHome,lambdaAway}=model.lambdas(home,away);
   const probs=outcome(scoreGrid(lambdaHome,lambdaAway,9));
   const margin=clamp(Number(marginBps||450)/10000,0.01,0.12);
-  return { oneXtwo:{home:book(probs.h,margin),draw:book(probs.d,margin),away:book(probs.a,margin),book:'sbototo-open-model'}, lambdaHome,lambdaAway, sampleMatches:model.finished };
+  return { oneXtwo:{home:book(probs.h,margin),draw:book(probs.d,margin),away:book(probs.a,margin),book:'gasterus-open-model'}, lambdaHome,lambdaAway, sampleMatches:model.finished };
 }
 
 export async function fetchOpenFootballFixtures() {

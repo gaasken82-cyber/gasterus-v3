@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildTotoAuthoritySnapshot, compareTotoProduction, totoAuthoritySnapshotRevision } from '../src/toto-production-acceptance.js';
-import { parseRailwayTotoLine, isTotoProductionProof, selectRailwayTotoProof, parseRailwayTotoSourceLine, isTotoSourceHealthProof, selectRailwayTotoSourceHealthProof } from '../../../scripts/toto-production-proof.mjs';
-import { runAcceptance } from '../../../scripts/toto-production-acceptance.mjs';
+import { parseRailwayTotoLine, isTotoProductionProof, selectRailwayTotoProof, parseRailwayTotoSourceLine, isTotoSourceHealthProof, selectRailwayTotoSourceHealthProof } from '../src/toto-production-proof.js';
+import { runAcceptance } from '../src/toto-production-acceptance-runner.js';
 
 const visible = Array.from({length:85},(_,i)=>({
   slug:`market-${i+1}`,
@@ -42,13 +42,13 @@ test('V12 authority snapshot revision changes when trusted publication state cha
 test('V12 production acceptance rejects wrong or untrusted published results',()=>{
   const proof={rows:buildTotoAuthoritySnapshot(visible).rows};
   const good=visible.map(x=>({slug:x.slug,result:x.status==='VERIFIED'?x.result:null,drawDate:x.drawDate}));
-  assert.equal(compareTotoProduction({proof,memberItems:good,memberTotal:85}).status,'PASS');
+  assert.equal(compareTotoProduction({proof,memberItems:good,memberTotal:85,expectedVisibleMarkets:85}).status,'PASS');
   const wrong=structuredClone(good); wrong[0].result='9999';
-  const mismatch=compareTotoProduction({proof,memberItems:wrong,memberTotal:85});
+  const mismatch=compareTotoProduction({proof,memberItems:wrong,memberTotal:85,expectedVisibleMarkets:85});
   assert.equal(mismatch.status,'FAIL');
   assert.equal(mismatch.rows.find(x=>x.slug==='market-1').reason,'RESULT_MISMATCH');
   const unsafe=structuredClone(good); unsafe[10].result='1234';
-  assert.equal(compareTotoProduction({proof,memberItems:unsafe,memberTotal:85}).rows.find(x=>x.slug==='market-11').reason,'UNTRUSTED_RESULT_PUBLISHED');
+  assert.equal(compareTotoProduction({proof,memberItems:unsafe,memberTotal:85,expectedVisibleMarkets:85}).rows.find(x=>x.slug==='market-11').reason,'UNTRUSTED_RESULT_PUBLISHED');
 });
 
 test('V12 Railway proof parser accepts JSON and real pretty logs with nested rows and exact deployment binding',()=>{

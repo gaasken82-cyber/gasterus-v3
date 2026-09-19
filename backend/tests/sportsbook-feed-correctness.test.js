@@ -22,7 +22,7 @@ test('R6.9.0.22 member catalog removes closed results and has bounded horizon', 
 });
 
 test('R6.9.0.22 optional legacy detail source is gated and member errors stay provider-neutral', () => {
-  assert.match(feed,/bridgeDetailReady/);
+  assert.match(feed,/bridgeEvent\(/);
   assert.match(feed,/SPORTS_MARKET_TEMPORARILY_UNAVAILABLE/);
   assert.doesNotMatch(feed,/throw new AppError\(409, 'Provider odds sedang degraded\/recovery/);
 });

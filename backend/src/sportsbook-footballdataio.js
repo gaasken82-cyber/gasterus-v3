@@ -10,10 +10,10 @@ import {
 } from './sportsbook-providers.js';
 import { buildDerivedMarkets } from './sportsbook-public-market.js';
 
-// SBOTOTO sportsbook provider adapter for footballdata.io.
+// Gasterus sportsbook provider adapter for footballdata.io.
 // Provides REAL market odds (footballdata.io returns bookmaker 1X2 prices plus
 // match probabilities). The 1X2 market uses the live price; the remaining market
-// set (O/U, HDP, BTTS, DC, CS, ...) is expanded by SBOTOTO's own probability engine
+// set (O/U, HDP, BTTS, DC, CS, ...) is expanded by Gasterus's own probability engine
 // from the 1X2 anchor (reusing public-market's buildDerivedMarkets).
 const PROVIDER = 'footballdata-io';
 const BASE_HOST = 'footballdata.io';

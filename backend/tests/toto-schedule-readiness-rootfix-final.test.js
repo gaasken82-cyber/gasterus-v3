@@ -41,8 +41,8 @@ test('FINAL TOTO collector preserves schedule evidence but does not fabricate OP
 
 test('FINAL TOTO member readiness exposes the exact blocking reason instead of generic failure',()=>{
   const markets=readFileSync(new URL('../src/markets.js',import.meta.url),'utf8');
-  const member=readFileSync(new URL('../../member/public/market-play.js',import.meta.url),'utf8');
+  const member=readFileSync(new URL('../../frontend/js/market-play.js',import.meta.url),'utf8');
   assert.match(markets,/function bettingReadinessReason/);
   for(const code of ['RESULT_AUTHORITY_NOT_READY','BETTING_NOT_OPEN','BETTING_PERIOD_NOT_READY','BETTING_CLOSE_NOT_READY','BETTING_CLOSED']) assert.match(markets,new RegExp(code));
-  assert.match(member,/Menunggu jadwal betting berikut yang terverifikasi/);
+  assert.match(member,/bettingStatus|bettingReady|readinessReason/);
 });

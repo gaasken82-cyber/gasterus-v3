@@ -39,7 +39,7 @@ async function lookupTeam(name) {
     const base = config.sportsbookArtworkBaseUrl.replace(/\/$/, '');
     const url = new URL(`${base}/${encodeURIComponent(config.sportsbookArtworkApiKey)}/searchteams.php`);
     url.searchParams.set('t', name);
-    const response = await fetch(url, { headers: { accept: 'application/json', 'user-agent': 'SBOTOTO-Team-Artwork/6.9.0.14' }, signal: controller.signal, redirect: 'follow' });
+    const response = await fetch(url, { headers: { accept: 'application/json', 'user-agent': 'Gasterus-Team-Artwork/6.9.0.14' }, signal: controller.signal, redirect: 'follow' });
     if (!response.ok) throw new Error(`artwork HTTP ${response.status}`);
     const payload = await response.json();
     const team = bestTeam(payload?.teams, name);

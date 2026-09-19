@@ -64,7 +64,7 @@ test('HF6 signed sportsbook quote rejects tamper and expiration', () => {
 test('HF6 member contract uses server quote before real-money acceptance', () => {
   const betting = readFileSync(new URL('../src/sportsbook-betting.js', import.meta.url), 'utf8');
   const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
-  const ui = readFileSync(new URL('../../member/public/sportsbook.js', import.meta.url), 'utf8');
+  const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.url), 'utf8');
   assert.match(betting, /createSportsbookQuote/);
   assert.match(betting, /SPORTSBOOK_QUOTE_REQUIRED/);
   assert.match(betting, /verifySportsbookQuoteToken\(quoteToken/);
