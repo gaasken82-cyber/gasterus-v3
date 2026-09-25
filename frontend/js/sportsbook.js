@@ -973,11 +973,11 @@ function renderLiveCarousel() {
             </div>
             <div class="sb-live-team-row">
               <span>${escapeHtml(e.home?.name || 'Home')}</span>
-              <b>${e.home?.score ?? 0}</b>
+              <b>${escapeHtml(String(e.home?.score ?? 0))}</b>
             </div>
             <div class="sb-live-team-row">
               <span>${escapeHtml(e.away?.name || 'Away')}</span>
-              <b>${e.away?.score ?? 0}</b>
+              <b>${escapeHtml(String(e.away?.score ?? 0))}</b>
             </div>
           </div>
           <div class="sb-live-quick-odds">
@@ -1015,7 +1015,7 @@ function renderQuickOddBtn(e, m, s, label) {
   return `
     <button type="button" class="sb-quick-odd-btn sb-odd-cell${movementClass}"
       data-sel="${escapeHtml(key)}" data-evid="${escapeHtml(e.id)}" data-mk="${escapeHtml(m.id)}" data-sk="${escapeHtml(s.key)}" 
-      data-odds="${s.odds}" data-pv="${escapeHtml(s.priceVersion || '')}">
+      data-odds="${escapeHtml(String(s.odds))}" data-pv="${escapeHtml(s.priceVersion || '')}">
       <span>${label}</span>
       <div style="text-align:right;">
         ${lineStr ? `<div style="font-size:9px; color:#0284c7; font-weight:700;">${lineStr}</div>` : ''}
@@ -1177,7 +1177,7 @@ function renderMatch(e) {
         </div>
         <div class="sb-score-col">
           ${isLive 
-            ? `<span class="sb-match-live-score">${home.score ?? 0} - ${away.score ?? 0}</span>
+            ? `<span class="sb-match-live-score">${escapeHtml(String(home.score ?? 0))} - ${escapeHtml(String(away.score ?? 0))}</span>
                <span class="sb-match-live-clock" data-live-clock-id="${escapeHtml(e.id)}">${escapeHtml(getLiveClockDisplay(e))}</span>`
             : `<span class="sb-match-date">${formatKickoffDate(e.startTime)}</span>
                <span class="sb-match-kickoff">${timeLabel(e.startTime)}</span>`}

@@ -260,11 +260,9 @@
   <script type="module">
     import api from '/js/api.js';
     import auth from '/js/auth.js';
-    import { formatRupiah, formatDateTime } from '/js/utils.js';
+    import { formatRupiah, formatDateTime, escapeHtml } from '/js/utils.js';
 
-    const esc = (v) => String(v ?? '')
-      .replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>')
-      .replace(/"/g, '"').replace(/'/g, '&#039;');
+    const esc = escapeHtml;
 
     function statusBadge(status) {
       const s = String(status || 'PENDING').toUpperCase();

@@ -4,7 +4,7 @@
 
 import api from './api.js';
 import auth from './auth.js';
-import { formatRupiah, formatDateTime, showToast } from './utils.js';
+import { formatRupiah, formatDateTime, showToast, escapeHtml } from './utils.js';
 
 function generateIdempotencyKey() {
   return `tx_${Date.now()}_${Math.random().toString(36).substring(2, 12)}_${Math.random().toString(36).substring(2, 8)}`;
@@ -77,12 +77,6 @@ function setupNominalPresets(inputId) {
 let _currentBankMethods = [];
 let _selectedMethodId = null;
 
-function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
-    return '&#' + c.charCodeAt(0) + ';';
-  });
-}
-
 async function loadPaymentMethods() {
   const grid = document.getElementById('payment-methods-grid');
   if (!grid) return;
@@ -120,7 +114,7 @@ async function loadPaymentMethods() {
   _currentBankMethods.forEach((m, idx) => {
     const slug = (m.code || m.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     html += `
-      <button type="button" class="payment-method${idx === 0 ? ' active' : ''}" data-id="${m.id}" data-type="BANK">
+      <button type="button" class="payment-method${idx === 0 ? ' active' : ''}" data-id="${escapeHtml(String(m.id))}" data-type="BANK">
         <span class="method-icon-wrap">
           <img src="assets/mobile-bank-logos/${slug}.svg" alt="${escapeHtml(m.name)}" class="method-icon" width="36" height="36" loading="lazy" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline-block';">
           <span class="method-icon-fallback" style="display:none; font-size:10px; font-weight:800; color:#0f172a;">${escapeHtml(m.name.slice(0, 4))}</span>
@@ -132,7 +126,7 @@ async function loadPaymentMethods() {
 
   if (qrisMethod) {
     html += `
-      <button type="button" class="payment-method${_currentBankMethods.length === 0 ? ' active' : ''}" data-id="${qrisMethod.id}" data-type="QRIS">
+      <button type="button" class="payment-method${_currentBankMethods.length === 0 ? ' active' : ''}" data-id="${escapeHtml(String(qrisMethod.id))}" data-type="QRIS">
         <span class="method-icon-wrap method-icon-qris">
           <img src="assets/mobile-bank-logos/qris.svg" alt="QRIS" class="method-icon" width="36" height="36" loading="lazy">
         </span>

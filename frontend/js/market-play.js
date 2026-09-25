@@ -4,7 +4,7 @@
 
 import api from './api.js';
 import auth from './auth.js';
-import { formatNumber, formatRupiah, getTimeRemaining, showToast } from './utils.js';
+import { formatNumber, formatRupiah, getTimeRemaining, showToast, escapeHtml } from './utils.js';
 
 // Generate idempotency key yang konsisten dan unik per kiriman
 function generateIdempotencyKey() {
@@ -114,9 +114,9 @@ function renderRows() {
   if (!container) return;
 
   container.innerHTML = betRows.map((r, idx) => `
-    <div class="bet-row" data-id="${r.id}">
+    <div class="bet-row" data-id="${Number(r.id)}">
       <span style="font-size:0.8rem; color:var(--text-muted); text-align:center;">${idx + 1}</span>
-      <input type="text" class="form-control bet-selection" placeholder="Angka (4D/3D/2D)" maxlength="4" value="${r.selection}" style="text-align:center; font-weight:700; letter-spacing:2px;">
+      <input type="text" class="form-control bet-selection" placeholder="Angka (4D/3D/2D)" maxlength="4" value="${escapeHtml(r.selection)}" style="text-align:center; font-weight:700; letter-spacing:2px;">
       <select class="form-control bet-game">
         <option value="AUTO" ${r.gameCode === 'AUTO' ? 'selected' : ''}>Auto Detect</option>
         <option value="STRAIGHT_4D" ${r.gameCode === 'STRAIGHT_4D' ? 'selected' : ''}>4D (Disc 66%)</option>

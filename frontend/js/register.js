@@ -4,7 +4,7 @@
 
 import api from './api.js';
 import auth from './auth.js';
-import { showToast } from './utils.js';
+import { showToast, escapeHtml } from './utils.js';
 
 let currentChallengeId = null;
 let usernameTimer = null;
@@ -140,7 +140,7 @@ async function loadCaptcha() {
     const data = res?.data || res || {};
     currentChallengeId = data.challengeId || null;
     if (container && data.image) {
-      container.innerHTML = `<img src="${data.image}" alt="Captcha" style="display:block;max-width:100%;height:auto;">`;
+      container.innerHTML = `<img src="${escapeHtml(data.image)}" alt="Captcha" style="display:block;max-width:100%;height:auto;">`;
     }
   } catch (err) {
     console.warn('Captcha load error, using offline placeholder', err);
