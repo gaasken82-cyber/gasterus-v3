@@ -5,7 +5,7 @@
 
 import api from './api.js';
 import auth from './auth.js';
-import { getTimeRemaining, showToast } from './utils.js';
+import { getTimeRemaining, showToast, escapeHtml } from './utils.js';
 
 let marketsList = [];
 let isExpanded = false;
@@ -115,22 +115,28 @@ function renderHasilGrid(items) {
 
   const displayItems = isExpanded ? items : items.slice(0, 12);
 
-  container.innerHTML = displayItems.map(m => `
-    <div class="hasil-card fade-in">
-      <div class="hasil-card-badge" title="${m.name}">
-        ${m.name}
+  container.innerHTML = displayItems.map(m => {
+    const marketCode = String(m.code || '');
+    const marketHref = marketCode
+      ? `/market-play.html?code=${encodeURIComponent(marketCode)}`
+      : '#login';
+    return `
+      <div class="hasil-card fade-in">
+        <div class="hasil-card-badge" title="${escapeHtml(m.name)}">
+          ${escapeHtml(m.name)}
+        </div>
+        <div class="hasil-card-body">
+          <span class="hasil-card-date">${escapeHtml(m.date || '-')}</span>
+          <span class="hasil-card-number">${escapeHtml(m.result || '----')}</span>
+          <a href="${escapeHtml(auth.isLoggedIn() ? marketHref : '#login')}"
+             class="hasil-card-action"
+             onclick="${auth.isLoggedIn() ? '' : 'window.openLoginModal(event)'}">
+            Pasang Angka →
+          </a>
+        </div>
       </div>
-      <div class="hasil-card-body">
-        <span class="hasil-card-date">${m.date || '08-09-2026'}</span>
-        <span class="hasil-card-number">${m.result}</span>
-        <a href="${auth.isLoggedIn() ? '/market-play.html?code=' + m.code : '#login'}" 
-           class="hasil-card-action"
-           onclick="${auth.isLoggedIn() ? '' : 'window.openLoginModal(event)'}">
-          Pasang Angka →
-        </a>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function setupSearchFilter() {

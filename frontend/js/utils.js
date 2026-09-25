@@ -97,7 +97,7 @@ export function showToast(message, type = 'info') {
 }
 
 export function escapeHtml(str) {
-  if (!str) return '';
+  if (str == null) return '';
   return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

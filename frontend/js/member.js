@@ -4,7 +4,7 @@
 
 import api from './api.js';
 import auth from './auth.js';
-import { formatNumber, formatRupiah, getTimeRemaining, showToast } from './utils.js';
+import { formatNumber, formatRupiah, getTimeRemaining, showToast, escapeHtml } from './utils.js';
 
 let timerInterval = null;
 let autoRefreshInterval = null;
@@ -84,30 +84,33 @@ function renderMarkets(markets) {
       ? `<span class="badge badge-danger">TUTUP</span>`
       : `<span class="badge badge-success">BUKA</span>`;
 
-    const digits = (m.result ? String(m.result) : '----').split('');
-    const balls = digits.map(d => `<span class="ball-num" style="width:30px;height:30px;font-size:0.95rem;">${d}</span>`).join('');
+    const digits = String(m.result ?? '----').slice(0, 4).split('');
+    const balls = digits.map(d => `<span class="ball-num" style="width:30px;height:30px;font-size:0.95rem;">${escapeHtml(d)}</span>`).join('');
+    const marketCode = String(m.code || m.slug || '');
+    const marketHref = `/market-play.html?code=${encodeURIComponent(marketCode)}`;
+    const marketAction = marketCode
+      ? `<a href="${escapeHtml(marketHref)}" class="btn btn-primary btn-sm btn-block btn-play">▶ BET DISINI</a>`
+      : `<button type="button" class="btn btn-secondary btn-sm btn-block btn-play" disabled>Pasaran tidak tersedia</button>`;
 
     return `
       <div class="member-market-card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h4 style="font-size:1rem;">${m.name}</h4>
+          <h4 style="font-size:1rem;">${escapeHtml(m.name || '-')}</h4>
           ${statusBadge}
         </div>
         <div style="font-size: 0.8rem; color: var(--text-muted);">
-          Periode: #${m.period || '-'}
+          Periode: #${escapeHtml(m.period || '-')}
         </div>
         <div style="display:flex; gap:4px; justify-content:center; padding: 4px 0;">
           ${balls}
         </div>
         <div style="display:flex; justify-content:space-between; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid var(--border-subtle); padding-top: 8px;">
           <span>Sisa Waktu:</span>
-          <span class="countdown-timer" data-close="${m.closeAt || ''}">${isClosed ? 'Tutup' : '...'}</span>
+          <span class="countdown-timer" data-close="${escapeHtml(m.closeAt || '')}">${isClosed ? 'Tutup' : '...'}</span>
         </div>
-        ${
-          isClosed
-            ? `<button type="button" class="btn btn-secondary btn-sm btn-block btn-play" disabled>Pasaran Tutup</button>`
-            : `<a href="/market-play.html?code=${m.code || m.slug}" class="btn btn-primary btn-sm btn-block btn-play">▶ BET DISINI</a>`
-        }
+        ${isClosed
+          ? `<button type="button" class="btn btn-secondary btn-sm btn-block btn-play" disabled>Pasaran Tutup</button>`
+          : marketAction}
       </div>
     `;
   }).join('');

@@ -285,6 +285,7 @@
 
     <script type="module">
       import { api } from '/js/api.js';
+      import { escapeHtml } from '/js/utils.js';
       // Live Draw - Fetch hasil real-time dari VegasNet via backend API
       (function() {
         'use strict';
@@ -313,11 +314,11 @@
           const isVerified = item.liveVerificationStatus === 'VERIFIED' || item.liveVerificationStatus === 'MANUAL_RESOLUTION';
           const badgeClass = isVerified ? 'res-verified' : 'res-pending';
 
-          return '<div class="res-card" data-market="' + marketSlug + '">' +
-            '<div class="res-name">' + name + '</div>' +
+          return '<div class="res-card" data-market="' + escapeHtml(marketSlug) + '">' +
+            '<div class="res-name">' + escapeHtml(name) + '</div>' +
             '<div class="res-card-body">' +
-            '<div class="res-date">' + displayDate + '</div>' +
-            '<div class="res-number ' + badgeClass + '">' + result + '</div>' +
+            '<div class="res-date">' + escapeHtml(displayDate) + '</div>' +
+            '<div class="res-number ' + badgeClass + '">' + escapeHtml(result) + '</div>' +
             '</div>' +
             '</div>';
         }
