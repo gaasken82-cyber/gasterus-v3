@@ -38,6 +38,26 @@ function buildCompetitions(date = new Date()) {
 
 const COMPETITIONS = Object.freeze(buildCompetitions());
 
+// Prune-by-season-generation: kunci fileCache memuat season (mis. openfootball/england/master/2025-26/...).
+// fetchOpenFootballFixtures() memanggil buildCompetitions() ulang tiap refresh (:158), sehingga
+// setelah pergantian musim fileCache menambah 10 URL baru per pergantian dalam satu proses.
+// Season yang tidak lagi dipakai tidak akan pernah dibaca lagi → dibuang, bukan menumpuk.
+// Pola yang sama dipakai resultFileCache (sportsbook-public-market.js).
+const OPENFOOTBALL_SEASON_PATTERN = /\/openfootball\/[^/]+\/master\/(\d{4}-\d{2})\//;
+function fileUrlSeason(url) {
+  const match = OPENFOOTBALL_SEASON_PATTERN.exec(String(url || ''));
+  return match ? match[1] : null;
+}
+function pruneStaleSeasons(liveSeasons) {
+  for (const key of [...fileCache.keys()]) {
+    const season = fileUrlSeason(key);
+    if (season && !liveSeasons.has(season)) fileCache.delete(key);
+  }
+}
+function liveSeasonsFor(competitions) {
+  return new Set(competitions.flatMap(comp => [fileUrlSeason(comp.current), fileUrlSeason(comp.previous)]).filter(Boolean));
+}
+
 const clean = (v, max=180) => String(v ?? '').replace(/\s+/g,' ').trim().slice(0,max);
 const clamp = (n,lo,hi) => Math.max(lo, Math.min(hi,n));
 const hash = (...parts) => crypto.createHash('sha256').update(parts.map(v=>String(v??'')).join('|')).digest('hex').slice(0,28);
@@ -156,6 +176,8 @@ export function buildOpenFootballModelAnchor(home,away,model,{marginBps=450}={})
 export async function fetchOpenFootballFixtures() {
   if (config.publicMarketOpenFootballEnabled === false) return {events:[],warnings:[],sources:[]};
   const competitions = buildCompetitions();
+  // Season generation yang masih hidup = season yang akan di-request pada refresh ini.
+  pruneStaleSeasons(liveSeasonsFor(competitions));
   const results=await Promise.allSettled(competitions.map(async comp=>{
     let cur=null, prev=null;
     try { cur = await requestRaw(comp.current); } catch { /* musim berjalan mungkin belum tersedia */ }
@@ -185,4 +207,4 @@ export async function fetchOpenFootballFixtures() {
   return {events,warnings,sources};
 }
 
-export const __openFootball={COMPETITIONS,parseDayLine,isoKickoff,weightedModel,scoreGrid,outcome};
+export const __openFootball={COMPETITIONS,parseDayLine,isoKickoff,weightedModel,scoreGrid,outcome,openFootballSeason,buildCompetitions,fileCache,fileUrlSeason,pruneStaleSeasons,liveSeasonsFor};

@@ -102,6 +102,23 @@ test('R6.9.0.15 extra-league fixture page discovers only approved Football-Data 
   assert.equal(__publicMarket.discoverCsvUrl(page, 'https://www.football-data.co.uk/matches_new_leagues.php'), 'https://www.football-data.co.uk/newfixtures.csv');
 });
 
+test('OpenFootball file cache is pruned by season generation so old seasons cannot accumulate', () => {
+  const cache = __openFootball.fileCache;
+  cache.clear();
+  const competitions = __openFootball.buildCompetitions(new Date('2026-09-01T00:00:00Z'));
+  const live = new Set([__openFootball.fileUrlSeason(competitions[0].current), __openFootball.fileUrlSeason(competitions[0].previous)]);
+  const staleUrl = 'https://raw.githubusercontent.com/openfootball/england/master/2019-20/1-premierleague.txt';
+  cache.set(staleUrl, { text: 'old', fetchedAt: Date.now() });
+  cache.set(competitions[0].current, { text: 'current', fetchedAt: Date.now() });
+  assert.equal(__openFootball.fileUrlSeason(staleUrl), '2019-20');
+  __openFootball.pruneStaleSeasons(live);
+  assert.equal(cache.has(staleUrl), false, 'stale season entry must be pruned');
+  assert.equal(cache.has(competitions[0].current), true, 'live season entry must survive');
+  // Hanya season current/previous yang dipertahankan, tidak ada season lain yang tersisa.
+  for (const key of cache.keys()) assert.ok(live.has(__openFootball.fileUrlSeason(key)), `unexpected season left: ${key}`);
+  cache.clear();
+});
+
 test('R6.9.0.15 result merge rejects an old same-team rematch result', () => {
   const event = normalizeFootballDataFixture({ Div:'E0', Date:'17/08/2026', Time:'19:00', HomeTeam:'Alpha FC', AwayTeam:'Beta FC', AvgH:'1.90', AvgD:'3.40', AvgA:'4.10', 'Avg>2.5':'1.95', 'Avg<2.5':'1.90' }, { updatedAt:'2026-08-17T08:00:00.000Z' });
   const oldResult = __publicMarket.normalizeResultRow({ Date:'01/01/2026', HomeTeam:'Alpha FC', AwayTeam:'Beta FC', FTHG:'5', FTAG:'0', HTHG:'2', HTAG:'0' });
