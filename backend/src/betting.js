@@ -35,7 +35,7 @@ async function ensureLotteryGameConfigs(marketId,client){
 }
 
 async function configInTx(marketId,client){
-  await client.query('INSERT INTO market_betting_configs(market_id) VALUES($1) ON CONFLICT DO NOTHING',[marketId]);
+  await client.query("INSERT INTO market_betting_configs(market_id,betting_status) VALUES($1,'SUSPENDED') ON CONFLICT DO NOTHING",[marketId]);
   await ensureLotteryGameConfigs(marketId,client);
   const {rows}=await client.query(`SELECT c.*,m.slug,m.code,m.name,m.provider_path,m.period AS result_period,m.verification_status AS result_verification_status FROM market_betting_configs c JOIN markets m ON m.id=c.market_id WHERE c.market_id=$1 FOR UPDATE OF c`,[marketId]);
   const r=rows[0];

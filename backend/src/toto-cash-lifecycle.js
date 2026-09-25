@@ -30,7 +30,7 @@ async function trustedHistoryByMarket() {
 }
 
 export async function reconcileCashBettingWindows(decisions = [], { nowMs = Date.now() } = {}) {
-  await query(`INSERT INTO market_betting_configs(market_id) SELECT id FROM markets ON CONFLICT(market_id) DO NOTHING`);
+  await query(`INSERT INTO market_betting_configs(market_id,betting_status) SELECT id,'SUSPENDED' FROM markets ON CONFLICT(market_id) DO NOTHING`);
   const rows = (await query(`SELECT m.id,m.slug,m.period AS result_period,m.verification_status,
       c.betting_status,c.betting_period,c.close_at,c.updated_by,c.auto_cash_window
     FROM markets m JOIN market_betting_configs c ON c.market_id=m.id ORDER BY m.id`)).rows;
