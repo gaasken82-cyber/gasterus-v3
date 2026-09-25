@@ -61,6 +61,13 @@ function mapMarket(row,{includeHistorical=false}={}){
 //      yang memang dinonaktifkan produk via migrasi 020, status 'closed').
 //   4. Pasaran SUSPENDED dengan close_at NULL dan betting_period NULL tidak
 //      bisa disimpulkan jadwalnya -> dibiarkan (dicatat di log, tidak diubah).
+//   5. Baris dengan auto_cash_window=TRUE DIMILIKI reconciler
+//      (reconcileCashBettingWindows) dan TIDAK boleh disentuh scheduler ini.
+//      Tanpa filter ini keduanya menulis betting_period ke baris yang sama:
+//      reconciler memakai periode dari histori hasil terverifikasi, sedangkan
+//      scheduler memakai tanggal hasil hitung ulang dari close_at. Akibatnya
+//      periode berganti-ganti tiap menit. Scheduler hanya menangani pasar yang
+//      belum dikelola oleh machinery cash-window otomatis.
 let marketOpenInterval = null;
 export async function runMarketOpenCheck() {
   try {
@@ -70,6 +77,7 @@ export async function runMarketOpenCheck() {
          JOIN markets m ON m.id = c.market_id
         WHERE c.betting_status IN ('CLOSED','SUSPENDED')
           AND COALESCE(c.auto_reopen_blocked, FALSE) = FALSE
+          AND COALESCE(c.auto_cash_window, FALSE) = FALSE
           AND m.status = 'open'
           AND m.verification_status = 'VERIFIED'
           AND (c.close_at IS NOT NULL OR (c.betting_period IS NOT NULL AND btrim(c.betting_period) <> ''))`
@@ -199,4 +207,4 @@ export function mapConfig(r,games=[]){
   const bettingReady=readinessReason===null;
   return {marketId:r.market_id,slug:r.slug,code:r.code,name:r.name,providerPath:r.provider_path,period:r.betting_period||null,resultPeriod:r.result_period||null,bettingStatus,closeAt:r.close_at,authorityReady,bettingReady,readinessReason,minStake:Number(r.min_stake),maxStakePerItem:Number(r.max_stake_per_item),maxOrderTotal:Number(r.max_order_total),maxPayoutPerOrder:Number(r.max_payout_per_order||2000000000),maxRows:r.max_rows,cancelWindowSeconds:r.cancel_window_seconds,discounts:{'2D':r.discount_2d,'3D':r.discount_3d,'4D':r.discount_4d},payouts:{'2D':r.payout_2d,'3D':r.payout_3d,'4D':r.payout_4d},games:gameList,updatedAt:r.updated_at};
 }
-export async function listBettingMarkets({status,q,limit=200}={}){const values=[];const where=[];if(status){values.push(String(status).toUpperCase());where.push(`c.betting_status=$${values.length}`)}if(q){values.push(`%${String(q).slice(0,80)}%`);where.push(`m.name ILIKE $${values.length}`)}values.push(Math.min(Number(limit)||200,500));const clause=where.length?`WHERE ${where.join(' AND ')}`:'';await query(`INSERT INTO market_betting_configs(market_id) SELECT id FROM markets ON CONFLICT DO NOTHING`);const result=await query(`SELECT c.*,m.slug,m.code,m.name,m.provider_path,m.period AS result_period,m.status AS source_status,m.verification_status AS result_verification_status FROM market_betting_configs c JOIN markets m ON m.id=c.market_id ${clause} ORDER BY m.sort_order LIMIT $${values.length}`,values);const output=[];for(const row of result.rows){await ensureLotteryConfigs({query},row.market_id);const games=(await query(`SELECT * FROM lottery_game_configs WHERE market_id=$1`,[row.market_id])).rows;output.push(mapConfig(row,games));}return output;}
+export async function listBettingMarkets({status,q,limit=200}={}){const values=[];const where=[];if(status){values.push(String(status).toUpperCase());where.push(`c.betting_status=$${values.length}`)}if(q){values.push(`%${String(q).slice(0,80)}%`);where.push(`m.name ILIKE $${values.length}`)}values.push(Math.min(Number(limit)||200,500));const clause=where.length?`WHERE ${where.join(' AND ')}`:'';await query(`INSERT INTO market_betting_configs(market_id,betting_status) SELECT id,'SUSPENDED' FROM markets ON CONFLICT DO NOTHING`);const result=await query(`SELECT c.*,m.slug,m.code,m.name,m.provider_path,m.period AS result_period,m.status AS source_status,m.verification_status AS result_verification_status FROM market_betting_configs c JOIN markets m ON m.id=c.market_id ${clause} ORDER BY m.sort_order LIMIT $${values.length}`,values);const output=[];for(const row of result.rows){await ensureLotteryConfigs({query},row.market_id);const games=(await query(`SELECT * FROM lottery_game_configs WHERE market_id=$1`,[row.market_id])).rows;output.push(mapConfig(row,games));}return output;}

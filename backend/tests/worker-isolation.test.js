@@ -18,6 +18,21 @@ test('settlement worker and feed/collector worker are separate processes', () =>
   assert.match(feed, /runTotoCollector/);
 });
 
+test('auto-open scheduler and cash-window reconciler never write the same market twice', () => {
+  const markets = read('backend/src/markets.js');
+  const openCheck = markets.slice(markets.indexOf('export async function runMarketOpenCheck'), markets.indexOf('export function startMarketOpenScheduler'));
+  // Baris auto_cash_window=TRUE dimiliki reconciler; scheduler harus mengecualikannya
+  // supaya betting_period tidak ditimpa dua penulis setiap menit.
+  assert.match(openCheck, /COALESCE\(c\.auto_cash_window, FALSE\) = FALSE/);
+  assert.match(openCheck, /COALESCE\(c\.auto_reopen_blocked, FALSE\) = FALSE/);
+});
+
+test('every market_betting_configs INSERT sets an explicit betting_status', () => {
+  const insert = /INSERT INTO market_betting_configs\(market_id\)(?!,betting_status)/;
+  for (const file of ['backend/src/markets.js', 'backend/src/betting.js', 'backend/src/toto-cash-lifecycle.js']) {
+    assert.doesNotMatch(read(file), insert, `${file} masih INSERT tanpa betting_status eksplisit`);
+  }
+});
 test('sportsbook feed and Redis cache have hard event and byte caps', () => {
   const config = read('backend/src/config.js');
   const feed = read('backend/src/sportsbook-feed.js');
