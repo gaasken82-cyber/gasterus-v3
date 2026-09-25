@@ -41,6 +41,21 @@ test('R6.9.0.14 artwork enrichment attaches real provider crest metadata without
   } finally { globalThis.fetch=original; }
 });
 
+test('artwork cache is bounded: expired and oldest entries are pruned, recent survive', () => {
+  __teamArtwork.cache.clear();
+  const now = Date.now();
+  const max = __teamArtwork.MAX_CACHE_ENTRIES;
+  // 1 entri basi (sudah expired) + max entri hidup
+  __teamArtwork.rememberEntry('stale team', { logo: 'old' }, -1, now - 100_000);
+  for (let i = 0; i < max; i++) __teamArtwork.rememberEntry(`team ${i}`, { logo: `l${i}` }, 3_600_000, now);
+  __teamArtwork.rememberEntry('freshest team', { logo: 'fresh' }, 3_600_000, now);
+  assert.ok(__teamArtwork.cache.size <= max, `cache must stay bounded, got ${__teamArtwork.cache.size}`);
+  assert.equal(__teamArtwork.cache.has('stale team'), false, 'expired entry must be pruned first');
+  assert.equal(__teamArtwork.cache.get('freshest team').value.logo, 'fresh', 'newest entry must survive');
+  assert.equal(__teamArtwork.cache.get('team 0'), undefined, 'oldest live entry is evicted before newest');
+  __teamArtwork.cache.clear();
+});
+
 test('R6.9.0.14 artwork lookup failure never blocks sportsbook odds', async () => {
   __teamArtwork.cache.clear();
   const original=globalThis.fetch;

@@ -3,6 +3,24 @@ import { config } from './config.js';
 const cache = new Map();
 let windowStartedAt = 0;
 let lookupsThisWindow = 0;
+// Batas jumlah entri: nilai entri kecil (4 field string), tapi key berasal dari nama tim
+// dari provider yang terus berubah, jadi tanpa batas ini Map tumbuh seumur proses.
+// Pola prune-by-oldest ini sama dengan sourceHealth (toto-collector.js:50).
+const MAX_CACHE_ENTRIES = 500;
+function rememberEntry(cacheKey, value, ttlMs, now) {
+  cache.set(cacheKey, { value, expiresAt: now + ttlMs, lastSeenAt: now });
+  if (cache.size <= MAX_CACHE_ENTRIES) return;
+  // Buang entri basi lebih dulu (gratis), lalu entri yang paling lama tidak terlihat.
+  const now2 = Date.now();
+  for (const [key_, entry] of [...cache]) {
+    if (entry.expiresAt <= now2) cache.delete(key_);
+  }
+  while (cache.size > MAX_CACHE_ENTRIES) {
+    const oldest = [...cache.entries()].sort((a, b) => (a[1].lastSeenAt || 0) - (b[1].lastSeenAt || 0))[0];
+    if (!oldest) break;
+    cache.delete(oldest[0]);
+  }
+}
 
 function clean(value) { return String(value ?? '').replace(/\s+/g, ' ').trim(); }
 function key(value) {
@@ -49,10 +67,10 @@ async function lookupTeam(name) {
       providerTeamId: team.idTeam || null,
       source: 'thesportsdb'
     } : null;
-    cache.set(cacheKey, { value, expiresAt: now + (value ? config.sportsbookArtworkCacheSeconds : config.sportsbookArtworkNegativeCacheSeconds) * 1000 });
+    rememberEntry(cacheKey, value, (value ? config.sportsbookArtworkCacheSeconds : config.sportsbookArtworkNegativeCacheSeconds) * 1000, now);
     return value;
   } catch {
-    cache.set(cacheKey, { value: null, expiresAt: now + config.sportsbookArtworkNegativeCacheSeconds * 1000 });
+    rememberEntry(cacheKey, null, config.sportsbookArtworkNegativeCacheSeconds * 1000, now);
     return null;
   } finally { clearTimeout(timer); }
 }
@@ -92,4 +110,4 @@ export async function enrichTeamArtwork(events = []) {
   });
 }
 
-export const __teamArtwork = { key, bestTeam, lookupTeam, cache };
+export const __teamArtwork = { key, bestTeam, lookupTeam, cache, rememberEntry, MAX_CACHE_ENTRIES };
