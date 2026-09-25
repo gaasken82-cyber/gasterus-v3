@@ -28,6 +28,7 @@ import { createRegistrationCaptcha, registrationAccountNumberAvailability, regis
 import { createSportsbookCashoutOffer, listMemberSportsbookCashoutOffers, acceptSportsbookCashout, sportsbookCashoutMetrics } from './sportsbook-cashout.js';
 import { openSportsbookRealtimeStream, sportsbookRealtimeStatus } from './sportsbook-realtime.js';
 import { totoMarketsHealth, totoMarketsDetail, simpleHealth } from './health-check.js';
+import { requestMemberPasswordReset, resetMemberPasswordByToken } from './password-reset.js';
 
 const startedAt=Date.now();const metrics={requests:0,errors:0,rateLimited:0,latencyTotal:0};
 const route=(method,pattern,handler,options={})=>({method,pattern,handler,...options});
@@ -60,6 +61,8 @@ add('GET',/^\/api\/member\/register\/account-availability$/,async({req,res,url})
 add('GET',/^\/api\/member\/register\/captcha$/,async({req,res})=>{internal(req,'member');await rateLimit(req,'member-register-captcha',30,60);ok(res,await createRegistrationCaptcha());});
 add('POST',/^\/api\/member\/register$/,async({req,res,ip})=>{internal(req,'member');await rateLimit(req,'member-register',8,600);const input=await body(req);await verifyRegistrationCaptcha(input);const user=await registerMember(input,ip);const result=await loginMember({username:user.username,password:input.password},ip,String(req.headers['user-agent']||''));ok(res,{user:result.user,csrfToken:result.csrfToken,token:result.token,sessionToken:result.sessionToken},201,{'set-cookie':sessionCookie('MEMBER',result.token,result.ttl)});});
 add('POST',/^\/api\/member\/login$/,async({req,res,ip})=>{internal(req,'member');await rateLimit(req,'member-login',10,600);const result=await loginMember(await body(req),ip,String(req.headers['user-agent']||''));ok(res,{user:result.user,csrfToken:result.csrfToken,token:result.token,sessionToken:result.sessionToken},200,{'set-cookie':sessionCookie('MEMBER',result.token,result.ttl)});});
+add('POST',/^\/api\/member\/forgot-password$/,async({req,res,ip})=>{internal(req,'member');await rateLimit(req,'member-forgot-password-ip',10,900);ok(res,await requestMemberPasswordReset(await body(req),ip,String(req.headers['user-agent']||'')));});
+add('POST',/^\/api\/member\/reset-password$/,async({req,res,ip})=>{internal(req,'member');await rateLimit(req,'member-reset-password',5,900);ok(res,await resetMemberPasswordByToken(await body(req),ip));});
 add('GET',/^\/api\/member\/me$/,async({req,res})=>{const s=await memberSession(req);ok(res,{user:await userById(s.userId),csrfToken:s.csrf});});
 add('GET',/^\/api\/member\/site-config$/,async({req,res})=>{internal(req,'member');ok(res,await publicSiteConfig());});
 add('GET',/^\/api\/member\/deposit-config$/,async({req,res})=>{await memberSession(req);ok(res,await publicDepositConfig());});

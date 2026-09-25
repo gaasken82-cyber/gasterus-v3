@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Daftar Akun Baru — GASTERUS</title>
-  <meta name="description" content="Daftar akun resmi Gasterus gratis. Proses cepat 1 menit.">
+  <meta name="robots" content="noindex">
+  <title>Masuk Akun — GASTERUS</title>
+  <meta name="description" content="Masuk ke akun Gasterus untuk bermain.">
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -345,131 +346,35 @@ select.reg-input {
     </header>
 
     <!-- Judul bar -->
-    <div class="reg-title" id="register-page-title">Register</div>
+    <div class="reg-title" id="login-page-title">Masuk</div>
 
-    <!-- Pesan sudah login -->
-    <div id="already-logged-in-message">
-      Anda sudah login. Untuk mendaftar akun baru, silakan logout terlebih dahulu.
-      <div><button type="button" id="btn-logout-from-register">Logout Sekarang</button></div>
-    </div>
-
-    <!-- Register Form -->
-    <form class="reg-form" id="register-form">
-
+    <!-- Login Form -->
+    <form class="reg-form" id="login-form" autocomplete="on">
       <div class="reg-field">
-        <label class="reg-label" for="reg-username">Username <span>*</span></label>
+        <label class="reg-label" for="login-username">Username <span>*</span></label>
         <div class="reg-input-col">
-          <input class="reg-input" type="text" id="reg-username" name="username" placeholder="Username" required autocomplete="username">
-          <span class="reg-username-status" id="username-status"></span>
+          <input class="reg-input" type="text" id="login-username" name="username" placeholder="Username" required autocomplete="username" minlength="3" maxlength="40">
+          <span class="reg-username-status" id="login-username-status"></span>
         </div>
       </div>
 
       <div class="reg-field">
-        <label class="reg-label" for="reg-password">Password <span>*</span></label>
+        <label class="reg-label" for="login-password">Password <span>*</span></label>
         <div class="reg-input-col">
-          <input class="reg-input" type="password" id="reg-password" name="password" placeholder="Password" required autocomplete="new-password">
-          <span class="reg-username-status" id="password-status"></span>
+          <input class="reg-input" type="password" id="login-password" name="password" placeholder="Password" required autocomplete="current-password" minlength="6" maxlength="72">
+          <span class="reg-username-status" id="login-password-status"></span>
         </div>
       </div>
 
-      <div class="reg-field">
-        <label class="reg-label" for="reg-password-confirm">Konfirmasi Password <span>*</span></label>
-        <div class="reg-input-col">
-          <input class="reg-input" type="password" id="reg-password-confirm" name="passwordConfirm" placeholder="Konfirmasi Password" required autocomplete="new-password">
-          <span class="reg-username-status" id="confirm-status"></span>
-        </div>
+      <div class="form-options" style="justify-content:flex-end; margin-top:-2px;">
+        <a href="/forgot-password" class="forgot-link">Lupa Password?</a>
       </div>
 
-      <div class="reg-field">
-        <label class="reg-label" for="reg-email">Email <span>*</span></label>
-        <div class="reg-input-col">
-          <input class="reg-input" type="email" id="reg-email" name="email" placeholder="Alamat email anda" required autocomplete="email">
-          <span class="reg-username-status" id="email-status"></span>
-        </div>
-      </div>
-
-      <div class="reg-field">
-        <label class="reg-label" for="reg-phone">No. Telp/HP <span>*</span></label>
-        <div class="reg-input-col">
-          <div class="reg-phone-wrap">
-            <span class="reg-phone-prefix">+62</span>
-            <input type="tel" id="reg-phone" name="phone" placeholder="Nomor telepon anda" autocomplete="tel" required>
-          </div>
-          <span class="reg-username-status" id="phone-status"></span>
-        </div>
-      </div>
-
-      <div class="reg-field">
-        <span class="reg-label">Referral</span>
-        <span class="reg-referral-value">-</span>
-        <input type="hidden" name="referralCode" id="reg-referral" value="">
-      </div>
-
-      <!-- Pengaturan Bank Section -->
-      <div class="reg-section-title">Pengaturan Bank</div>
-
-      <div class="reg-field">
-        <label class="reg-label" for="reg-bank-name">Nama Bank <span>*</span></label>
-        <div class="reg-input-col">
-          <select class="reg-input" id="reg-bank-name" name="bankName" required>
-            <option value="BCA">BCA</option>
-            <option value="MANDIRI">MANDIRI</option>
-            <option value="BNI">BNI</option>
-            <option value="BRI">BRI</option>
-            <option value="CIMB">CIMB NIAGA</option>
-            <option value="PERMATA">BANK PERMATA</option>
-            <option value="DANAMON">BANK DANAMON</option>
-            <option value="DANA">DANA</option>
-            <option value="OVO">OVO</option>
-            <option value="GOPAY">GOPAY</option>
-            <option value="LINKAJA">LINKAJA</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="reg-field">
-        <label class="reg-label" for="reg-account-name">Nama Rekening <span>*</span></label>
-        <div class="reg-input-col">
-          <input class="reg-input" type="text" id="reg-account-name" name="accountName" placeholder="Nama rekening anda" required>
-          <span class="reg-username-status" id="account-name-status"></span>
-        </div>
-      </div>
-
-      <div class="reg-field">
-        <label class="reg-label" for="reg-account-number">Nomor Rekening <span>*</span></label>
-        <div class="reg-input-col">
-          <input class="reg-input" type="text" id="reg-account-number" name="accountNumber" placeholder="Nomor rekening" required>
-          <span class="reg-username-status" id="account-number-status"></span>
-        </div>
-      </div>
-
-      <!-- Captcha -->
-      <div class="reg-field">
-        <span class="reg-label">Captcha <span>*</span></span>
-        <div class="reg-input-col">
-          <div class="reg-captcha-row">
-            <div class="reg-captcha-img" id="captcha-container">
-              <!-- Dynamic SVG -->
-            </div>
-            <button type="button" class="reg-captcha-refresh" id="btn-refresh-captcha" aria-label="Refresh captcha"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
-          </div>
-          <input class="reg-input" type="text" id="reg-captcha-code" name="captchaCode" placeholder="Captcha" required maxlength="6" style="text-transform: uppercase;">
-        </div>
-      </div>
-
-      <!-- Checkboxes -->
-      <label class="reg-checkbox">
-        <input type="checkbox" checked> Saya bersedia menerima email promosi gasterus.fun
-      </label>
-      <label class="reg-checkbox">
-        <input type="checkbox" required> Saya setuju dengan <a href="rules.html">peraturan yang berlaku</a>
-      </label>
-
-      <!-- Submit -->
-      <button type="submit" class="btn-register-submit">Daftar</button>
+      <div id="login-error" class="reg-username-status" role="alert" aria-live="polite" style="color:#fca5a5; min-height:18px; text-align:center;"></div>
+      <button type="submit" class="btn-register-submit" id="login-submit">Masuk</button>
 
       <div style="text-align:center; margin-top:14px; font-size:12px; color:#94a3b8;">
-        Sudah punya akun? <a href="/login" style="color:#ffd83d; font-weight:700; text-decoration:none;">Masuk di sini</a>
+        Belum punya akun? <a href="/register" style="color:#ffd83d; font-weight:700; text-decoration:none;">Daftar sekarang</a>
       </div>
 
     </form>
@@ -511,7 +416,64 @@ select.reg-input {
 
   </div>
 
-  <script type="module" src="js/register.js?v=reg3"></script>
+  <script type="module">
+    import auth from '/js/auth.js';
+
+    const loginForm = document.getElementById('login-form');
+    const usernameInput = document.getElementById('login-username');
+    const passwordInput = document.getElementById('login-password');
+    const loginError = document.getElementById('login-error');
+    const loginSubmit = document.getElementById('login-submit');
+
+    const setLoginError = (message) => {
+      if (loginError) loginError.textContent = message || '';
+    };
+
+    if (auth.isLoggedIn()) {
+      window.location.replace('/member');
+    }
+
+    usernameInput?.addEventListener('input', () => setLoginError(''));
+    passwordInput?.addEventListener('input', () => setLoginError(''));
+
+    loginForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (loginSubmit?.disabled) return;
+
+      const username = usernameInput?.value.trim() || '';
+      const password = passwordInput?.value || '';
+      let message = '';
+      if (!username) message = 'Username wajib diisi.';
+      else if (!/^[A-Za-z0-9_]{3,40}$/.test(username)) message = 'Username harus 3-40 karakter dan hanya memakai huruf, angka, atau underscore.';
+      else if (!password) message = 'Password wajib diisi.';
+      else if (password.length < 6 || password.length > 72) message = 'Password harus terdiri dari 6-72 karakter.';
+
+      if (message) {
+        setLoginError(message);
+        (!username ? usernameInput : passwordInput)?.focus();
+        return;
+      }
+
+      setLoginError('');
+      if (loginSubmit) {
+        loginSubmit.disabled = true;
+        loginSubmit.textContent = 'Memproses...';
+      }
+
+      try {
+        await auth.login(username, password);
+        window.location.replace('/member');
+      } catch (error) {
+        const errorMessage = error?.message || 'Gagal login. Periksa username dan password Anda.';
+        setLoginError(errorMessage);
+        if (loginSubmit) {
+          loginSubmit.disabled = false;
+          loginSubmit.textContent = 'Masuk';
+        }
+        passwordInput?.focus();
+      }
+    });
+  </script>
 <script>
 (function(){
 function openNav(){var d=document.getElementById('site-nav-drawer'),b=document.getElementById('navBackdrop');if(d)d.classList.add('open');if(b)b.classList.add('show');document.body.classList.add('nav-open');}

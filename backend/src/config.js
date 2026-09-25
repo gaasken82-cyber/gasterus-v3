@@ -40,6 +40,9 @@ export const config = Object.freeze({
   trustProxy: bool('TRUST_PROXY', true),
   cookieSecure: bool('COOKIE_SECURE', process.env.NODE_ENV === 'production'),
   balanceUnitName: process.env.BALANCE_UNIT_NAME || 'Saldo',
+  resendApiKey: optionalSecret('RESEND_API_KEY'),
+  resendFromEmail: text('RESEND_FROM_EMAIL', ''),
+  frontendResetUrl: text('FRONTEND_RESET_URL', 'https://gasterus.fun/reset-password'),
 
   // Public TOTO result aggregator. URLs are non-secret and can be overridden per environment.
   totoCollectorEnabled: bool('TOTO_COLLECTOR_ENABLED', true),
