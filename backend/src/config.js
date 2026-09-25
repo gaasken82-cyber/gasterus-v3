@@ -93,8 +93,11 @@ export const config = Object.freeze({
   totoSourceFailCooldownSeconds: int('TOTO_SOURCE_FAIL_COOLDOWN_SECONDS', 300, 30, 3600),
   totoSourceRotationEnabled: bool('TOTO_SOURCE_ROTATION_ENABLED', true),
 
-  // Background poll gate for the consolidated sportsbook feed refresh (worker.js).
+  // Background feed/collector process is separate from settlement (feed-worker.js).
   sportsSourceBackgroundPollEnabled: bool('SPORTS_SOURCE_BACKGROUND_POLL_ENABLED', true),
+  feedWorkerEnabled: bool('FEED_WORKER_ENABLED', true),
+  sportsFeedMaxEvents: int('SPORTS_FEED_MAX_EVENTS', 600, 20, 2000),
+  sportsFeedMaxCacheBytes: int('SPORTS_FEED_MAX_CACHE_BYTES', 8_000_000, 262_144, 50_000_000),
 
   // Provider credentials are read only by core and may be mounted as Docker secrets.
   apiSportsKey,

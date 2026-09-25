@@ -22,7 +22,8 @@ function heapMB(name,fallback){const n=Number(process.env[name]);return Number.i
 const HEAP_MB={
   gateway:heapMB('GATEWAY_HEAP_MB',48),
   core:heapMB('CORE_HEAP_MB',256),
-  worker:heapMB('WORKER_HEAP_MB',192),
+  worker:heapMB('WORKER_HEAP_MB',384),
+  'feed-worker':heapMB('FEED_WORKER_HEAP_MB',256),
   member:heapMB('MEMBER_HEAP_MB',128),
   admin:heapMB('ADMIN_HEAP_MB',64),
   'health-monitor':heapMB('HEALTH_MONITOR_HEAP_MB',32),
@@ -32,6 +33,7 @@ const HEAP_MB={
 function childEnv(label='default',overrides={}) {
   const cap=HEAP_MB[label]||HEAP_MB.default;
   const base=String(process.env.NODE_OPTIONS||'').split(/\s+/).filter(Boolean).filter(o=>!o.startsWith('--max-old-space-size='));
+  if ((label === 'worker' || label === 'feed-worker') && !base.includes('--expose-gc')) base.push('--expose-gc');
   base.push(`--max-old-space-size=${cap}`);
   return {...process.env,NODE_OPTIONS:base.join(' '),NODE_ENV:process.env.NODE_ENV||'production',...overrides};
 }
@@ -52,7 +54,7 @@ const restartCounts = new Map();
 const RESTART_HEALTHY_UPTIME_MS = 300000;
 // Services we can quietly recycle via heap-cap watchdog + graceful exit without
 // taking the whole container down. Core and gateway are cluster-critical.
-const isRecoverable = label => ['core', 'worker', 'member', 'admin'].includes(label);
+const isRecoverable = label => ['core', 'worker', 'feed-worker', 'member', 'admin'].includes(label);
 function start(label,cwd,args,env={},critical=true){const startedAt=Date.now();const child=spawn(process.execPath,args,{cwd,env:childEnv(label,env),stdio:'inherit'});children.set(label,{child,critical,restarts:restartCounts.get(label)||0,args,cwd,env,startedAt});child.on('error',error=>{console.error(`[${label}] spawn failed`,error?.stack || error);if(isRecoverable(label)){recover(label,children.get(label));}else if(critical){fatal(label);}});child.on('exit',(code,signal)=>{const state=children.get(label);children.delete(label);if(stopping)return;console.error(`[${label}] exited unexpectedly`,{code,signal});if(state && Date.now()-state.startedAt>=RESTART_HEALTHY_UPTIME_MS)restartCounts.delete(label);if(isRecoverable(label)){recover(label,state);return;}if(critical)fatal(label);});return child;}
 function recover(label,state){const current=state || {};const max=3;const nextRestarts=(restartCounts.get(label)||0)+1;restartCounts.set(label,nextRestarts);if(nextRestarts<=max){console.error(`[${label}] recovery restart ${nextRestarts}/${max}`);setTimeout(()=>start(label,current.cwd,current.args,current.env,current.critical),3000).unref();return;}console.error(`[${label}] recovery exhausted`);if(label==='core')fatal(label);}
 function fatal(label){if(stopping)return;stopping=true;fatalReason=label;console.error(`Critical process failed: ${label}. Stopping consolidated service.`);for(const {child} of children.values())child.kill('SIGTERM');setTimeout(()=>process.exit(1),8000).unref();}
@@ -84,6 +86,7 @@ await runWithRetry('schema readiness',coreDir,['migrations/schema-ready.js'],{},
 start('core',coreDir,['src/server.js'],{HOST:'127.0.0.1',PORT:String(CORE_INTERNAL_PORT)});
 await waitReady(`${coreUrl}/ready`);
 if(bool('WORKER_ENABLED',true))start('worker',coreDir,['src/worker.js'],{HOST:'127.0.0.1',PORT:String(CORE_INTERNAL_PORT)});else console.log(JSON.stringify({service:'asean777-launcher',version:'6.9.0.5',phase:'worker-skipped',workerEnabled:false}));
+if(bool('FEED_WORKER_ENABLED',true))start('feed-worker',coreDir,['src/feed-worker.js'],{HOST:'127.0.0.1'});else console.log(JSON.stringify({service:'asean777-launcher',version:'6.9.0.5',phase:'feed-worker-skipped',feedWorkerEnabled:false}));
 start('member',deployDir,['member-server.js'],{...internalCommon,PORT:String(MEMBER_INTERNAL_PORT)});
 start('admin',adminDir,['server.js'],{...internalCommon,PORT:String(ADMIN_INTERNAL_PORT)});
 await Promise.all([waitReady(`http://127.0.0.1:${MEMBER_INTERNAL_PORT}/ready`),waitReady(`http://127.0.0.1:${ADMIN_INTERNAL_PORT}/ready`)]);

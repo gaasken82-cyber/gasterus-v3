@@ -19,11 +19,15 @@ test('Sportsbook member UI disables every READ_ONLY source mode', () => {
 });
 
 
-test('Sportsbook feed is refreshed continuously by the consolidated worker', () => {
-  assert.match(worker, /refreshSportsbookFeed/);
-  assert.match(worker, /sportsSourceBackgroundPollEnabled/);
-  assert.match(worker, /sportsFeedRefreshSeconds \* 1000/);
-  assert.match(worker, /worker-background-poll/);
+const feedWorker = readFileSync(new URL('../src/feed-worker.js', import.meta.url), 'utf8');
+
+test('Sportsbook feed is refreshed continuously by the isolated feed worker', () => {
+  assert.doesNotMatch(worker, /refreshSportsbookFeed/);
+  assert.doesNotMatch(worker, /runTotoCollector/);
+  assert.match(feedWorker, /refreshSportsbookFeed/);
+  assert.match(feedWorker, /sportsSourceBackgroundPollEnabled/);
+  assert.match(feedWorker, /sportsFeedRefreshSeconds \* 1000/);
+  assert.match(feedWorker, /feed-worker-background-poll/);
   assert.match(feed, /readRedisCache\(\)/);
   assert.match(feed, /Number\(cached\.fetchedAt/);
 });

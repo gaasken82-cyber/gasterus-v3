@@ -65,6 +65,14 @@ const LIFECYCLE_KEY = 'sportsbook:provider-lifecycle:v6';
 const MARKET_LIFECYCLE_KEY = 'sportsbook:market-lifecycle:v6';
 const REFRESH_MS = config.sportsFeedRefreshSeconds * 1000;
 const STALE_MS = config.sportsFeedStaleSeconds * 1000;
+// Cross-process single-flight (worker & core are SEPARATE Node processes; the module-level
+// `inFlight` promise only coalesces callers inside ONE process). One SET NX + TTL lock makes
+// sure at most one provider fan-out runs across the whole deployment at any time.
+const REFRESH_LOCK_KEY = 'sportsbook:feed-refresh-lock:v1';
+const REFRESH_LOCK_TTL_MS = Math.max(180000, REFRESH_MS);
+const REFRESH_LOCK_WAIT_MS = REFRESH_LOCK_TTL_MS;
+const REFRESH_LOCK_RENEW_MS = 60000;
+const REFRESH_LOCK_POLL_MS = 400;
 
 let memory = { lifecycleGeneration: LIFECYCLE_GENERATION, events: [], providers: [], providerLifecycle: {}, marketLifecycleStats: { active: 0, suspended: 0, reopening: 0, closed: 0 }, revision: null, fetchedAt: 0, expiresAt: 0, error: null };
 let marketLifecycleMemory = {};
@@ -86,6 +94,33 @@ function clean(value) {
 }
 
 const CLOSED_EVENT_STATUSES = new Set(['FINISHED', 'CANCELLED', 'CANCELED', 'ABANDONED', 'POSTPONED', 'VOID']);
+const MAX_FEED_EVENTS = config.sportsFeedMaxEvents;
+const MAX_CACHE_BYTES = config.sportsFeedMaxCacheBytes;
+
+function boundedEvents(events = []) {
+  if (!Array.isArray(events) || events.length <= MAX_FEED_EVENTS) return Array.isArray(events) ? events : [];
+  return [...events]
+    .sort((a, b) => {
+      const liveDelta = Number(Boolean(b?.live)) - Number(Boolean(a?.live));
+      if (liveDelta) return liveDelta;
+      return (Date.parse(a?.startTime || '') || Number.MAX_SAFE_INTEGER) - (Date.parse(b?.startTime || '') || Number.MAX_SAFE_INTEGER);
+    })
+    .slice(0, MAX_FEED_EVENTS);
+}
+
+function cacheWithinLimit(value) {
+  const bounded = { ...value, events: boundedEvents(value?.events) };
+  const encoded = JSON.stringify(bounded);
+  if (Buffer.byteLength(encoded, 'utf8') <= MAX_CACHE_BYTES) return bounded;
+  const events = [...bounded.events];
+  while (events.length > 1) {
+    events.splice(Math.ceil(events.length * 0.1));
+    const candidate = { ...bounded, events };
+    if (Buffer.byteLength(JSON.stringify(candidate), 'utf8') <= MAX_CACHE_BYTES) return candidate;
+  }
+  return { ...bounded, events: [] };
+}
+
 function eventBettingOpen(event, now = Date.now()) {
   const status = clean(event?.status).toUpperCase();
   if (CLOSED_EVENT_STATUSES.has(status) || status === 'SUSPENDED') return false;
@@ -232,8 +267,16 @@ async function readRedisCache() {
   try {
     const raw = await redis.get(CACHE_KEY);
     if (!raw) return null;
+    if (Buffer.byteLength(raw, 'utf8') > MAX_CACHE_BYTES) {
+      logger.warn('Sportsbook Redis cache exceeds byte cap; ignoring cache', { maxBytes: MAX_CACHE_BYTES });
+      return null;
+    }
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed.events) || !Array.isArray(parsed.providers)) return null;
+    if (parsed.events.length > MAX_FEED_EVENTS) {
+      logger.warn('Sportsbook Redis cache exceeds event cap; ignoring cache', { events: parsed.events.length, maxEvents: MAX_FEED_EVENTS });
+      return null;
+    }
     if (parsed.lifecycleGeneration !== LIFECYCLE_GENERATION) return null;
     return parsed;
   } catch (error) {
@@ -244,7 +287,8 @@ async function readRedisCache() {
 async function writeRedisCache(value) {
   if (!redis.isOpen) return;
   try {
-    await redis.set(CACHE_KEY, JSON.stringify(value), { EX: Math.max(config.sportsFeedStaleSeconds * 2, 300) });
+    const bounded = cacheWithinLimit(value);
+    await redis.set(CACHE_KEY, JSON.stringify(bounded), { EX: Math.max(config.sportsFeedStaleSeconds * 2, 300) });
   } catch (error) {
     logger.warn('Sportsbook Redis cache write failed', { error: error.message });
   }
@@ -462,6 +506,9 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
   } catch (error) {
     logger.warn('Sportsbook risk repricing snapshot unavailable; base prices preserved', { error: error.message });
   }
+  // Bound the aggregate before lifecycle/cache persistence. This keeps a provider
+  // spike from growing the feed process heap or Redis payload without bound.
+  events = boundedEvents(events);
   // Artwork enrichment is metadata-only. A badge provider failure can never suspend odds.
   events = await enrichTeamArtwork(events);
   // Feed-level safety: a finished/suspended event or a prematch event whose kickoff
@@ -480,7 +527,7 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
         metadataHealthy: true, bettingAllowed: false, state: 'READ_ONLY', events: fallback.events.length,
         pricedMarkets: pricedMarketCount(fallback.events), bettableMarkets: 0, warnings: fallback.errors, latencyMs: 0
       }];
-      events = fallback.events;
+      events = boundedEvents(fallback.events);
       snapshotFallback = true;
       snapshotCapturedAt = fallback.capturedAt;
     }
@@ -602,9 +649,75 @@ async function markCachedFeedReadOnly(error, { reason = 'refresh-failed' } = {})
   return memory;
 }
 
+async function acquireRefreshLock(token) {
+  if (!redis.isOpen) return true;
+  try {
+    return String(await redis.set(REFRESH_LOCK_KEY, token, { NX: true, PX: REFRESH_LOCK_TTL_MS })) === 'OK';
+  } catch (error) {
+    logger.warn('Sportsbook refresh lock unavailable; proceeding without cross-process guard', { error: error.message });
+    return true;
+  }
+}
+async function renewRefreshLock(token) {
+  if (!redis.isOpen) return;
+  try {
+    await redis.eval(
+      "if redis.call('GET',KEYS[1])==ARGV[1] then return redis.call('PEXPIRE',KEYS[1],ARGV[2]) else return 0 end",
+      { keys: [REFRESH_LOCK_KEY], arguments: [token, String(REFRESH_LOCK_TTL_MS)] }
+    );
+  } catch (error) {
+    logger.warn('Sportsbook refresh lock renewal failed; TTL will continue counting down', { error: error.message });
+  }
+}
+async function releaseRefreshLock(token) {
+  if (!redis.isOpen) return;
+  try {
+    await redis.eval("if redis.call('GET',KEYS[1])==ARGV[1] then return redis.call('DEL',KEYS[1]) else return 0 end", { keys: [REFRESH_LOCK_KEY], arguments: [token] });
+  } catch (error) {
+    logger.warn('Sportsbook refresh lock release failed; TTL will expire it', { error: error.message });
+  }
+}
+function sleep(ms) { return new Promise(resolvePromise => setTimeout(resolvePromise, ms)); }
+async function performWithRefreshLock(reason) {
+  if (!redis.isOpen) return performRefresh({ reason });
+  const token = crypto.randomUUID();
+  const startedAt = Date.now();
+  let held = await acquireRefreshLock(token);
+  if (!held) {
+    const deadline = startedAt + REFRESH_LOCK_WAIT_MS;
+    while (Date.now() < deadline && !held) {
+      await sleep(REFRESH_LOCK_POLL_MS);
+      const cached = await readRedisCache();
+      if (cached?.events?.length && Number(cached.fetchedAt || 0) > startedAt) {
+        memory = cached;
+        return memory;
+      }
+      held = await acquireRefreshLock(token);
+    }
+    if (!held) {
+      const cached = await readRedisCache();
+      if (cached?.events?.length && Number(cached.fetchedAt || 0) >= startedAt) {
+        memory = cached;
+        return memory;
+      }
+      throw new AppError(503, 'Sportsbook feed sedang direfresh oleh proses lain.', 'SPORTS_REFRESH_IN_PROGRESS');
+    }
+  }
+  const renewal = setInterval(() => {
+    renewRefreshLock(token).catch(error => logger.warn('Sportsbook refresh lock renewal failed', { error: error.message }));
+  }, REFRESH_LOCK_RENEW_MS);
+  renewal.unref();
+  try {
+    return await performRefresh({ reason });
+  } finally {
+    clearInterval(renewal);
+    await releaseRefreshLock(token);
+  }
+}
+
 export async function refreshSportsbookFeed({ reason = 'scheduled' } = {}) {
   try {
-    const refreshed = await performRefresh({ reason });
+    const refreshed = await performWithRefreshLock(reason);
     const allPricedMarkets = refreshed.events.flatMap(event => event.markets || []).filter(market =>
       (market.selections || []).some(selection => Number.isFinite(Number(selection.odds)) && Number(selection.odds) > 1)
     );
