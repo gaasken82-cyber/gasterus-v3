@@ -521,8 +521,8 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
   } catch (error) {
     logger.warn('Sportsbook risk repricing snapshot unavailable; base prices preserved', { error: error.message });
   }
-  // Bound the aggregate before lifecycle/cache persistence. This keeps a provider
-  // spike from growing the feed process heap or Redis payload without bound.
+  // Batasi jumlah event sebelum disimpan ke lifecycle/cache. Ini mencegah lonjakan
+  // dari satu sumber provider mengembang tanpa batas di heap proses feed atau payload Redis.
   events = boundedEvents(events);
   // Artwork enrichment is metadata-only. A badge provider failure can never suspend odds.
   events = await enrichTeamArtwork(events);
