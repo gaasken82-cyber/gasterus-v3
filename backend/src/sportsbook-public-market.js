@@ -416,6 +416,22 @@ function resultFileUrl(div, startTime) {
   const season = seasonCodeForKickoff(startTime);
   return season ? `https://www.football-data.co.uk/mmz4281/${season}/${encodeURIComponent(div)}.csv` : null;
 }
+// Prune-by-season-generation: kunci URL memuat season code (mis. mmz4281/2526/E0.csv).
+// Setelah season berganti, entri season lama tidak akan pernah diakses lagi, jadi dibuang
+// di refresh berikutnya alih-alih menumpuk sampai restart. Pola prune-bounded yang sama
+// sudah dipakai providerRequestCache (sportsbook-providers.js:218) dan sourceHealth
+// (toto-collector.js:50).
+const RESULT_SEASON_PATTERN = /\/mmz4281\/(\d{4})\//;
+function resultFileUrlSeason(url) {
+  const match = RESULT_SEASON_PATTERN.exec(String(url || ''));
+  return match ? match[1] : null;
+}
+function pruneStaleResultSeasons(liveSeasons) {
+  for (const key of [...resultFileCache.keys()]) {
+    const season = resultFileUrlSeason(key);
+    if (season && !liveSeasons.has(season)) resultFileCache.delete(key);
+  }
+}
 async function cachedResultFile(url) {
   const now = Date.now();
   const prior = resultFileCache.get(url);
@@ -431,7 +447,10 @@ async function loadResultRowsForEvents(events) {
     return Number.isFinite(t) && t <= Date.now() + 2 * 60 * 60 * 1000 && t >= Date.now() - 7 * 24 * 60 * 60 * 1000;
   });
   const urls = [...new Set(recentOrStarted.map(event => resultFileUrl(event._publicMarketDiv, event.startTime)).filter(Boolean))].slice(0, 18);
-  const settled = await Promise.allSettled(urls.map(cachedResultFile));
+  // Season generation yang masih hidup = season yang di-request pada refresh ini.
+  // Entri season lain (musim sebelumnya) tidak akan pernah dibaca lagi → dibuang.
+  pruneStaleResultSeasons(new Set(urls.map(resultFileUrlSeason).filter(Boolean)));
+  const settled = await Promise.allSettled(urls.map(url => cachedResultFile(url)));
   return settled.flatMap(item => item.status === 'fulfilled' ? item.value : []);
 }
 
@@ -604,7 +623,7 @@ export async function fetchPublicMarketFeed() {
 
 export const __publicMarket = {
   parseKickoff, oddsTriplet, total25, handicap, normalizeProbabilities, solveTotalLambda, calibrateLambdas,
-  scoreGrid, buildDerivedMarkets, normalizeOpenFootballFixture, normalizeResultRow, mergeResults, seasonCodeForKickoff, resultFileUrl, asianOdds, totalOdds, parseResultDate, discoverCsvUrl, sourceTimestamp
+  scoreGrid, buildDerivedMarkets, normalizeOpenFootballFixture, normalizeResultRow, mergeResults, seasonCodeForKickoff, resultFileUrl, asianOdds, totalOdds, parseResultDate, discoverCsvUrl, sourceTimestamp, resultFileUrlSeason, pruneStaleResultSeasons, resultFileCache
 };
 
 // Re-used by sportsbook-footballdataio.js to expand real 1X2 odds into the full
