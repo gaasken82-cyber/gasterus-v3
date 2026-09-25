@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Notifikasi — GASTERUS V3</title>
+  <meta name="description" content="Notifikasi kemenangan, persetujuan setoran, dan perubahan saldo untuk member Gasterus v3.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/mobile-blue.css?v=20260913-trx-pro">
+  <link rel="stylesheet" href="/css/animations.css">
+  <meta name="theme-color" content="#2563eb">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function () { console.log('SW fail'); });
+      });
+    }
+  </script>
+</head>
+<body class="page-notifications">
+  <div class="site">
+
+    <header class="brand-bar">
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu"></button>
+      <a href="/member.html" class="brand-title">
+        <span class="logo-shine-wrap"><img src="/assets/logo.webp?v=20260913-trx-pro" alt="GASTERUS" class="brand-logo-img"></span>
+      </a>
+      <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
+    </header>
+
+    <div class="page-header">
+      <h1 class="page-title">Notifikasi</h1>
+      <p class="page-subtitle">Kabar kemenangan, persetujuan setoran, dan perubahan status untuk Anda</p>
+    </div>
+
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-unread="0">Semua</button>
+      <button class="filter-tab" data-unread="1">Belum Dibaca</button>
+    </div>
+
+    <div class="history-card" id="notification-card">
+      <div class="history-card-header">
+        <span class="history-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </span>
+        <h3>Daftar Notifikasi</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Jenis</th>
+              <th>Pesan</th>
+              <th>Nominal</th>
+            </tr>
+          </thead>
+          <tbody id="notification-tbody">
+            <tr>
+              <td colspan="4" class="loading-cell">
+                <div class="loading-spinner"></div>
+                Memuat notifikasi...
+              </td>
+            </tr>
+
+  <div class="nav-drawer-backdrop" id="navBackdrop"></div>
+  <nav class="nav-drawer" id="site-nav-drawer" aria-label="Navigasi utama">
+    <div class="nav-drawer-head">
+      <span class="nav-drawer-title">Menu</span>
+      <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
+    </div>
+    <div class="nav-drawer-body">
+      <a class="nav-drawer-item" href="/index.html">Beranda</a>
+      <a class="nav-drawer-item" href="/member.html">Togel &amp; Slot</a>
+      <a class="nav-drawer-item" href="/sportsbook.html">Sportsbook</a>
+      <a class="nav-drawer-item" href="/number-history.html">Hasil</a>
+      <a class="nav-drawer-item" href="/bet-history.html">Riwayat WD</a>
+      <a class="nav-drawer-item" href="/notifications.html">Notifikasi</a>
+      <a class="nav-drawer-item" href="/deposit.html">Setor</a>
+      <a class="nav-drawer-item" href="/withdraw.html">Tarik</a>
+      <a class="nav-drawer-item" href="/promotion.html">Promo</a>
+      <a class="nav-drawer-item" href="/referral.html">Referral</a>
+    </div>
+  </nav>
+
+  <footer>
+    <div class="footer-links">
+      <a href="privacy.html">Privacy</a>
+      <a href="responsible-play.html">Responsible Gaming</a>
+      <a href="terms.html">Terms</a>
+    </div>
+    <div>&copy; Copyright 2014 - 2026 GASTERUS. All Rights Reserved.</div>
+
+  <script>
+    (function () {
+      function openNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.querySelector('.nav-drawer-backdrop');
+        if (drawer) drawer.classList.add('open');
+        if (backdrop) backdrop.classList.add('show');
+        document.body.classList.add('nav-open');
+      }
+      function closeNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.querySelector('.nav-drawer-backdrop');
+        if (drawer) drawer.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.classList.remove('nav-open');
+      }
+      document.querySelectorAll('[data-nav-open]').forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) { e.preventDefault(); openNav(); });
+      });
+      document.querySelectorAll('[data-nav-close]').forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) { e.preventDefault(); closeNav(); });
+      });
+      var backdropEl = document.getElementById('navBackdrop');
+      if (backdropEl) backdropEl.addEventListener('click', closeNav);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeNav(); });
+    })();
+  </script>
+
+  <script type="module">
+    import api from '/js/api.js';
+    import auth from '/js/auth.js';
+    import { formatRupiah, formatDateTime, escapeHtml } from '/js/utils.js';
+
+    const esc = escapeHtml;
+    const tbody = document.getElementById('notification-tbody');
+    let unreadOnly = 0;
+
+    // Peta jenis notifikasi ke label berbahasa Indonesia. Kolom notification_type
+    // memakai nilai enum dari tabel member_notifications.
+    const JENIS = {
+      DEPOSIT_APPROVED: 'Setoran Disetujui',
+      WITHDRAW_APPROVED: 'Penarikan Disetujui',
+      WALLET_REJECTED: 'Permintaan Ditolak',
+      TOGEL_WIN: 'Kemenangan Togel',
+      SPORTSBOOK_WIN: 'Kemenangan Sportsbook',
+      BET_SETTLED: 'Taruhan Selesai',
+      SYSTEM: 'Informasi Sistem'
+    };
+
+    function jenisLabel(type) {
+      return JENIS[String(type || '').toUpperCase()] || 'Informasi';
+    }
+
+    async function loadNotifications() {
+      tbody.innerHTML = '<tr><td colspan="4" class="loading-cell"><div class="loading-spinner"></div>Memuat notifikasi...</td></tr>';
+      try {
+        const res = await api.get('/member/notifications?limit=50' + (unreadOnly ? '&unreadOnly=true' : ''));
+        const items = Array.isArray(res) ? res : (res?.items ?? res?.data?.items ?? res?.data ?? []);
+
+        if (!Array.isArray(items) || items.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">Belum ada notifikasi</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = items.map(function (n) {
+          const waktu = formatDateTime(n.createdAt);
+          const jenis = jenisLabel(n.type);
+          const pesan = esc(String(n.message || '-'));
+          // Nominal hanya ditampilkan bila ada. Jangan pernah membuat angka di klien.
+          const nominal = (n.amount === null || n.amount === undefined)
+            ? '<span style="opacity:.55">-</span>'
+            : formatRupiah(Number(n.amount));
+          return `
+            <tr>
+              <td>${waktu}</td>
+              <td><span class="badge badge-info">${esc(jenis)}</span></td>
+              <td>${pesan}</td>
+              <td class="amount-cell">${nominal}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="4" class="error-cell">Gagal memuat notifikasi: ' + esc(err.message) + '</td></tr>';
+      }
+    }
+
+    document.querySelectorAll('.filter-tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        document.querySelectorAll('.filter-tab').forEach(function (t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        unreadOnly = Number(tab.dataset.unread || 0);
+        loadNotifications();
+      });
+    });
+
+    if (!auth.isLoggedIn()) {
+      location.href = '/index.html';
+    } else {
+      loadNotifications();
+    }
+  </script>
+</body>
+</html>
+
+
+  </footer>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
