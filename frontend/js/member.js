@@ -58,20 +58,24 @@ async function loadMarkets() {
 
   try {
     const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
-    const markets = res.items || res.data || res || [];
+    const markets = Array.isArray(res) ? res : (res?.items ?? res?.data ?? []);
+    if (!Array.isArray(markets) || !markets.length) {
+      renderMarketsUnavailable();
+      return;
+    }
     renderMarkets(markets);
   } catch (err) {
-    console.warn('Fallback markets for member area');
-    const dummy = [
-      { name: 'SINGAPORE', code: 'SGP', period: '2981', result: '7492', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 3600000).toISOString() },
-      { name: 'HONGKONG', code: 'HK', period: '1420', result: '3180', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 7200000).toISOString() },
-      { name: 'SYDNEY', code: 'SDY', period: '0854', result: '5921', bettingStatus: 'CLOSED', closeAt: null },
-      { name: 'MACAU 4D', code: 'MC4D', period: '4190', result: '8034', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 1800000).toISOString() },
-      { name: 'TAIWAN', code: 'TW', period: '1205', result: '9102', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 5400000).toISOString() },
-      { name: 'CAMBODIA', code: 'CMD', period: '3312', result: '4451', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 900000).toISOString() }
-    ];
-    renderMarkets(dummy);
+    // Fail-closed: jangan pernah menampilkan angka pasar palsu. Member harus melihat
+    // kondisi nyata, yaitu pasar tidak tersedia, bukan data dummy.
+    console.warn('Data pasar tidak dapat dimuat; menampilkan status tidak tersedia.', err);
+    renderMarketsUnavailable();
   }
+}
+
+function renderMarketsUnavailable() {
+  const container = document.getElementById('member-markets-container');
+  if (!container) return;
+  container.innerHTML = '<div class="alert alert-warning" role="status">Pasaran sedang tidak tersedia. Silakan coba beberapa saat lagi.</div>';
 }
 
 function renderMarkets(markets) {
