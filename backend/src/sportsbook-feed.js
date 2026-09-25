@@ -77,6 +77,11 @@ const REFRESH_LOCK_POLL_MS = 400;
 let memory = { lifecycleGeneration: LIFECYCLE_GENERATION, events: [], providers: [], providerLifecycle: {}, marketLifecycleStats: { active: 0, suspended: 0, reopening: 0, closed: 0 }, revision: null, fetchedAt: 0, expiresAt: 0, error: null };
 let marketLifecycleMemory = {};
 let inFlight = null;
+// Guard in-process untuk background poll. `inFlight` di atas hanya dipakai
+// currentFeed() (request-triggered), sehingga poll dari feed-worker dan request
+// dari core bisa saling tumpang tindih — terutama saat Redis down dan
+// cross-process lock tidak tersedia. Siklus yang sudah jalan di-skip, bukan antre.
+let backgroundPollInFlight = false;
 const HERE = dirname(fileURLToPath(import.meta.url));
 let suppliedSnapshot = null;
 function loadSuppliedSnapshot() {
@@ -650,12 +655,14 @@ async function markCachedFeedReadOnly(error, { reason = 'refresh-failed' } = {})
 }
 
 async function acquireRefreshLock(token) {
-  if (!redis.isOpen) return true;
+  // Redis down: JANGAN lolos tanpa proteksi. Return null supaya performWithRefreshLock
+  // jatuh ke in-process guard (performWithInProcessGuard) sebagai pengaman minimum.
+  if (!redis.isOpen) return null;
   try {
     return String(await redis.set(REFRESH_LOCK_KEY, token, { NX: true, PX: REFRESH_LOCK_TTL_MS })) === 'OK';
   } catch (error) {
-    logger.warn('Sportsbook refresh lock unavailable; proceeding without cross-process guard', { error: error.message });
-    return true;
+    logger.warn('Sportsbook refresh lock unavailable; falling back to in-process guard', { error: error.message });
+    return null;
   }
 }
 async function renewRefreshLock(token) {
@@ -678,12 +685,22 @@ async function releaseRefreshLock(token) {
   }
 }
 function sleep(ms) { return new Promise(resolvePromise => setTimeout(resolvePromise, ms)); }
+// Fallback in-process guard: dipakai hanya ketika cross-process Redis lock tidak
+// tersedia (Redis down / error). Tetap relay single-flight per proses, tidak menumpuk.
+let refreshInFlight = null;
+async function performWithInProcessGuard(reason) {
+  if (!refreshInFlight) {
+    refreshInFlight = performRefresh({ reason }).finally(() => { refreshInFlight = null; });
+  }
+  return refreshInFlight;
+}
 async function performWithRefreshLock(reason) {
-  if (!redis.isOpen) return performRefresh({ reason });
+  if (!redis.isOpen) return performWithInProcessGuard(reason);
   const token = crypto.randomUUID();
   const startedAt = Date.now();
   let held = await acquireRefreshLock(token);
   if (!held) {
+    if (held === null) return performWithInProcessGuard(reason);
     const deadline = startedAt + REFRESH_LOCK_WAIT_MS;
     while (Date.now() < deadline && !held) {
       await sleep(REFRESH_LOCK_POLL_MS);
@@ -771,6 +788,22 @@ export async function refreshSportsbookFeed({ reason = 'scheduled' } = {}) {
     throw error;
   }
 }
+// Dipakai worker/feed-worker untuk background poll. Kalau siklus sebelumnya masih
+// berjalan, siklus ini di-SKIP (tidak antre) supaya performRefresh() tidak menumpuk
+// di heap yang sama.
+export async function refreshSportsbookFeedFromPoll({ reason = 'background-poll' } = {}) {
+  if (backgroundPollInFlight) {
+    logger.info('Sportsbook background poll skipped; previous cycle still running', { reason });
+    return memory;
+  }
+  backgroundPollInFlight = true;
+  try {
+    return await refreshSportsbookFeed({ reason });
+  } finally {
+    backgroundPollInFlight = false;
+  }
+}
+
 async function currentFeed({ force = false } = {}) {
   const now = Date.now();
   if (!force && memory.events.length && memory.expiresAt > now) return memory;

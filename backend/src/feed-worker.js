@@ -4,7 +4,7 @@ import { closeDatabase } from './db.js';
 import { logger } from './logger.js';
 import { runTotoCollector } from './toto-collector.js';
 import { isDrawWindowActive, DRAW_SCHEDULE } from './toto-collector-core.js';
-import { refreshSportsbookFeed } from './sportsbook-feed.js';
+import { refreshSportsbookFeedFromPoll } from './sportsbook-feed.js';
 import { startMemoryGuard } from './memory-guard.js';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -69,7 +69,7 @@ async function refreshSportsFeedIfDue(state) {
   if (!config.sportsSourceBackgroundPollEnabled || Date.now() - state.lastSportsbookFeedRefresh < config.sportsFeedRefreshSeconds * 1000) return;
   state.lastSportsbookFeedRefresh = Date.now();
   try {
-    await refreshSportsbookFeed({ reason: 'feed-worker-background-poll' });
+    await refreshSportsbookFeedFromPoll({ reason: 'feed-worker-background-poll' });
   } catch (error) {
     logger.warn('Feed worker sportsbook refresh unavailable', { code: error.code, error: error.message });
   }

@@ -41,6 +41,30 @@ test('failed Sportsbook background refresh immediately suspends cached odds and 
   assert.match(feedSource, /await writeRedisCache\(memory\)/);
 });
 
+test('background poll guard skips an overlapping cycle instead of queueing it', () => {
+  assert.match(feed, /let backgroundPollInFlight = false;/);
+  assert.match(feed, /export async function refreshSportsbookFeedFromPoll/);
+  assert.match(feed, /if \(backgroundPollInFlight\)/);
+  assert.match(feed, /Sportsbook background poll skipped; previous cycle still running/);
+  assert.match(feed, /backgroundPollInFlight = true;/);
+  assert.match(feed, /backgroundPollInFlight = false;/);
+  // the poll call site must use the guarded entry point, not the raw one
+  assert.match(feedWorker, /refreshSportsbookFeedFromPoll\(\{ reason: 'feed-worker-background-poll' \}\)/);
+  assert.doesNotMatch(feedWorker, /refreshSportsbookFeed\(\{ reason: 'feed-worker-background-poll' \}\)/);
+});
+
+test('Redis refresh-lock outage falls back to the in-process guard instead of running unguarded', () => {
+  assert.match(feed, /let refreshInFlight = null;/);
+  assert.match(feed, /async function performWithInProcessGuard/);
+  assert.match(feed, /if \(!redis\.isOpen\) return performWithInProcessGuard\(reason\);/);
+  assert.match(feed, /if \(held === null\) return performWithInProcessGuard\(reason\);/);
+  assert.match(feed, /if \(!redis\.isOpen\) return null;/);
+  assert.match(feed, /falling back to in-process guard/);
+  // must NOT silently allow an unguarded refresh any more
+  assert.doesNotMatch(feed, /proceeding without cross-process guard/);
+  assert.doesNotMatch(feed, /if \(!redis\.isOpen\) return performRefresh\(\{ reason \}\);/);
+});
+
 test('Sportsbook feed distinguishes priced markets from settlement-safe bettable markets', () => {
   assert.match(feed, /function pricedMarketCount/);
   assert.match(feed, /function bettableMarketCount/);
