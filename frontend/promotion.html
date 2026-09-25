@@ -295,9 +295,27 @@
       color: #e0f2fe;
     }
     .page-promotion .badge-info {
-      background: #0284c7;
-      color: #ffffff;
-      font-weight: 800;
+      background: rgba(2, 132, 199, 0.2);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    /* Badge emas solid dipakai untuk penawaran yang paling diplomatis.
+       Nilainya sama persis dengan gaya inline yang sebelumnya, hanya
+       dipindah ke kelas agar rapi dan mudah dirawat. */
+    .page-promotion .badge-gold {
+      background: #facc15;
+      color: #000000;
+    }
+
+    .page-promotion .badge-gold-alt {
+      background: #f59e0b;
+      color: #000000;
+    }
+
+    /* Pemisahan vertikal pada label pembuka halaman. */
+    .page-promotion .badge-spaced {
+      margin-bottom: var(--space-2);
     }
   </style>
 </head>
@@ -347,7 +365,7 @@
   <main class="app-main">
     <div class="container">
       <div style="text-align: center; max-width: 680px; margin-inline: auto; margin-bottom: var(--space-8);">
-        <span class="badge badge-warning" style="margin-bottom: var(--space-2);">PROMOSI AKTIF</span>
+        <span class="badge badge-warning badge-spaced">PROMOSI AKTIF</span>
         <h1 style="font-size: 2.2rem;">Bonus & Keuntungan Member</h1>
         <p>Nikmati promo dan diskon taruhan paling menguntungkan yang dihitung transparan tanpa syarat tersembunyi.</p>
       </div>
@@ -366,7 +384,7 @@
           <div class="promo-body">
             <div class="promo-header">
               <h2 class="promo-title">Event 3 Tim Parlay Gasterus</h2>
-              <span class="badge badge-info" style="font-weight: 800; background: #0284c7; color: #fff;">TOTAL HADIAH 5JT+</span>
+              <span class="badge badge-info">TOTAL HADIAH 5JT+</span>
             </div>
             <p class="promo-desc">
               Raih podium Juara 1 s/d 3 dengan JP Terbesar total jutaan rupiah + bonus weekend! Minimal odds 10, stake 50K wajib 3 tim pasaran HDP &amp; O/U.
@@ -440,7 +458,7 @@
           <div class="promo-body">
             <div class="promo-header">
               <h2 class="promo-title">PARLAY PAUS GASTERUS (4 Tim)</h2>
-              <span class="badge badge-info" style="font-weight: 800; background: #0284c7; color: #fff;">HADIAH S/D 3.5JT</span>
+              <span class="badge badge-info">HADIAH S/D 3.5JT</span>
             </div>
             <p class="promo-desc">
               Khusus 4 tim pilihan stake 350k, 500k &amp; 1000k. Hadiah tunai langsung hingga Rp 3.500.000 pasaran HDP, Over/Under &amp; 1X2!
@@ -513,7 +531,7 @@
           <div class="promo-body">
             <div class="promo-header">
               <h2 class="promo-title">EVENT OVER UNDER GASTERUS</h2>
-              <span class="badge badge-warning" style="font-weight: 800; background: #facc15; color: #000;">ODDS MIN 1.78</span>
+              <span class="badge badge-warning badge-gold">ODDS MIN 1.78</span>
             </div>
             <p class="promo-desc">
               Spesial taruhan pasar Over/Under HT/FT dengan odds minimal 1.78. Hadiah kemenangan hingga Rp 8.500.000 untuk 5 s/d 10 tim!
@@ -611,7 +629,7 @@
           <div class="promo-body">
             <div class="promo-header">
               <h2 class="promo-title">Freebet Rp 10.000 Tanpa DP</h2>
-              <span class="badge badge-warning" style="font-weight: 800; background: #f59e0b; color: #000;">KLAIM SEKARANG</span>
+              <span class="badge badge-warning badge-gold-alt">KLAIM SEKARANG</span>
             </div>
             <p class="promo-desc">
               Bonus spesial Freebet Rp 10.000 khusus member baru tanpa perlu deposit awal! Berlaku untuk semua permainan Sportsbook, Live Casino, dan Togel di GASTERUS.
@@ -650,7 +668,7 @@
           <div class="promo-body">
             <div class="promo-header">
               <h2 class="promo-title">Lomba Tebak 2D &amp; 3D (3 Line)</h2>
-              <span class="badge badge-warning" style="font-weight: 800;">PASARAN HK - SDY - SGP</span>
+              <span class="badge badge-warning">PASARAN HK - SDY - SGP</span>
             </div>
             <p class="promo-desc">
               Ikuti kompetisi tebak angka 2D &amp; 3D khusus 3 line setiap hari untuk pasaran resmi Hong Kong (HK), Sydney (SDY), dan Singapore (SGP). Hadiah tunai langsung cair ke saldo!

@@ -47,6 +47,29 @@ test('halaman promosi mendefinisikan sendiri kelas dan spacing yang tidak di-loa
   assert.match(html, /font-size: 2\.2rem/);
 });
 
+test('setiap badge di halaman promosi memakai kelas, bukan gaya inline', () => {
+  const html = read('frontend/promotion.html');
+  const mobileBlue = read('frontend/css/mobile-blue.css');
+  // Gaya inline membuat tampilan tidak seragam antar kartu. Semua badge harus
+  // memakai kelas yang punya definisi, baik lokal maupun dari mobile-blue.css.
+  assert.equal((html.match(/<span class="badge[^"]*" style=/g) || []).length, 0, 'masih ada badge dengan gaya inline');
+  const used = new Set();
+  for (const match of html.matchAll(/class="badge ([^"]+)"/g)) {
+    for (const name of match[1].split(/\s+/)) used.add(name);
+  }
+  assert.ok(used.size >= 4, 'zona badge harus punya beberapa variasi');
+  for (const name of used) {
+    const definedLocally = new RegExp(`\\.page-promotion \\.${name}\\b`).test(html);
+    const definedGlobally = new RegExp(`\\.${name}\\b`).test(mobileBlue);
+    assert.ok(definedLocally || definedGlobally, `.${name} tidak punya aturan warna`);
+  }
+  // Warna badge harus mengikuti pola semi-transparan yang sudah dipakai
+  // badge-warning dan badge-success, bukan warna solid yang tidak seragam.
+  const info = html.match(/\.page-promotion \.badge-info \{([^}]*)\}/)[1];
+  assert.match(info, /background: rgba\(/);
+  assert.match(info, /border: 1px solid rgba\(/);
+});
+
 test('animations.css dimuat tepat satu kali dan setelah mobile-blue.css', () => {
   for (const name of frontendPages) {
     const html = read(`frontend/${name}`);
