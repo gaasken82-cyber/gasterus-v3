@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { wrapGzip } from './gzip-response.js';
 import { config } from './config.js';
+import { isWorkerHeartbeatFresh } from './worker-health.js';
 import { connectRedis, checkRedis, redis } from './redis.js';
 import { checkDatabase, query, tx } from './db.js';
 import { AppError, assert } from './errors.js';
@@ -48,6 +49,7 @@ async function ownerSession(request,permission){internal(request,'admin');const 
 add('GET',new RegExp('^/api/health/toto-markets$'),totoMarketsHealth);
 add('GET',new RegExp('^/api/health/toto-markets/detail$'),totoMarketsDetail);
 add('GET',new RegExp('^/api/health/simple$'),simpleHealth);
+add('GET',/^\/healthz$/,async({res})=>{let healthy=false;try{const raw=await redis.get(config.workerHeartbeatKey);healthy=isWorkerHeartbeatFresh(raw,{staleAfterSeconds:Math.max(config.workerHeartbeatMaxAgeSeconds*2,120)});}catch{healthy=false;}ok(res,{status:healthy?'ok':'degraded'},healthy?200:503);});
 
 add('GET',/^\/health$/,async({res})=>ok(res,{status:'ok',service:'core',uptimeSeconds:Math.floor((Date.now()-startedAt)/1000)}));
 add('GET',/^\/ready$/,async({res})=>{const [database,cache]=await Promise.all([checkDatabase(),checkRedis()]);ok(res,{status:'ready',database,cache});});
