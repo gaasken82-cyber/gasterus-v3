@@ -7,11 +7,8 @@ import { postSystemTransfer, postTransfer, SYSTEM_ACCOUNTS, verifyLedger } from 
 import { createMemberNotification } from './notifications.js';
 import { autoSettleSportsbookTickets } from './sportsbook-auto-settlement.js';
 import { retryPendingSportsbookSettlementCorrections } from './sportsbook-betting.js';
-import { refreshSportsbookFeed } from './sportsbook-feed.js';
 import { calculateLotteryPricing, evaluateLotterySelection, legacyGameCode } from './lottery-games.js';
 import { expireStaleWalletApprovals } from './money.js';
-import { runTotoCollector } from './toto-collector.js';
-import { isDrawWindowActive, isPeriodCompleted, DRAW_SCHEDULE } from './toto-collector-core.js';
 import { startMemoryGuard } from './memory-guard.js';
 
 const processingQueue = `${config.queueName}:processing`;
@@ -411,10 +408,8 @@ async function main() {
   });
 
   let lastSportsbookSettlement = 0;
-  let lastSportsbookFeedRefresh = 0;
   let lastMoneyCleanup = 0;
   let lastDurableQueueRecovery = 0;
-  let lastTotoCollector = 0;
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   while (true) {
     try {
@@ -431,74 +426,6 @@ async function main() {
       logger.warn('Outbox dispatch cycle unavailable', { error: error.message });
     }
     if(Date.now()-lastMoneyCleanup>=60000){lastMoneyCleanup=Date.now();try{const expired=await expireStaleWalletApprovals();if(expired)logger.warn('Expired wallet approvals released safely',{expired});}catch(error){logger.warn('Money approval cleanup unavailable',{error:error.message});}}
-    const totoIntervalMs = (() => {
-      const baseMs = Math.max(30, config.totoCollectorIntervalSeconds) * 1000;
-      const wibHour = (new Date().getUTCHours() + 7) % 24;
-      return (wibHour >= 9 || wibHour === 0) ? baseMs : Math.max(baseMs * 5, 300_000);
-    })();
-    // ===== HYBRID SCHEDULE-DRIVEN COLLECTOR =====
-    // Skip the full HTTP scraping cycle entirely (no per-market fetch) unless at
-    // least one TOTO market is currently inside an ACTIVE DRAW WINDOW (draw ±15m).
-    /* eslint-disable no-inner-declarations */
-    const todoCollectorDue = config.totoCollectorEnabled && Date.now() - lastTotoCollector >= totoIntervalMs;
-    if (todoCollectorDue) {
-      const nowMs = Date.now();
-      const anyActive = (() => {
-        try {
-          return Object.keys(DRAW_SCHEDULE).some(slug => isDrawWindowActive(slug, { now: new Date(nowMs) }));
-        } catch {
-          return true; // fail-open: never hard-stop the collector on helper error
-        }
-      })();
-      // Per-market completion map (Redis-backed) so a period that already published
-      // today's result stops being re-fetched until the period rolls over.
-      let completedSlugs = new Set();
-      if (anyActive && redis.isOpen) {
-        try {
-          const raw = await redis.get('toto:completed:today');
-          if (raw) {
-            const arr = JSON.parse(raw);
-            if (Array.isArray(arr)) completedSlugs = new Set(arr);
-          }
-        } catch { /* cache is best-effort */ }
-      }
-      const completedCount = completedSlugs.size;
-      logger.info('TOTO hybrid schedule gate', {
-        reason: 'worker-scheduled',
-        drawWindowActive: anyActive,
-        completedPeriods: completedCount
-      });
-      if (anyActive) {
-        lastTotoCollector = Date.now();
-        try {
-          const result = await runTotoCollector({ reason: 'worker-scheduled-draw-window' });
-          const publishedNow = (result?.decisions || []).filter(d => d.status === 'VERIFIED' && d.drawDate && String(d.drawDate).startsWith(new Date(nowMs).toISOString().slice(0, 10))).map(d => d.slug).filter(Boolean);
-          if (publishedNow.length && redis.isOpen) {
-            try {
-              publishedNow.forEach(slug => completedSlugs.add(slug));
-              await redis.set('toto:completed:today', JSON.stringify([...completedSlugs]), { EX: 90000 });
-            } catch { /* best-effort */ }
-          }
-        } catch (error) {
-          logger.warn('TOTO collector scheduled cycle unavailable', { error: error.message });
-        } finally {
-          if (global.gc && process.memoryUsage().heapUsed > 180 * 1024 * 1024) {
-            try { global.gc(); } catch {}
-          }
-        }
-      } else {
-        lastTotoCollector = Date.now(); // throttle-consume: skip scraping between draw windows
-      }
-    }
-    /* eslint-enable no-inner-declarations */
-    if (config.sportsSourceBackgroundPollEnabled && Date.now() - lastSportsbookFeedRefresh >= config.sportsFeedRefreshSeconds * 1000) {
-      lastSportsbookFeedRefresh = Date.now();
-      try {
-        await refreshSportsbookFeed({ reason: 'worker-background-poll' });
-      } catch (error) {
-        logger.warn('Sportsbook background live-feed refresh unavailable', { code: error.code, error: error.message });
-      }
-    }
     if (config.sportsbookAutoSettlementEnabled && Date.now() - lastSportsbookSettlement >= config.sportsbookAutoSettlementSeconds * 1000) {
       lastSportsbookSettlement = Date.now();
       try {
