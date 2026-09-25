@@ -128,13 +128,14 @@
               <th>Waktu</th>
               <th>Pasaran</th>
               <th>Pilihan</th>
-              <th>Bayar</th>
+              <th>Taruhan</th>
+              <th>Diterima</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody id="togel-tbody">
             <tr>
-              <td colspan="6" class="loading-cell">
+              <td colspan="7" class="loading-cell">
                 <div class="loading-spinner"></div>
                 Memuat data riwayat...
               </td>
@@ -167,13 +168,14 @@
               <th>Pertandingan</th>
               <th>Odds</th>
               <th>Taruhan</th>
-              <th>Pengembalian</th>
+              <th>Potensi</th>
+              <th>Diterima</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody id="sportsbook-tbody">
             <tr>
-              <td colspan="7" class="loading-cell">
+              <td colspan="8" class="loading-cell">
                 <div class="loading-spinner"></div>
                 Memuat data sportsbook...
               </td>
@@ -264,13 +266,42 @@
 
     const esc = escapeHtml;
 
+    // Kelompokkan status bet ke kategori yang dipakai tombol filter.
+    // bet_orders dan sportsbook_tickets memakai nama status berbeda untuk hal yang
+    // sama, jadi filter mencocokkan kelompok, bukan string persis.
+    function statusGroup(status) {
+      const s = String(status || '').toUpperCase();
+      if (s === 'WON' || s === 'SETTLED' || s === 'SETTLED_WON' || s === 'PARTIAL_WIN') return 'WON';
+      if (s === 'LOST' || s === 'SETTLED_LOST' || s === 'PARTIAL_LOSS') return 'LOST';
+      if (s === 'VOID' || s === 'PARTIAL_VOID' || s === 'CANCELLED') return 'VOID';
+      if (s === 'CASHED_OUT') return 'CASHED_OUT';
+      return 'OPEN';
+    }
+
+    // Kolom "Diterima": jumlah yang benar-benar dibayarkan ke member.
+    // Ambil nilai dari server apa adanya, jangan dihitung ulang di klien.
+    function payoutCell(bet) {
+      if (statusGroup(bet?.status) !== 'WON') return '<span style="opacity:.55">-</span>';
+      const value = Number(bet?.totalPayout ?? bet?.payout ?? bet?.total_payout);
+      if (!Number.isFinite(value) || value <= 0) return '<span style="opacity:.55">-</span>';
+      return formatRupiah(value);
+    }
+
+    // Peta status ke label Indonesia sesuai skema kedua tabel:
+    //   bet_orders        : DRAFT, ACCEPTED, SETTLEMENT_PENDING, SETTLED_WON,
+    //                       SETTLED_LOST, CANCELLED, VOID
+    //   sportsbook_tickets: OPEN, WON, LOST, VOID, PARTIAL_VOID, PARTIAL_WIN,
+    //                       PARTIAL_LOSS, CANCELLED, CASHED_OUT
     function statusBadge(status) {
-      const s = String(status || 'PENDING').toUpperCase();
-      if (s === 'WON' || s === 'SETTLED') return '<span class="badge badge-success">MENANG</span>';
-      if (s === 'LOST') return '<span class="badge badge-danger">KALAH</span>';
-      if (s === 'VOID' || s === 'CANCELLED') return '<span class="badge badge-info">VOID</span>';
+      const s = String(status || '').toUpperCase();
+      if (s === 'WON' || s === 'SETTLED' || s === 'SETTLED_WON' || s === 'PARTIAL_WIN') return '<span class="badge badge-success">MENANG</span>';
+      if (s === 'LOST' || s === 'SETTLED_LOST' || s === 'PARTIAL_LOSS') return '<span class="badge badge-danger">KALAH</span>';
+      if (s === 'CANCELLED') return '<span class="badge badge-info">DIBATALKAN</span>';
+      if (s === 'VOID' || s === 'PARTIAL_VOID') return '<span class="badge badge-info">VOID</span>';
       if (s === 'CASHED_OUT') return '<span class="badge badge-info">CASH OUT</span>';
-      return '<span class="badge badge-warning">PENDING</span>';
+      if (s === 'DRAFT' || s === 'ACCEPTED' || s === 'OPEN' || s === 'SETTLEMENT_PENDING' || s === 'PENDING') return '<span class="badge badge-warning">MENUNGGU HASIL</span>';
+      // Status di luar daftar: tampil apa adanya agar tidak hilang tanpa jejak
+      return `<span class="badge badge-warning">${esc(s || 'MENUNGGU HASIL')}</span>`;
     }
 
     // Filter handlers
@@ -328,12 +359,12 @@
 
     async function loadTogelBets(token) {
       const tbody = document.getElementById('togel-tbody');
-      tbody.innerHTML = '<tr><td colspan="6" class="loading-cell"><div class="loading-spinner"></div>Memuat data...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="loading-cell"><div class="loading-spinner"></div>Memuat data...</td></tr>';
 
       try {
         const res = await api.get('/member/bets?limit=50');
         const bets = Array.isArray(res) ? res : (res.items || res.data || []);
-        const filtered = currentStatus ? bets.filter(b => b.status === currentStatus) : bets;
+        const filtered = currentStatus ? bets.filter(b => statusGroup(b.status) === currentStatus) : bets;
 
         if (filtered.length === 0) {
           tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">Belum ada riwayat taruhan togel</td></tr>';
@@ -347,6 +378,7 @@
             <td>${esc(bet.marketName || bet.market || '-')}</td>
             <td class="selection-cell">${esc(bet.selections || bet.notes || '-')}</td>
             <td class="amount-cell">${formatRupiah(bet.amount)}</td>
+            <td class="amount-cell">${payoutCell(bet)}</td>
             <td>${statusBadge(bet.status)}</td>
           </tr>
         `).join('');
@@ -357,15 +389,15 @@
 
     async function loadSportsbookBets(token) {
       const tbody = document.getElementById('sportsbook-tbody');
-      tbody.innerHTML = '<tr><td colspan="7" class="loading-cell"><div class="loading-spinner"></div>Memuat data...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="loading-cell"><div class="loading-spinner"></div>Memuat data...</td></tr>';
 
       try {
         const res = await api.get('/member/sportsbook/bets?limit=50');
         const bets = Array.isArray(res) ? res : (res.items || res.data || []);
-        const filtered = currentStatus ? bets.filter(b => b.status === currentStatus) : bets;
+        const filtered = currentStatus ? bets.filter(b => statusGroup(b.status) === currentStatus) : bets;
 
         if (filtered.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Belum ada riwayat sportsbook</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">Belum ada riwayat sportsbook</td></tr>';
           return;
         }
 
@@ -377,11 +409,12 @@
             <td class="odds-cell">${esc(bet.odds || '-')}</td>
             <td class="amount-cell">${formatRupiah(Number(bet.totalStake ?? bet.unitStake ?? bet.amount ?? 0))}</td>
             <td class="amount-cell">${formatRupiah(bet.potentialPayout || bet.potentialReturn || bet.return || 0)}</td>
+            <td class="amount-cell">${payoutCell(bet)}</td>
             <td>${statusBadge(bet.status)}</td>
           </tr>
         `).join('');
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="7" class="error-cell">Gagal memuat data: ${esc(err.message)}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="error-cell">Gagal memuat data: ${esc(err.message)}</td></tr>`;
       }
     }
 
