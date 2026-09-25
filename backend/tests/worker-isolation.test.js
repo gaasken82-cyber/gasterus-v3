@@ -33,6 +33,17 @@ test('every market_betting_configs INSERT sets an explicit betting_status', () =
     assert.doesNotMatch(read(file), insert, `${file} masih INSERT tanpa betting_status eksplisit`);
   }
 });
+test('pasaran tanpa waktu tutup tidak pernah diumumkan sebagai OPEN', () => {
+  const migrasi = read('backend/migrations/029_suspend_markets_without_close_at.sql');
+  // Baris OPEN tanpa close_at harus ditutup, bukan dibiarkan menipu member.
+  assert.match(migrasi, /WHERE betting_status = 'OPEN'\s+AND close_at IS NULL/);
+  assert.match(migrasi, /betting_status = 'SUSPENDED'/);
+  // Ditandai agar scheduler auto-open tidak membukanya lagi dengan tebakan tanggal.
+  assert.match(migrasi, /auto_reopen_blocked = TRUE/);
+  // Baris yang sehat tidak boleh ikut tersentuh.
+  assert.doesNotMatch(migrasi, /close_at IS NOT NULL/);
+});
+
 test('sportsbook feed and Redis cache have hard event and byte caps', () => {
   const config = read('backend/src/config.js');
   const feed = read('backend/src/sportsbook-feed.js');
