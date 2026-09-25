@@ -20,6 +20,25 @@ test('bet history uses the shared HTML escaper', () => {
   assert.match(source, /const esc = escapeHtml;/);
 });
 
+test('halaman pasang wager gagal tertutup dan tidak pernah membuat angka palsu', () => {
+  const mp = read('frontend/js/market-play.js');
+  // Angka palsu yang dulu dipakai saat API gagal harus benar-benar hilang.
+  assert.doesNotMatch(mp, /using fallback data/);
+  assert.doesNotMatch(mp, /period:\s*'2982'/);
+  assert.doesNotMatch(mp, /closeAt:\s*new Date\(/);
+  // Validasi yang menentukan boleh atau tidak dipasang wajib ada.
+  assert.match(mp, /function isMarketBettable/);
+  assert.match(mp, /bettingStatus \|\| ''\)\.toUpperCase\(\) !== 'OPEN'/);
+  assert.match(mp, /!String\(market\.period \|\| ''\)\.trim\(\)/);
+  assert.match(mp, /Number\.isFinite\(closeMs\) && closeMs > now/);
+  // Saat data gagal dimuat, pasar harus dinyatakan tidak tersedia.
+  assert.match(mp, /bettingStatus: 'UNAVAILABLE'/);
+  assert.match(mp, /Pasaran sedang tidak tersedia/);
+  // Form wager harus dimatikan agar member tidak bisa mengirim.
+  assert.match(mp, /setBettingControlsDisabled\(!isMarketBettable\(currentMarket\)\)/);
+  assert.match(mp, /if \(!isMarketBettable\(currentMarket\)\)/);
+});
+
 test('server-fed frontend renderers escape dynamic values before HTML interpolation', () => {
   const member = read('frontend/js/member.js');
   const landing = read('frontend/js/landing.js');

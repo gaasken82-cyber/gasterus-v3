@@ -16,6 +16,24 @@ let currentMarketConfig = null;
 let betRows = [];
 let rowIdCounter = 1;
 
+// Pasar hanya boleh dianggap bisa dipertaruhkan bila backend memang mengirim
+// bettingStatus OPEN, periode terisi, dan waktu tutup masih di masa depan.
+// Tanpa ketiga syarat itu, pasar ditampilkan tertutup. Tidak ada nilai
+// periode maupun waktu tutup yang dibuat di sisi klien.
+function isMarketBettable(market, now = Date.now()) {
+  if (!market || typeof market !== 'object') return false;
+  if (market.available === false) return false;
+  if (String(market.bettingStatus || '').toUpperCase() !== 'OPEN') return false;
+  if (!String(market.period || '').trim()) return false;
+  const closeMs = Date.parse(String(market.closeAt || ''));
+  return Number.isFinite(closeMs) && closeMs > now;
+}
+
+function isMarketClosed(market) {
+  const status = String(market?.bettingStatus || '').toUpperCase();
+  return status === 'CLOSED' || status === 'SUSPENDED';
+}
+
 export async function initMarketPlay() {
   if (!auth.isLoggedIn()) {
     window.location.href = '/index.html';
@@ -28,30 +46,50 @@ export async function initMarketPlay() {
   await loadMarketInfo(marketCode);
   initBetRows();
   setupEventListeners();
+  setBettingControlsDisabled(!isMarketBettable(currentMarket));
   startCountdown();
 }
 
+// Fail-closed: bila API tidak dapat diakses, pasar ditampilkan sebagai tidak
+// tersedia. Angka periode, waktu tutup, dan aturan pembayaran tidak pernah
+// dibuat di klien karena semuanya akan disalahartikan member sebagai data
+// betting yang sah.
 async function loadMarketInfo(code) {
   try {
     const res = await api.get(`/member/betting-markets/${encodeURIComponent(code)}`);
+    if (!res || typeof res !== 'object' || Array.isArray(res)) {
+      throw new Error('Konfigurasi pasar tidak dapat dibaca');
+    }
     currentMarketConfig = res;
     currentMarket = res;
     updateMarketHeaderUI(res);
+    return true;
   } catch (err) {
-    console.warn('Unable to load live betting config, using fallback data', err);
+    console.warn('Data pasar tidak dapat dimuat; pasar ditampilkan tertutup.', err);
+    currentMarketConfig = null;
     currentMarket = {
-      name: code.toUpperCase() + ' POOLS',
-      code: code.toUpperCase(),
-      period: '2982',
-      bettingStatus: 'OPEN',
-      closeAt: new Date(Date.now() + 5400000).toISOString(),
-      gameMap: {
-        STRAIGHT_4D: { discount: 66, payoutMultiplier: 3000 },
-        STRAIGHT_3D: { discount: 59, payoutMultiplier: 400 },
-        STRAIGHT_2D: { discount: 29, payoutMultiplier: 70 }
-      }
+      name: 'Pasaran sedang tidak tersedia',
+      code: String(code || '').toUpperCase(),
+      available: false,
+      bettingStatus: 'UNAVAILABLE',
+      period: null,
+      closeAt: null
     };
     updateMarketHeaderUI(currentMarket);
+    return false;
+  }
+}
+
+function setBettingControlsDisabled(disabled) {
+  document.querySelectorAll('#bet-rows-container input, #bet-rows-container select, #bet-rows-container button').forEach(control => {
+    control.disabled = disabled;
+  });
+  const addRowBtn = document.getElementById('btn-add-row');
+  if (addRowBtn) addRowBtn.disabled = disabled;
+  const submitBtn = document.getElementById('btn-submit-bet');
+  if (submitBtn) {
+    submitBtn.disabled = disabled;
+    submitBtn.textContent = disabled ? 'Pasaran tidak tersedia' : 'Konfirmasi & Pasang';
   }
 }
 
@@ -59,23 +97,35 @@ function updateMarketHeaderUI(m) {
   const titleEl = document.getElementById('market-title');
   const periodEl = document.getElementById('market-period');
   const statusEl = document.getElementById('market-status');
+  const timerEl = document.getElementById('market-countdown');
+  const unavailable = m?.available === false || String(m?.bettingStatus || '').toUpperCase() === 'UNAVAILABLE';
+  const open = isMarketBettable(m);
 
-  if (titleEl) titleEl.textContent = m.name;
-  if (periodEl) periodEl.textContent = `#${m.period || '-'}`;
+  if (titleEl) titleEl.textContent = unavailable ? 'Pasaran sedang tidak tersedia' : (m?.name || '-');
+  if (periodEl) periodEl.textContent = m?.period ? `#${m.period}` : '-';
   if (statusEl) {
-    const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
-    statusEl.textContent = isClosed ? 'TUTUP' : 'BUKA';
-    statusEl.className = isClosed ? 'badge badge-danger' : 'badge badge-success';
+    statusEl.textContent = unavailable ? 'TIDAK TERSEDIA' : (open ? 'BUKA' : (isMarketClosed(m) ? 'TUTUP' : 'TIDAK TERSEDIA'));
+    statusEl.className = open ? 'badge badge-success' : 'badge badge-danger';
   }
+  if (timerEl && (unavailable || !m?.closeAt)) timerEl.textContent = 'TIDAK TERSEDIA';
 }
 
 function startCountdown() {
   setInterval(() => {
     const timerEl = document.getElementById('market-countdown');
-    if (!timerEl || !currentMarket?.closeAt) return;
+    if (!timerEl) return;
+    if (!isMarketBettable(currentMarket)) {
+      timerEl.textContent = 'TIDAK TERSEDIA';
+      return;
+    }
     const t = getTimeRemaining(currentMarket.closeAt);
     if (t.expired) {
       timerEl.textContent = '00:00:00 (Tutup)';
+      // Saat waktu tutup terlampaui, form wager langsung dimatikan agar member
+      // tidak bisa mengirim tiket pada pasar yang sudah tertutup.
+      setBettingControlsDisabled(true);
+      if (currentMarket) currentMarket.bettingStatus = 'CLOSED';
+      updateMarketHeaderUI(currentMarket);
     } else {
       const hh = String(t.hours).padStart(2, '0');
       const mm = String(t.minutes).padStart(2, '0');
@@ -275,6 +325,19 @@ async function handleBetSubmit() {
       };
     });
 
+  // Penjaga terakhir sebelum mengirim. Backend sudah menolak wager pada pasar
+  // tertutup, tetapi pemeriksaan di sini mencegah request yang pasti ditolak dan
+  // memastikan periode yang dikirim selalu berasal dari server.
+  if (!isMarketBettable(currentMarket)) {
+    showToast('Pasaran sedang tidak tersedia. Silakan coba lagi nanti.', 'danger');
+    setBettingControlsDisabled(true);
+    return;
+  }
+  if (!currentMarketConfig) {
+    showToast('Data pasar belum termuat. Silakan muat ulang halaman.', 'danger');
+    return;
+  }
+
   const marketId = currentMarketConfig?.marketId
     || currentMarket?.marketId
     || currentMarket?.id
@@ -282,7 +345,7 @@ async function handleBetSubmit() {
 
   const payload = {
     marketId,
-    period: currentMarketConfig?.period || currentMarket?.period || undefined,
+    period: currentMarketConfig?.period || currentMarket?.period,
     rows,
     idempotencyKey: generateIdempotencyKey()
   };
