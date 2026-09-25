@@ -23,6 +23,11 @@ import { compactMemberMarkets, projectMemberMarkets } from './sportsbook-member-
  * Odds handicap 0 (pick'em) harus seimbang (sekitar 1.70-2.10)
  * Jika terlalu tidak seimbang, hapus market (jangan tampilkan)
  */
+// Log abnormal-odds membanjiri stdout (~3000 baris per siklus refresh) dan
+// String::SlowFlatten ada di stack trace OOM worker. Dedup per kombinasi
+// event+line supaya tiap kombinasi hanya dilog sekali per siklus refresh.
+let abnormalOddsLogged = new Set();
+function resetAbnormalOddsLog() { abnormalOddsLogged = new Set(); }
 function validateAllHandicapOdds(events = []) {
   return events.map(event => ({
     ...event,
@@ -43,14 +48,18 @@ function validateAllHandicapOdds(events = []) {
       const isAbnormal = minOdds < 1.50 || (maxOdds / minOdds) > 3;
       
       if (isAbnormal) {
-        logger.warn('Abnormal handicap odds detected, removing market', {
-          event: `${event.home?.name} vs ${event.away?.name}`,
-          line: market.line,
-          odds: odds.join(', '),
-          minOdds,
-          maxOdds,
-          ratio: (maxOdds / minOdds).toFixed(2)
-        });
+        const dedupKey = `${event.home?.name}|${event.away?.name}|${market.line}`;
+        if (!abnormalOddsLogged.has(dedupKey)) {
+          abnormalOddsLogged.add(dedupKey);
+          logger.warn('Abnormal handicap odds detected, removing market', {
+            event: `${event.home?.name} vs ${event.away?.name}`,
+            line: market.line,
+            odds: odds.join(', '),
+            minOdds,
+            maxOdds,
+            ratio: (maxOdds / minOdds).toFixed(2)
+          });
+        }
         return false; // Hapus market ini
       }
       
@@ -442,6 +451,7 @@ function suppliedSnapshotResult() {
   };
 }
 async function performRefresh({ reason = 'scheduled' } = {}) {
+  resetAbnormalOddsLog();
   const configured = enabledProviders();
   if (!configured.some(provider => provider.enabled)) {
     throw new AppError(503, 'Belum ada sumber sportsbook yang dikonfigurasi pada core service.', 'SPORTS_PROVIDERS_NOT_CONFIGURED');
