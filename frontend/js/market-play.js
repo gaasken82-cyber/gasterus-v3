@@ -16,6 +16,13 @@ let currentMarketConfig = null;
 let betRows = [];
 let rowIdCounter = 1;
 
+function isMarketBettable(market) {
+  if (!market || market.available === false) return false;
+  const status = String(market.bettingStatus || '').toUpperCase();
+  const closeAt = Date.parse(String(market.closeAt || ''));
+  return status === 'OPEN' && Boolean(String(market.period || '').trim()) && Number.isFinite(closeAt) && closeAt > Date.now();
+}
+
 export async function initMarketPlay() {
   if (!auth.isLoggedIn()) {
     window.location.href = '/index.html';
@@ -28,30 +35,44 @@ export async function initMarketPlay() {
   await loadMarketInfo(marketCode);
   initBetRows();
   setupEventListeners();
+  setBettingControlsDisabled(!isMarketBettable(currentMarket));
   startCountdown();
 }
 
 async function loadMarketInfo(code) {
   try {
     const res = await api.get(`/member/betting-markets/${encodeURIComponent(code)}`);
+    if (!res || typeof res !== 'object' || Array.isArray(res)) throw new Error('Live market config unavailable');
     currentMarketConfig = res;
     currentMarket = res;
     updateMarketHeaderUI(res);
+    return true;
   } catch (err) {
-    console.warn('Unable to load live betting config, using fallback data', err);
+    console.warn('Live market config unavailable; keeping market closed', err);
+    currentMarketConfig = null;
     currentMarket = {
-      name: code.toUpperCase() + ' POOLS',
-      code: code.toUpperCase(),
-      period: '2982',
-      bettingStatus: 'OPEN',
-      closeAt: new Date(Date.now() + 5400000).toISOString(),
-      gameMap: {
-        STRAIGHT_4D: { discount: 66, payoutMultiplier: 3000 },
-        STRAIGHT_3D: { discount: 59, payoutMultiplier: 400 },
-        STRAIGHT_2D: { discount: 29, payoutMultiplier: 70 }
-      }
+      code: String(code || ''),
+      name: 'Market sedang tidak tersedia',
+      available: false,
+      bettingStatus: 'UNAVAILABLE',
+      period: null,
+      closeAt: null
     };
     updateMarketHeaderUI(currentMarket);
+    return false;
+  }
+}
+
+function setBettingControlsDisabled(disabled) {
+  document.querySelectorAll('#bet-rows-container input, #bet-rows-container select, #bet-rows-container button').forEach(control => {
+    control.disabled = disabled;
+  });
+  const addRowBtn = document.getElementById('btn-add-row');
+  if (addRowBtn) addRowBtn.disabled = disabled;
+  const submitBtn = document.getElementById('btn-submit-bet');
+  if (submitBtn) {
+    submitBtn.disabled = disabled;
+    submitBtn.textContent = disabled ? 'Pasaran tidak tersedia' : 'Konfirmasi & Pasang Taruhan';
   }
 }
 
@@ -59,20 +80,27 @@ function updateMarketHeaderUI(m) {
   const titleEl = document.getElementById('market-title');
   const periodEl = document.getElementById('market-period');
   const statusEl = document.getElementById('market-status');
+  const timerEl = document.getElementById('market-countdown');
+  const unavailable = m?.available === false || String(m?.bettingStatus || '').toUpperCase() === 'UNAVAILABLE';
+  const open = isMarketBettable(m);
 
-  if (titleEl) titleEl.textContent = m.name;
-  if (periodEl) periodEl.textContent = `#${m.period || '-'}`;
+  if (titleEl) titleEl.textContent = unavailable ? 'Market sedang tidak tersedia' : (m?.name || '-');
+  if (periodEl) periodEl.textContent = m?.period ? `#${m.period}` : '-';
   if (statusEl) {
-    const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
-    statusEl.textContent = isClosed ? 'TUTUP' : 'BUKA';
-    statusEl.className = isClosed ? 'badge badge-danger' : 'badge badge-success';
+    statusEl.textContent = unavailable ? 'TIDAK TERSEDIA' : open ? 'BUKA' : 'TUTUP';
+    statusEl.className = open ? 'badge badge-success' : 'badge badge-danger';
   }
+  if (timerEl && (!m?.closeAt || unavailable)) timerEl.textContent = 'TIDAK TERSEDIA';
 }
 
 function startCountdown() {
   setInterval(() => {
     const timerEl = document.getElementById('market-countdown');
-    if (!timerEl || !currentMarket?.closeAt) return;
+    if (!timerEl) return;
+    if (!currentMarket?.closeAt || currentMarket.available === false || currentMarket.bettingStatus === 'UNAVAILABLE') {
+      timerEl.textContent = 'TIDAK TERSEDIA';
+      return;
+    }
     const t = getTimeRemaining(currentMarket.closeAt);
     if (t.expired) {
       timerEl.textContent = '00:00:00 (Tutup)';
@@ -214,6 +242,10 @@ function setupEventListeners() {
 }
 
 async function handleBetSubmit() {
+  if (!isMarketBettable(currentMarket)) {
+    showToast('Market sedang tidak tersedia. Silakan coba kembali nanti.', 'danger');
+    return;
+  }
   // Validasi format angka: hanya 2/3/4 digit angka murni (sesuai normalizeLotterySelection di backend)
   const invalidRows = betRows
     .filter(r => r.selection && r.selection.length >= 2 && r.stake > 0)

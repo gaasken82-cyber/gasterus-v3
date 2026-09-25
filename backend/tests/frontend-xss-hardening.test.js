@@ -42,3 +42,17 @@ test('server-fed frontend renderers escape dynamic values before HTML interpolat
   assert.match(index, /escapeHtml\(result\)/);
   assert.match(index, /escapeHtml\(marketSlug\)/);
 });
+test('market renderers fail closed and never fabricate OPEN windows', () => {
+  const marketPlay = read('frontend/js/market-play.js');
+  const member = read('frontend/js/member.js');
+  assert.doesNotMatch(marketPlay, /using fallback data|period:\s*['"]2982['"]|bettingStatus:\s*['"]OPEN['"]\s*,\s*closeAt:\s*new Date/);
+  assert.doesNotMatch(member, /Fallback markets|const dummy|period:\s*['"]2981['"]|bettingStatus:\s*['"]OPEN['"]\s*,\s*closeAt:\s*new Date/);
+  assert.match(marketPlay, /function isMarketBettable/);
+  assert.match(marketPlay, /Market sedang tidak tersedia/);
+  assert.match(marketPlay, /setBettingControlsDisabled/);
+  assert.match(member, /function marketsFromResponse/);
+  assert.match(member, /function isMarketBettable/);
+  assert.match(member, /function renderMarketsUnavailable/);
+  assert.match(member, /const marketAction = isBettable && marketCode/);
+  assert.match(member, /updateMarketCardState\(card, m\)/);
+});

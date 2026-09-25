@@ -58,20 +58,42 @@ async function loadMarkets() {
 
   try {
     const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
-    const markets = res.items || res.data || res || [];
+    const markets = marketsFromResponse(res);
+    if (!markets.length) {
+      renderMarketsUnavailable();
+      return;
+    }
     renderMarkets(markets);
   } catch (err) {
-    console.warn('Fallback markets for member area');
-    const dummy = [
-      { name: 'SINGAPORE', code: 'SGP', period: '2981', result: '7492', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 3600000).toISOString() },
-      { name: 'HONGKONG', code: 'HK', period: '1420', result: '3180', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 7200000).toISOString() },
-      { name: 'SYDNEY', code: 'SDY', period: '0854', result: '5921', bettingStatus: 'CLOSED', closeAt: null },
-      { name: 'MACAU 4D', code: 'MC4D', period: '4190', result: '8034', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 1800000).toISOString() },
-      { name: 'TAIWAN', code: 'TW', period: '1205', result: '9102', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 5400000).toISOString() },
-      { name: 'CAMBODIA', code: 'CMD', period: '3312', result: '4451', bettingStatus: 'OPEN', closeAt: new Date(Date.now() + 900000).toISOString() }
-    ];
-    renderMarkets(dummy);
+    console.warn('Live market data unavailable; market cards remain closed', err);
+    renderMarketsUnavailable();
   }
+}
+
+function marketsFromResponse(response) {
+  const candidate = Array.isArray(response)
+    ? response
+    : (response?.items ?? response?.data?.items ?? response?.data ?? []);
+  if (!Array.isArray(candidate)) return [];
+  return candidate.filter(market => market && typeof market === 'object' && !Array.isArray(market));
+}
+
+function isMarketClosed(market) {
+  const status = String(market?.bettingStatus || '').toUpperCase();
+  return status === 'CLOSED' || status === 'SUSPENDED';
+}
+
+function isMarketBettable(market, now = Date.now()) {
+  if (!market || market.available === false) return false;
+  const status = String(market.bettingStatus || '').toUpperCase();
+  const closeAt = Date.parse(String(market.closeAt || ''));
+  return status === 'OPEN' && Boolean(String(market.period || '').trim()) && Number.isFinite(closeAt) && closeAt > now;
+}
+
+function renderMarketsUnavailable() {
+  const container = document.getElementById('member-markets-container');
+  if (!container) return;
+  container.innerHTML = '<div class="alert alert-warning" role="status">Market sedang tidak tersedia. Silakan coba kembali nanti.</div>';
 }
 
 function renderMarkets(markets) {
@@ -79,18 +101,19 @@ function renderMarkets(markets) {
   if (!container) return;
 
   container.innerHTML = markets.map(m => {
-    const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
-    const statusBadge = isClosed
-      ? `<span class="badge badge-danger">TUTUP</span>`
-      : `<span class="badge badge-success">BUKA</span>`;
-
-    const digits = String(m.result ?? '----').slice(0, 4).split('');
-    const balls = digits.map(d => `<span class="ball-num" style="width:30px;height:30px;font-size:0.95rem;">${escapeHtml(d)}</span>`).join('');
+    const isBettable = isMarketBettable(m);
+    const isClosed = isMarketClosed(m);
+    const statusBadge = isBettable
+      ? `<span class="badge badge-success">BUKA</span>`
+      : isClosed
+        ? `<span class="badge badge-danger">TUTUP</span>`
+        : `<span class="badge badge-danger">TIDAK TERSEDIA</span>`;
+    const result = String(m.result ?? '----').slice(0, 4);
+    const balls = result.split('').map(d => `<span class="ball-num" style="width:30px;height:30px;font-size:0.95rem;">${escapeHtml(d)}</span>`).join('');
     const marketCode = String(m.code || m.slug || '');
-    const marketHref = `/market-play.html?code=${encodeURIComponent(marketCode)}`;
-    const marketAction = marketCode
-      ? `<a href="${escapeHtml(marketHref)}" class="btn btn-primary btn-sm btn-block btn-play">▶ BET DISINI</a>`
-      : `<button type="button" class="btn btn-secondary btn-sm btn-block btn-play" disabled>Pasaran tidak tersedia</button>`;
+    const marketAction = isBettable && marketCode
+      ? `<a href="${escapeHtml(`/market-play.html?code=${encodeURIComponent(marketCode)}`)}" class="btn btn-primary btn-sm btn-block btn-play">▶ BET DISINI</a>`
+      : `<button type="button" class="btn btn-secondary btn-sm btn-block btn-play" disabled>${isClosed ? 'Pasaran Tutup' : 'Market sedang tidak tersedia'}</button>`;
 
     return `
       <div class="member-market-card">
@@ -106,14 +129,50 @@ function renderMarkets(markets) {
         </div>
         <div style="display:flex; justify-content:space-between; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid var(--border-subtle); padding-top: 8px;">
           <span>Sisa Waktu:</span>
-          <span class="countdown-timer" data-close="${escapeHtml(m.closeAt || '')}">${isClosed ? 'Tutup' : '...'}</span>
+          <span class="countdown-timer" data-close="${isBettable ? escapeHtml(m.closeAt || '') : ''}">${isBettable ? '...' : isClosed ? 'Tutup' : 'Tidak tersedia'}</span>
         </div>
-        ${isClosed
-          ? `<button type="button" class="btn btn-secondary btn-sm btn-block btn-play" disabled>Pasaran Tutup</button>`
-          : marketAction}
+        ${marketAction}
       </div>
     `;
   }).join('');
+}
+
+function updateMarketCardState(card, market) {
+  const isBettable = isMarketBettable(market);
+  const isClosed = isMarketClosed(market);
+  const statusBadge = card.querySelector('.badge');
+  if (statusBadge) {
+    statusBadge.textContent = isBettable ? 'BUKA' : isClosed ? 'TUTUP' : 'TIDAK TERSEDIA';
+    statusBadge.className = isBettable ? 'badge badge-success' : 'badge badge-danger';
+  }
+  const countdownEl = card.querySelector('.countdown-timer');
+  if (countdownEl) {
+    if (isBettable) {
+      countdownEl.setAttribute('data-close', market.closeAt);
+      countdownEl.textContent = '...';
+    } else {
+      countdownEl.removeAttribute('data-close');
+      countdownEl.textContent = isClosed ? 'Tutup' : 'Tidak tersedia';
+    }
+  }
+  const btnEl = card.querySelector('.btn-play');
+  if (!btnEl) return;
+  if (isBettable) {
+    if (btnEl.tagName === 'BUTTON' && btnEl.disabled) {
+      const newBtn = document.createElement('a');
+      newBtn.href = '/market-play.html?code=' + encodeURIComponent(String(market.code || market.slug || ''));
+      newBtn.className = 'btn btn-primary btn-sm btn-block btn-play';
+      newBtn.textContent = '▶ BET DISINI';
+      btnEl.replaceWith(newBtn);
+    }
+  } else if (btnEl.tagName === 'A') {
+    const newBtn = document.createElement('button');
+    newBtn.type = 'button';
+    newBtn.className = 'btn btn-secondary btn-sm btn-block btn-play';
+    newBtn.disabled = true;
+    newBtn.textContent = isClosed ? 'Pasaran Tutup' : 'Market sedang tidak tersedia';
+    btnEl.replaceWith(newBtn);
+  }
 }
 
 function startTimers() {
@@ -164,13 +223,19 @@ function startMarketAutoUpdate() {
       // Fetch latest data at this market's close time
       try {
         const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
-        const markets = res.items || res.data || res || [];
-        if (!Array.isArray(markets) || !markets.length) return;
+        const markets = marketsFromResponse(res);
+        if (!markets.length) {
+          renderMarketsUnavailable();
+          return;
+        }
 
         const container = document.getElementById('member-markets-container');
         if (!container) return;
         const cards = container.querySelectorAll('.member-market-card');
-        if (!cards.length) return;
+        if (!cards.length) {
+          renderMarkets(markets);
+          return;
+        }
 
         // Find the market by code/slug and update only that one
         markets.forEach((m) => {
@@ -204,21 +269,16 @@ function startMarketAutoUpdate() {
             periodEl.textContent = 'Periode: #' + m.period;
           }
 
-          // Update status
-          const statusBadge = card.querySelector('.badge');
-          if (statusBadge) {
-            const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
-            statusBadge.textContent = isClosed ? 'TUTUP' : 'BUKA';
-            statusBadge.className = isClosed ? 'badge badge-danger' : 'badge badge-success';
-          }
+          // Update the complete market state from the server response.
+          updateMarketCardState(card, m);
 
-          // Schedule next update for this market using its new closeAt
-          if (m.closeAt) {
+          // Schedule next update only for a valid future close time.
+          if (isMarketBettable(m)) {
             scheduleUpdate(m.closeAt, cardIdx);
           }
         });
       } catch (e) {
-        // Silent fail
+        renderMarketsUnavailable();
       }
     }, delay);
 
@@ -229,11 +289,17 @@ function startMarketAutoUpdate() {
   setTimeout(async () => {
     try {
       const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
-      const markets = res.items || res.data || res || [];
+      const markets = marketsFromResponse(res);
+      if (!markets.length) {
+        renderMarketsUnavailable();
+        return;
+      }
       markets.forEach((m, idx) => {
-        if (m.closeAt) scheduleUpdate(m.closeAt, idx);
+        if (isMarketBettable(m)) scheduleUpdate(m.closeAt, idx);
       });
-    } catch (e) { /* silent */ }
+    } catch (e) {
+      renderMarketsUnavailable();
+    }
   }, 1000);
 }
 
@@ -243,13 +309,19 @@ function startAutoRefresh() {
   autoRefreshInterval = setInterval(async () => {
     try {
       const res = await api.get('/public/markets').catch(() => api.get('/member-api/markets'));
-      const markets = res.items || res.data || res || [];
-      if (!Array.isArray(markets) || !markets.length) return;
+      const markets = marketsFromResponse(res);
+      if (!markets.length) {
+        renderMarketsUnavailable();
+        return;
+      }
 
       const container = document.getElementById('member-markets-container');
       if (!container) return;
       const cards = container.querySelectorAll('.member-market-card');
-      if (!cards.length) return;
+      if (!cards.length) {
+        renderMarkets(markets);
+        return;
+      }
 
       markets.forEach((m) => {
         // Find matching card by market name
@@ -283,48 +355,11 @@ function startAutoRefresh() {
           periodEl.textContent = 'Periode: #' + m.period;
         }
 
-        // Update status badge
-        const statusBadge = card.querySelector('.badge');
-        if (statusBadge) {
-          const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
-          statusBadge.textContent = isClosed ? 'TUTUP' : 'BUKA';
-          statusBadge.className = isClosed ? 'badge badge-danger' : 'badge badge-success';
-        }
-
-        // Update close time for countdown
-        const countdownEl = card.querySelector('.countdown-timer');
-        if (countdownEl && m.closeAt) {
-          countdownEl.setAttribute('data-close', m.closeAt);
-        }
-
-        // Update button state
-        const isClosed = m.bettingStatus === 'CLOSED' || m.bettingStatus === 'SUSPENDED';
-        const btnEl = card.querySelector('.btn-play');
-        if (btnEl) {
-          if (isClosed) {
-            if (btnEl.tagName === 'A') {
-              // Replace <a> with <button disabled>
-              const newBtn = document.createElement('button');
-              newBtn.type = 'button';
-              newBtn.className = 'btn btn-secondary btn-sm btn-block btn-play';
-              newBtn.disabled = true;
-              newBtn.textContent = 'Pasaran Tutup';
-              btnEl.replaceWith(newBtn);
-            }
-          } else {
-            if (btnEl.tagName === 'BUTTON' && btnEl.disabled) {
-              // Replace <button disabled> with <a>
-              const newBtn = document.createElement('a');
-              newBtn.href = '/market-play.html?code=' + (m.code || m.slug);
-              newBtn.className = 'btn btn-primary btn-sm btn-block btn-play';
-              newBtn.textContent = '▶ BET DISINI';
-              btnEl.replaceWith(newBtn);
-            }
-          }
-        }
+        // Update the complete market state from the server response.
+        updateMarketCardState(card, m);
       });
     } catch (e) {
-      // Silent fail — will retry in 60s
+      renderMarketsUnavailable();
     }
   }, 60000); // 60 seconds
 }
