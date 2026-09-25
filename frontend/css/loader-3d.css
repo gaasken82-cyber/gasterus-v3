@@ -1,0 +1,218 @@
+/* ==========================================================================
+   GASTERUS v3 — 3D BRAND LOADER
+   Layar pembuka 3D berlogo GASTERUS saat halaman dimuat.
+   Bersifat selapis: tidak mengubah layout, hanya menutupi sebentar lalu
+   menghilang sendiri. Tidak pernah memblokir halaman.
+   ========================================================================== */
+
+.gasterus-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #1e3a8a 0%, #0f1e46 45%, #050b1c 100%);
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  opacity: 1;
+  transition: opacity 0.45s ease, visibility 0.45s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Cincin orbital 3D yang berputar di belakang logo */
+.gasterus-loader-ring {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  border: 2px solid rgba(96, 165, 250, 0.18);
+  border-top-color: rgba(96, 165, 250, 0.85);
+  border-right-color: rgba(59, 130, 246, 0.55);
+  animation: gasterusLoaderSpin 1.1s linear infinite;
+}
+
+.gasterus-loader-ring--two {
+  width: 340px;
+  height: 340px;
+  border-width: 1px;
+  border-color: rgba(148, 163, 184, 0.12);
+  border-bottom-color: rgba(14, 165, 233, 0.6);
+  animation-duration: 2.1s;
+  animation-direction: reverse;
+}
+
+.gasterus-loader-ring--three {
+  width: 420px;
+  height: 420px;
+  border-width: 1px;
+  border-color: rgba(148, 163, 184, 0.08);
+  border-left-color: rgba(59, 130, 246, 0.45);
+  animation-duration: 3.4s;
+}
+
+/* Cahayakedip di belakang logo */
+.gasterus-loader-glow {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.45) 0%, rgba(59, 130, 246, 0) 70%);
+  animation: gasterusLoaderGlow 2s ease-in-out infinite;
+}
+
+/* Kubus 3D yangyaw/parallax halus di belakang logo */
+.gasterus-loader-cube {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  transform-style: preserve-3d;
+  animation: gasterusLoaderCube 6s linear infinite;
+  opacity: 0.35;
+}
+
+.gasterus-loader-cube span {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(147, 197, 253, 0.5);
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.gasterus-loader-cube span:nth-child(1) { transform: translateZ(32px); }
+.gasterus-loader-cube span:nth-child(2) { transform: rotateY(90deg) translateZ(32px); }
+.gasterus-loader-cube span:nth-child(3) { transform: rotateY(180deg) translateZ(32px); }
+.gasterus-loader-cube span:nth-child(4) { transform: rotateY(-90deg) translateZ(32px); }
+.gasterus-loader-cube span:nth-child(5) { transform: rotateX(90deg) translateZ(32px); }
+.gasterus-loader-cube span:nth-child(6) { transform: rotateX(-90deg) translateZ(32px); }
+
+/* Logo GASTERUS */
+.gasterus-loader-logo {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #1e3a8a 0%, #0b1c40 100%);
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  box-shadow:
+    0 24px 60px rgba(2, 8, 23, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 0 44px rgba(59, 130, 246, 0.35);
+  animation: gasterusLoaderLogo 1.6s ease-in-out infinite;
+  overflow: hidden;
+}
+
+.gasterus-loader-logo img {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+}
+
+/* Kilau melintas di atas logo */
+.gasterus-loader-logo::after {
+  content: '';
+  position: absolute;
+  top: -60%;
+  left: -120%;
+  width: 60%;
+  height: 220%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: rotate(18deg);
+  animation: gasterusLoaderShine 2.2s ease-in-out infinite;
+}
+
+/* Tulisan brand */
+.gasterus-loader-brand {
+  position: relative;
+  font-weight: 900;
+  letter-spacing: 8px;
+  font-size: 22px;
+  color: #e2e8f0;
+  text-shadow: 0 2px 18px rgba(59, 130, 246, 0.6);
+  animation: gasterusLoaderBrand 1.6s ease-in-out infinite;
+}
+
+.gasterus-loader-tagline {
+  position: relative;
+  font-size: 11px;
+  letter-spacing: 3px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+/* Bar progres tipis */
+.gasterus-loader-bar {
+  position: relative;
+  width: 168px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.18);
+  overflow: hidden;
+}
+
+.gasterus-loader-bar span {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa, #0ea5e9);
+  animation: gasterusLoaderBar 1.1s ease-in-out infinite;
+}
+
+/* Keadaan selesai: hilang tanpa mengganggu layout */
+.gasterus-loader.is-done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@keyframes gasterusLoaderSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes gasterusLoaderGlow {
+  0%, 100% { opacity: 0.45; transform: scale(0.92); }
+  50% { opacity: 0.9; transform: scale(1.08); }
+}
+
+@keyframes gasterusLoaderCube {
+  from { transform: rotateX(0deg) rotateY(0deg); }
+  to { transform: rotateX(360deg) rotateY(360deg); }
+}
+
+@keyframes gasterusLoaderLogo {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-7px) scale(1.035); }
+}
+
+@keyframes gasterusLoaderBrand {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 1; }
+}
+
+@keyframes gasterusLoaderShine {
+  0% { left: -120%; }
+  55%, 100% { left: 150%; }
+}
+
+@keyframes gasterusLoaderBar {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(260%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gasterus-loader-ring,
+  .gasterus-loader-glow,
+  .gasterus-loader-cube,
+  .gasterus-loader-logo,
+  .gasterus-loader-brand,
+  .gasterus-loader-logo::after,
+  .gasterus-loader-bar span {
+    animation: none !important;
+  }
+}
