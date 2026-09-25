@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Notifikasi — GASTERUS V3</title>
-  <meta name="description" content="Notifikasi kemenangan, persetujuan setoran, dan perubahan saldo untuk member Gasterus v3.">
+  <title>Mutasi Saldo — GASTERUS V3</title>
+  <meta name="description" content="Riwayat mutasi saldo member Gasterus v3: setoran, penarikan, bets, dan pembayaran.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
     }
   </script>
 </head>
-<body class="page-notifications">
+<body class="page-wallet-ledger">
   <div class="site">
 
     <header class="brand-bar">
@@ -33,42 +33,41 @@
     </header>
 
     <div class="page-header">
-      <h1 class="page-title">Notifikasi</h1>
-      <p class="page-subtitle">Kabar kemenangan, persetujuan setoran, dan perubahan status untuk Anda</p>
+      <h1 class="page-title">Mutasi Saldo</h1>
+      <p class="page-subtitle">Setiap uang masuk dan keluar tercatat di sini</p>
     </div>
 
-    <div class="filter-tabs">
-      <button class="filter-tab active" data-unread="0">Semua</button>
-      <button class="filter-tab" data-unread="1">Belum Dibaca</button>
-    </div>
-
-    <div class="history-card" id="notification-card">
+    <div class="history-card" id="ledger-card">
       <div class="history-card-header">
         <span class="history-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            <path d="M3 3v18h18"/>
+            <path d="M19 9l-5 5-4-4-3 3"/>
           </svg>
         </span>
-        <h3>Daftar Notifikasi</h3>
+        <h3>Riwayat Mutasi</h3>
       </div>
       <div class="table-responsive">
         <table class="data-table">
           <thead>
             <tr>
               <th>Waktu</th>
-              <th>Jenis</th>
-              <th>Pesan</th>
+              <th>Keterangan</th>
               <th>Nominal</th>
+              <th>Saldo Akhir</th>
             </tr>
           </thead>
-          <tbody id="notification-tbody">
+          <tbody id="ledger-tbody">
             <tr>
               <td colspan="4" class="loading-cell">
                 <div class="loading-spinner"></div>
-                Memuat notifikasi...
+                Memuat mutasi...
               </td>
             </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
   <div class="nav-drawer-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="site-nav-drawer" aria-label="Navigasi utama">
@@ -85,6 +84,7 @@
       <a class="nav-drawer-item" href="/notifications.html">Notifikasi</a>
       <a class="nav-drawer-item" href="/wallet-ledger.html">Mutasi Saldo</a>
       <a class="nav-drawer-item" href="/gaming-history.html">Riwayat Permainan</a>
+      <a class="nav-drawer-item" href="/wallet-ledger.html">Mutasi Saldo</a>
       <a class="nav-drawer-item" href="/deposit.html">Setor</a>
       <a class="nav-drawer-item" href="/withdraw.html">Tarik</a>
       <a class="nav-drawer-item" href="/promotion.html">Promo</a>
@@ -99,6 +99,7 @@
       <a href="terms.html">Terms</a>
     </div>
     <div>&copy; Copyright 2014 - 2026 GASTERUS. All Rights Reserved.</div>
+  </footer>
 
   <script>
     (function () {
@@ -128,88 +129,75 @@
     })();
   </script>
 
+
+
   <script type="module">
     import api from '/js/api.js';
     import auth from '/js/auth.js';
     import { formatRupiah, formatDateTime, escapeHtml } from '/js/utils.js';
 
     const esc = escapeHtml;
-    const tbody = document.getElementById('notification-tbody');
-    let unreadOnly = 0;
+    const tbody = document.getElementById('ledger-tbody');
 
-    // Peta jenis notifikasi ke label berbahasa Indonesia. Kolom notification_type
-    // memakai nilai enum dari tabel member_notifications.
-    const JENIS = {
-      DEPOSIT_APPROVED: 'Setoran Disetujui',
-      WITHDRAW_APPROVED: 'Penarikan Disetujui',
-      WALLET_REJECTED: 'Permintaan Ditolak',
-      TOGEL_WIN: 'Kemenangan Togel',
-      SPORTSBOOK_WIN: 'Kemenangan Sportsbook',
-      BET_SETTLED: 'Taruhan Selesai',
-      SYSTEM: 'Informasi Sistem'
+    // Keterangan mutasi memakai transaction_type dari tabel ledger_transactions.
+    // Nilai taken langsung dari server, tidak ada teks buatan di sisi klien.
+    const KETERANGAN = {
+      DEPOSIT: 'Setoran',
+      WITHDRAW: 'Penarikan',
+      BET_PLACED: 'Pasang TARuhan',
+      BET_WON: 'Kemenangan',
+      BET_LOST: 'Kalah',
+      BET_CANCELLED: 'Taruhan Dibatalkan',
+      BET_VOID: 'Taruhan Void',
+      BET_HOLD: 'Dana Ditahan',
+      BET_RELEASE: 'Dana Dilepas',
+      BET_SETTLEMENT: 'Penyelesaian'
     };
 
-    function jenisLabel(type) {
-      return JENIS[String(type || '').toUpperCase()] || 'Informasi';
+    function keteranganLabel(type) {
+      return KETERANGAN[String(type || '').toUpperCase()] || 'Transaksi';
     }
 
-    async function loadNotifications() {
-      tbody.innerHTML = '<tr><td colspan="4" class="loading-cell"><div class="loading-spinner"></div>Memuat notifikasi...</td></tr>';
+    async function loadLedger() {
+      tbody.innerHTML = '<tr><td colspan="4" class="loading-cell"><div class="loading-spinner"></div>Memuat mutasi...</td></tr>';
       try {
-        const res = await api.get('/member/notifications?limit=50' + (unreadOnly ? '&unreadOnly=true' : ''));
-        const items = Array.isArray(res) ? res : (res?.items ?? res?.data?.items ?? res?.data ?? []);
+        const res = await api.get('/member/wallet-ledger?limit=100');
+        const items = Array.isArray(res) ? res : (res?.items ?? res?.data ?? []);
 
         if (!Array.isArray(items) || items.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">Belum ada notifikasi</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">Belum ada mutasi saldo</td></tr>';
           return;
         }
 
-        tbody.innerHTML = items.map(function (n) {
-          const waktu = formatDateTime(n.createdAt);
-          const jenis = jenisLabel(n.type);
-          const pesan = esc(String(n.message || '-'));
-          // Nominal hanya ditampilkan bila ada. Jangan pernah membuat angka di klien.
-          const nominal = (n.amount === null || n.amount === undefined)
+        tbody.innerHTML = items.map(function (x) {
+          const masuk = x.direction === 'CREDIT';
+          // Arah dan nominal berasal dari backend, tidak dihitung di klien.
+          const nominal = (masuk ? '+' : '-') + formatRupiah(Number(x.amount || 0));
+          const warna = masuk ? 'badge-success' : 'badge-danger';
+          const saldo = (x.balanceAfter === null || x.balanceAfter === undefined)
             ? '<span style="opacity:.55">-</span>'
-            : formatRupiah(Number(n.amount));
+            : formatRupiah(Number(x.balanceAfter));
           return `
             <tr>
-              <td>${waktu}</td>
-              <td><span class="badge badge-info">${esc(jenis)}</span></td>
-              <td>${pesan}</td>
+              <td>${formatDateTime(x.createdAt)}</td>
+              <td><span class="badge ${warna}">${esc(keteranganLabel(x.reason))}</span></td>
               <td class="amount-cell">${nominal}</td>
+              <td class="amount-cell">${saldo}</td>
             </tr>
           `;
         }).join('');
       } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="4" class="error-cell">Gagal memuat notifikasi: ' + esc(err.message) + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="error-cell">Gagal memuat mutasi: ' + esc(err.message) + '</td></tr>';
       }
     }
-
-    document.querySelectorAll('.filter-tab').forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        document.querySelectorAll('.filter-tab').forEach(function (t) { t.classList.remove('active'); });
-        tab.classList.add('active');
-        unreadOnly = Number(tab.dataset.unread || 0);
-        loadNotifications();
-      });
-    });
 
     if (!auth.isLoggedIn()) {
       location.href = '/index.html';
     } else {
-      loadNotifications();
+      loadLedger();
     }
   </script>
 </body>
 </html>
-
-
-  </footer>
-
-          </tbody>
-        </table>
-      </div>
-    </div>
 
   </div>
