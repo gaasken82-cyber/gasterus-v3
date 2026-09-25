@@ -290,9 +290,27 @@ async function renderOnce(url, options = {}) {
   }
 }
 
+// Expired-sweep (bukan count-prune): nilai entri adalah HTML mentah yang bisa besar,
+// jadi memangkas berdasarkan jumlah berisiko. Kunci render bersifat statis per sumber
+// sehingga menyapu entri yang sudah lewat TTL cukup untuk melepas page basi tanpa
+// pernah menyentuh entri yang sedang di-render (inFlight) maupun entri masih hidup.
+const RENDER_CACHE_SWEEP_THRESHOLD = 20;
+const RENDER_CACHE_SWEEP_GRACE_MS = 60_000;
+function sweepExpiredRenderCache(now = Date.now(), graceMs = RENDER_CACHE_SWEEP_GRACE_MS) {
+  if (renderCache.size <= RENDER_CACHE_SWEEP_THRESHOLD) return 0;
+  let removed = 0;
+  for (const [key, entry] of [...renderCache]) {
+    if (!entry) { renderCache.delete(key); removed += 1; continue; }
+    if (entry.inFlight) continue; // render sedang berjalan; jangan ganggu
+    if (!entry.value || entry.expiresAt + graceMs <= now) { renderCache.delete(key); removed += 1; }
+  }
+  return removed;
+}
+
 export async function renderSportsbookPage(url, options = {}) {
   const key = String(url);
   const now = Date.now();
+  sweepExpiredRenderCache(now);
   const ttlMs = Math.max(1000, Number(options.cacheSeconds || 20) * 1000);
   const cached = renderCache.get(key);
   if (cached?.value && now < cached.expiresAt) return { ...cached.value, cacheHit: true };
@@ -310,6 +328,13 @@ export async function renderSportsbookPage(url, options = {}) {
   renderCache.set(key, { value: cached?.value || null, expiresAt: cached?.expiresAt || 0, inFlight });
   return inFlight;
 }
+
+export const __browserRenderer = {
+  renderCache,
+  sweepExpiredRenderCache,
+  RENDER_CACHE_SWEEP_THRESHOLD,
+  RENDER_CACHE_SWEEP_GRACE_MS
+};
 
 export function browserRendererStatus() {
   return {
