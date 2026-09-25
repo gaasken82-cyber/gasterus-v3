@@ -182,7 +182,7 @@ async function ensureLotteryConfigs(db,marketId){
 }
 
 export async function bettingConfig(identifier,client=null){
-  const db=client||{query};const m=await marketByIdentifier(identifier,client);await db.query(`INSERT INTO market_betting_configs(market_id) VALUES($1) ON CONFLICT(market_id) DO NOTHING`,[m.id]);await ensureLotteryConfigs(db,m.id);
+  const db=client||{query};const m=await marketByIdentifier(identifier,client);await db.query(`INSERT INTO market_betting_configs(market_id,betting_status) VALUES($1,'SUSPENDED') ON CONFLICT(market_id) DO NOTHING`,[m.id]);await ensureLotteryConfigs(db,m.id);
   const {rows}=await db.query(`SELECT c.*,m.slug,m.code,m.name,m.provider_path,m.period AS result_period,m.status AS source_status,m.verification_status AS result_verification_status FROM market_betting_configs c JOIN markets m ON m.id=c.market_id WHERE m.id=$1`,[m.id]);
   const games=(await db.query(`SELECT * FROM lottery_game_configs WHERE market_id=$1`,[m.id])).rows;
   return mapConfig(rows[0],games);
