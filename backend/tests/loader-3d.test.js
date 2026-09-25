@@ -24,6 +24,30 @@ test('semua halaman memakai satu token cache untuk mobile-blue.css', () => {
   assert.equal(tokens.size, 1, `token cache harus satu, ditemukan: ${[...tokens].join(', ')}`);
 });
 
+test('halaman promosi mendefinisikan sendiri semua kelas dan spacing yang dipakainya', () => {
+  const html = read('frontend/promotion.html');
+  // promotion.html memakai kelas dari layout/components yang tidak dimuat di
+  // halaman ini. Kalau tidak didefinisikan ulang, spacing dan footer jadi rusak.
+  const selfScoped = html.match(/\.page-promotion \{([\s\S]*?)\}/)[1];
+  for (const step of ['1', '2', '3', '4', '5', '6', '8', '10']) {
+    assert.match(selfScoped, new RegExp(`--space-${step}:`), `--space-${step} belum didefinisikan`);
+  }
+  for (const className of ['app-main', 'container', 'app-footer', 'footer-links', 'footer-bottom', 'badge-info', 'nav-drawer-item']) {
+    assert.match(html, new RegExp(`\\.page-promotion \\.${className}\\b`), `.${className} belum diberi gaya`);
+  }
+  // Kepala halaman dan statistik harus memakai pembungkus yang rapi.
+  assert.match(html, /<section class="promo-hero">/);
+  assert.match(html, /class="promo-hero-eyebrow"/);
+  assert.match(html, /class="promo-hero-title"/);
+  assert.match(html, /class="promo-hero-stats"/);
+  // Struktur penutup harus seimbang.
+  assert.equal((html.match(/<div/g) || []).length, (html.match(/<\/div>/g) || []).length, 'jumlah div tidak seimbang');
+  // Label antarmuka harus bahasa Indonesia.
+  assert.doesNotMatch(html, />Privacy</);
+  assert.doesNotMatch(html, />Terms</);
+  assert.doesNotMatch(html, />Responsible Gaming</);
+});
+
 test('animations.css dimuat tepat satu kali dan setelah mobile-blue.css', () => {
   for (const name of frontendPages) {
     const html = read(`frontend/${name}`);

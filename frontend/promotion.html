@@ -226,6 +226,343 @@
     .promo-table tr:last-child td {
       border-bottom: none;
     }
+
+    /* ====================================================================
+       LAYER KEJELASAN + IDENTITAS PERUSAHAAN
+       promotion.html memakai kelas dan variabel spacing dari sistem CSS
+       lain (layout/components) yang tidak dimuat di halaman ini. Semuanya
+       didefinisikan di sini supaya halaman tetap rapi dan tidak bergantung
+       file yang tidak ikut dimuat.
+       ==================================================================== */
+
+    .page-promotion {
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+    }
+
+    .page-promotion .app-main {
+      flex: 1 0 auto;
+      padding: var(--space-6) 0 var(--space-10);
+    }
+
+    .page-promotion .container {
+      width: 100%;
+      max-width: 430px;
+      margin-inline: auto;
+      padding-inline: var(--space-4);
+      box-sizing: border-box;
+    }
+
+    /* Kepala halaman: identitas visual yang rapi dan konsisten */
+    .promo-hero {
+      position: relative;
+      margin-bottom: var(--space-6);
+      padding: var(--space-6) var(--space-5);
+      border-radius: 16px;
+      overflow: hidden;
+      text-align: center;
+      background: linear-gradient(160deg, rgba(30, 58, 138, 0.55) 0%, rgba(15, 23, 42, 0.85) 100%);
+      border: 1px solid rgba(96, 165, 250, 0.28);
+      box-shadow: 0 18px 44px rgba(2, 6, 23, 0.55);
+    }
+
+    .promo-hero::before {
+      content: '';
+      position: absolute;
+      inset: -40% -20% auto -20%;
+      height: 160px;
+      background: radial-gradient(closest-side, rgba(59, 130, 246, 0.35), transparent);
+      pointer-events: none;
+    }
+
+    .promo-hero > * { position: relative; }
+
+    .promo-hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: var(--space-3);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 1.4px;
+      color: #bfdbfe;
+      background: rgba(59, 130, 246, 0.18);
+      border: 1px solid rgba(96, 165, 250, 0.35);
+    }
+
+    .promo-hero-title {
+      margin: 0 0 var(--space-2);
+      font-family: 'Outfit', 'Inter', sans-serif;
+      font-size: 1.65rem;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.3px;
+      color: #f8fafc;
+    }
+
+    .promo-hero-sub {
+      margin: 0 auto;
+      max-width: 34ch;
+      font-size: 0.86rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+
+    .promo-hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-2);
+      margin-top: var(--space-5);
+      padding-top: var(--space-4);
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .promo-hero-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .promo-hero-stat b {
+      font-family: 'Outfit', 'Inter', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #7dd3fc;
+    }
+
+    .promo-hero-stat span {
+      font-size: 0.68rem;
+      letter-spacing: 0.4px;
+      color: #94a3b8;
+      text-transform: uppercase;
+    }
+
+    /* Kartu promo: elevate, rapikan, dan beri hierarki yang jelas */
+    .page-promotion .promo-card {
+      border-radius: 16px;
+      border-width: 1px;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.9) 0%, rgba(9, 14, 30, 0.92) 100%);
+      box-shadow: 0 10px 28px rgba(2, 6, 23, 0.45);
+      transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+    }
+
+    .page-promotion .promo-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 46px rgba(2, 6, 23, 0.6);
+    }
+
+    .page-promotion .promo-banner-wrap {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    }
+
+    .page-promotion .promo-title {
+      font-family: 'Outfit', 'Inter', sans-serif;
+      font-size: 1.06rem;
+      font-weight: 700;
+      letter-spacing: -0.1px;
+    }
+
+    .page-promotion .promo-desc {
+      font-size: 0.87rem;
+      color: #b6c2d4;
+    }
+
+    /* Badge status: bentuk dan kontras seragam */
+    .page-promotion .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 0.64rem;
+      font-weight: 800;
+      letter-spacing: 0.7px;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+
+    .page-promotion .badge-warning {
+      color: #fde68a;
+      background: rgba(245, 158, 11, 0.16);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .page-promotion .badge-success {
+      color: #6ee7b7;
+      background: rgba(16, 185, 129, 0.16);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .page-promotion .badge-info {
+      color: #bae6fd;
+      background: rgba(2, 132, 199, 0.18);
+      border: 1px solid rgba(56, 189, 248, 0.42);
+    }
+
+    /* Tombol aksi di dalam drawer */
+    .page-promotion .btn {
+      display: block;
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      text-align: center;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .page-promotion .btn-primary {
+      color: #ffffff;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border-color: rgba(147, 197, 253, 0.45);
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.32);
+    }
+
+    .page-promotion .btn-secondary {
+      color: #e0f2fe;
+      background: rgba(2, 132, 199, 0.2);
+      border-color: rgba(56, 189, 248, 0.45);
+    }
+
+    .page-promotion .btn-block {
+      display: block;
+      margin-top: var(--space-4);
+    }
+
+    .page-promotion .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .page-promotion .btn:active { transform: translateY(0); }
+
+    /* Tabel hadiah: zebra baris + header yang tegas */
+    .page-promotion .promo-table { border-radius: 10px; }
+
+    .page-promotion .promo-table thead th {
+      font-size: 0.68rem;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .page-promotion .promo-table tbody tr:nth-child(odd) {
+      background: rgba(30, 41, 59, 0.35);
+    }
+
+    .page-promotion .promo-table tbody tr:hover {
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    /* Kotak syarat: pemisah yang jelas dari tabel */
+    .page-promotion .promo-rules-box {
+      border-radius: 10px;
+      background: rgba(2, 6, 23, 0.55);
+    }
+
+    .page-promotion .promo-rules-title {
+      font-size: 0.78rem;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    .page-promotion .promo-rules-list li + li {
+      padding-top: 8px;
+      border-top: 1px dashed rgba(148, 163, 184, 0.14);
+    }
+
+    /* Drawer: transisi halus dan area yang lapang */
+    .page-promotion .promo-drawer {
+      border-top-color: rgba(148, 163, 184, 0.18);
+    }
+
+    .page-promotion .promo-toggle-btn {
+      border-radius: 10px;
+      font-size: 0.85rem;
+    }
+
+    /* Footer yang sebelumnya tidak punya gaya sama sekali */
+    .page-promotion .app-footer {
+      margin-top: auto;
+      padding: var(--space-6) var(--space-4) var(--space-8);
+      text-align: center;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .page-promotion .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--space-4);
+      margin-bottom: var(--space-3);
+    }
+
+    .page-promotion .footer-links a {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .page-promotion .footer-links a:hover { color: #7dd3fc; }
+
+    .page-promotion .footer-bottom {
+      font-size: 0.72rem;
+      color: #64748b;
+    }
+
+    /* Menu navigasi ikut diberi gaya agar tidak polos */
+    .page-promotion .nav-drawer-body {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .page-promotion .nav-drawer-item {
+      display: block;
+      padding: 11px 12px;
+      border-radius: 9px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .page-promotion .nav-drawer-item:hover {
+      background: rgba(56, 189, 248, 0.1);
+      color: #e0f2fe;
+    }
+
+    /* Muncul halus saat halaman dibuka */
+    .page-promotion .fade-in { animation: promoFadeUp 0.45s ease both; }
+
+    @keyframes promoFadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 380px) {
+      .promo-hero-title { font-size: 1.42rem; }
+      .promo-hero-stats { grid-template-columns: 1fr; gap: var(--space-3); text-align: left; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .page-promotion .fade-in { animation: none; }
+      .page-promotion .promo-card,
+      .page-promotion .btn,
+      .page-promotion .nav-drawer-item { transition: none; }
+    }
   </style>
 </head>
 <body class="page-promotion">
@@ -273,11 +610,16 @@
 
   <main class="app-main">
     <div class="container">
-      <div style="text-align: center; max-width: 680px; margin-inline: auto; margin-bottom: var(--space-8);">
-        <span class="badge badge-warning" style="margin-bottom: var(--space-2);">PROMOSI AKTIF</span>
-        <h1 style="font-size: 2.2rem;">Bonus & Keuntungan Member</h1>
-        <p>Nikmati promo dan diskon taruhan paling menguntungkan yang dihitung transparan tanpa syarat tersembunyi.</p>
-      </div>
+      <section class="promo-hero">
+        <span class="promo-hero-eyebrow">PROMOSI AKTIF</span>
+        <h1 class="promo-hero-title">Bonus &amp; Keuntungan Member</h1>
+        <p class="promo-hero-sub">Nikmati promo dan diskon Parenting paling menguntungkan yang dihitung transparan tanpa syarat tersembunyi.</p>
+        <div class="promo-hero-stats">
+          <div class="promo-hero-stat"><b>8</b><span>Promo</span></div>
+          <div class="promo-hero-stat"><b>66%</b><span>Diskon 4D</span></div>
+          <div class="promo-hero-stat"><b>3%</b><span>Bonus Referral</span></div>
+        </div>
+      </section>
 
       <!-- Promotional Cards Grid (Single Unique Card per Promo with Expandable Rules) -->
       <div class="promo-grid">
@@ -760,15 +1102,16 @@
   </main>
 
   <footer class="app-footer">
-    
+    <div class="container">
       <div class="footer-links">
-        <a href="privacy.html">Privacy</a>
-        <a href="responsible-play.html">Responsible Gaming</a>
-        <a href="terms.html">Terms</a>
+        <a href="/rules.html">Peraturan</a>
+        <a href="/responsible-play.html">Bermain Bertanggung Jawab</a>
+        <a href="/privacy.html">Kebijakan Privasi</a>
+        <a href="/terms.html">Syarat &amp; Ketentuan</a>
       </div>
-
-      <div class="container footer-bottom">
-      &copy; 2026 GASTERUS V3. Platform Togel Resmi & Sportsbook.
+      <div class="footer-bottom">
+        &copy; 2026 GASTERUS. Platform Togel Resmi &amp; Sportsbook. Hanya untuk pengguna 18+.
+      </div>
     </div>
   </footer>
 <script>
