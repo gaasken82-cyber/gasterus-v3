@@ -20,6 +20,19 @@ test('bet history uses the shared HTML escaper', () => {
   assert.match(source, /const esc = escapeHtml;/);
 });
 
+test('pendaftaran gagal tertutup saat captcha tidak dapat diterbitkan', () => {
+  const register = read('frontend/js/register.js');
+  // Kode captcha palsu tidak boleh pernah ditampilkan ke calon member.
+  assert.doesNotMatch(register, /local-dummy-challenge/);
+  assert.doesNotMatch(register, /using offline placeholder/);
+  assert.doesNotMatch(register, /89X2B/);
+  // Kalau server tidak bisa menerbitkan captcha, challenge harus dibatalkan
+  // dan member diberi tahu harus memuat ulang, bukan menebak jawaban.
+  assert.match(register, /currentChallengeId = null;/);
+  assert.match(register, /Kode keamanan sedang tidak tersedia/);
+  assert.match(register, /reg-captcha-code/);
+});
+
 test('halaman pasang wager gagal tertutup dan tidak pernah membuat angka palsu', () => {
   const mp = read('frontend/js/market-play.js');
   // Angka palsu yang dulu dipakai saat API gagal harus benar-benar hilang.

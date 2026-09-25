@@ -143,11 +143,16 @@ async function loadCaptcha() {
       container.innerHTML = `<img src="${escapeHtml(data.image)}" alt="Captcha" style="display:block;max-width:100%;height:auto;">`;
     }
   } catch (err) {
-    console.warn('Captcha load error, using offline placeholder', err);
+    // Fail-closed: jangan pernah menampilkan kode captcha palsu. Kalau server
+    // tidak bisa menerbitkan captcha, pendaftaran harus dihentikan supaya user
+    // tidak mengetik jawaban palsu lalu gagal tanpa tahu harus memuat ulang.
+    console.warn('Captcha load error; registration disabled until retry', err);
+    currentChallengeId = null;
     if (container) {
-      container.innerHTML = `<span style="font-weight:900;letter-spacing:4px;color:#111;padding:8px;">89X2B</span>`;
-      currentChallengeId = 'local-dummy-challenge';
+      container.innerHTML = '<span style="display:block;text-align:center;font-size:0.8rem;color:#b91c1c;padding:8px;">Kode keamanan sedang tidak tersedia. Silakan muat ulang halaman.</span>';
     }
+    const captchaInput = document.getElementById('reg-captcha-code');
+    if (captchaInput) captchaInput.disabled = true;
   }
   if (refreshBtn) refreshBtn.disabled = false;
 }
