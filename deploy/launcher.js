@@ -59,7 +59,7 @@ function start(label,cwd,args,env={},critical=true){const startedAt=Date.now();c
 function recover(label,state){const current=state || {};const max=3;const nextRestarts=(restartCounts.get(label)||0)+1;restartCounts.set(label,nextRestarts);if(nextRestarts<=max){console.error(`[${label}] recovery restart ${nextRestarts}/${max}`);setTimeout(()=>start(label,current.cwd,current.args,current.env,current.critical),3000).unref();return;}console.error(`[${label}] recovery exhausted`);if(label==='core')fatal(label);}
 function fatal(label){if(stopping)return;stopping=true;fatalReason=label;console.error(`Critical process failed: ${label}. Stopping consolidated service.`);for(const {child} of children.values())child.kill('SIGTERM');setTimeout(()=>process.exit(1),8000).unref();}
 function fatalSignal(type,error){
-  console.error(JSON.stringify({service:'asean777-launcher',event:type,message:error?.message || String(error),stack:error?.stack || null}));
+  console.error(JSON.stringify({service:'gasterus-launcher',event:type,message:error?.message || String(error),stack:error?.stack || null}));
   fatal(type);
 }
 process.on('uncaughtException', error => fatalSignal('uncaughtException', error));
@@ -72,11 +72,11 @@ const internalCommon={HOST:'127.0.0.1',CORE_HOST:'127.0.0.1',CORE_PORT:String(CO
 const onRailway=Boolean(process.env.RAILWAY_DEPLOYMENT_ID || process.env.RAILWAY_ENVIRONMENT_ID);
 const runStartupMigrations=bool('RUN_STARTUP_MIGRATIONS', !onRailway);
 
-console.log(JSON.stringify({service:'asean777-launcher',version:'6.9.0.5',phase:'startup',publicPort:PUBLIC_PORT,corePort:CORE_INTERNAL_PORT,memberPort:MEMBER_INTERNAL_PORT,adminPort:ADMIN_INTERNAL_PORT,onRailway,runStartupMigrations}));
+console.log(JSON.stringify({service:'gasterus-launcher',version:'6.9.0.5',phase:'startup',publicPort:PUBLIC_PORT,corePort:CORE_INTERNAL_PORT,memberPort:MEMBER_INTERNAL_PORT,adminPort:ADMIN_INTERNAL_PORT,onRailway,runStartupMigrations}));
 // Bind Railway's public PORT immediately. /healthz remains 503 until Core/Member/Admin are ready,
 // preventing edge-level 502 during cold start while preserving the readiness gate.
 start('gateway',deployDir,['gateway.js'],{CORE_INTERNAL_PORT:String(CORE_INTERNAL_PORT),MEMBER_INTERNAL_PORT:String(MEMBER_INTERNAL_PORT),ADMIN_INTERNAL_PORT:String(ADMIN_INTERNAL_PORT)},true);
-console.log(JSON.stringify({service:'asean777-launcher',version:'6.9.0.5',phase:'public-port-bound',host:process.env.HOST||'0.0.0.0',port:PUBLIC_PORT}));
+console.log(JSON.stringify({service:'gasterus-launcher',version:'6.9.0.5',phase:'public-port-bound',host:process.env.HOST||'0.0.0.0',port:PUBLIC_PORT}));
 await runWithRetry('dependency readiness',coreDir,['migrations/wait-dependencies.js'],{},20,3000);
 if(runStartupMigrations){
   await runWithRetry('database migration',coreDir,['migrations/migrate.js'],{},3,3000);
@@ -85,11 +85,11 @@ if(runStartupMigrations){
 await runWithRetry('schema readiness',coreDir,['migrations/schema-ready.js'],{},5,2000);
 start('core',coreDir,['src/server.js'],{HOST:'127.0.0.1',PORT:String(CORE_INTERNAL_PORT)});
 await waitReady(`${coreUrl}/ready`);
-if(bool('WORKER_ENABLED',true))start('worker',coreDir,['src/worker.js'],{HOST:'127.0.0.1',PORT:String(CORE_INTERNAL_PORT)});else console.log(JSON.stringify({service:'asean777-launcher',version:'6.9.0.5',phase:'worker-skipped',workerEnabled:false}));
-if(bool('FEED_WORKER_ENABLED',true))start('feed-worker',coreDir,['src/feed-worker.js'],{HOST:'127.0.0.1'});else console.log(JSON.stringify({service:'asean777-launcher',version:'6.9.0.5',phase:'feed-worker-skipped',feedWorkerEnabled:false}));
+if(bool('WORKER_ENABLED',true))start('worker',coreDir,['src/worker.js'],{HOST:'127.0.0.1',PORT:String(CORE_INTERNAL_PORT)});else console.log(JSON.stringify({service:'gasterus-launcher',version:'6.9.0.5',phase:'worker-skipped',workerEnabled:false}));
+if(bool('FEED_WORKER_ENABLED',true))start('feed-worker',coreDir,['src/feed-worker.js'],{HOST:'127.0.0.1'});else console.log(JSON.stringify({service:'gasterus-launcher',version:'6.9.0.5',phase:'feed-worker-skipped',feedWorkerEnabled:false}));
 start('member',deployDir,['member-server.js'],{...internalCommon,PORT:String(MEMBER_INTERNAL_PORT)});
 start('admin',adminDir,['server.js'],{...internalCommon,PORT:String(ADMIN_INTERNAL_PORT)});
 await Promise.all([waitReady(`http://127.0.0.1:${MEMBER_INTERNAL_PORT}/ready`),waitReady(`http://127.0.0.1:${ADMIN_INTERNAL_PORT}/ready`)]);
-console.log(JSON.stringify({service:'asean777-launcher',version:'6.9.0.5',status:'all-services-ready'}));
+console.log(JSON.stringify({service:'gasterus-launcher',version:'6.9.0.5',status:'all-services-ready'}));
 function shutdown(signal){if(stopping)return;stopping=true;console.log(`Consolidated shutdown requested: ${signal}`);for(const {child} of children.values())child.kill('SIGTERM');setTimeout(()=>process.exit(0),9000).unref();}
 process.on('SIGTERM',()=>shutdown('SIGTERM'));process.on('SIGINT',()=>shutdown('SIGINT'));

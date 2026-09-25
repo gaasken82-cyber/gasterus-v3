@@ -5,7 +5,7 @@ import { logger } from '../src/logger.js';
 
 const dir = resolve(process.cwd(), 'migrations');
 const files = (await readdir(dir)).filter(name => /^\d+_.*\.sql$/.test(name)).sort();
-const lockName = 'asean777-schema-migrations-v2';
+const lockName = 'gasterus-schema-migrations-v2';
 
 function unwrapTransaction(sql) {
   let body = String(sql).replace(/^\s*BEGIN\s*;\s*/i, '');

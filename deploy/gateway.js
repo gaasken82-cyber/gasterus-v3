@@ -174,6 +174,6 @@ const server = createServer(async (req,res) => {
   return proxy(req,res,MEMBER_PORT,`${url.pathname}${url.search}`);
 });
 server.keepAliveTimeout=65000; server.headersTimeout=66000; server.requestTimeout=30000; server.maxHeadersCount=100;
-server.listen(PORT,HOST,()=>console.log(JSON.stringify({service:'asean777-app-gateway',status:'ready',host:HOST,port:PORT,adminMode:PATH_MODE?'path':'host',adminPathPrefix:PATH_MODE?ADMIN_PATH_PREFIX:null,loginRateLimit:{failedAttempts:ADMIN_LOGIN_LIMIT,windowSeconds:ADMIN_LOGIN_WINDOW_MS/1000}})));
+server.listen(PORT,HOST,()=>console.log(JSON.stringify({service:'gasterus-app-gateway',status:'ready',host:HOST,port:PORT,adminMode:PATH_MODE?'path':'host',adminPathPrefix:PATH_MODE?ADMIN_PATH_PREFIX:null,loginRateLimit:{failedAttempts:ADMIN_LOGIN_LIMIT,windowSeconds:ADMIN_LOGIN_WINDOW_MS/1000}})));
 function shutdown(){server.close(()=>process.exit(0));setTimeout(()=>process.exit(1),10000).unref();}
 process.on('SIGTERM',shutdown); process.on('SIGINT',shutdown);

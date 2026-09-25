@@ -31,9 +31,9 @@ export const config = Object.freeze({
   ownerSessionTtl: int('OWNER_SESSION_TTL_SECONDS', 900, 900, 86400), // R6.94: 15-minute admin session (idle refresh)
   highValueThreshold: int('HIGH_VALUE_APPROVAL_THRESHOLD', 1000000, 10000, 200000000),
   approvalTtl: int('APPROVAL_TTL_SECONDS', 1800, 300, 86400),
-  queueName: process.env.QUEUE_NAME || 'asean777:settlement:queue',
+  queueName: process.env.QUEUE_NAME || 'gasterus:settlement:queue',
   lockTtlMs: int('LOCK_TTL_MS', 120000, 5000, 900000),
-  workerHeartbeatKey: text('WORKER_HEARTBEAT_KEY', 'asean777:worker:heartbeat'),
+  workerHeartbeatKey: text('WORKER_HEARTBEAT_KEY', 'gasterus:worker:heartbeat'),
   workerHeartbeatMaxAgeSeconds: int('WORKER_HEARTBEAT_MAX_AGE_SECONDS', 90, 20, 600),
   allowedMemberOrigin: process.env.ALLOWED_MEMBER_ORIGIN || '',
   allowedAdminOrigin: process.env.ALLOWED_ADMIN_ORIGIN || '',

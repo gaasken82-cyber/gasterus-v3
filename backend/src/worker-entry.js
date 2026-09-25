@@ -16,7 +16,7 @@ const STALE_AFTER_SECONDS = Math.max(Number(config.workerHeartbeatMaxAgeSeconds 
 const startedAt = Date.now();
 
 function log(event, data = {}) {
-  console.log(JSON.stringify({ service: 'asean777-worker-entry', version: '6.9.0', event, ...data }));
+  console.log(JSON.stringify({ service: 'gasterus-worker-entry', version: '6.9.0', event, ...data }));
 }
 
 if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) throw new Error('PORT must be a valid TCP port');
@@ -53,7 +53,7 @@ async function probeWorkerLiveness() {
 function verdict(result) {
   const uptimeSeconds = Math.floor((Date.now() - startedAt) / 1000);
   const base = {
-    service: 'asean777-worker',
+    service: 'gasterus-worker',
     uptimeSeconds,
     graceMs: GRACE_MS,
     staleAfterSeconds: STALE_AFTER_SECONDS,

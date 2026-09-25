@@ -13,7 +13,7 @@ export const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
   ssl: config.databaseSsl ? { rejectUnauthorized: false } : undefined,
-  application_name: 'asean777-core'
+  application_name: 'gasterus-core'
 });
 pool.on('error', error => logger.error('Unexpected PostgreSQL pool error', { error: error.message }));
 export const query = (text, values = []) => pool.query(text, values);

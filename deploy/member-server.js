@@ -58,8 +58,7 @@ const MEMBER_API_BASE_URL = publicUrl('MEMBER_API_BASE_URL');
 const FORCED_ORIGINS = new Set([
   'https://www.gasterus.fun',
   'https://gasterus.fun',
-  'https://production.asean777-web.pages.dev',
-  'https://master.asean777-web.pages.dev',
+  'https://preview.gasterus.fun',
 ]);
 const ALLOWED_MEMBER_ORIGINS = new Set(
   String(process.env.ALLOWED_MEMBER_ORIGIN ?? '')
