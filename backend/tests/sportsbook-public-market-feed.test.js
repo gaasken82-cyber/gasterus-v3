@@ -79,6 +79,24 @@ test('R6.9.0.15 season result URL resolves current cross-year league file', () =
   assert.equal(__publicMarket.resultFileUrl('E0','2026-08-23T16:30:00Z'),'https://www.football-data.co.uk/mmz4281/2627/E0.csv');
 });
 
+test('result file cache is pruned by season generation so old seasons cannot accumulate', () => {
+  const cache = __publicMarket.resultFileCache;
+  cache.clear();
+  const old = 'https://www.football-data.co.uk/mmz4281/2122/E0.csv';
+  const live = 'https://www.football-data.co.uk/mmz4281/2627/E0.csv';
+  const live2 = 'https://www.football-data.co.uk/mmz4281/2627/SP1.csv';
+  cache.set(old, { rows: [{ key: 'x' }], fetchedAt: Date.now() });
+  cache.set(live, { rows: [], fetchedAt: Date.now() });
+  cache.set(live2, { rows: [], fetchedAt: Date.now() });
+  assert.equal(__publicMarket.resultFileUrlSeason(old), '2122');
+  assert.equal(__publicMarket.resultFileUrlSeason(live), '2627');
+  __publicMarket.pruneStaleResultSeasons(new Set(['2627']));
+  assert.equal(cache.has(old), false, 'stale season entry must be pruned');
+  assert.equal(cache.has(live), true, 'live season entry must survive');
+  assert.equal(cache.has(live2), true, 'live season entry must survive');
+  cache.clear();
+});
+
 test('R6.9.0.15 extra-league fixture page discovers only approved Football-Data CSV links', () => {
   const page = `<html><a href="https://evil.example/fixtures.csv">bad</a><a href="/newfixtures.csv">Download fixtures in CSV format</a></html>`;
   assert.equal(__publicMarket.discoverCsvUrl(page, 'https://www.football-data.co.uk/matches_new_leagues.php'), 'https://www.football-data.co.uk/newfixtures.csv');
