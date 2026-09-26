@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_URL = 'postgresql://user:pass@example.com/db';
@@ -26,20 +27,39 @@ function wibClock(isoUtc) {
 test('sampling hanya terjadi saat tanggal draw berubah', () => {
   __drawCalibrator.observations.clear();
   const decision = { slug: 'sydney-pool', drawDate: '2026-09-26', status: 'VERIFIED' };
-  assert.equal(recordDrawObservations([decision], { now: new Date('2026-09-26T12:00:00Z') }).recorded, 1);
+  // Pengamatan pertama tidak boleh mengarang jam.
+  assert.equal(recordDrawObservations([decision], { now: new Date('2026-09-26T12:00:00Z') }).recorded, 0);
+  assert.equal(calibratedSchedule('sydney-pool'), null);
   // Siklus berikutnya di hari yang sama tidak menambah sampel.
   assert.equal(recordDrawObservations([decision], { now: new Date('2026-09-26T12:05:00Z') }).recorded, 0);
   // Tanggal baru = hasil baru, satu sampel baru.
   const next = { slug: 'sydney-pool', drawDate: '2026-09-27', status: 'VERIFIED' };
   assert.equal(recordDrawObservations([next], { now: new Date('2026-09-27T12:00:00Z') }).recorded, 1);
   const entry = __drawCalibrator.observations.get('sydney-pool');
-  assert.equal(entry.samples.length, 2);
+  assert.equal(entry.samples.length, 1);
   assert.equal(entry.samples.at(-1).minutes, 19 * 60);
+});
+
+test('restart collector tidak boleh menutup semua pasar pada jam yang sama', () => {
+  __drawCalibrator.observations.clear();
+  // Setelah restart, collector melihat semua pasar untuk pertama kali. Jadwal
+  // manual harus tetap dipakai supaya tiap pasar punya jamnya sendiri.
+  const markets = ['sydney-pool', 'hongkong-pool', 'jepang-pool', 'taiwan-pool', 'pcso-pool'];
+  const decisions = markets.map(slug => ({ slug, drawDate: '2026-09-26', status: 'VERIFIED' }));
+  assert.equal(recordDrawObservations(decisions, { now: new Date() }).recorded, 0);
+  for (const slug of markets) assert.equal(calibratedSchedule(slug), null, `${slug} tidak boleh terkalibrasi di awal`);
+  // Jadwal cadangan tetap berbeda-beda sesuai jadwal pool masing-masing.
+  const closes = new Set(markets.map(slug => {
+    const mapping = JSON.parse(readFileSync(new URL('../data/toto-source-map.json', import.meta.url), 'utf8')).find(item => item.slug === slug);
+    return conservativeFallbackSchedule(mapping).closeTime;
+  }));
+  assert.ok(closes.size > 1, 'jam tutup cadangan antar pasar tidak boleh seragam');
 });
 
 test('jadwal terkalibrasi menutup 5 menit sebelum hasil terlihat', () => {
   __drawCalibrator.observations.clear();
-  for (let day = 1; day <= 3; day += 1) {
+  // Hari pertama hanya mencatat tanggal; sampel jam mulai terkumpul sejak hari kedua.
+  for (let day = 1; day <= 4; day += 1) {
     recordDrawObservations(
       [{ slug: 'hongkong-pool', drawDate: `2026-09-2${day}`, status: 'VERIFIED' }],
       { now: new Date(`2026-09-2${day}T16:05:00Z`) }
@@ -49,7 +69,6 @@ test('jadwal terkalibrasi menutup 5 menit sebelum hasil terlihat', () => {
   assert.equal(schedule.status, 'CALIBRATED');
   assert.equal(schedule.samples, 3);
   // 23:05 WIB hasil terlihat, tutup 23:00 WIB.
-  assert.equal(wibClock(`2026-09-01T00:00:00Z`), '07:00');
   assert.equal(schedule.resultTime, '23:05');
   assert.equal(schedule.closeTime, '23:00');
 });

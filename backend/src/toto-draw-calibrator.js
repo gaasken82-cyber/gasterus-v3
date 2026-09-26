@@ -61,6 +61,14 @@ export function recordDrawObservations(decisions = [], { now = new Date() } = {}
     const drawDate = String(decision?.drawDate || '').trim();
     if (!slug || !drawDate || decision?.status !== 'VERIFIED') continue;
     const entry = entryFor(slug);
+    // Pengamatan pertama hanya mencatat tanggal, bukan jam. Kita belum tahu kapan
+    // angka itu muncul, jadi mencatat jam sekarang akan membuat semua pasar
+    // terlihat seperti baru result keluar dan menutup semuanya bersamaan.
+    if (entry.lastDrawDate === null) {
+      entry.lastDrawDate = drawDate;
+      entry.updatedAt = nowMs;
+      continue;
+    }
     if (entry.lastDrawDate === drawDate) continue;
     entry.lastDrawDate = drawDate;
     entry.updatedAt = nowMs;
