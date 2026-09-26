@@ -18,6 +18,23 @@ const __totoCollector = { ...core, MARKET_MAP: core.MARKET_MAP };
 
 const source = (code, name, html, extra = {}) => ({ code, name, family: code, ok: true, html, ...extra });
 
+test('setiap pool punya jadwal draw sendiri sehingga collector tidak pernah skip', () => {
+  // Key DRAW_SCHEDULE harus persis sama dengan slug. Sebelumnya 'sydney' tidak
+  // cocok dengan slug 'sydney-pool' sehingga Sydney jatuh ke WINDOW_DEFAULT dan
+  // angka Sydney hanya terkumpul pada jam tertentu.
+  const slugs = __totoCollector.MARKET_MAP.map(item => item.slug);
+  const missing = slugs.filter(slug => !__totoCollector.DRAW_SCHEDULE[slug]);
+  assert.deepEqual(missing, [], `pool tanpa jadwal draw: ${missing.join(', ')}`);
+  for (const item of __totoCollector.MARKET_MAP) {
+    const [open, close] = __totoCollector.drawWindowFor(item.slug);
+    assert.match(open, /^\d{2}:\d{2}$/, `${item.slug} punya jam buka tidak valid`);
+    assert.match(close, /^\d{2}:\d{2}$/, `${item.slug} punya jam tutup tidak valid`);
+  }
+  // Sydney wajib memakai jadwalnya sendiri, bukan default.
+  assert.deepEqual(__totoCollector.drawWindowFor('sydney-pool'), ['12:00', '20:00']);
+});
+
+
 test('setiap pool TOTO punya alias VegasNet dan jadwal tutup/result sendiri', () => {
   // Vegasnet tidak mengirim jam, jadi jadwal harus dipetakan agar pasar punya
   // close_at dan bisa dibuka lagi setelah result keluar.
