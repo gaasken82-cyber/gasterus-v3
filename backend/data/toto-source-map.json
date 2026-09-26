@@ -1,653 +1,686 @@
 [
- {
-  "sortOrder": 1,
-  "name": "KING KONG 4D POOL",
-  "slug": "king-kong-4d-pool",
-  "sources": {
-   "cindototo": "King Kong 4D",
-   "sumtoto": [
-    "King Kong 4D"
-   ],
-   "datatoto": "King Kong 4D",
-   "masterlive": "King Kong 4D",
-   "vegasnet": "Bullseye"
+  {
+    "sortOrder": 2,
+    "name": "TOTO MACAU MIDNIGHT",
+    "slug": "toto-macau-midnight",
+    "sources": {
+      "vegasnet": "Macau 00"
+    },
+    "schedule": {
+      "closeTime": "23:00",
+      "resultTime": "00:00",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "20:00",
-   "resultTime": "20:15",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 2,
-  "name": "5D TOTO MACAU POOL",
-  "slug": "5d-toto-macau-pool",
-  "sources": {
-   "datatoto": "Macau 21",
-   "masterlive": "TOTO MACAU 5D - 2",
-   "kingkonginfo": "Macau 21",
-   "vegasnet": "Macau 00"
+  {
+    "sortOrder": 3,
+    "name": "TOTO MACAU SIANG",
+    "slug": "toto-macau-siang",
+    "sources": {
+      "vegasnet": "Macau 13:00"
+    },
+    "schedule": {
+      "closeTime": "11:00",
+      "resultTime": "13:00",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "21:30",
-   "resultTime": "21:45",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 3,
-  "name": "4D TOTO MACAU POOL",
-  "slug": "4d-toto-macau-pool",
-  "sources": {
-   "poskopaito": "Toto Macau 1",
-   "masterlive": "TOTO MACAU 1",
-   "datatoto": "Macau 00",
-   "vegasnet": "Macau 00"
+  {
+    "sortOrder": 4,
+    "name": "TOTO MACAU SORE",
+    "slug": "toto-macau-sore",
+    "sources": {
+      "vegasnet": "Macau 16"
+    },
+    "schedule": {
+      "closeTime": "14:00",
+      "resultTime": "16:00",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "21:30",
-   "resultTime": "21:45",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 4,
-  "name": "HONGKONG POOL",
-  "slug": "hongkong-pool",
-  "sources": {
-   "poskopaito": "Hongkong Lotto",
-   "datatoto": "Hklotto",
-   "vegasnet": "Hkg Lotto"
+  {
+    "sortOrder": 5,
+    "name": "TOTO MACAU MALAM",
+    "slug": "toto-macau-malam",
+    "sources": {
+      "vegasnet": "Macau 19:00"
+    },
+    "schedule": {
+      "closeTime": "17:00",
+      "resultTime": "19:00",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "23:10",
-   "resultTime": "23:25",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 5,
-  "name": "SYDNEY POOL",
-  "slug": "sydney-pool",
-  "sources": {
-   "poskopaito": "Sydney Pools",
-   "masterlive": "SYDNEY",
-   "vegasnet": [
-    "SYDNEY",
-    "Sydney",
-    "Sydney Pools",
-    "Sydney Pool",
-    "SYDNEY POOL",
-    "SYDNEYPOOLS",
-    "SYDNEYPOOL"
-   ]
+  {
+    "sortOrder": 6,
+    "name": "TOTO MACAU NIGHT",
+    "slug": "toto-macau-night",
+    "sources": {
+      "vegasnet": "Macau 22:00"
+    },
+    "schedule": {
+      "closeTime": "20:00",
+      "resultTime": "22:00",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "19:45",
-   "resultTime": "20:00",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 6,
-  "name": "NEWYORK POOL",
-  "slug": "newyork-pool",
-  "sources": {
-   "cindototo": "NEWYORK",
-   "sumtoto": [
-    "NEWYORK"
-   ],
-   "datatoto": "NEWYORK",
-   "masterlive": "NEWYORK",
-   "vegasnet": "New York Evening"
+  {
+    "sortOrder": 7,
+    "name": "KING KONG 4D POOL",
+    "slug": "king-kong-4d-pool",
+    "sources": {
+      "cindototo": "King Kong 4D",
+      "sumtoto": [
+        "King Kong 4D"
+      ],
+      "datatoto": "King Kong 4D",
+      "masterlive": "King Kong 4D",
+      "vegasnet": "Bullseye"
+    },
+    "schedule": {
+      "closeTime": "20:00",
+      "resultTime": "20:15",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "22:20",
-   "resultTime": "22:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 7,
-  "name": "SINGAPORE POOL",
-  "slug": "singapore-pool",
-  "sources": {
-   "poskopaito": "Singapore",
-   "masterlive": "SINGAPORE",
-   "datatoto": "Singapore",
-   "vegasnet": "Singapore"
+  {
+    "sortOrder": 8,
+    "name": "HONGKONG POOL",
+    "slug": "hongkong-pool",
+    "sources": {
+      "poskopaito": "Hongkong Lotto",
+      "datatoto": "Hklotto",
+      "vegasnet": "Hkg Lotto"
+    },
+    "schedule": {
+      "closeTime": "23:10",
+      "resultTime": "23:25",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "22:10",
-   "resultTime": "22:25",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 17,
-  "name": "CHINA POOL",
-  "slug": "china-pool",
-  "sources": {
-   "poskopaito": "China",
-   "masterlive": "CHINA",
-   "datatoto": "China",
-   "vegasnet": "China"
+  {
+    "sortOrder": 9,
+    "name": "SYDNEY POOL",
+    "slug": "sydney-pool",
+    "sources": {
+      "poskopaito": "Sydney Pools",
+      "masterlive": "SYDNEY",
+      "vegasnet": [
+        "SYDNEY",
+        "Sydney",
+        "Sydney Pools",
+        "Sydney Pool",
+        "SYDNEY POOL",
+        "SYDNEYPOOLS",
+        "SYDNEYPOOL"
+      ]
+    },
+    "schedule": {
+      "closeTime": "19:45",
+      "resultTime": "20:00",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "21:20",
-   "resultTime": "21:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 19,
-  "name": "CALIFORNIA POOL",
-  "slug": "california-pool",
-  "sources": {
-   "poskopaito": "California",
-   "datatoto": "California",
-   "vegasnet": "California"
+  {
+    "sortOrder": 10,
+    "name": "NEWYORK POOL",
+    "slug": "newyork-pool",
+    "sources": {
+      "cindototo": "NEWYORK",
+      "sumtoto": [
+        "NEWYORK"
+      ],
+      "datatoto": "NEWYORK",
+      "masterlive": "NEWYORK",
+      "vegasnet": "New York Evening"
+    },
+    "schedule": {
+      "closeTime": "22:20",
+      "resultTime": "22:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "21:00",
-   "resultTime": "21:15",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 20,
-  "name": "PCSO POOL",
-  "slug": "pcso-pool",
-  "sources": {
-   "poskopaito": "Pcso",
-   "datatoto": "Pcso",
-   "vegasnet": "Pcso"
+  {
+    "sortOrder": 11,
+    "name": "SINGAPORE POOL",
+    "slug": "singapore-pool",
+    "sources": {
+      "poskopaito": "Singapore",
+      "masterlive": "SINGAPORE",
+      "datatoto": "Singapore",
+      "vegasnet": "Singapore"
+    },
+    "schedule": {
+      "closeTime": "22:10",
+      "resultTime": "22:25",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "23:10",
-   "resultTime": "23:25",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 28,
-  "name": "BULLSEYE POOL",
-  "slug": "bullseye-pool",
-  "sources": {
-   "poskopaito": "Bullseye",
-   "datatoto": "Bullseye",
-   "kingkonginfo": "Bullseye",
-   "vegasnet": "Bullseye"
+  {
+    "sortOrder": 12,
+    "name": "CHINA POOL",
+    "slug": "china-pool",
+    "sources": {
+      "poskopaito": "China",
+      "masterlive": "CHINA",
+      "datatoto": "China",
+      "vegasnet": "China"
+    },
+    "schedule": {
+      "closeTime": "21:20",
+      "resultTime": "21:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "22:00",
-   "resultTime": "22:15",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 30,
-  "name": "JEPANG POOL",
-  "slug": "jepang-pool",
-  "sources": {
-   "poskopaito": "Japan",
-   "datatoto": "Japan",
-   "vegasnet": "Japan"
+  {
+    "sortOrder": 13,
+    "name": "CALIFORNIA POOL",
+    "slug": "california-pool",
+    "sources": {
+      "poskopaito": "California",
+      "datatoto": "California",
+      "vegasnet": "California"
+    },
+    "schedule": {
+      "closeTime": "21:00",
+      "resultTime": "21:15",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "20:30",
-   "resultTime": "20:45",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 32,
-  "name": "TAIWAN POOL",
-  "slug": "taiwan-pool",
-  "sources": {
-   "poskopaito": "Taiwan",
-   "datatoto": "Taiwan",
-   "vegasnet": "Taiwan"
+  {
+    "sortOrder": 14,
+    "name": "PCSO POOL",
+    "slug": "pcso-pool",
+    "sources": {
+      "poskopaito": "Pcso",
+      "datatoto": "Pcso",
+      "vegasnet": "Pcso"
+    },
+    "schedule": {
+      "closeTime": "23:10",
+      "resultTime": "23:25",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "21:40",
-   "resultTime": "21:55",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 33,
-  "name": "WISCONSIN POOL",
-  "slug": "wisconsin-pool",
-  "sources": {
-   "datatoto": "Wisconsin",
-   "kingkonginfo": "WISCONSIN",
-   "vegasnet": "Wisconsin"
+  {
+    "sortOrder": 15,
+    "name": "BULLSEYE POOL",
+    "slug": "bullseye-pool",
+    "sources": {
+      "poskopaito": "Bullseye",
+      "datatoto": "Bullseye",
+      "kingkonginfo": "Bullseye",
+      "vegasnet": "Bullseye"
+    },
+    "schedule": {
+      "closeTime": "22:00",
+      "resultTime": "22:15",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "02:20",
-   "resultTime": "02:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 34,
-  "name": "CAMBODIA POOL",
-  "slug": "cambodia-pool",
-  "sources": {
-   "poskopaito": "Cambodia",
-   "datatoto": "Magnum Cambodia",
-   "vegasnet": "Cambodia"
+  {
+    "sortOrder": 16,
+    "name": "JEPANG POOL",
+    "slug": "jepang-pool",
+    "sources": {
+      "poskopaito": "Japan",
+      "datatoto": "Japan",
+      "vegasnet": "Japan"
+    },
+    "schedule": {
+      "closeTime": "20:30",
+      "resultTime": "20:45",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "20:20",
-   "resultTime": "20:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 43,
-  "name": "GEORGIA EVE POOL",
-  "slug": "georgia-eve-pool",
-  "sources": {
-   "poskopaito": "Georgia Evening",
-   "datatoto": "Georgia Evening",
-   "vegasnet": "Georgia Evening"
+  {
+    "sortOrder": 17,
+    "name": "TAIWAN POOL",
+    "slug": "taiwan-pool",
+    "sources": {
+      "poskopaito": "Taiwan",
+      "datatoto": "Taiwan",
+      "vegasnet": "Taiwan"
+    },
+    "schedule": {
+      "closeTime": "21:40",
+      "resultTime": "21:55",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "04:40",
-   "resultTime": "04:55",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 45,
-  "name": "OREGON 1 POOL",
-  "slug": "oregon-1-pool",
-  "sources": {
-   "poskopaito": "Oregon (04:00)",
-   "datatoto": "Oregon 04",
-   "vegasnet": "Oregon 04:00"
+  {
+    "sortOrder": 18,
+    "name": "WISCONSIN POOL",
+    "slug": "wisconsin-pool",
+    "sources": {
+      "datatoto": "Wisconsin",
+      "kingkonginfo": "WISCONSIN",
+      "vegasnet": "Wisconsin"
+    },
+    "schedule": {
+      "closeTime": "02:20",
+      "resultTime": "02:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "03:45",
-   "resultTime": "04:00",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 46,
-  "name": "OREGON 3 POOL",
-  "slug": "oregon-3-pool",
-  "sources": {
-   "poskopaito": "Oregon (10:00)",
-   "datatoto": "Oregon 10",
-   "vegasnet": "Oregon 10:00"
+  {
+    "sortOrder": 19,
+    "name": "CAMBODIA POOL",
+    "slug": "cambodia-pool",
+    "sources": {
+      "poskopaito": "Cambodia",
+      "datatoto": "Magnum Cambodia",
+      "vegasnet": "Cambodia"
+    },
+    "schedule": {
+      "closeTime": "20:20",
+      "resultTime": "20:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "09:45",
-   "resultTime": "10:00",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 47,
-  "name": "OREGON 4 POOL",
-  "slug": "oregon-4-pool",
-  "sources": {
-   "poskopaito": "Oregon (13:00)",
-   "datatoto": "Oregon 13",
-   "vegasnet": "Oregon 13:00"
+  {
+    "sortOrder": 20,
+    "name": "GEORGIA EVE POOL",
+    "slug": "georgia-eve-pool",
+    "sources": {
+      "poskopaito": "Georgia Evening",
+      "datatoto": "Georgia Evening",
+      "vegasnet": "Georgia Evening"
+    },
+    "schedule": {
+      "closeTime": "04:40",
+      "resultTime": "04:55",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "12:45",
-   "resultTime": "13:00",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 48,
-  "name": "OHIO MID POOL",
-  "slug": "ohio-mid-pool",
-  "sources": {
-   "datatoto": "Ohio Midday",
-   "miototo": "OHIO MID",
-   "vegasnet": "Ohio Midday"
+  {
+    "sortOrder": 21,
+    "name": "OREGON 1 POOL",
+    "slug": "oregon-1-pool",
+    "sources": {
+      "poskopaito": "Oregon (04:00)",
+      "datatoto": "Oregon 04",
+      "vegasnet": "Oregon 04:00"
+    },
+    "schedule": {
+      "closeTime": "03:45",
+      "resultTime": "04:00",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "05:20",
-   "resultTime": "05:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 49,
-  "name": "OHIO EVE POOL",
-  "slug": "ohio-eve-pool",
-  "sources": {
-   "datatoto": "Ohio Evening",
-   "miototo": "OHIO EVE",
-   "vegasnet": "Ohio Evening"
+  {
+    "sortOrder": 22,
+    "name": "OREGON 3 POOL",
+    "slug": "oregon-3-pool",
+    "sources": {
+      "poskopaito": "Oregon (10:00)",
+      "datatoto": "Oregon 10",
+      "vegasnet": "Oregon 10:00"
+    },
+    "schedule": {
+      "closeTime": "09:45",
+      "resultTime": "10:00",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "04:20",
-   "resultTime": "04:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 50,
-  "name": "NEWYORK EVE POOL",
-  "slug": "newyork-eve-pool",
-  "sources": {
-   "poskopaito": "New York Evening",
-   "datatoto": "New York Evening",
-   "vegasnet": "New York Evening"
+  {
+    "sortOrder": 23,
+    "name": "OREGON 4 POOL",
+    "slug": "oregon-4-pool",
+    "sources": {
+      "poskopaito": "Oregon (13:00)",
+      "datatoto": "Oregon 13",
+      "vegasnet": "Oregon 13:00"
+    },
+    "schedule": {
+      "closeTime": "12:45",
+      "resultTime": "13:00",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "22:20",
-   "resultTime": "22:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 52,
-  "name": "OREGON 2 POOL",
-  "slug": "oregon-2-pool",
-  "sources": {
-   "poskopaito": "Oregon (07:00)",
-   "datatoto": "Oregon 07",
-   "vegasnet": "Oregon 07:00"
+  {
+    "sortOrder": 24,
+    "name": "OHIO MID POOL",
+    "slug": "ohio-mid-pool",
+    "sources": {
+      "datatoto": "Ohio Midday",
+      "miototo": "OHIO MID",
+      "vegasnet": "Ohio Midday"
+    },
+    "schedule": {
+      "closeTime": "05:20",
+      "resultTime": "05:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "06:45",
-   "resultTime": "07:00",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 55,
-  "name": "MARYLAND EVE POOL",
-  "slug": "maryland-eve-pool",
-  "sources": {
-   "datatoto": "Maryland Evening",
-   "kingkonginfo": "MARYLAND EVE",
-   "vegasnet": "Maryland Evening"
+  {
+    "sortOrder": 25,
+    "name": "OHIO EVE POOL",
+    "slug": "ohio-eve-pool",
+    "sources": {
+      "datatoto": "Ohio Evening",
+      "miototo": "OHIO EVE",
+      "vegasnet": "Ohio Evening"
+    },
+    "schedule": {
+      "closeTime": "04:20",
+      "resultTime": "04:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "04:20",
-   "resultTime": "04:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 57,
-  "name": "MICHIGAN EVE POOL",
-  "slug": "michigan-eve-pool",
-  "sources": {
-   "poskopaito": "Michigan Evening",
-   "datatoto": "Michigan Evening",
-   "vegasnet": "Michigan Evening"
+  {
+    "sortOrder": 26,
+    "name": "NEWYORK EVE POOL",
+    "slug": "newyork-eve-pool",
+    "sources": {
+      "poskopaito": "New York Evening",
+      "datatoto": "New York Evening",
+      "vegasnet": "New York Evening"
+    },
+    "schedule": {
+      "closeTime": "22:20",
+      "resultTime": "22:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "04:20",
-   "resultTime": "04:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 58,
-  "name": "NEWJERSEYMID POOL",
-  "slug": "newjerseymid-pool",
-  "sources": {
-   "poskopaito": "New Jersey Midday",
-   "datatoto": "New Jersey Midday",
-   "vegasnet": "New Jersey Midday"
+  {
+    "sortOrder": 27,
+    "name": "OREGON 2 POOL",
+    "slug": "oregon-2-pool",
+    "sources": {
+      "poskopaito": "Oregon (07:00)",
+      "datatoto": "Oregon 07",
+      "vegasnet": "Oregon 07:00"
+    },
+    "schedule": {
+      "closeTime": "06:45",
+      "resultTime": "07:00",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "05:20",
-   "resultTime": "05:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 60,
-  "name": "KENTUCKY MID POOL",
-  "slug": "kentucky-mid-pool",
-  "sources": {
-   "poskopaito": "Kentucky Midday",
-   "datatoto": "Kentucky Midday",
-   "vegasnet": "Kentucky Midday"
+  {
+    "sortOrder": 28,
+    "name": "MARYLAND EVE POOL",
+    "slug": "maryland-eve-pool",
+    "sources": {
+      "datatoto": "Maryland Evening",
+      "kingkonginfo": "MARYLAND EVE",
+      "vegasnet": "Maryland Evening"
+    },
+    "schedule": {
+      "closeTime": "04:20",
+      "resultTime": "04:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "05:20",
-   "resultTime": "05:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 62,
-  "name": "INDIANA MID POOL",
-  "slug": "indiana-mid-pool",
-  "sources": {
-   "poskopaito": "Indiana Midday",
-   "datatoto": "Indiana Midday",
-   "vegasnet": "Indiana Midday"
+  {
+    "sortOrder": 29,
+    "name": "MICHIGAN EVE POOL",
+    "slug": "michigan-eve-pool",
+    "sources": {
+      "poskopaito": "Michigan Evening",
+      "datatoto": "Michigan Evening",
+      "vegasnet": "Michigan Evening"
+    },
+    "schedule": {
+      "closeTime": "04:20",
+      "resultTime": "04:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "05:20",
-   "resultTime": "05:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 64,
-  "name": "TENNESSE MID POOL",
-  "slug": "tennesse-mid-pool",
-  "sources": {
-   "poskopaito": "Tennesse Midday",
-   "datatoto": "Tennesse Midday",
-   "vegasnet": "Tennesse Midday"
+  {
+    "sortOrder": 30,
+    "name": "NEWJERSEYMID POOL",
+    "slug": "newjerseymid-pool",
+    "sources": {
+      "poskopaito": "New Jersey Midday",
+      "datatoto": "New Jersey Midday",
+      "vegasnet": "New Jersey Midday"
+    },
+    "schedule": {
+      "closeTime": "05:20",
+      "resultTime": "05:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "05:20",
-   "resultTime": "05:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 66,
-  "name": "TENNESSE EVE POOL",
-  "slug": "tennesse-eve-pool",
-  "sources": {
-   "poskopaito": "Tennesse Evening",
-   "datatoto": "Tennesse Evening",
-   "vegasnet": "Tennesse Evening"
+  {
+    "sortOrder": 31,
+    "name": "KENTUCKY MID POOL",
+    "slug": "kentucky-mid-pool",
+    "sources": {
+      "poskopaito": "Kentucky Midday",
+      "datatoto": "Kentucky Midday",
+      "vegasnet": "Kentucky Midday"
+    },
+    "schedule": {
+      "closeTime": "05:20",
+      "resultTime": "05:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "04:20",
-   "resultTime": "04:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 68,
-  "name": "TEXAS EVE POOL",
-  "slug": "texas-eve-pool",
-  "sources": {
-   "poskopaito": "Texas Evening",
-   "datatoto": "Texas Evening",
-   "vegasnet": "Texas Evening"
+  {
+    "sortOrder": 32,
+    "name": "INDIANA MID POOL",
+    "slug": "indiana-mid-pool",
+    "sources": {
+      "poskopaito": "Indiana Midday",
+      "datatoto": "Indiana Midday",
+      "vegasnet": "Indiana Midday"
+    },
+    "schedule": {
+      "closeTime": "05:20",
+      "resultTime": "05:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "04:20",
-   "resultTime": "04:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 69,
-  "name": "TEXAS DAY POOL",
-  "slug": "texas-day-pool",
-  "sources": {
-   "poskopaito": "Texas Day",
-   "datatoto": "Texas Day",
-   "vegasnet": "Texas Day"
+  {
+    "sortOrder": 33,
+    "name": "TENNESSE MID POOL",
+    "slug": "tennesse-mid-pool",
+    "sources": {
+      "poskopaito": "Tennesse Midday",
+      "datatoto": "Tennesse Midday",
+      "vegasnet": "Tennesse Midday"
+    },
+    "schedule": {
+      "closeTime": "05:20",
+      "resultTime": "05:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "06:20",
-   "resultTime": "06:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 70,
-  "name": "TEXAS NIGHT POOL",
-  "slug": "texas-night-pool",
-  "sources": {
-   "poskopaito": "Texas Night",
-   "datatoto": "Texas Night",
-   "vegasnet": "Texas Night"
+  {
+    "sortOrder": 34,
+    "name": "TENNESSE EVE POOL",
+    "slug": "tennesse-eve-pool",
+    "sources": {
+      "poskopaito": "Tennesse Evening",
+      "datatoto": "Tennesse Evening",
+      "vegasnet": "Tennesse Evening"
+    },
+    "schedule": {
+      "closeTime": "04:20",
+      "resultTime": "04:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "08:20",
-   "resultTime": "08:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 71,
-  "name": "FLORIDA MID POOL",
-  "slug": "florida-mid-pool",
-  "sources": {
-   "poskopaito": "Florida Midday",
-   "datatoto": "Florida Midday",
-   "vegasnet": "Florida Midday"
+  {
+    "sortOrder": 35,
+    "name": "TEXAS EVE POOL",
+    "slug": "texas-eve-pool",
+    "sources": {
+      "poskopaito": "Texas Evening",
+      "datatoto": "Texas Evening",
+      "vegasnet": "Texas Evening"
+    },
+    "schedule": {
+      "closeTime": "04:20",
+      "resultTime": "04:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "05:20",
-   "resultTime": "05:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 73,
-  "name": "RHODE ISLAND POOL",
-  "slug": "rhode-island-pool",
-  "sources": {
-   "datatoto": "Rhode Island",
-   "miototo": "RHODE ISLAND",
-   "vegasnet": "Rhode Island"
+  {
+    "sortOrder": 36,
+    "name": "TEXAS DAY POOL",
+    "slug": "texas-day-pool",
+    "sources": {
+      "poskopaito": "Texas Day",
+      "datatoto": "Texas Day",
+      "vegasnet": "Texas Day"
+    },
+    "schedule": {
+      "closeTime": "06:20",
+      "resultTime": "06:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "04:20",
-   "resultTime": "04:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 75,
-  "name": "ILLINOIS MID POOL",
-  "slug": "illinois-mid-pool",
-  "sources": {
-   "datatoto": "Illinois Midday",
-   "kingkonginfo": "ILLINOIS MID",
-   "vegasnet": "Illinois Midday"
+  {
+    "sortOrder": 37,
+    "name": "TEXAS NIGHT POOL",
+    "slug": "texas-night-pool",
+    "sources": {
+      "poskopaito": "Texas Night",
+      "datatoto": "Texas Night",
+      "vegasnet": "Texas Night"
+    },
+    "schedule": {
+      "closeTime": "08:20",
+      "resultTime": "08:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "05:20",
-   "resultTime": "05:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 76,
-  "name": "MISSOURI MID POOL",
-  "slug": "missouri-mid-pool",
-  "sources": {
-   "datatoto": "Missouri Midday",
-   "kingkonginfo": "MISSOURI MID",
-   "vegasnet": "Missouri Midday"
+  {
+    "sortOrder": 38,
+    "name": "FLORIDA MID POOL",
+    "slug": "florida-mid-pool",
+    "sources": {
+      "poskopaito": "Florida Midday",
+      "datatoto": "Florida Midday",
+      "vegasnet": "Florida Midday"
+    },
+    "schedule": {
+      "closeTime": "05:20",
+      "resultTime": "05:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "05:20",
-   "resultTime": "05:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 78,
-  "name": "WASHINGTONMD POOL",
-  "slug": "washingtonmd-pool",
-  "sources": {
-   "poskopaito": "Washington Dc Midday",
-   "datatoto": "Washington Dc Midday",
-   "vegasnet": "Washington Dc Midday"
+  {
+    "sortOrder": 39,
+    "name": "RHODE ISLAND POOL",
+    "slug": "rhode-island-pool",
+    "sources": {
+      "datatoto": "Rhode Island",
+      "miototo": "RHODE ISLAND",
+      "vegasnet": "Rhode Island"
+    },
+    "schedule": {
+      "closeTime": "04:20",
+      "resultTime": "04:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "05:20",
-   "resultTime": "05:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 79,
-  "name": "WASHINGTONEV POOL",
-  "slug": "washingtonev-pool",
-  "sources": {
-   "poskopaito": "Washington Dc Evening",
-   "datatoto": "Washington Dc Evening",
-   "vegasnet": "Washington Dc Evening"
+  {
+    "sortOrder": 40,
+    "name": "ILLINOIS MID POOL",
+    "slug": "illinois-mid-pool",
+    "sources": {
+      "datatoto": "Illinois Midday",
+      "kingkonginfo": "ILLINOIS MID",
+      "vegasnet": "Illinois Midday"
+    },
+    "schedule": {
+      "closeTime": "05:20",
+      "resultTime": "05:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "04:20",
-   "resultTime": "04:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 80,
-  "name": "DELAWARE NGT POOL",
-  "slug": "delaware-ngt-pool",
-  "sources": {
-   "datatoto": "Delaware Night",
-   "miototo": "DELAWARE NGT",
-   "vegasnet": "Delaware Night"
+  {
+    "sortOrder": 41,
+    "name": "MISSOURI MID POOL",
+    "slug": "missouri-mid-pool",
+    "sources": {
+      "datatoto": "Missouri Midday",
+      "kingkonginfo": "MISSOURI MID",
+      "vegasnet": "Missouri Midday"
+    },
+    "schedule": {
+      "closeTime": "05:20",
+      "resultTime": "05:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "06:20",
-   "resultTime": "06:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 81,
-  "name": "DELAWARE DAY POOL",
-  "slug": "delaware-day-pool",
-  "sources": {
-   "datatoto": "Delaware Day",
-   "miototo": "DELAWARE DAY",
-   "vegasnet": "Delaware Day"
+  {
+    "sortOrder": 42,
+    "name": "WASHINGTONMD POOL",
+    "slug": "washingtonmd-pool",
+    "sources": {
+      "poskopaito": "Washington Dc Midday",
+      "datatoto": "Washington Dc Midday",
+      "vegasnet": "Washington Dc Midday"
+    },
+    "schedule": {
+      "closeTime": "05:20",
+      "resultTime": "05:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "08:20",
-   "resultTime": "08:35",
-   "timezone": "Asia/Jakarta"
-  }
- },
- {
-  "sortOrder": 83,
-  "name": "VIRGINIA DAY POOL",
-  "slug": "virginia-day-pool",
-  "sources": {
-   "poskopaito": "Virginia Day",
-   "datatoto": "Virginia Day",
-   "vegasnet": "Virginia Day"
+  {
+    "sortOrder": 43,
+    "name": "WASHINGTONEV POOL",
+    "slug": "washingtonev-pool",
+    "sources": {
+      "poskopaito": "Washington Dc Evening",
+      "datatoto": "Washington Dc Evening",
+      "vegasnet": "Washington Dc Evening"
+    },
+    "schedule": {
+      "closeTime": "04:20",
+      "resultTime": "04:35",
+      "timezone": "Asia/Jakarta"
+    }
   },
-  "schedule": {
-   "closeTime": "08:20",
-   "resultTime": "08:35",
-   "timezone": "Asia/Jakarta"
+  {
+    "sortOrder": 44,
+    "name": "DELAWARE NGT POOL",
+    "slug": "delaware-ngt-pool",
+    "sources": {
+      "datatoto": "Delaware Night",
+      "miototo": "DELAWARE NGT",
+      "vegasnet": "Delaware Night"
+    },
+    "schedule": {
+      "closeTime": "06:20",
+      "resultTime": "06:35",
+      "timezone": "Asia/Jakarta"
+    }
+  },
+  {
+    "sortOrder": 45,
+    "name": "DELAWARE DAY POOL",
+    "slug": "delaware-day-pool",
+    "sources": {
+      "datatoto": "Delaware Day",
+      "miototo": "DELAWARE DAY",
+      "vegasnet": "Delaware Day"
+    },
+    "schedule": {
+      "closeTime": "08:20",
+      "resultTime": "08:35",
+      "timezone": "Asia/Jakarta"
+    }
+  },
+  {
+    "sortOrder": 46,
+    "name": "VIRGINIA DAY POOL",
+    "slug": "virginia-day-pool",
+    "sources": {
+      "poskopaito": "Virginia Day",
+      "datatoto": "Virginia Day",
+      "vegasnet": "Virginia Day"
+    },
+    "schedule": {
+      "closeTime": "08:20",
+      "resultTime": "08:35",
+      "timezone": "Asia/Jakarta"
+    }
   }
- }
 ]

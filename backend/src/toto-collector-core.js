@@ -545,8 +545,11 @@ const WIB_OFFSET_MIN = 7 * 60;
 const WINDOW_DEFAULT = Object.freeze(['09:00', '06:00']); // wide overnight-safe default
 export const DRAW_SCHEDULE = Object.freeze({
   'king-kong-4d-pool': ['12:00', '20:30'],
-  '5d-toto-macau-pool': ['11:00', '18:00'],
-  '4d-toto-macau-pool': ['11:00', '18:00'],
+  'toto-macau-midnight': ['22:00', '00:00'],
+  'toto-macau-siang': ['10:00', '13:00'],
+  'toto-macau-sore': ['13:00', '16:00'],
+  'toto-macau-malam': ['16:00', '19:00'],
+  'toto-macau-night': ['19:00', '22:00'],
   'hongkong-pool': ['15:00', '01:00'],
   'sydney-pool': ['12:00', '20:00'],
   'singapore-pool': ['17:00', '23:00'],

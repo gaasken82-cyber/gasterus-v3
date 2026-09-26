@@ -38,8 +38,8 @@ test('setiap pool punya jadwal draw sendiri sehingga collector tidak pernah skip
 test('setiap pool TOTO punya alias VegasNet dan jadwal tutup/result sendiri', () => {
   // Vegasnet tidak mengirim jam, jadi jadwal harus dipetakan agar pasar punya
   // close_at dan bisa dibuka lagi setelah result keluar.
-  assert.equal(__totoCollector.MARKET_MAP.length, 42);
-  assert.equal(__totoCollector.MARKET_MAP.filter(item => Object.keys(item.sources).length).length, 42);
+  assert.equal(__totoCollector.MARKET_MAP.length, 45);
+  assert.equal(__totoCollector.MARKET_MAP.filter(item => Object.keys(item.sources).length).length, 45);
   assert.equal(__totoCollector.MARKET_MAP.filter(item => !item.sources.vegasnet).length, 0);
   for (const item of __totoCollector.MARKET_MAP) {
     assert.ok(item.schedule?.closeTime, `${item.slug} tanpa jam tutup`);
@@ -47,7 +47,8 @@ test('setiap pool TOTO punya alias VegasNet dan jadwal tutup/result sendiri', ()
     assert.equal(item.schedule.timezone, 'Asia/Jakarta');
   }
   // Jadwal harus benar-benar dipakai collector, bukan sekadar menempel di peta.
-  const decision = __totoCollector.resolveDecision(__totoCollector.MARKET_MAP[0], [
+  const bullseye = __totoCollector.MARKET_MAP.find(item => item.sources.vegasnet === 'Bullseye');
+  const decision = __totoCollector.resolveDecision(bullseye, [
     source('vegasnet', 'Vegasnet', '<table><tr><td>Bullseye</td><td>25-09-2026</td><td>1234</td></tr></table>')
   ]);
   assert.ok(decision.schedule?.closeTime);

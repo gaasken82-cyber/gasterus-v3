@@ -21,7 +21,7 @@ export const MEMBER_HIDDEN_TOTO_MARKETS = new Set([
   'missouri-eve-pool', 'virginia-ngt-pool', 'northcaroday-pool', 'northcaroeve-pool'
 ]);
 
-export const MEMBER_VISIBLE_TOTO_MARKET_COUNT = 42;
+export const MEMBER_VISIBLE_TOTO_MARKET_COUNT = 45;
 
 export function memberMarketVisible(market) {
   return Boolean(market) && !MEMBER_HIDDEN_TOTO_MARKETS.has(String(market.slug || ''));
