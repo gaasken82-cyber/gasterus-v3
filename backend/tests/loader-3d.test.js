@@ -1,10 +1,32 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
-import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..', '..');
 const read = (file) => readFileSync(resolve(root, file), 'utf8');
+
+test('menu navigasi semua halaman memakai tombol berikon, bukan teks polos', () => {
+  const mobileBlue = read('frontend/css/mobile-blue.css');
+  // Gaya tombol navigasi sudah ada di mobile-blue.css. Halaman yang memakai
+  // nav-drawer-item tidak punya aturan apa pun sehingga tampil sebagai teks
+  // polos tanpa bentuk tombol.
+  assert.match(mobileBlue, /\.nav-drawer-link \{/);
+  assert.match(mobileBlue, /\.nav-drawer-ico \{/);
+  assert.doesNotMatch(mobileBlue, /\.nav-drawer-item\b/);
+
+  const pages = readdirSync(resolve(root, 'frontend')).filter(name => name.endsWith('.html'));
+  for (const name of pages) {
+    const html = read(`frontend/${name}`);
+    if (!/class="nav-drawer-body"/.test(html)) continue;
+    assert.doesNotMatch(html, /nav-drawer-item/, `${name} masih memakai nav-drawer-item`);
+    const links = html.match(/<a class="nav-drawer-link"[^>]*>/g) || [];
+    assert.ok(links.length > 0, `${name} tidak punya tombol navigasi`);
+    for (const tag of links) {
+      assert.match(tag, /<span class="nav-drawer-ico">/, `tombol di ${name} belum punya ikon`);
+    }
+  }
+});
 
 const frontendPages = readdirSync(resolve(root, 'frontend'))
   .filter(name => name.endsWith('.html'))
@@ -33,9 +55,12 @@ test('halaman promosi mendefinisikan sendiri kelas dan spacing yang tidak di-loa
   for (const step of ['1', '2', '3', '4', '5', '6', '8']) {
     assert.match(selfScoped, new RegExp(`--space-${step}:`), `--space-${step} belum didefinisikan`);
   }
-  for (const className of ['app-main', 'container', 'app-footer', 'footer-links', 'footer-bottom', 'badge-info', 'nav-drawer-item']) {
+  for (const className of ['app-main', 'container', 'app-footer', 'footer-links', 'footer-bottom', 'badge-info', 'nav-drawer-body']) {
     assert.match(html, new RegExp(`\\.page-promotion \\.${className}\\b`), `.${className} belum diberi gaya`);
   }
+  // Tombol navigasi memakai kelas nav-drawer-link global, jadi halaman promosi
+  // tidak boleh menimpanya dengan gaya sendiri.
+  assert.doesNotMatch(html, /\.page-promotion \.nav-drawer-link/);
   // Struktur penutup harus seimbang.
   assert.equal((html.match(/<div/g) || []).length, (html.match(/<\/div>/g) || []).length, 'jumlah div tidak seimbang');
   // Semua promo dan tombol buka-tutup harus tetap utuh.
