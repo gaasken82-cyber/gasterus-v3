@@ -58,14 +58,32 @@ export const TOTO_SKIPPED_WEEKDAYS = Object.freeze({
 
 const WIB_OFFSET_MS = 7 * 3600 * 1000;
 const DAY_MS = 86400000;
-// Jendela bangun dimulai sebelum jam result dan ditutup beberapa menit setelah
-// jam result, supaya angka baru sempat terambil tanpa membuat collector berjalan
-// sepanjang hari.
-const WAKE_LEAD_MINUTES = 20;
-const WAKE_TRAIL_MINUTES = 25;
+// Pemisahan waktu sesuai aturan platform:
+//
+//   CLOSE BETTING = jam result - 20 menit
+//   SCRAPER START = jam result -  5 menit
+//   POLLING       = setiap 3 menit per pool, berhenti saat result baru valid
+//
+// Jendela T-20 hanya dipakai untuk menutup betting, tidak untuk scraping.
+// Scraping dimulai pada T-5 dan dilanjutkan per pool sampai result baru
+// ditemukan, bukan sampai jam result lewat.
+const CLOSE_LEAD_MINUTES = 20;
+const SCRAPE_LEAD_MINUTES = 5;
+const POLL_INTERVAL_MINUTES = 3;
 // Batas kesabaran menunggu sumber. Bila jam result sudah lewat selama jendela ini
-// tanpa tanggal draw berubah, pasar dianggap libur hari itu.
+// tanpa tanggal draw berubah, pasar dianggap libur hari itu. Ini terpisah dari
+// status RESULT_DELAYED supaya dua keadaan tidak tertukar.
 const HOLIDAY_GRACE_MINUTES = 90;
+// Pengaman: satu pool tidak boleh polling tanpa henti. Setelah batas ini job
+// polling dihentikan sebagai RESULT_DELAYED, pasar tetap CLOSED, dan siklus
+// berikutnya baru dijadwalkan pada undian berikutnya. Angkanya sengaja jauh lebih
+// kecil dari 24 jam supaya tidak semua pool waking sepanjang hari.
+const MAX_POLL_MINUTES = 60;
+
+export const TOTO_CLOSE_LEAD_MINUTES = CLOSE_LEAD_MINUTES;
+export const TOTO_SCRAPE_LEAD_MINUTES = SCRAPE_LEAD_MINUTES;
+export const TOTO_POLL_INTERVAL_MINUTES = POLL_INTERVAL_MINUTES;
+export const TOTO_MAX_POLL_MINUTES = MAX_POLL_MINUTES;
 
 const state = new Map();
 const MAX_TRACKED = 96;
@@ -181,26 +199,93 @@ function isExplicitSkipped(slug, now) {
   return Array.isArray(skipList) && skipList.includes(weekday);
 }
 
-// Jendela bangun sebuah pool: [mulai, selesai] dalam menit WIB.
+// Jendela polling sebuah pool. Mulai pada T-5 dan tetap terbuka sampai result
+// baru ditemukan, dibatasi MAX_POLL_MINUTES supaya tidak ada pool yang polling
+// tanpa akhir. Angka dihitung sebagai "menit sejak mulai" supaya jadwal yang
+// melewati tengah malam tetap benar.
 export function wakeWindowFor(slug, now = new Date()) {
   const times = resultTimesFor(slug);
   if (!times.length) return null;
+  if (isExplicitSkipped(slug, now)) return null;
   const { minutes } = wibParts(now);
   for (const time of times) {
-    const start = ((time - WAKE_LEAD_MINUTES) % 1440 + 1440) % 1440;
-    const end = (time + WAKE_TRAIL_MINUTES) % 1440;
-    const inside = start <= end
-      ? minutes >= start && minutes <= end
-      : minutes >= start || minutes <= end;
-    if (inside && isDrawDay(slug, now)) return { start, end, resultTime: time };
+    const sinceStart = sinceStartMinutes(time, minutes);
+    if (sinceStart >= 0 && sinceStart <= MAX_POLL_MINUTES && isDrawDay(slug, now)) {
+      return { start: normalizeMinutes(time - SCRAPE_LEAD_MINUTES), end: normalizeMinutes(time + MAX_POLL_MINUTES), resultTime: time };
+    }
   }
   return null;
+}
+
+function normalizeMinutes(minutes) {
+  return ((Math.floor(minutes) % 1440) + 1440) % 1440;
+}
+
+// Berapa menit sudah berjalan sejak polling sebuah undian boleh mulai. Nilai
+// negatif berarti belum waktunya, lebih dari MAX_POLL_MINUTES berarti sudah
+// melewati batas kesabaran.
+function sinceStartMinutes(resultMinutes, currentMinutes) {
+  const start = resultMinutes - SCRAPE_LEAD_MINUTES;
+  const since = ((currentMinutes - start) % 1440 + 1440) % 1440;
+  return since > MAX_POLL_MINUTES ? -1 : since;
 }
 
 // Daftar pool yang sedang waking. Kalau kosong, collector tidak perlu berjalan
 // sama sekali sehingga tidak ada polling sia-sia.
 export function activeWakeSet(now = new Date(), slugs = []) {
   return slugs.filter(slug => !isExplicitSkipped(slug, now) && wakeWindowFor(slug, now));
+}
+
+// Kapan betting harus ditutup untuk sebuah undian. Dipakai lifecycle dan
+// presentation, bukan untuk memulai scraping.
+export function closeAtFor(resultTime, { now = new Date() } = {}) {
+  const time = typeof resultTime === 'number' ? resultTime : toMinutes(resultTime);
+  if (time === null || time === undefined) return null;
+  const { minutes } = wibParts(now);
+  // Bila jam result sudah lewat hari ini, undian berikutnya yang dihitung.
+  const base = time <= minutes ? time + 1440 : time;
+  return {
+    resultMinutes: base,
+    closeMinutes: base - CLOSE_LEAD_MINUTES,
+    resultClock: clockFromMinutes(base),
+    closeClock: clockFromMinutes(base - CLOSE_LEAD_MINUTES)
+  };
+}
+
+// Kapan polling untuk sebuah undian boleh dimulai. Tidak ada scraping sebelum
+// T-5, dan tidak ada scraping sama sekali pada hari tanpa undian.
+export function pollStartFor(slug, resultTime, { now = new Date() } = {}) {
+  const time = typeof resultTime === 'number' ? resultTime : toMinutes(resultTime);
+  if (time === null || time === undefined) return null;
+  if (!isDrawDay(slug, now)) return null;
+  const { minutes, dayKey } = wibParts(now);
+  const base = time <= minutes ? time + 1440 : time;
+  return { dayKey, resultMinutes: base, startMinutes: base - SCRAPE_LEAD_MINUTES };
+}
+
+function clockFromMinutes(minutes) {
+  const normalized = ((Math.floor(minutes) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(normalized / 60)).padStart(2, '0')}:${String(normalized % 60).padStart(2, '0')}`;
+}
+
+// Pool yang sedang menunggu result. Nilai balik berisi jam result yang ditunggu
+// supaya tiap pool punya jadwal polling sendiri. Sebuah pool baru masuk daftar
+// setelah T-5, dan tetap ada sampai result-nya ditemukan atau batas kesabaran
+// terlampaui.
+export function poolsInPollingPhase(now = new Date(), slugs = Object.keys(TOTO_RESULT_TIMES_WIB)) {
+  const { dayKey } = wibParts(now);
+  const out = [];
+  for (const slug of slugs) {
+    for (const time of resultTimesFor(slug)) {
+      const since = sinceStartMinutes(time, wibMinutesAt(now.getTime()));
+      if (since === -1) continue;
+      if (since < 0) continue;
+      if (!isDrawDay(slug, now)) continue;
+      out.push({ slug, resultTime: time, sinceStart: since, dayKey });
+      break;
+    }
+  }
+  return out;
 }
 
 export function schedulerSnapshot(now = new Date()) {
@@ -213,8 +298,10 @@ export function schedulerSnapshot(now = new Date()) {
   return {
     dayKeyWib: dayKey,
     weekdayWib: weekday,
-    wakeLeadMinutes: WAKE_LEAD_MINUTES,
-    wakeTrailMinutes: WAKE_TRAIL_MINUTES,
+    closeLeadMinutes: CLOSE_LEAD_MINUTES,
+    scrapeLeadMinutes: SCRAPE_LEAD_MINUTES,
+    pollIntervalMinutes: POLL_INTERVAL_MINUTES,
+    maxPollMinutes: MAX_POLL_MINUTES,
     holidayGraceMinutes: HOLIDAY_GRACE_MINUTES,
     configuredMarkets: Object.keys(TOTO_RESULT_TIMES_WIB).length,
     explicitWeekdaySkips: TOTO_SKIPPED_WEEKDAYS,

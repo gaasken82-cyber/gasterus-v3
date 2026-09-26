@@ -1,10 +1,10 @@
 import { config } from './config.js';
-import { connectRedis, redis, closeRedis } from './redis.js';
+import { connectRedis, closeRedis } from './redis.js';
 import { closeDatabase } from './db.js';
 import { logger } from './logger.js';
 import { runTotoCollector } from './toto-collector.js';
-import { isDrawWindowActive, DRAW_SCHEDULE } from './toto-collector-core.js';
-import { activeWakeSet, schedulerSnapshot, TOTO_RESULT_TIMES_WIB } from './toto-draw-scheduler.js';
+import { schedulerSnapshot, TOTO_RESULT_TIMES_WIB } from './toto-draw-scheduler.js';
+import { syncJobs, dueJobs, markPolled, applyPollResult, pollerSnapshot } from './toto-draw-poller.js';
 import { refreshSportsbookFeedFromPoll } from './sportsbook-feed.js';
 import { startMemoryGuard } from './memory-guard.js';
 
@@ -12,80 +12,48 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 let memoryGuard = null;
 let stopping = false;
 
-function collectorIntervalMs() {
-  const baseMs = Math.max(30, config.totoCollectorIntervalSeconds) * 1000;
-  const wibHour = (new Date().getUTCHours() + 7) % 24;
-  return (wibHour >= 9 || wibHour === 0) ? baseMs : Math.max(baseMs * 5, 300_000);
-}
-
-// Jadwal operator memakai jam result per pool. Collector hanya bangun bila
-// ada pool yang result-nya sudah dekat, sehingga tidak ada polling sepanjang
-// hari dan hari libur tidak diulang endlessly.
+// Jadwal operator memakai jam result per pool. Collector hanya bangun bila ada
+// pool yang sudah waktunya poll, sehingga tidak ada polling sepanjang hari dan
+// hari libur tidak diulang endlessly.
 const SCHEDULED_SLUGS = Object.freeze(Object.keys(TOTO_RESULT_TIMES_WIB));
 
-function wakeMarketSnapshot(now = new Date()) {
+// Loop TOTO sekarang digerakkan poller per pool: collector hanya jalan bila ada
+// pool yang memang sudah waktunya poll (T-5 kecloak, lalu tiap 3 menit), dan
+// berhenti begitu result baru valid untuk pool itu. Tidak ada lagi scrape
+// setiap menit sepanjang jendela T-20/T+25.
+async function pollDuePools() {
+  if (!config.totoCollectorEnabled) return;
+  const now = new Date();
+  syncJobs(now);
+  const due = dueJobs(now);
+  if (!due.length) return;
+  const polledKeys = due.map(item => item.key);
+  logger.info('TOTO draw poll dijalankan', {
+    pools: due.map(item => ({ pool: item.job.slug, resultWib: clockFromMinutes(item.job.resultTime), attempt: item.job.attempts + 1 }))
+  });
   try {
-    return activeWakeSet(now, SCHEDULED_SLUGS);
-  } catch (error) {
-    logger.warn('TOTO draw-window check failed; collector will retry safely', { error: error.message });
-    return [];
-  }
-}
-
-function anyDrawWindowActive(now = new Date()) {
-  // Bila scheduler punya jam result untuk sebuah pool, keputusan itu yang dipakai
-  // karena sudah memperhitungkan hari libur. Pool tanpa jam operator tetap memakai
-  // jendela draw bawaan supaya pasarannya tidak berhenti diperbarui.
-  const waking = wakeMarketSnapshot(now);
-  if (waking.length) return true;
-  return Object.keys(DRAW_SCHEDULE)
-    .filter(slug => !SCHEDULED_SLUGS.includes(slug))
-    .some(slug => isDrawWindowActive(slug, { now }));
-}
-
-async function collectTotoIfDue(state) {
-  if (!config.totoCollectorEnabled || Date.now() - state.lastTotoCollector < collectorIntervalMs()) return;
-  const nowMs = Date.now();
-  state.lastTotoCollector = nowMs;
-  const waking = wakeMarketSnapshot(new Date(nowMs));
-  if (!anyDrawWindowActive(new Date(nowMs))) {
-    state.lastWakingMarkets = 0;
-    logger.info('TOTO collector skipped outside active draw window');
-    return;
-  }
-  state.lastWakingMarkets = waking.length;
-  if (waking.length) {
-    logger.info('TOTO draw wake set', { markets: waking.length, sample: waking.slice(0, 6) });
-  }
-
-  let completedSlugs = new Set();
-  if (redis.isOpen) {
-    try {
-      const raw = await redis.get('toto:completed:today');
-      const saved = raw ? JSON.parse(raw) : [];
-      if (Array.isArray(saved)) completedSlugs = new Set(saved);
-    } catch (error) {
-      logger.warn('TOTO completion cache unavailable; continuing with current cycle', { error: error.message });
+    const result = await runTotoCollector({ reason: 'toto-draw-poller' });
+    for (const key of polledKeys) markPolled(key, new Date());
+    const outcome = applyPollResult(result?.decisions || [], { now: new Date(), polled: polledKeys });
+    if (outcome.advanced.length) {
+      logger.info('TOTO result baru terdeteksi', { pools: outcome.advanced });
     }
-  }
-  try {
-    const result = await runTotoCollector({ reason: 'feed-worker-scheduled-draw-window' });
-    const publishedNow = (result?.decisions || [])
-      .filter(decision => decision.status === 'VERIFIED' && decision.drawDate && String(decision.drawDate).startsWith(new Date(nowMs).toISOString().slice(0, 10)))
-      .map(decision => decision.slug)
-      .filter(Boolean);
-    if (publishedNow.length && redis.isOpen) {
-      for (const slug of publishedNow) completedSlugs.add(slug);
-      await redis.set('toto:completed:today', JSON.stringify([...completedSlugs]), { EX: 90000 });
+    if (outcome.skippedDays.length) {
+      logger.info('TOTO pool ditandai libur hari ini', { pools: outcome.skippedDays });
     }
-    logger.info('Feed worker TOTO collector cycle completed', { published: publishedNow.length });
   } catch (error) {
-    logger.warn('Feed worker TOTO collector cycle unavailable', { error: error.message });
+    for (const key of polledKeys) markPolled(key, new Date());
+    logger.warn('TOTO draw poll gagal; menunggu jadwal berikutnya', { error: error.message, pools: due.map(item => item.job.slug) });
   } finally {
     if (global.gc && process.memoryUsage().heapUsed > 180 * 1024 * 1024) {
       try { global.gc(); } catch {}
     }
   }
+}
+
+function clockFromMinutes(minutes) {
+  const normalized = ((Math.floor(minutes) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(normalized / 60)).padStart(2, '0')}:${String(normalized % 60).padStart(2, '0')}`;
 }
 
 async function refreshSportsFeedIfDue(state) {
@@ -101,16 +69,17 @@ async function refreshSportsFeedIfDue(state) {
 async function main() {
   await connectRedis();
   memoryGuard = startMemoryGuard({ label: 'feed-worker' });
-  const state = { lastTotoCollector: 0, lastSportsbookFeedRefresh: 0 };
+  const state = { lastSportsbookFeedRefresh: 0 };
   logger.info('Feed worker ready', {
     totoCollectorEnabled: config.totoCollectorEnabled,
     sportsFeedRefreshSeconds: config.sportsFeedRefreshSeconds,
     scheduledPools: SCHEDULED_SLUGS.length,
-    schedule: schedulerSnapshot()
+    schedule: schedulerSnapshot(),
+    poller: pollerSnapshot()
   });
 
   while (!stopping) {
-    await collectTotoIfDue(state);
+    await pollDuePools();
     await refreshSportsFeedIfDue(state);
     await sleep(1000);
   }
