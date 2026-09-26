@@ -4,6 +4,7 @@ import { closeDatabase } from './db.js';
 import { logger } from './logger.js';
 import { runTotoCollector } from './toto-collector.js';
 import { isDrawWindowActive, DRAW_SCHEDULE } from './toto-collector-core.js';
+import { activeWakeSet, schedulerSnapshot, TOTO_RESULT_TIMES_WIB } from './toto-draw-scheduler.js';
 import { refreshSportsbookFeedFromPoll } from './sportsbook-feed.js';
 import { startMemoryGuard } from './memory-guard.js';
 
@@ -17,22 +18,44 @@ function collectorIntervalMs() {
   return (wibHour >= 9 || wibHour === 0) ? baseMs : Math.max(baseMs * 5, 300_000);
 }
 
-function anyDrawWindowActive(now = new Date()) {
+// Jadwal operator memakai jam result per pool. Collector hanya bangun bila
+// ada pool yang result-nya sudah dekat, sehingga tidak ada polling sepanjang
+// hari dan hari libur tidak diulang endlessly.
+const SCHEDULED_SLUGS = Object.freeze(Object.keys(TOTO_RESULT_TIMES_WIB));
+
+function wakeMarketSnapshot(now = new Date()) {
   try {
-    return Object.keys(DRAW_SCHEDULE).some(slug => isDrawWindowActive(slug, { now }));
+    return activeWakeSet(now, SCHEDULED_SLUGS);
   } catch (error) {
     logger.warn('TOTO draw-window check failed; collector will retry safely', { error: error.message });
-    return false;
+    return [];
   }
+}
+
+function anyDrawWindowActive(now = new Date()) {
+  // Bila scheduler punya jam result untuk sebuah pool, keputusan itu yang dipakai
+  // karena sudah memperhitungkan hari libur. Pool tanpa jam operator tetap memakai
+  // jendela draw bawaan supaya pasarannya tidak berhenti diperbarui.
+  const waking = wakeMarketSnapshot(now);
+  if (waking.length) return true;
+  return Object.keys(DRAW_SCHEDULE)
+    .filter(slug => !SCHEDULED_SLUGS.includes(slug))
+    .some(slug => isDrawWindowActive(slug, { now }));
 }
 
 async function collectTotoIfDue(state) {
   if (!config.totoCollectorEnabled || Date.now() - state.lastTotoCollector < collectorIntervalMs()) return;
   const nowMs = Date.now();
   state.lastTotoCollector = nowMs;
+  const waking = wakeMarketSnapshot(new Date(nowMs));
   if (!anyDrawWindowActive(new Date(nowMs))) {
+    state.lastWakingMarkets = 0;
     logger.info('TOTO collector skipped outside active draw window');
     return;
+  }
+  state.lastWakingMarkets = waking.length;
+  if (waking.length) {
+    logger.info('TOTO draw wake set', { markets: waking.length, sample: waking.slice(0, 6) });
   }
 
   let completedSlugs = new Set();
@@ -81,7 +104,9 @@ async function main() {
   const state = { lastTotoCollector: 0, lastSportsbookFeedRefresh: 0 };
   logger.info('Feed worker ready', {
     totoCollectorEnabled: config.totoCollectorEnabled,
-    sportsFeedRefreshSeconds: config.sportsFeedRefreshSeconds
+    sportsFeedRefreshSeconds: config.sportsFeedRefreshSeconds,
+    scheduledPools: SCHEDULED_SLUGS.length,
+    schedule: schedulerSnapshot()
   });
 
   while (!stopping) {
