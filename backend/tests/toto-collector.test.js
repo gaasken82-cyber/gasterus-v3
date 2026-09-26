@@ -38,8 +38,8 @@ test('setiap pool punya jadwal draw sendiri sehingga collector tidak pernah skip
 test('setiap pool TOTO punya alias VegasNet dan jadwal tutup/result sendiri', () => {
   // Vegasnet tidak mengirim jam, jadi jadwal harus dipetakan agar pasar punya
   // close_at dan bisa dibuka lagi setelah result keluar.
-  assert.equal(__totoCollector.MARKET_MAP.length, 58);
-  assert.equal(__totoCollector.MARKET_MAP.filter(item => Object.keys(item.sources).length).length, 58);
+  assert.equal(__totoCollector.MARKET_MAP.length, 42);
+  assert.equal(__totoCollector.MARKET_MAP.filter(item => Object.keys(item.sources).length).length, 42);
   assert.equal(__totoCollector.MARKET_MAP.filter(item => !item.sources.vegasnet).length, 0);
   for (const item of __totoCollector.MARKET_MAP) {
     assert.ok(item.schedule?.closeTime, `${item.slug} tanpa jam tutup`);

@@ -9,9 +9,9 @@ Object.assign(process.env,{NODE_ENV:'test',DATABASE_URL:'postgresql://user:pass@
 const { parseObservation, MARKET_MAP } = await import('../src/toto-collector-core.js');
 
 test('ROOT closure exposes the canonical TOTO markets to member catalog (VegasNet pools only)',()=>{
-  assert.equal(MARKET_MAP.length,58);
-  assert.equal(MEMBER_VISIBLE_TOTO_MARKET_COUNT,58);
-  assert.equal(MEMBER_HIDDEN_TOTO_MARKETS.size,27);
+  assert.equal(MARKET_MAP.length,42);
+  assert.equal(MEMBER_VISIBLE_TOTO_MARKET_COUNT,42);
+  assert.equal(MEMBER_HIDDEN_TOTO_MARKETS.size,43);
 });
 
 test('ROOT closure snapshot-board finds a global date beyond shallow DOM wrappers',()=>{

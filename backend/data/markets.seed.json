@@ -661,21 +661,6 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "georgia-ngt-pool",
-    "code": "GNP",
-    "name": "GEORGIA NGT POOL",
-    "result": "7485",
-    "period": "1731",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32781",
-    "sourceKey": "/games/4d/p32781",
-    "sortOrder": 44,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
     "slug": "oregon-1-pool",
     "code": "O1P",
     "name": "OREGON 1 POOL",
@@ -766,21 +751,6 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "newyork-mid-pool",
-    "code": "NMP",
-    "name": "NEWYORK MID POOL",
-    "result": "5599",
-    "period": "1850",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32815",
-    "sourceKey": "/games/4d/p32815",
-    "sortOrder": 51,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
     "slug": "oregon-2-pool",
     "code": "O2P",
     "name": "OREGON 2 POOL",
@@ -796,36 +766,6 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "georgia-mid-pool",
-    "code": "GMP",
-    "name": "GEORGIA MID POOL",
-    "result": "4320",
-    "period": "1884",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32780",
-    "sourceKey": "/games/4d/p32780",
-    "sortOrder": 53,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
-    "slug": "maryland-mid-pool",
-    "code": "MMP",
-    "name": "MARYLAND MID POOL",
-    "result": "7592",
-    "period": "1901",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32776",
-    "sourceKey": "/games/4d/p32776",
-    "sortOrder": 54,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
     "slug": "maryland-eve-pool",
     "code": "MEP",
     "name": "MARYLAND EVE POOL",
@@ -837,21 +777,6 @@
     "providerPath": "/games/4d/p32777",
     "sourceKey": "/games/4d/p32777",
     "sortOrder": 55,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
-    "slug": "michigan-mid-pool",
-    "code": "MMP",
-    "name": "MICHIGAN MID POOL",
-    "result": "4338",
-    "period": "1935",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32783",
-    "sourceKey": "/games/4d/p32783",
-    "sortOrder": 56,
     "drawDate": "2026-09-07",
     "verificationStatus": "VERIFIED"
   },
@@ -886,21 +811,6 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "newjerseyeve-pool",
-    "code": "NP",
-    "name": "NEWJERSEYEVE POOL",
-    "result": "6725",
-    "period": "1986",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32786",
-    "sourceKey": "/games/4d/p32786",
-    "sortOrder": 59,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
     "slug": "kentucky-mid-pool",
     "code": "KMP",
     "name": "KENTUCKY MID POOL",
@@ -912,21 +822,6 @@
     "providerPath": "/games/4d/p32787",
     "sourceKey": "/games/4d/p32787",
     "sortOrder": 60,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
-    "slug": "kentucky-eve-pool",
-    "code": "KEP",
-    "name": "KENTUCKY EVE POOL",
-    "result": "9510",
-    "period": "2020",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32788",
-    "sourceKey": "/games/4d/p32788",
-    "sortOrder": 61,
     "drawDate": "2026-09-07",
     "verificationStatus": "VERIFIED"
   },
@@ -946,21 +841,6 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "indiana-eve-pool",
-    "code": "IEP",
-    "name": "INDIANA EVE POOL",
-    "result": "9896",
-    "period": "2054",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32790",
-    "sourceKey": "/games/4d/p32790",
-    "sortOrder": 63,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
     "slug": "tennesse-mid-pool",
     "code": "TMP",
     "name": "TENNESSE MID POOL",
@@ -976,21 +856,6 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "tennesse-mor-pool",
-    "code": "TMP",
-    "name": "TENNESSE MOR POOL",
-    "result": "0485",
-    "period": "2088",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32793",
-    "sourceKey": "/games/4d/p32793",
-    "sortOrder": 65,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
     "slug": "tennesse-eve-pool",
     "code": "TEP",
     "name": "TENNESSE EVE POOL",
@@ -1002,21 +867,6 @@
     "providerPath": "/games/4d/p32792",
     "sourceKey": "/games/4d/p32792",
     "sortOrder": 66,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
-    "slug": "texas-mor-pool",
-    "code": "TMP",
-    "name": "TEXAS MOR POOL",
-    "result": "1005",
-    "period": "2122",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32797",
-    "sourceKey": "/games/4d/p32797",
-    "sortOrder": 67,
     "drawDate": "2026-09-07",
     "verificationStatus": "VERIFIED"
   },
@@ -1081,21 +931,6 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "florida-eve-pool",
-    "code": "FEP",
-    "name": "FLORIDA EVE POOL",
-    "result": "6389",
-    "period": "2207",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32799",
-    "sourceKey": "/games/4d/p32799",
-    "sortOrder": 72,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
     "slug": "rhode-island-pool",
     "code": "RIP",
     "name": "RHODE ISLAND POOL",
@@ -1107,21 +942,6 @@
     "providerPath": "/games/4d/p32800",
     "sourceKey": "/games/4d/p32800",
     "sortOrder": 73,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
-    "slug": "illinois-eve-pool",
-    "code": "IEP",
-    "name": "ILLINOIS EVE POOL",
-    "result": "7079",
-    "period": "2241",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32802",
-    "sourceKey": "/games/4d/p32802",
-    "sortOrder": 74,
     "drawDate": "2026-09-07",
     "verificationStatus": "VERIFIED"
   },
@@ -1152,21 +972,6 @@
     "providerPath": "/games/4d/p32803",
     "sourceKey": "/games/4d/p32803",
     "sortOrder": 76,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
-    "slug": "missouri-eve-pool",
-    "code": "MEP",
-    "name": "MISSOURI EVE POOL",
-    "result": "8553",
-    "period": "2292",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32804",
-    "sourceKey": "/games/4d/p32804",
-    "sortOrder": 77,
     "drawDate": "2026-09-07",
     "verificationStatus": "VERIFIED"
   },
@@ -1231,21 +1036,6 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "virginia-ngt-pool",
-    "code": "VNP",
-    "name": "VIRGINIA NGT POOL",
-    "result": "7558",
-    "period": "2377",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32814",
-    "sourceKey": "/games/4d/p32814",
-    "sortOrder": 82,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
     "slug": "virginia-day-pool",
     "code": "VDP",
     "name": "VIRGINIA DAY POOL",
@@ -1257,36 +1047,6 @@
     "providerPath": "/games/4d/p32813",
     "sourceKey": "/games/4d/p32813",
     "sortOrder": 83,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
-    "slug": "northcaroday-pool",
-    "code": "NP",
-    "name": "NORTHCARODAY POOL",
-    "result": "8861",
-    "period": "2411",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32818",
-    "sourceKey": "/games/4d/p32818",
-    "sortOrder": 84,
-    "drawDate": "2026-09-07",
-    "verificationStatus": "VERIFIED"
-  },
-  {
-    "slug": "northcaroeve-pool",
-    "code": "NP",
-    "name": "NORTHCAROEVE POOL",
-    "result": "7253",
-    "period": "2428",
-    "category": "america",
-    "tags": [],
-    "status": "open",
-    "providerPath": "/games/4d/p32820",
-    "sourceKey": "/games/4d/p32820",
-    "sortOrder": 85,
     "drawDate": "2026-09-07",
     "verificationStatus": "VERIFIED"
   }
