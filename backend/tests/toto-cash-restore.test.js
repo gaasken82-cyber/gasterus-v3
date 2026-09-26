@@ -23,7 +23,34 @@ test('HF17 infers only a future daily period after two consecutive trusted draw 
   const plan=inferNextCashPeriod([{draw_date:'2026-08-19'},{draw_date:'2026-08-18'}]);
   assert.equal(plan.period,'2026-08-20');
   assert.equal(plan.cadenceDays,1);
+  // Tanpa jadwal pool, satu riwayat tetap belum cukup — tidak boleh menebak irama.
   assert.equal(inferNextCashPeriod([{draw_date:'2026-08-19'}]),null);
+});
+
+test('satu riwayat + jadwal pool terpetakan sudah cukup membuka jendela berikutnya',()=>{
+  // Sydney dan pool lain baru mulai punya satu riwayat trusted karena angka
+  // sebelumnya salah parse. Tanpa jalur ini pasar tidak pernah kebuka.
+  const plan=inferNextCashPeriod([{draw_date:'2026-09-25'}],{schedule:{closeTime:'19:45',resultTime:'20:00',timezone:'Asia/Jakarta'}});
+  assert.equal(plan.period,'2026-09-26');
+  assert.equal(plan.cadenceDays,1);
+  assert.equal(plan.method,'CONFIGURED_DAILY_SCHEDULE');
+  // Jadwal tanpa jam result tidak boleh dipakai untuk menebak irama.
+  assert.equal(inferNextCashPeriod([{draw_date:'2026-09-25'}],{schedule:{timezone:'Asia/Jakarta'}}),null);
+  // Riwayat kosong tetap gagal tertutup.
+  assert.equal(inferNextCashPeriod([],{schedule:{resultTime:'20:00'}}),null);
+});
+
+test('jadwal pool membuat pasar dengan satu riwayat punya jendela bets yang benar',()=>{
+  const plan=buildCashWindowPlan({
+    history:[{period:'2026-09-25',draw_date:'2026-09-25'}],
+    decision:{status:'VERIFIED',drawDate:'2026-09-25',result:'1559',schedule:{closeTime:'19:45',resultTime:'20:00',timezone:'Asia/Jakarta'}},
+    resultPeriod:'2026-09-25',
+    nowMs:Date.parse('2026-09-26T01:00:00Z')
+  });
+  assert.ok(plan,'pasar dengan riwayat tunggal harus punya rencana jendela');
+  assert.equal(plan.period,'2026-09-26');
+  // 19:43 WIB = 12:43 UTC
+  assert.equal(plan.closeAt.toISOString(),'2026-09-26T12:43:00.000Z');
 });
 
 test('HF17 requires three observations for a non-daily fixed cadence',()=>{

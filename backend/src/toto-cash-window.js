@@ -18,9 +18,16 @@ function dayGap(newer, older) {
   return Number.isFinite(a) && Number.isFinite(b) ? Math.round((a - b) / DAY_MS) : NaN;
 }
 
-export function inferNextCashPeriod(history = []) {
+export function inferNextCashPeriod(history = [], { schedule = null } = {}) {
   const dates = [...new Set((history || []).map(item => isoDate(item.draw_date || item.drawDate || item.period)).filter(Boolean))]
     .sort().reverse();
+  // Satu riwayat saja belum cukup untuk menyimpulkan irama, TAPI jadwal pool yang
+  // sudah dipetakan (closeTime/resultTime) memberi irama harian secara langsung.
+  // Tanpa ini, pasar seperti Sydney yang baru mulai terkumpul riwayatnya tidak
+  // pernah kebuka sama sekali karena `dates.length < 2`.
+  if (dates.length === 1 && schedule?.resultTime) {
+    return { period: addDays(dates[0], 1), cadenceDays: 1, evidenceCount: 1, method: 'CONFIGURED_DAILY_SCHEDULE' };
+  }
   if (dates.length < 2) return null;
   const firstGap = dayGap(dates[0], dates[1]);
   if (!Number.isInteger(firstGap) || firstGap < 1 || firstGap > 7) return null;
@@ -61,7 +68,7 @@ export function cashCloseAtForPeriod(period, schedule, nowMs = Date.now()) {
 export function buildCashWindowPlan({ history = [], decision = null, resultPeriod = null, nowMs = Date.now() } = {}) {
   if (!decision) return null;
   if (decision.status !== undefined && decision.status !== 'VERIFIED') return null;
-  const inferred = inferNextCashPeriod(history);
+  const inferred = inferNextCashPeriod(history, { schedule: decision?.schedule || null });
   if (!inferred?.period) return null;
   const latestResult = isoDate(resultPeriod || decision.drawDate);
   // Future betting windows follow source schedule. Result verification is not a prerequisite.
