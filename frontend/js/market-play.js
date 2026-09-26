@@ -41,7 +41,21 @@ export async function initMarketPlay() {
   }
 
   const urlParams = new URLSearchParams(window.location.search);
-  const marketCode = urlParams.get('code') || 'SGP';
+  const marketCode = urlParams.get('code') || urlParams.get('market');
+  if (!marketCode) {
+    currentMarketConfig = null;
+    currentMarket = {
+      name: 'Pasaran tidak dipilih',
+      available: false,
+      bettingStatus: 'UNAVAILABLE',
+      period: null,
+      closeAt: null
+    };
+    updateMarketHeaderUI(currentMarket);
+    setBettingControlsDisabled(true);
+    startCountdown();
+    return;
+  }
 
   await loadMarketInfo(marketCode);
   initBetRows();

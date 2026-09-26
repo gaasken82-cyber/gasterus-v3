@@ -44,6 +44,21 @@ test('pasaran tanpa waktu tutup tidak pernah diumumkan sebagai OPEN', () => {
   assert.doesNotMatch(migrasi, /close_at IS NOT NULL/);
 });
 
+test('kode display setiap pasar unik dan link member memakai slug', () => {
+  const seed = JSON.parse(read('backend/data/markets.seed.json'));
+  const codes = seed.map(item => item.code);
+  const slug = new Set(seed.map(item => item.slug));
+  assert.equal(slug.size, seed.length, 'slug pasar harus unik');
+  assert.equal(new Set(codes).size, codes.length, 'kode display pasar tidak boleh bentrok');
+  // marketByIdentifier hanya menerima slug/provider_path/id, jadi link wajib slug.
+  const member = read('frontend/js/member.js');
+  assert.match(member, /String\(m\.slug \|\| m\.code \|\| ''\)/);
+  assert.doesNotMatch(member, /newBtn\.href = '\/market-play\.html\?code=' \+ \(m\.code/);
+  const marketPlay = read('frontend/js/market-play.js');
+  assert.doesNotMatch(marketPlay, /get\('code'\) \|\| 'SGP'/);
+  assert.match(read('backend/migrations/031_unique_market_codes.sql'), /UPDATE markets SET code=/);
+});
+
 test('sportsbook feed and Redis cache have hard event and byte caps', () => {
   const config = read('backend/src/config.js');
   const feed = read('backend/src/sportsbook-feed.js');

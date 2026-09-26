@@ -86,7 +86,7 @@
   },
   {
     "slug": "newyork-pool",
-    "code": "NP",
+    "code": "NYP",
     "name": "NEWYORK POOL",
     "result": "0441",
     "period": "0931",
@@ -103,7 +103,7 @@
   },
   {
     "slug": "singapore-pool",
-    "code": "SP",
+    "code": "SGP",
     "name": "SINGAPORE POOL",
     "result": "0024",
     "period": "2982",
@@ -120,7 +120,7 @@
   },
   {
     "slug": "wellington-pool",
-    "code": "WP",
+    "code": "WLG",
     "name": "WELLINGTON POOL",
     "result": "9233",
     "period": "0642",
@@ -135,7 +135,7 @@
   },
   {
     "slug": "prague-pool",
-    "code": "PP",
+    "code": "PRG",
     "name": "PRAGUE POOL",
     "result": "4106",
     "period": "0754",
@@ -150,7 +150,7 @@
   },
   {
     "slug": "seattle-pool",
-    "code": "SP",
+    "code": "SEA",
     "name": "SEATTLE POOL",
     "result": "3654",
     "period": "1138",
@@ -225,7 +225,7 @@
   },
   {
     "slug": "christchurch-pool",
-    "code": "CP",
+    "code": "CHC",
     "name": "CHRISTCHURCH POOL",
     "result": "6546",
     "period": "0714",
@@ -240,7 +240,7 @@
   },
   {
     "slug": "tauranga-pool",
-    "code": "TP",
+    "code": "TRG",
     "name": "TAURANGA POOL",
     "result": "1198",
     "period": "0834",
@@ -255,7 +255,7 @@
   },
   {
     "slug": "china-pool",
-    "code": "CP",
+    "code": "CHN",
     "name": "CHINA POOL",
     "result": "3490",
     "period": "1683",
@@ -270,7 +270,7 @@
   },
   {
     "slug": "nelson-pool",
-    "code": "NP",
+    "code": "NEL",
     "name": "NELSON POOL",
     "result": "2732",
     "period": "1289",
@@ -285,7 +285,7 @@
   },
   {
     "slug": "california-pool",
-    "code": "CP",
+    "code": "CFR",
     "name": "CALIFORNIA POOL",
     "result": "5284",
     "period": "3819",
@@ -302,7 +302,7 @@
   },
   {
     "slug": "pcso-pool",
-    "code": "PP",
+    "code": "PCS",
     "name": "PCSO POOL",
     "result": "7254",
     "period": "4410",
@@ -407,7 +407,7 @@
   },
   {
     "slug": "palmerston-pool",
-    "code": "PP",
+    "code": "PMR",
     "name": "PALMERSTON POOL",
     "result": "8490",
     "period": "1442",
@@ -482,7 +482,7 @@
   },
   {
     "slug": "taiwan-pool",
-    "code": "TP",
+    "code": "TWN",
     "name": "TAIWAN POOL",
     "result": "3424",
     "period": "1206",
@@ -497,7 +497,7 @@
   },
   {
     "slug": "wisconsin-pool",
-    "code": "WP",
+    "code": "WIS",
     "name": "WISCONSIN POOL",
     "result": "2226",
     "period": "1544",
@@ -512,7 +512,7 @@
   },
   {
     "slug": "cambodia-pool",
-    "code": "CP",
+    "code": "CBD",
     "name": "CAMBODIA POOL",
     "result": "3935",
     "period": "3313",
@@ -527,7 +527,7 @@
   },
   {
     "slug": "belize-mor-pool",
-    "code": "BMP",
+    "code": "BZM",
     "name": "BELIZE MOR POOL",
     "result": "0091",
     "period": "1578",
@@ -542,7 +542,7 @@
   },
   {
     "slug": "merida-eve-pool",
-    "code": "MEP",
+    "code": "MRE",
     "name": "MERIDA EVE POOL",
     "result": "5798",
     "period": "1595",
@@ -557,7 +557,7 @@
   },
   {
     "slug": "merida-mor-pool",
-    "code": "MMP",
+    "code": "MRR",
     "name": "MERIDA MOR POOL",
     "result": "1882",
     "period": "1612",
@@ -572,7 +572,7 @@
   },
   {
     "slug": "merida-night-pool",
-    "code": "MNP",
+    "code": "MRN",
     "name": "MERIDA NIGHT POOL",
     "result": "7026",
     "period": "1629",
@@ -587,7 +587,7 @@
   },
   {
     "slug": "belize-mid-pool",
-    "code": "BMP",
+    "code": "BZL",
     "name": "BELIZE MID POOL",
     "result": "9891",
     "period": "1646",
@@ -602,7 +602,7 @@
   },
   {
     "slug": "belize-night-pool",
-    "code": "BNP",
+    "code": "BZN",
     "name": "BELIZE NIGHT POOL",
     "result": "5875",
     "period": "1663",
@@ -617,7 +617,7 @@
   },
   {
     "slug": "belize-eve-pool",
-    "code": "BEP",
+    "code": "BZE",
     "name": "BELIZE EVE POOL",
     "result": "4007",
     "period": "1680",
@@ -632,7 +632,7 @@
   },
   {
     "slug": "merida-mid-pool",
-    "code": "MMP",
+    "code": "MRM",
     "name": "MERIDA MID POOL",
     "result": "1682",
     "period": "1697",
@@ -767,7 +767,7 @@
   },
   {
     "slug": "maryland-eve-pool",
-    "code": "MEP",
+    "code": "MDV",
     "name": "MARYLAND EVE POOL",
     "result": "1708",
     "period": "1918",
@@ -782,7 +782,7 @@
   },
   {
     "slug": "michigan-eve-pool",
-    "code": "MEP",
+    "code": "MIV",
     "name": "MICHIGAN EVE POOL",
     "result": "8454",
     "period": "1952",
@@ -797,7 +797,7 @@
   },
   {
     "slug": "newjerseymid-pool",
-    "code": "NP",
+    "code": "NJM",
     "name": "NEWJERSEYMID POOL",
     "result": "2609",
     "period": "1969",
@@ -827,7 +827,7 @@
   },
   {
     "slug": "indiana-mid-pool",
-    "code": "IMP",
+    "code": "INM",
     "name": "INDIANA MID POOL",
     "result": "5780",
     "period": "2037",
@@ -857,7 +857,7 @@
   },
   {
     "slug": "tennesse-eve-pool",
-    "code": "TEP",
+    "code": "TEV",
     "name": "TENNESSE EVE POOL",
     "result": "4401",
     "period": "2105",
@@ -872,7 +872,7 @@
   },
   {
     "slug": "texas-eve-pool",
-    "code": "TEP",
+    "code": "TXE",
     "name": "TEXAS EVE POOL",
     "result": "4921",
     "period": "2139",
@@ -947,7 +947,7 @@
   },
   {
     "slug": "illinois-mid-pool",
-    "code": "IMP",
+    "code": "ILM",
     "name": "ILLINOIS MID POOL",
     "result": "2963",
     "period": "2258",
@@ -962,7 +962,7 @@
   },
   {
     "slug": "missouri-mid-pool",
-    "code": "MMP",
+    "code": "MMO",
     "name": "MISSOURI MID POOL",
     "result": "4437",
     "period": "2275",
@@ -977,7 +977,7 @@
   },
   {
     "slug": "washingtonmd-pool",
-    "code": "WP",
+    "code": "WMD",
     "name": "WASHINGTONMD POOL",
     "result": "7266",
     "period": "2309",
@@ -992,7 +992,7 @@
   },
   {
     "slug": "washingtonev-pool",
-    "code": "WP",
+    "code": "WEV",
     "name": "WASHINGTONEV POOL",
     "result": "2536",
     "period": "2326",

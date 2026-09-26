@@ -90,7 +90,7 @@ function renderMarkets(markets) {
 
     const digits = String(m.result ?? '----').slice(0, 4).split('');
     const balls = digits.map(d => `<span class="ball-num" style="width:30px;height:30px;font-size:0.95rem;">${escapeHtml(d)}</span>`).join('');
-    const marketCode = String(m.code || m.slug || '');
+    const marketCode = String(m.slug || m.code || '');
     const marketHref = `/market-play.html?code=${encodeURIComponent(marketCode)}`;
     const marketAction = marketCode
       ? `<a href="${escapeHtml(marketHref)}" class="btn btn-primary btn-sm btn-block btn-play">▶ BET DISINI</a>`
@@ -319,7 +319,7 @@ function startAutoRefresh() {
             if (btnEl.tagName === 'BUTTON' && btnEl.disabled) {
               // Replace <button disabled> with <a>
               const newBtn = document.createElement('a');
-              newBtn.href = '/market-play.html?code=' + (m.code || m.slug);
+              newBtn.href = '/market-play.html?code=' + encodeURIComponent(String(m.slug || m.code || ''));
               newBtn.className = 'btn btn-primary btn-sm btn-block btn-play';
               newBtn.textContent = '▶ BET DISINI';
               btnEl.replaceWith(newBtn);
