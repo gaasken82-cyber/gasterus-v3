@@ -226,7 +226,11 @@ async function enrichConsensusSourcesWithBrowserFallback(sourceResults) {
 async function executeRun({ fetchImpl = fetch, persist = true, reason = 'scheduled' } = {}) {
   const startedAt = new Date();
   state = { ...state, running: true, lastRunAt: startedAt.toISOString(), lastError: null };
-  const [initialSourceResults, officialResults] = await Promise.all([collectTotoSources(fetchImpl), collectOfficialTotoSources(fetchImpl)]);
+  // Vegasnet adalah sumber tunggal TOTO (lihat toto-source-fetch.js). Jalur
+  // scraper lain sudah dibuang agar collector tidak menambah beban dan tidak
+  // menggeser angka dengan board yang menulis label berbeda.
+  const initialSourceResults = await collectTotoSources(fetchImpl);
+  const officialResults = [];
   const sourceResults = await enrichConsensusSourcesWithBrowserFallback(initialSourceResults);
   if (![...sourceResults, ...officialResults].some(source => source.ok)) {
     let autoSuspended = 0;

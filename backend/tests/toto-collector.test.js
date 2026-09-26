@@ -18,10 +18,22 @@ const __totoCollector = { ...core, MARKET_MAP: core.MARKET_MAP };
 
 const source = (code, name, html, extra = {}) => ({ code, name, family: code, ok: true, html, ...extra });
 
-test('TOTO source map contains every canonical market with no source-less market (NZ regionals disabled)', () => {
-  assert.equal(__totoCollector.MARKET_MAP.length, 74);
-  assert.equal(__totoCollector.MARKET_MAP.filter(item => Object.keys(item.sources).length).length, 74);
-  assert.equal(__totoCollector.MARKET_MAP.filter(item => !Object.keys(item.sources).length).length, 0);
+test('setiap pool TOTO punya alias VegasNet dan jadwal tutup/result sendiri', () => {
+  // Vegasnet tidak mengirim jam, jadi jadwal harus dipetakan agar pasar punya
+  // close_at dan bisa dibuka lagi setelah result keluar.
+  assert.equal(__totoCollector.MARKET_MAP.length, 58);
+  assert.equal(__totoCollector.MARKET_MAP.filter(item => Object.keys(item.sources).length).length, 58);
+  assert.equal(__totoCollector.MARKET_MAP.filter(item => !item.sources.vegasnet).length, 0);
+  for (const item of __totoCollector.MARKET_MAP) {
+    assert.ok(item.schedule?.closeTime, `${item.slug} tanpa jam tutup`);
+    assert.ok(item.schedule?.resultTime, `${item.slug} tanpa jam result`);
+    assert.equal(item.schedule.timezone, 'Asia/Jakarta');
+  }
+  // Jadwal harus benar-benar dipakai collector, bukan sekadar menempel di peta.
+  const decision = __totoCollector.resolveDecision(__totoCollector.MARKET_MAP[0], [
+    source('vegasnet', 'Vegasnet', '<table><tr><td>Bullseye</td><td>25-09-2026</td><td>1234</td></tr></table>')
+  ]);
+  assert.ok(decision.schedule?.closeTime);
 });
 
 test('collector parses DataToto table rows without losing leading zeroes', () => {

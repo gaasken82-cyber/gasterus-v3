@@ -8,10 +8,10 @@ import { MEMBER_HIDDEN_TOTO_MARKETS, MEMBER_VISIBLE_TOTO_MARKET_COUNT } from '..
 Object.assign(process.env,{NODE_ENV:'test',DATABASE_URL:'postgresql://user:pass@example.com/db',REDIS_URL:'redis://example.com:6379',MEMBER_PROXY_SECRET:'m'.repeat(48),ADMIN_PROXY_SECRET:'a'.repeat(48),OPS_INTERNAL_SECRET:'o'.repeat(48),SESSION_HMAC_KEY:'s'.repeat(48),API_KEY_PEPPER:'p'.repeat(48),MFA_ENCRYPTION_KEY_BASE64:Buffer.alloc(32,7).toString('base64')});
 const { parseObservation, MARKET_MAP } = await import('../src/toto-collector-core.js');
 
-test('ROOT closure exposes the canonical TOTO markets to member catalog (NZ regionals disabled)',()=>{
-  assert.equal(MARKET_MAP.length,74);
-  assert.equal(MEMBER_VISIBLE_TOTO_MARKET_COUNT,74);
-  assert.equal(MEMBER_HIDDEN_TOTO_MARKETS.size,11);
+test('ROOT closure exposes the canonical TOTO markets to member catalog (VegasNet pools only)',()=>{
+  assert.equal(MARKET_MAP.length,58);
+  assert.equal(MEMBER_VISIBLE_TOTO_MARKET_COUNT,58);
+  assert.equal(MEMBER_HIDDEN_TOTO_MARKETS.size,27);
 });
 
 test('ROOT closure snapshot-board finds a global date beyond shallow DOM wrappers',()=>{

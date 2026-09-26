@@ -393,14 +393,30 @@ export function observationsForMapping(mapping, sourceResults) {
   }
   return observations;
 }
-export function scheduleEvidence(observations = [], { result = null, drawDate = null } = {}) {
+export function scheduleEvidence(observations = [], { result = null, drawDate = null, mapping = null } = {}) {
   const candidates = (observations || []).filter(item => {
     if (!item?.closeTime && !item?.resultTime) return false;
     if (result && item.result !== result) return false;
     if (drawDate && item.drawDate !== drawDate) return false;
     return true;
   });
-  if (!candidates.length) return null;
+  // Vegasnet hanya mengirim nama, tanggal, dan angka — tanpa jam tutup/result.
+  // Tanpa jadwal per pool, pasar tidak akan pernah punya close_at sehingga tidak
+  // bisa dibuka lagi setelah result keluar. Jadwal yang sudah dipetakan dipakai
+  // sebagai sumber tunggal kalau tidak ada observasi yang membawa jam.
+  const fallback = () => {
+    const mapped = mapping?.schedule;
+    if (!mapped || (!mapped.closeTime && !mapped.resultTime)) return null;
+    return {
+      status: 'CONFIGURED',
+      closeTime: mapped.closeTime || null,
+      resultTime: mapped.resultTime || null,
+      timezone: mapped.timezone || 'Asia/Jakarta',
+      sources: ['Jadwal Pool'],
+      sourceFamilies: ['schedule-config']
+    };
+  };
+  if (!candidates.length) return fallback();
   const groups = new Map();
   for (const item of candidates) {
     const timezone = item.scheduleTimezone || 'Asia/Jakarta';
@@ -448,7 +464,7 @@ export function resolveDecision(mapping, sourceResults, overrides = {}) {
       confidence: agreeingFamilies.length >= 2 ? 1 : 0.6,
       sources: [...new Set(agreeing.map(x => x.sourceName))],
       sourceFamilies: agreeingFamilies,
-      schedule: scheduleEvidence(agreeing, { result: authorityResult, drawDate: latestDate }),
+      schedule: scheduleEvidence(agreeing, { result: authorityResult, drawDate: latestDate, mapping }),
       authority: true
     };
   }
@@ -460,7 +476,7 @@ export function resolveDecision(mapping, sourceResults, overrides = {}) {
   const familyCount = values => new Set(values.map(item => item.sourceFamily || item.source)).size;
   const ranked = [...grouped.entries()].sort((a, b) => familyCount(b[1]) - familyCount(a[1]) || b[1].length - a[1].length);
   if (ranked.length > 1 && familyCount(ranked[0][1]) === familyCount(ranked[1][1])) {
-    return { slug: mapping.slug, status: 'CONFLICT', observations: latest, allObservations: observations, result: null, drawDate: latestDate, drawTime: latest.map(x => x.drawTime).find(Boolean) || null, confidence: 0, schedule: scheduleEvidence(latest, { drawDate: latestDate }) };
+    return { slug: mapping.slug, status: 'CONFLICT', observations: latest, allObservations: observations, result: null, drawDate: latestDate, drawTime: latest.map(x => x.drawTime).find(Boolean) || null, confidence: 0, schedule: scheduleEvidence(latest, { drawDate: latestDate, mapping }) };
   }
   const [result, agreeing] = ranked[0];
   const agreeingFamilies = [...new Set(agreeing.map(item => item.sourceFamily || item.source))];
@@ -477,7 +493,7 @@ export function resolveDecision(mapping, sourceResults, overrides = {}) {
     confidence,
     sources: [...new Set(agreeing.map(x => x.sourceName))],
     sourceFamilies: agreeingFamilies,
-    schedule: scheduleEvidence(agreeing, { result, drawDate: latestDate })
+    schedule: scheduleEvidence(agreeing, { result, drawDate: latestDate, mapping })
   };
 }
 export function enforceDecisionFreshness(decision, { now = new Date(), maxAgeDays = 4 } = {}) {

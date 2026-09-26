@@ -36,17 +36,9 @@ function response(url, html, { status = 200, contentLength = null } = {}) {
   };
 }
 
-test('TOTO source set is lean & vegasnet-primary (proven-alive sources only)', async () => {
-  assert.deepEqual(TOTO_SOURCES.map(item => item.code), ['vegasnet', 'kingkonginfo', 'belizepools-mor', 'belizepools-mid', 'belizepools-eve', 'belizepools-ngt', 'meridapools']);
-  assert.deepEqual(TOTO_SOURCES.map(item => item.url), [
-    'https://widgets.vegasnet.info/result.php',
-    'https://kingkongtoto-info.com/',
-    'https://belizepools.org/live-draw-morning/',
-    'https://belizepools.org/live-draw-midday/',
-    'https://belizepools.org/live-draw-evening/',
-    'https://belizepools.org/live-draw-night/',
-    'https://meridapools.org/'
-  ]);
+test('TOTO memakai VegasNet sebagai satu-satunya sumber (label & jadwal tampil utuh)', async () => {
+  assert.deepEqual(TOTO_SOURCES.map(item => item.code), ['vegasnet']);
+  assert.deepEqual(TOTO_SOURCES.map(item => item.url), ['https://widgets.vegasnet.info/result.php']);
   const calls = [];
   const fakeFetch = async (url, options) => {
     calls.push({ url: String(url), options });
@@ -54,26 +46,35 @@ test('TOTO source set is lean & vegasnet-primary (proven-alive sources only)', a
   };
   const results = await collectTotoSources(fakeFetch);
   const vegasnet = results.find(item => item.code === 'vegasnet');
-  assert.equal(results.length, 7);
+  assert.equal(results.length, 1);
   assert.equal(vegasnet.ok, true);
   assert.match(vegasnet.contentType, /combined=vegasnet/);
   assert.equal(results.every(item => item.ok && item.bytes > 0), true);
-  assert.equal(calls.length, 6 + Math.ceil(vegasnet.showIds.length / vegasnet.batchSize)); // 6 non-combine sources + vegasnet batches
+  // Semua show_id aktif harus ikut terpakai, bukan hanya sebagian.
+  assert.equal(TOTO_SOURCES[0].showIds.length, 167);
+  const requested = calls.map(call => call.url).join(',');
+  assert.match(requested, /show_id=1,2,3/);
+  assert.match(requested, /171/);
+  assert.equal(calls.length, Math.ceil(vegasnet.showIds.length / vegasnet.batchSize));
   assert.equal(calls.every(call => call.options.redirect === 'follow'), true);
   const byHost = new Map(calls.map(call => [new URL(call.url).hostname.replace(/^www\./, ''), call.options.headers]));
-  assert.match(byHost.get('kingkongtoto-info.com')['user-agent'], /Mozilla\/5\.0/);
-  assert.match(byHost.get('kingkongtoto-info.com')['accept-language'], /id-ID/);
   assert.match(byHost.get('widgets.vegasnet.info')['user-agent'], /ASEAN777-Result-Collector\/6\.8\.14/);
 });
 
-test('TOTO network adapter keeps healthy sources when one source fails', async () => {
+test('TOTO network adapter menandai sumber gagal tanpa membuang hasil batch lain', async () => {
   const fakeFetch = async url => {
-    if (new URL(url).hostname === 'meridapools.org') return response(String(url), '', { status: 503 });
+    if (new URL(url).searchParams.has('show_id')) {
+      const ids = (new URL(url).searchParams.get('show_id') || '').split(',');
+      if (!ids.includes('2')) return response(String(url), '', { status: 503 });
+      return response(String(url), '<table><tr><td>Ohio Midday</td><td>12-09-2026</td><td>6364</td></tr></table>');
+    }
     return response(String(url), htmlFor(url));
   };
   const results = await collectTotoSources(fakeFetch);
-  assert.equal(results.filter(item => item.ok).length, 6);
-  assert.match(results.find(item => item.code === 'meridapools').error, /HTTP 503/);
+  const vegasnet = results[0];
+  // Sebagian batch gagal tetap menghasilkan sumber usable selama ada satu batch sukses.
+  assert.equal(vegasnet.ok, true);
+  assert.match(vegasnet.html, /Ohio Midday/);
 });
 
 test('TOTO source fetch blocks unsafe URLs and cross-host redirects', async () => {
@@ -108,18 +109,11 @@ test('vegasnet batched combineAll merges rows and tolerates empty batches', asyn
   assert.match(result.attempts.find(a => a.error).error, /VEGASNET_SHOWID_FAILED/);
 });
 
-test('browser fallback preserves HTTPS/same-host policy and returns rendered DOM', async () => {
-  const source = TOTO_SOURCES.find(item => item.code === 'kingkonginfo');
-  const rendered = await renderTotoSource({ ...source, ok: true, html: '<html>landing</html>' }, async url => ({
-    html: snapshotHtml('WELLINGTON', '4969'), finalUrl: url, renderer: 'CHROMIUM_CDP', renderMs: 12
-  }));
-  assert.equal(rendered.ok, true);
-  assert.equal(rendered.renderer, 'CHROMIUM_CDP');
-  assert.match(rendered.html, /WELLINGTON/);
-  await assert.doesNotReject(async () => validateSourceUrl(rendered.finalUrl));
-  const blocked = await renderTotoSource(source, async () => ({ html: snapshotHtml(), finalUrl: 'https://evil.example/' }));
-  assert.equal(blocked.renderAttempted, true);
-  assert.match(blocked.renderError, /browser redirect host blocked/);
+test('renderTotoSource dilewati untuk sumber VegasNet tanpa browser fallback', async () => {
+  const source = TOTO_SOURCES.find(item => item.code === 'vegasnet');
+  const rendered = await renderTotoSource(source, async () => { throw new Error('tidak boleh dipanggil'); });
+  assert.equal(rendered, source);
+  assert.equal(rendered.browserFallback, undefined);
 });
 
 test('mapLimit bounds concurrent TOTO transport work', async () => {

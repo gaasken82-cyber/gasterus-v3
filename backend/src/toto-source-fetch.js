@@ -15,15 +15,14 @@ function boardMarkerTest(html) {
 const BROWSER_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
 
 export const TOTO_SOURCES = Object.freeze([
-  // === INSTRUCTION (QC): FOCUS ON VEGASNET =================================
-  // `vegasnet` is the PRIMARY & sole most-reliable source. Plain HTTP widget,
-  // no Chromium. One lightweight request per show_id; each page is a single
-  // <table> row parsed by the 'vegasnet-table' parser. show_id list covers the
-  // pools mapped in toto-source-map.json ("vegasnet" alias entries).
+  // === INSTRUCTION (QC): VEGASNET ADALAH SUMBER TUNGGAL TOGEL ===
+  // Widget HTTP ringan, tanpa Chromium. Satu permintaan per batch show_id, setiap
+  // baris <table> berisi: nama pasaran | tanggal | hasil (4D).
   //
-  // Cleanup (Instruction #1): removed dead/unreliable scrapers from this array:
-  // poskopaito, datatoto (down), masterlive, cindototo, sumtoto, miototo,
-  // ikontoto, kiatoto. Only sources proven alive remain (liveness-verified).
+  // show_id di bawah adalah hasil pemetaan LENGKAP terhadap label yang benar-benar
+  // ada di widgets.vegasnet.info (167 pool aktif, show_id 1-171 tanpa celah).
+  // Sebelumnya hanya 109 id yang dipanggil sehingga 60 label — termasuk Taipei,
+  // Hongkong, Malaysia, dan seluruh Sydney Night/Day — tidak pernah ikut terambil.
   {
     code: 'vegasnet',
     name: 'Vegasnet Live Result Widget',
@@ -33,26 +32,17 @@ export const TOTO_SOURCES = Object.freeze([
     combineAll: true,
     batchSize: 30,
     showIds: [
-      2, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 21, 30, 38, 39, 40, 42, 43, 44,
-      45, 48, 49, 51, 54, 55, 57, 59, 60, 61, 63, 65, 66, 67, 70, 71, 74, 76,
-      77, 84, 88, 89, 94, 98, 101, 110, 113, 114, 115, 116, 138, 139, 157, 166,
-      // Additional Sydney Pool show_ids (VegasNet uses multiple IDs for Sydney)
-      3, 4, 5, 6, 7, 8, 14, 20, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33,
-      34, 35, 36, 37, 41, 46, 47, 50, 52, 53, 56, 58, 62, 64, 68, 69, 72, 73,
-      75, 78, 79, 80, 81, 82, 83, 85, 86, 87, 90, 91, 92, 93, 95, 96, 97, 99, 100
+      1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+      21, 22, 23, 24, 25, 26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+      41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+      61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+      80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98,
+      99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 119,
+      120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137,
+      138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156,
+      157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171
     ]
-  },
-  // Backup board (proven live, browser-rendered): aggregates ALL pools incl.
-  // schedule (Tutup Pasaran / Result Pasaran WIB).
-  { code: 'kingkonginfo', name: 'KingkongToto Result & Schedule Board', url: config.totoKingkongInfoUrl, parser: 'market-card', globalBoard: true, family: 'kingkongtoto-info.com', requestProfile: 'browser-id', browserFallback: true },
-  // Official operator live-draw authorities (proven live, static HTML, no anti-bot).
-  // Each family is a distinct operator, so agreement counts toward the two-family
-  // CONSENSUS/VERIFIED gate; official site overrides any differing aggregator obs.
-  { code: 'belizepools-mor', name: 'Belize Pools Morning', url: config.totoBelizePoolsUrl + 'live-draw-morning/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
-  { code: 'belizepools-mid', name: 'Belize Pools Midday', url: config.totoBelizePoolsUrl + 'live-draw-midday/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
-  { code: 'belizepools-eve', name: 'Belize Pools Evening', url: config.totoBelizePoolsUrl + 'live-draw-evening/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
-  { code: 'belizepools-ngt', name: 'Belize Pools Night', url: config.totoBelizePoolsUrl + 'live-draw-night/', parser: 'pools-draw', family: 'belizepools.org', authority: true },
-  { code: 'meridapools', name: 'Merida Pools Official', url: config.totoMeridaPoolsUrl, parser: 'pools-draw', family: 'meridapools.org', authority: true }
+  }
 ]);
 
 function clean(value) { return String(value ?? '').replace(/\s+/g, ' ').trim(); }
@@ -174,12 +164,6 @@ async function collectOneSource(source, fetchImpl) {
       const url = `${source.url}?show_id=${group.join(',')}`;
       try {
         const document = await fetchTotoDocument({ ...source, url }, fetchImpl);
-        // Log HTML for Sydney Pool (show_id 98) for debugging
-        if (group.includes(98)) {
-          console.log(`[VEGASNET DEBUG] Sydney Pool (show_id 98) HTML response (${document.html.length} chars):`);
-          console.log(document.html.substring(0, 2000));
-          console.log('---END VEGASNET DEBUG---');
-        }
         return { url, html: document.html, status: document.status };
       } catch (error) {
         return { url, html: '', status: null, error: clean(error.message) };
