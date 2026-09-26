@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { calibratedSchedule, conservativeFallbackSchedule } from './toto-draw-calibrator.js';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { config } from './config.js';
@@ -401,20 +402,14 @@ export function scheduleEvidence(observations = [], { result = null, drawDate = 
     return true;
   });
   // Vegasnet hanya mengirim nama, tanggal, dan angka — tanpa jam tutup/result.
-  // Tanpa jadwal per pool, pasar tidak akan pernah punya close_at sehingga tidak
-  // bisa dibuka lagi setelah result keluar. Jadwal yang sudah dipetakan dipakai
-  // sebagai sumber tunggal kalau tidak ada observasi yang membawa jam.
+  // Urutan sumber jam: hasil kalibrasi dari sumber (terukur), lalu jadwal pool
+  // sebagai cadangan konservatif supaya pasar menutup lebih awal.
   const fallback = () => {
-    const mapped = mapping?.schedule;
-    if (!mapped || (!mapped.closeTime && !mapped.resultTime)) return null;
-    return {
-      status: 'CONFIGURED',
-      closeTime: mapped.closeTime || null,
-      resultTime: mapped.resultTime || null,
-      timezone: mapped.timezone || 'Asia/Jakarta',
-      sources: ['Jadwal Pool'],
-      sourceFamilies: ['schedule-config']
-    };
+    const calibrated = calibratedSchedule(mapping?.slug);
+    if (calibrated) return calibrated;
+    const conservative = conservativeFallbackSchedule(mapping);
+    if (conservative) return conservative;
+    return null;
   };
   if (!candidates.length) return fallback();
   const groups = new Map();

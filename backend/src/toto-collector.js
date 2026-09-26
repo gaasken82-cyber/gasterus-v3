@@ -9,6 +9,7 @@ import { TOTO_SOURCES, collectTotoSources, renderTotoSource } from './toto-sourc
 import { collectOfficialTotoSources, officialDecision } from './toto-official-source.js';
 import { buildTotoAuthoritySnapshot, totoAuthoritySnapshotRevision } from './toto-production-acceptance.js';
 import { reconcileCashBettingWindows } from './toto-cash-lifecycle.js';
+import { recordDrawObservations, drawCalibrationSnapshot } from './toto-draw-calibrator.js';
 const STATUS_KEY = 'toto:collector:status:v1';
 const LOCK_KEY = 'toto:collector:lock:v1';
 const STATUS_TTL_SECONDS = 172800;
@@ -268,6 +269,9 @@ async function executeRun({ fetchImpl = fetch, persist = true, reason = 'schedul
     recordSourceOutcome(source.code, Boolean(source.ok && Number(source.parsedMarkets || 0) > 0));
   }
   const sourceHealthSnapshot = allSourceHealthSnapshot();
+  // Ukur jam result yang terlihat di sumber. Sampel baru hanya diambil ketika
+  // tanggal draw berubah, jadi tidak menambah beban request.
+  const drawCalibration = recordDrawObservations(decisions, { now: startedAt });
   const persistence = persist ? await applyDecisions(decisions) : { updated: 0, unchanged: 0, autoSuspended: 0 };
   const cashWindows = persist ? await reconcileCashBettingWindows(decisions) : null;
   state = {
@@ -298,6 +302,7 @@ async function executeRun({ fetchImpl = fetch, persist = true, reason = 'schedul
     ],
     summary: { ...counts, ...persistence, cashWindows },
     scheduleReadiness,
+    drawCalibration: { ...drawCalibration, snapshot: drawCalibrationSnapshot() },
     bettingReadiness: persist ? await bettingReadinessSummary() : null
   };
   await persistSharedState();
