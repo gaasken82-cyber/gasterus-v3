@@ -69,6 +69,18 @@
           </thead>
           <tbody id="gaming-tbody">
             <tr>
+              <td colspan="6" class="loading-cell">
+                <div class="loading-spinner"></div>
+                Memuat riwayat...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
   <div class="nav-drawer-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="site-nav-drawer" aria-label="Navigasi utama">
     <div class="nav-drawer-head">
@@ -86,7 +98,6 @@
       <a class="nav-drawer-link" href="/gaming-history.html"><span class="nav-drawer-ico">🎮</span>Riwayat Permainan</a>
       <a class="nav-drawer-link" href="/cashout.html"><span class="nav-drawer-ico">💵</span>Cash Out</a>
       <a class="nav-drawer-link" href="/support.html"><span class="nav-drawer-ico">❓</span>Pusat Bantuan</a>
-      <a class="nav-drawer-link" href="/wallet-ledger.html"><span class="nav-drawer-ico">💰</span>Mutasi Saldo</a>
       <a class="nav-drawer-link" href="/deposit.html"><span class="nav-drawer-ico">💳</span>Setor</a>
       <a class="nav-drawer-link" href="/withdraw.html"><span class="nav-drawer-ico">💸</span>Tarik</a>
       <a class="nav-drawer-link" href="/promotion.html"><span class="nav-drawer-ico">🎁</span>Promo</a>
@@ -130,9 +141,6 @@
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeNav(); });
     })();
   </script>
-
-              <td colspan="6" class="loading-cell">
-                <div class="loading-spinner"></div>
 
   <script type="module">
     import api from '/js/api.js';
@@ -229,13 +237,3 @@
   </script>
 </body>
 </html>
-
-                Memuat riwayat...
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>

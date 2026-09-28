@@ -92,6 +92,22 @@
               <th>Waktu</th>
               <th>Subjek</th>
               <th>Status</th>
+              <th>Jawaban</th>
+            </tr>
+          </thead>
+          <tbody id="ticket-tbody">
+            <tr>
+              <td colspan="5" class="loading-cell">
+                <div class="loading-spinner"></div>
+                Memuat tiket...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
 
   <div class="nav-drawer-backdrop" id="navBackdrop"></div>
   <nav class="nav-drawer" id="site-nav-drawer" aria-label="Navigasi utama">
@@ -109,7 +125,6 @@
       <a class="nav-drawer-link" href="/wallet-ledger.html"><span class="nav-drawer-ico">💰</span>Mutasi Saldo</a>
       <a class="nav-drawer-link" href="/gaming-history.html"><span class="nav-drawer-ico">🎮</span>Riwayat Permainan</a>
       <a class="nav-drawer-link" href="/cashout.html"><span class="nav-drawer-ico">💵</span>Cash Out</a>
-      <a class="nav-drawer-link" href="/support.html"><span class="nav-drawer-ico">❓</span>Pusat Bantuan</a>
       <a class="nav-drawer-link" href="/support.html"><span class="nav-drawer-ico">❓</span>Pusat Bantuan</a>
       <a class="nav-drawer-link" href="/deposit.html"><span class="nav-drawer-ico">💳</span>Setor</a>
       <a class="nav-drawer-link" href="/withdraw.html"><span class="nav-drawer-ico">💸</span>Tarik</a>
@@ -153,6 +168,7 @@
       if (backdropEl) backdropEl.addEventListener('click', closeNav);
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeNav(); });
     })();
+  </script>
 
   <script type="module">
     import api from '/js/api.js';
@@ -257,22 +273,3 @@
   </script>
 </body>
 </html>
-
-  </script>
-
-              <th>Jawaban</th>
-            </tr>
-          </thead>
-          <tbody id="ticket-tbody">
-            <tr>
-              <td colspan="5" class="loading-cell">
-                <div class="loading-spinner"></div>
-                Memuat tiket...
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
