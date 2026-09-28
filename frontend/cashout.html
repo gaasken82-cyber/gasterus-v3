@@ -95,8 +95,6 @@
       <a class="nav-drawer-link" href="/gaming-history.html"><span class="nav-drawer-ico">🎮</span>Riwayat Permainan</a>
       <a class="nav-drawer-link" href="/cashout.html"><span class="nav-drawer-ico">💵</span>Cash Out</a>
       <a class="nav-drawer-link" href="/support.html"><span class="nav-drawer-ico">❓</span>Pusat Bantuan</a>
-      <a class="nav-drawer-link" href="/cashout.html"><span class="nav-drawer-ico">💵</span>Cash Out</a>
-      <a class="nav-drawer-link" href="/support.html"><span class="nav-drawer-ico">❓</span>Pusat Bantuan</a>
       <a class="nav-drawer-link" href="/deposit.html"><span class="nav-drawer-ico">💳</span>Setor</a>
       <a class="nav-drawer-link" href="/withdraw.html"><span class="nav-drawer-ico">💸</span>Tarik</a>
       <a class="nav-drawer-link" href="/promotion.html"><span class="nav-drawer-ico">🎁</span>Promo</a>
@@ -138,6 +136,8 @@
       var backdropEl = document.getElementById('navBackdrop');
       if (backdropEl) backdropEl.addEventListener('click', closeNav);
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeNav(); });
+    })();
+  </script>
 
   <script type="module">
     import api from '/js/api.js';
@@ -226,6 +226,3 @@
   </script>
 </body>
 </html>
-
-    })();
-  </script>
