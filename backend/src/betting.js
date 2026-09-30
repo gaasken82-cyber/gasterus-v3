@@ -131,6 +131,40 @@ export async function cancelBet(session,id,ip=''){return tx(async client=>{const
 export async function listMemberBets(memberId,{status,limit=100,offset=0}={}){const values=[memberId];let clause="o.member_id=$1 AND o.wallet_mode='CASH'";if(status){values.push(String(status).toUpperCase());clause+=` AND o.status=$${values.length}`}values.push(Math.min(Number(limit)||100,500));const lp=values.length;values.push(Math.max(Number(offset)||0,0));const op=values.length;const {rows}=await query(`SELECT o.*,u.username,m.slug,(SELECT COUNT(*) FROM bet_items i WHERE i.order_id=o.id)::int AS item_count FROM bet_orders o JOIN users u ON u.id=o.member_id JOIN markets m ON m.id=o.market_id WHERE ${clause} ORDER BY o.created_at DESC LIMIT $${lp} OFFSET $${op}`,values);return rows.map(x=>mapOrder(x));}
 export async function listAllBets({status,marketId,period,username,limit=200,offset=0}={}){const v=[];const w=[];if(status){v.push(String(status).toUpperCase());w.push(`o.status=$${v.length}`)}if(marketId){v.push(Number(marketId));w.push(`o.market_id=$${v.length}`)}if(period){v.push(clean(period,80));w.push(`o.period=$${v.length}`)}if(username){v.push(`%${clean(username,30)}%`);w.push(`u.username ILIKE $${v.length}`)}v.push(Math.min(Number(limit)||200,1000));const lp=v.length;v.push(Math.max(Number(offset)||0,0));const op=v.length;const {rows}=await query(`SELECT o.*,u.username,m.slug,(SELECT COUNT(*) FROM bet_items i WHERE i.order_id=o.id)::int AS item_count FROM bet_orders o JOIN users u ON u.id=o.member_id JOIN markets m ON m.id=o.market_id ${w.length?`WHERE ${w.join(' AND ')}`:''} ORDER BY o.created_at DESC LIMIT $${lp} OFFSET $${op}`,v);return rows.map(x=>mapOrder(x));}
 export const getMemberBet=(memberId,id)=>orderBy({query},"o.id=$1 AND o.member_id=$2 AND o.wallet_mode='CASH'",[id,memberId]);
+
+// Bukti betting untuk member. Data diambil ulang dari server (bukan dari cache
+// browser) dan tetap ter-filter ke milik member itu sendiri lewat getMemberBet.
+export async function betReceipt(memberId,id){
+  const order=await getMemberBet(memberId,id);
+  const rows=(order.items||[]).map((item,index)=>({
+    no:index+1,
+    gameCode:item.gameCode,
+    label:LOTTERY_GAME_MAP.get(item.gameCode)?.label||item.gameCode,
+    selection:item.selection,
+    amount:item.amount,
+    discount:item.discount,
+    stake:item.stake,
+    payoutMultiplier:item.payoutMultiplier,
+    payout:item.payout,
+    won:item.won
+  }));
+  return {
+    invoice:order.invoice,
+    receiptNumber:`RCP-${String(order.invoice||order.id||'').slice(-10).toUpperCase()}`,
+    market:{name:order.marketName,slug:order.marketSlug,period:order.period,result:order.result},
+    status:order.status,
+    placedAt:order.placedAt,
+    settledAt:order.settledAt,
+    totals:{
+      lineCount:rows.length,
+      stake:order.totalStake,
+      payout:order.totalPayout,
+      balanceBefore:order.balanceBefore,
+      balanceAfter:order.balanceAfter
+    },
+    rows
+  };
+}
 export const getAnyBet=identifier=>orderBy({query},'(o.id::text=$1 OR o.invoice=$1)',[clean(identifier,100)]);
 export async function walletLedger(memberId,limit=100){const {rows}=await query(`SELECT e.amount_signed,e.balance_before,e.balance_after,e.created_at,t.transaction_type,t.reference_type,t.reference_id FROM ledger_entries e JOIN ledger_transactions t ON t.id=e.transaction_id JOIN ledger_accounts a ON a.id=e.account_id WHERE a.owner_user_id=$1 ORDER BY e.created_at DESC LIMIT $2`,[memberId,Math.min(Number(limit)||100,500)]);return rows.map(x=>({direction:Number(x.amount_signed)<0?'DEBIT':'CREDIT',amount:Math.abs(Number(x.amount_signed)),balanceBefore:Number(x.balance_before),balanceAfter:Number(x.balance_after),reason:x.transaction_type,referenceType:x.reference_type,referenceId:x.reference_id,createdAt:x.created_at}));}
 

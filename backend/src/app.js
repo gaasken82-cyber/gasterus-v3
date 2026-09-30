@@ -8,7 +8,7 @@ import { AppError, assert } from './errors.js';
 import { body, clientIp, fail, ok, securityHeaders } from './http.js';
 import { acceptRules, authenticateApiKey, clearSessionCookie, loginMember, loginOwner, logout, registerMember, requireCsrf, requirePermission, session, sessionCookie, userById } from './auth.js';
 import { createWalletRequest, listMemberRequests, numberHistory, numberHistoryMarkets, referralOverview } from './member.js';
-import { bettingConfig, cancelBet, createBet, getAnyBet, getMemberBet, listAllBets, listBettingMarkets, listMemberBets, lotteryExposureSnapshot, quoteBet, submitDraft, updateBettingConfig, updateLotteryGameConfig, updateSelectionLimit, walletLedger } from './betting.js';
+import { bettingConfig, betReceipt, cancelBet, createBet, getAnyBet, getMemberBet, listAllBets, listBettingMarkets, listMemberBets, lotteryExposureSnapshot, quoteBet, submitDraft, updateBettingConfig, updateLotteryGameConfig, updateSelectionLimit, walletLedger } from './betting.js';
 import { allWalletRequests, assignRole, auditList, confirmWithdrawalPayout, dashboard, decideApproval, listApprovals, listMembers, referrals, requestSettlement, requestWalletReversal, reviewWallet } from './owner.js';
 import { listMarkets, memberLotteryResultDetails } from './markets.js';
 import { verifyLedger } from './ledger.js';
@@ -93,6 +93,7 @@ add('GET',/^\/api\/member\/bets$/,async({req,res,url})=>{const s=await memberSes
 add('POST',/^\/api\/member\/bets$/,async({req,res,ip})=>{const s=await memberSession(req);requireCsrf(req,s);await rateLimit(req,'member-bet',30,60);ok(res,await createBet(s,await body(req),{draft:false,ip}),201);});
 add('POST',/^\/api\/member\/bets\/drafts$/,async({req,res,ip})=>{const s=await memberSession(req);requireCsrf(req,s);ok(res,await createBet(s,await body(req),{draft:true,ip}),201);});
 add('GET',/^\/api\/member\/bets\/(?<id>[0-9a-f-]+)$/,async({req,res,params})=>{const s=await memberSession(req);ok(res,await getMemberBet(s.userId,params.id));});
+add('GET',/^\/api\/member\/bets\/(?<id>[0-9a-f-]+)\/receipt$/,async({req,res,params})=>{const s=await memberSession(req);ok(res,await betReceipt(s.userId,params.id));});
 add('POST',/^\/api\/member\/bets\/(?<id>[0-9a-f-]+)\/submit$/,async({req,res,params,ip})=>{const s=await memberSession(req);requireCsrf(req,s);ok(res,await submitDraft(s,params.id,ip));});
 add('POST',/^\/api\/member\/bets\/(?<id>[0-9a-f-]+)\/cancel$/,async({req,res,params,ip})=>{const s=await memberSession(req);requireCsrf(req,s);ok(res,await cancelBet(s,params.id,ip));});
 add('GET',/^\/api\/member\/wallet-ledger$/,async({req,res,url})=>{const s=await memberSession(req);ok(res,await walletLedger(s.userId,url.searchParams.get('limit')));});

@@ -133,6 +133,7 @@
               <th>Taruhan</th>
               <th>Diterima</th>
               <th>Status</th>
+              <th>Bukti</th>
             </tr>
           </thead>
           <tbody id="togel-tbody">
@@ -374,7 +375,7 @@
         const filtered = currentStatus ? bets.filter(b => statusGroup(b.status) === currentStatus) : bets;
 
         if (filtered.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">Belum ada riwayat taruhan togel</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">Belum ada riwayat taruhan togel</td></tr>';
           return;
         }
 
@@ -387,10 +388,11 @@
             <td class="amount-cell">${formatRupiah(bet.amount)}</td>
             <td class="amount-cell">${payoutCell(bet)}</td>
             <td>${statusBadge(bet.status)}</td>
+            <td><a href="/bet-receipt?id=${encodeURIComponent(bet.id || '')}" aria-label="Lihat bukti betting" style="display:inline-block;padding:5px 12px;border:1px solid var(--border-subtle,#2a3a52);border-radius:8px;font-size:.78rem;font-weight:700;color:var(--brand-primary,#38bdf8);text-decoration:none;white-space:nowrap;">Bukti</a></td>
           </tr>
         `).join('');
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" class="error-cell">Gagal memuat data: ${esc(err.message)}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="error-cell">Gagal memuat data: ${esc(err.message)}</td></tr>`;
       }
     }
 
