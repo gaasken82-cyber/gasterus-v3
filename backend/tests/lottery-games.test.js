@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { LOTTERY_GAMES, LOTTERY_WIN_PROBABILITY, TOTO_ADVANCED_GAME_RATES, TOTO_STANDARD_RULES, calculateLotteryPricing, evaluateLotterySelection, normalizeLotterySelection } from '../src/lottery-games.js';
+
+const repoFile = relative => readFileSync(resolve(import.meta.dirname, '..', '..', relative), 'utf8');
 
 const win=(game,selection,result)=>evaluateLotterySelection(game,selection,result);
 
@@ -136,6 +140,20 @@ test('multiplier game lanjutan sesuai hasil perhitungan probabilitas settlement'
   assert.deepEqual(TOTO_ADVANCED_GAME_RATES.DASAR,{discountPercent:4,payoutMultiplier:1.3,minStake:100});
   assert.deepEqual(TOTO_ADVANCED_GAME_RATES.SILANG_HOMO,{discountPercent:4,payoutMultiplier:1.5,minStake:100});
   assert.deepEqual(TOTO_ADVANCED_GAME_RATES.KEMBANG_KEMPIS,{discountPercent:4,payoutMultiplier:1.6,minStake:100});
+test('batas diskon di schema cukup untuk semua rate produk',()=>{
+  const maxProductDiscount=Math.max(
+    ...Object.values(TOTO_STANDARD_RULES).map(r=>r.discountPercent),
+    ...Object.values(TOTO_ADVANCED_GAME_RATES).map(r=>r.discountPercent)
+  );
+  assert.ok(maxProductDiscount>50,'rate produk harus ada yang di atas 50 (4D 66 / 3D 59)');
+  for(const file of ['backend/migrations/001_platform.sql','backend/migrations/004_lottery_enterprise.sql','backend/migrations/008_toto_professional_betting_flow.sql','backend/migrations/036_discount_bounds_single_source.sql']){
+    const bounds=[...repoFile(file).matchAll(/discount[^\n]*BETWEEN 0 AND (\d+)/g)].map(m=>Number(m[1]));
+    assert.ok(bounds.length>0,`${file} tidak punya CHECK diskon`);
+    for(const bound of bounds){
+      assert.ok(bound>=maxProductDiscount,`${file}: batas diskon ${bound} lebih kecil dari diskon produk ${maxProductDiscount}`);
+    }
+  }
+});
   assert.deepEqual(TOTO_ADVANCED_GAME_RATES.KOMBINASI,{discountPercent:4,payoutMultiplier:3,minStake:100});
 });
 test('audit EV punya peluang jp untuk setiap game yang punya settlement',()=>{

@@ -1,11 +1,15 @@
 -- R6.8.21 TOTO professional betting flow / standard pricing
 -- Gross BET is the prize basis. Discount only changes the amount debited from member balance.
 
+-- Batas diskon dinaikkan ke 0-90 supaya konstanta TOTO_STANDARD_RULES (66 untuk
+-- 4D, 59 untuk 3D) benar-benar bisa tersimpan. DROP IF EXISTS dipakai supaya
+-- migrasi ini aman untuk database baru (constraint inline dari 001) maupun database
+-- lama. Batas final satu acuan dipasang lagi di 036.
 ALTER TABLE market_betting_configs DROP CONSTRAINT IF EXISTS market_betting_configs_discount_2d_check;
-ALTER TABLE market_betting_configs DROP CONSTRAINT IF EXISTS market_betting_configs_discount_3d_check;
-ALTER TABLE market_betting_configs DROP CONSTRAINT IF EXISTS market_betting_configs_discount_4d_check;
 ALTER TABLE market_betting_configs ADD CONSTRAINT market_betting_configs_discount_2d_check CHECK (discount_2d BETWEEN 0 AND 90);
+ALTER TABLE market_betting_configs DROP CONSTRAINT IF EXISTS market_betting_configs_discount_3d_check;
 ALTER TABLE market_betting_configs ADD CONSTRAINT market_betting_configs_discount_3d_check CHECK (discount_3d BETWEEN 0 AND 90);
+ALTER TABLE market_betting_configs DROP CONSTRAINT IF EXISTS market_betting_configs_discount_4d_check;
 ALTER TABLE market_betting_configs ADD CONSTRAINT market_betting_configs_discount_4d_check CHECK (discount_4d BETWEEN 0 AND 90);
 
 ALTER TABLE lottery_game_configs DROP CONSTRAINT IF EXISTS lottery_game_configs_discount_percent_check;

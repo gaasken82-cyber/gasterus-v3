@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS lottery_game_configs (
   market_id BIGINT NOT NULL REFERENCES markets(id) ON DELETE CASCADE,
   game_code TEXT NOT NULL,
   enabled BOOLEAN NOT NULL DEFAULT FALSE,
-  discount_percent INTEGER NOT NULL DEFAULT 0 CHECK (discount_percent BETWEEN 0 AND 50),
+  discount_percent INTEGER NOT NULL DEFAULT 0 CHECK (discount_percent BETWEEN 0 AND 90),
   payout_multiplier NUMERIC(12,4) NOT NULL DEFAULT 0 CHECK (payout_multiplier >= 0),
   max_stake_per_selection BIGINT NOT NULL DEFAULT 0 CHECK (max_stake_per_selection >= 0),
   selection_options JSONB NOT NULL DEFAULT '[]'::jsonb,
