@@ -34,6 +34,14 @@ function isMarketClosed(market) {
   return status === 'CLOSED' || status === 'SUSPENDED';
 }
 
+// Notice di bawah header bet slip. Tampil hanya ketika belum ada pasaran yang
+// dipilih (halaman dibuka tanpa ?code=) supaya member tahu harus lewat tombol
+// "BET DISINI" dulu, dan bukan mengira daftar game-nya kosong.
+function setNoMarketNotice(show) {
+  const el = document.getElementById('bet-no-market-notice');
+  if (el) el.hidden = !show;
+}
+
 export async function initMarketPlay() {
   if (!auth.isLoggedIn()) {
     window.location.href = '/index.html';
@@ -52,6 +60,7 @@ export async function initMarketPlay() {
       closeAt: null
     };
     updateMarketHeaderUI(currentMarket);
+    setNoMarketNotice(true);
     setBettingControlsDisabled(true);
     startCountdown();
     return;
@@ -77,6 +86,7 @@ async function loadMarketInfo(code) {
     currentMarketConfig = res;
     currentMarket = res;
     updateMarketHeaderUI(res);
+    setNoMarketNotice(false);
     return true;
   } catch (err) {
     console.warn('Data pasar tidak dapat dimuat; pasar ditampilkan tertutup.', err);
@@ -90,6 +100,7 @@ async function loadMarketInfo(code) {
       closeAt: null
     };
     updateMarketHeaderUI(currentMarket);
+    setNoMarketNotice(true);
     return false;
   }
 }

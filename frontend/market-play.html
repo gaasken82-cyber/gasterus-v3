@@ -130,6 +130,17 @@
             <span></span>
           </div>
 
+          <!-- Notice tampil kalau halaman dibuka tanpa ?code= (belum ada pasar dipilih).
+               Tanpa ini, form bet muncul dengan dropdown yang hanya berisi
+               "Auto Detect" dan terlihat seperti daftar game tidak berubah. -->
+          <div id="bet-no-market-notice" hidden
+               style="margin-bottom: var(--space-3); padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(232,189,85,.08); color: var(--gold2, #e8bd55); font-size: .85rem; line-height: 1.6;">
+            Belum ada pasaran yang dipilih. Buka halaman ini lewat tombol
+            <strong>&ldquo;BET DISINI&rdquo;</strong> di daftar pasaran supaya semua pilihan game
+            (4D, 3D, 2D, 2D Depan, 2D Tengah, Colok Bebas, Colok Bebas 2D, Colok Naga,
+            Colok Jitu, Tengah/Tepi, Dasar, Silang/Homo, Kembang/Kempis, Kombinasi) muncul di sini.
+          </div>
+
           <!-- Rows Container -->
           <div id="bet-rows-container">
             <!-- Dynamic rows rendered by JS -->
@@ -194,7 +205,7 @@
   <!-- v wajib naik setiap kali market-play.js berubah: Cloudflare Pages mengirim
        cache-control max-age=14400 (4 jam) untuk /js/*, jadi query versi lama
        membuat browser member memakai skrip lama berjam-jam. -->
-  <script type="module" src="/js/market-play.js?v=20260930-games1"></script>
+  <script type="module" src="/js/market-play.js?v=20260930-games2"></script>
 <script>
     (function () {
       function openNav() {
