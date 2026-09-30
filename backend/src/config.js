@@ -227,6 +227,11 @@ export const config = Object.freeze({
   sportsbookManualFtSettlementFallbackEnabled: isProduction ? true : bool('SPORTSBOOK_MANUAL_FT_SETTLEMENT_FALLBACK_ENABLED', false),
   sportsbookAutoSettlementEnabled: bool('SPORTSBOOK_AUTO_SETTLEMENT_ENABLED', true),
   sportsbookAutoSettlementSeconds: int('SPORTSBOOK_AUTO_SETTLEMENT_SECONDS', 30, 15, 600),
+  // Settlement TOTO otomatis: begitu hasil OFFICIAL/CONSENSUS terbit dan betting
+  // window tertutup, periodenya dibayar otomatis tanpa operator menekan tombol.
+  // Set TOTO_AUTO_SETTLEMENT_ENABLED=false sebagai kill switch.
+  totoAutoSettlementEnabled: bool('TOTO_AUTO_SETTLEMENT_ENABLED', true),
+  totoAutoSettlementSeconds: int('TOTO_AUTO_SETTLEMENT_SECONDS', 30, 10, 600),
   sportsbookCashoutEnabled: bool('SPORTSBOOK_CASHOUT_ENABLED', true),
   sportsbookCashoutOfferTtlSeconds: int('SPORTSBOOK_CASHOUT_OFFER_TTL_SECONDS', 8, 3, 30),
   sportsbookCashoutFactorBps: int('SPORTSBOOK_CASHOUT_FACTOR_BPS', 9600, 5000, 10000),

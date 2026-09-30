@@ -6,6 +6,7 @@ import { logger } from './logger.js';
 import { postSystemTransfer, postTransfer, SYSTEM_ACCOUNTS, verifyLedger } from './ledger.js';
 import { createMemberNotification } from './notifications.js';
 import { autoSettleSportsbookTickets } from './sportsbook-auto-settlement.js';
+import { autoSettleTotoPeriods } from './toto-auto-settlement.js';
 import { retryPendingSportsbookSettlementCorrections } from './sportsbook-betting.js';
 import { LOTTERY_WIN_PROBABILITY, calculateLotteryPricing, evaluateLotterySelection, legacyGameCode } from './lottery-games.js';
 import { expireStaleWalletApprovals } from './money.js';
@@ -450,6 +451,7 @@ async function main() {
   });
 
   let lastSportsbookSettlement = 0;
+  let lastTotoSettlement = 0;
   let lastMoneyCleanup = 0;
   let lastDurableQueueRecovery = 0;
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -476,6 +478,14 @@ async function main() {
         if (summary.checked || corrections.checked) logger.info('Sportsbook auto-settlement cycle completed', { ...summary, correctionRetry: corrections });
       } catch (error) {
         logger.warn('Sportsbook auto-settlement cycle unavailable', { error: error.message });
+      }
+    }
+    if (config.totoAutoSettlementEnabled && Date.now() - lastTotoSettlement >= config.totoAutoSettlementSeconds * 1000) {
+      lastTotoSettlement = Date.now();
+      try {
+        await autoSettleTotoPeriods();
+      } catch (error) {
+        logger.warn('TOTO auto-settlement cycle unavailable', { error: error.message });
       }
     }
     let payload = null;
