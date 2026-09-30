@@ -27,6 +27,34 @@ export const LOTTERY_GAMES=Object.freeze([
 
 export const LOTTERY_GAME_MAP=new Map(LOTTERY_GAMES.map(game=>[game.code,game]));
 
+// Peluang jp tiap game: nilai E[pembayaran per 1x multiplier]. Angkanya hasil
+// brute force atas seluruh 10.000 kemungkinan hasil 4D memakai
+// evaluateLotterySelection di bawah — sama persis dengan mesin settlement, bukan
+// daftar commercially. Audit EV riil di worker memakai peta ini sebagai "EV teori",
+// jadi teori dan realisasi selalu dibandingkan dengan model yang sama.
+//
+// COLOK_BEBAS memakai E[factor]=0,4972 karena pembayaran ikut jumlah kemunculan
+// digit (1x sampai 4x). Game berbasis pilihan memakai peluang TERBURUK antar
+// pilihan (mis. KEMBAR 0,10 ikut memperhitungkan KEMBANG 0,45) supaya harga satu
+// game tetap menutup pilihan yang paling mungkin jp.
+export const LOTTERY_WIN_PROBABILITY=Object.freeze(new Map([
+  ['STRAIGHT_4D',0.0001],
+  ['STRAIGHT_3D',0.001],
+  ['STRAIGHT_2D',0.01],
+  ['POSITION_2D_FRONT',0.01],
+  ['POSITION_2D_MIDDLE',0.01],
+  ['COLOK_BEBAS',0.4972],
+  ['COLOK_2D',0.0974],
+  ['COLOK_NAGA',0.0204],
+  ['COLOK_JITU',0.1],
+  ['TENGAH_TEPI',0.5],
+  ['DASAR',0.55],
+  ['SILANG_HOMO',0.5],
+  ['KEMBANG_KEMPIS',0.45],
+  ['KOMBINASI',0.25],
+  ['SHIO',0.0833]
+]));
+
 export const TOTO_STANDARD_RULES=Object.freeze({
   STRAIGHT_4D:Object.freeze({discountPercent:66,payoutMultiplier:3000,minStake:100}),
   STRAIGHT_3D:Object.freeze({discountPercent:59,payoutMultiplier:400,minStake:100}),

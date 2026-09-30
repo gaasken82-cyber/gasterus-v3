@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { TOTO_ADVANCED_GAME_RATES, TOTO_STANDARD_RULES, calculateLotteryPricing, evaluateLotterySelection, normalizeLotterySelection } from '../src/lottery-games.js';
+import { LOTTERY_GAMES, LOTTERY_WIN_PROBABILITY, TOTO_ADVANCED_GAME_RATES, TOTO_STANDARD_RULES, calculateLotteryPricing, evaluateLotterySelection, normalizeLotterySelection } from '../src/lottery-games.js';
 
 const win=(game,selection,result)=>evaluateLotterySelection(game,selection,result);
 
@@ -137,4 +137,22 @@ test('multiplier game lanjutan sesuai hasil perhitungan probabilitas settlement'
   assert.deepEqual(TOTO_ADVANCED_GAME_RATES.SILANG_HOMO,{discountPercent:4,payoutMultiplier:1.5,minStake:100});
   assert.deepEqual(TOTO_ADVANCED_GAME_RATES.KEMBANG_KEMPIS,{discountPercent:4,payoutMultiplier:1.6,minStake:100});
   assert.deepEqual(TOTO_ADVANCED_GAME_RATES.KOMBINASI,{discountPercent:4,payoutMultiplier:3,minStake:100});
+});
+test('audit EV punya peluang jp untuk setiap game yang punya settlement',()=>{
+  for(const game of LOTTERY_GAMES){
+    if(!game.engineReady) continue;
+    const p=LOTTERY_WIN_PROBABILITY.get(game.code);
+    assert.ok(typeof p==='number'&&p>0&&p<=1,`${game.code} belum punya peluang jp yang valid`);
+  }
+});
+
+test('peluang jp x multiplier tidak pernah melewati batas aman 0,85',()=>{
+  // Versi konstanta dari test EV brute force: batas aman bisa dicek tanpa
+  // menghitung ulang 10.000 kemungkinan hasil tiap kali test suite jalan.
+  const all={...TOTO_STANDARD_RULES,...TOTO_ADVANCED_GAME_RATES};
+  for(const [code,rule] of Object.entries(all)){
+    const p=LOTTERY_WIN_PROBABILITY.get(code);
+    assert.ok(p!==undefined,`${code} tidak punya peluang jp untuk audit EV`);
+    assert.ok(p*rule.payoutMultiplier<=0.85,`EV teori ${code} = ${(p*rule.payoutMultiplier).toFixed(3)} melebihi batas 0,85`);
+  }
 });

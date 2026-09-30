@@ -7,7 +7,7 @@ import { postSystemTransfer, postTransfer, SYSTEM_ACCOUNTS, verifyLedger } from 
 import { createMemberNotification } from './notifications.js';
 import { autoSettleSportsbookTickets } from './sportsbook-auto-settlement.js';
 import { retryPendingSportsbookSettlementCorrections } from './sportsbook-betting.js';
-import { calculateLotteryPricing, evaluateLotterySelection, legacyGameCode } from './lottery-games.js';
+import { LOTTERY_WIN_PROBABILITY, calculateLotteryPricing, evaluateLotterySelection, legacyGameCode } from './lottery-games.js';
 import { expireStaleWalletApprovals } from './money.js';
 import { startMemoryGuard } from './memory-guard.js';
 
@@ -334,6 +334,48 @@ async function processJob(job) {
       // Result authority is immutable from the settlement path. The approval request was
       // already bound to OFFICIAL:/CONSENSUS: history and rechecked before this job was queued.
       // Settlement may consume that result, but must never rewrite markets/result provenance.
+
+      // Audit untung-rugi riil per game untuk pasar + periode ini. Idempoten lewat
+      // UNIQUE (market_id, period, game_code), jadi run yang diulang menimpa baris
+      // yang sama dan tidak pernah menambah dobel.
+      const { rows: perGame } = await client.query(
+        `SELECT i.game_code,
+                COUNT(*)::int AS line_count,
+                COALESCE(SUM(i.stake_after_discount),0)::bigint AS stake,
+                COALESCE(SUM(i.payout_amount),0)::bigint AS payout,
+                MAX(i.payout_multiplier) AS multiplier
+         FROM bet_items i
+         JOIN bet_orders o ON o.id=i.order_id
+         WHERE o.market_id=$1 AND o.period=$2 AND o.status IN('SETTLED_WON','SETTLED_LOST')
+         GROUP BY i.game_code`,
+        [run.market_id, run.period]
+      );
+      for (const row of perGame) {
+        const stake = Number(row.stake) || 0;
+        const payout = Number(row.payout) || 0;
+        const multiplier = Number(row.multiplier) || 0;
+        const probability = LOTTERY_WIN_PROBABILITY.get(row.game_code) ?? null;
+        const realizedEv = stake > 0 ? payout / stake : 0;
+        const theoreticalEv = probability !== null && multiplier > 0 ? probability * multiplier : null;
+        // Anomali: EV riil di atas 1,00 (bayar lebih besar dari peluang jp), atau
+        // jauh meleset dari EV teori pada sampel yang cukup besar.
+        const anomaly = realizedEv > 1 || (theoreticalEv !== null && stake >= 1000000 && realizedEv > theoreticalEv * 2);
+        await client.query(
+          `INSERT INTO game_settlement_audit
+             (run_id,market_id,period,game_code,line_count,total_stake,total_payout,realized_ev,theoretical_ev,anomaly)
+           VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+           ON CONFLICT (market_id,period,game_code) DO UPDATE SET
+             run_id=EXCLUDED.run_id,
+             line_count=EXCLUDED.line_count,
+             total_stake=EXCLUDED.total_stake,
+             total_payout=EXCLUDED.total_payout,
+             realized_ev=EXCLUDED.realized_ev,
+             theoretical_ev=EXCLUDED.theoretical_ev,
+             anomaly=EXCLUDED.anomaly,
+             recorded_at=now()`,
+          [run.id, run.market_id, run.period, row.game_code, row.line_count, stake, payout, realizedEv, theoreticalEv, anomaly]
+        );
+      }
 
       const integrity = await verifyLedger(client);
       if (!integrity.balanced) {

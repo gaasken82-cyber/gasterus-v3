@@ -179,6 +179,34 @@ export async function updateLotteryGameConfig(session,identifier,gameCode,input,
   await query(`UPDATE lottery_game_configs SET enabled=$1,discount_percent=$2,payout_multiplier=$3,max_stake_per_selection=$4,selection_options=$5::jsonb,updated_by=$6,updated_at=now() WHERE market_id=$7 AND game_code=$8`,[enabled,discount,payout,maxStake,JSON.stringify(options||[]),session.userId,market.id,code]);await audit({actorId:session.userId,actorRole:session.roles.join(','),action:'LOTTERY_GAME_CONFIG_UPDATED',targetType:'MARKET',targetId:market.id,details:{gameCode:code,enabled,discount,payout,maxStake},ip});return bettingConfig(String(market.id));
 }
 
+// Audit untung-rugi riil per game, ditulis worker setiap settlement selesai.
+// Dipakai back office untuk melihat platform benar-benar untung atau tidak per game.
+export async function gameEvAudit(identifier,{period,limit=40}={}){
+  const market=await marketByIdentifier(identifier);
+  const values=[market.id];
+  let clause='';
+  if(period){values.push(clean(period,80));clause=` AND period=$${values.length}`;}
+  values.push(Math.min(Math.max(Number(limit)||40,1),200));
+  const {rows}=await query(`SELECT period,game_code,line_count,total_stake,total_payout,realized_ev,theoretical_ev,anomaly,recorded_at FROM game_settlement_audit WHERE market_id=$1${clause} ORDER BY recorded_at DESC LIMIT $${values.length}`,values);
+  return {
+    marketId:market.id,
+    marketName:market.name,
+    slug:market.slug,
+    anomalies:rows.filter(row=>row.anomaly).length,
+    items:rows.map(row=>({
+      period:row.period,
+      gameCode:row.game_code,
+      lineCount:Number(row.line_count),
+      totalStake:Number(row.total_stake),
+      totalPayout:Number(row.total_payout),
+      realizedEv:Number(row.realized_ev),
+      theoreticalEv:row.theoretical_ev===null?null:Number(row.theoretical_ev),
+      anomaly:Boolean(row.anomaly),
+      recordedAt:row.recorded_at
+    }))
+  };
+}
+
 export async function lotteryExposureSnapshot(identifier,{period,gameCode,limit=100}={}){
   const market=await marketByIdentifier(identifier);const active=await bettingConfig(identifier);const drawPeriod=clean(period||active.period,80);assert(drawPeriod,400,'Periode wajib diisi.','PERIOD_REQUIRED');const code=clean(gameCode,40).toUpperCase();if(code)assert(LOTTERY_GAME_MAP.has(code),400,'Jenis permainan tidak dikenal.','LOTTERY_GAME_UNKNOWN');const values=[market.id,drawPeriod];let gameClause='';if(code){values.push(code);gameClause=` AND i.game_code=$${values.length}`;}values.push(Math.min(Math.max(Number(limit)||100,1),500));const limitPos=values.length;
   const {rows}=await query(`SELECT i.game_code,i.selection_value,COALESCE(SUM(i.stake_after_discount),0)::bigint AS current_stake,MAX(l.max_stake)::bigint AS custom_max_stake,MAX(l.status) AS custom_status,MAX(g.max_stake_per_selection)::bigint AS default_max_stake FROM bet_items i JOIN bet_orders o ON o.id=i.order_id JOIN lottery_game_configs g ON g.market_id=o.market_id AND g.game_code=i.game_code LEFT JOIN lottery_selection_limits l ON l.market_id=o.market_id AND l.period=o.period AND l.game_code=i.game_code AND l.selection_value=i.selection_value WHERE o.market_id=$1 AND o.period=$2 AND o.wallet_mode='CASH' AND o.status IN ('ACCEPTED','SETTLEMENT_PENDING')${gameClause} GROUP BY i.game_code,i.selection_value ORDER BY current_stake DESC LIMIT $${limitPos}`,values);

@@ -8,7 +8,7 @@ import { AppError, assert } from './errors.js';
 import { body, clientIp, fail, ok, securityHeaders } from './http.js';
 import { acceptRules, authenticateApiKey, clearSessionCookie, loginMember, loginOwner, logout, registerMember, requireCsrf, requirePermission, session, sessionCookie, userById } from './auth.js';
 import { createWalletRequest, listMemberRequests, numberHistory, numberHistoryMarkets, referralOverview } from './member.js';
-import { bettingConfig, betReceipt, cancelBet, createBet, getAnyBet, getMemberBet, listAllBets, listBettingMarkets, listMemberBets, lotteryExposureSnapshot, quoteBet, submitDraft, updateBettingConfig, updateLotteryGameConfig, updateSelectionLimit, walletLedger } from './betting.js';
+import { bettingConfig, betReceipt, cancelBet, createBet, gameEvAudit, getAnyBet, getMemberBet, listAllBets, listBettingMarkets, listMemberBets, lotteryExposureSnapshot, quoteBet, submitDraft, updateBettingConfig, updateLotteryGameConfig, updateSelectionLimit, walletLedger } from './betting.js';
 import { allWalletRequests, assignRole, auditList, confirmWithdrawalPayout, dashboard, decideApproval, listApprovals, listMembers, referrals, requestSettlement, requestWalletReversal, reviewWallet } from './owner.js';
 import { listMarkets, memberLotteryResultDetails } from './markets.js';
 import { verifyLedger } from './ledger.js';
@@ -173,6 +173,7 @@ add('GET',/^\/api\/owner\/bets\/(?<identifier>[^/]+)$/,async({req,res,params})=>
 add('GET',/^\/api\/owner\/betting-markets$/,async({req,res,url})=>{await ownerSession(req,'bets:read');ok(res,await listBettingMarkets({status:url.searchParams.get('status'),q:url.searchParams.get('q'),limit:url.searchParams.get('limit')}));});
 add('POST',/^\/api\/owner\/betting-markets\/(?<identifier>[^/]+)$/,async({req,res,params,ip})=>{const s=await ownerSession(req,'markets:write');requireCsrf(req,s);ok(res,await updateBettingConfig(s,params.identifier,await body(req),ip));});
 add('POST',/^\/api\/owner\/lottery-games\/(?<identifier>[^/]+)\/(?<gameCode>[^/]+)$/,async({req,res,params,ip})=>{const s=await ownerSession(req,'markets:write');requireCsrf(req,s);ok(res,await updateLotteryGameConfig(s,params.identifier,params.gameCode,await body(req),ip));});
+add('GET',/^\/api\/owner\/game-ev-audit\/(?<identifier>[^/]+)$/,async({req,res,params,url})=>{await ownerSession(req,'bets:read');ok(res,await gameEvAudit(params.identifier,{period:url.searchParams.get('period'),limit:url.searchParams.get('limit')}));});
 add('GET',/^\/api\/owner\/lottery-exposure\/(?<identifier>[^/]+)$/,async({req,res,params,url})=>{await ownerSession(req,'bets:read');ok(res,await lotteryExposureSnapshot(params.identifier,{period:url.searchParams.get('period'),gameCode:url.searchParams.get('gameCode'),limit:url.searchParams.get('limit')}));});
 add('POST',/^\/api\/owner\/lottery-selection-limits\/(?<identifier>[^/]+)$/,async({req,res,params,ip})=>{const s=await ownerSession(req,'markets:write');requireCsrf(req,s);ok(res,await updateSelectionLimit(s,params.identifier,await body(req),ip));});
 add('POST',/^\/api\/owner\/bets\/settle$/,async({req,res,ip})=>{const s=await ownerSession(req,'settlements:request');requireCsrf(req,s);ok(res,await requestSettlement(s,await body(req),'SETTLEMENT',ip),202);});
