@@ -345,6 +345,7 @@ function renderRows() {
 
   bindRowInputs();
   syncMinStakeLabel();
+  syncGameHint();
   calculateTotals();
 }
 
@@ -450,6 +451,55 @@ function calculateTotals() {
   return { totalGross, totalDiscount, totalNet, validItemsCount };
 }
 
+// Tempel banyak angka sekaligus. Angka dipisah spasi, koma, garis, atau enter,
+// lalu tiap angka dipasang ke game sesuai panjang digitnya — sama persis dengan
+// aturan auto-detect supaya member tidak perlu memilih game satu per satu.
+const PASTE_GAME_BY_DIGITS = [
+  { digits: 4, gameCode: 'STRAIGHT_4D' },
+  { digits: 3, gameCode: 'STRAIGHT_3D' },
+  { digits: 2, gameCode: 'STRAIGHT_2D' },
+  { digits: 1, gameCode: 'COLOK_BEBAS' }
+];
+
+function applyPastedBets() {
+  const box = document.getElementById('quick-bet-paste');
+  if (!box) return;
+  const tokens = String(box.value || '')
+    .split(/[\s,/|;]+/)
+    .map(token => token.replace(/\D/g, ''))
+    .filter(Boolean);
+  if (!tokens.length) {
+    showToast('Tidak ada angka yang terbaca dari tempelan.', 'danger');
+    return;
+  }
+  const stake = minStake();
+  const rows = [];
+  let skipped = 0;
+  for (const token of tokens) {
+    const digits = token.slice(0, 4);
+    const rule = PASTE_GAME_BY_DIGITS.find(item => item.digits === digits.length);
+    const game = rule ? gameByCode(rule.gameCode) : null;
+    if (!game) { skipped += 1; continue; }
+    rows.push({ id: rowIdCounter++, selection: normalizeForGame(game, digits), stake, gameCode: game.code });
+  }
+  if (!rows.length) {
+    showToast('Tidak ada angka yang cocok dengan game yang terbuka di pasaran ini.', 'danger');
+    return;
+  }
+  const limit = Math.max(1, Math.min(Number(currentMarketConfig?.maxRows) || 50, 100));
+  betRows = rows.slice(0, limit);
+  renderRows();
+  showToast(`${betRows.length} baris dari tempelan${skipped ? `, ${skipped} angka dilewati` : ''}. Periksa nominal lalu konfirmasi.`, 'success');
+}
+
+function syncGameHint() {
+  const el = document.getElementById('game-hint');
+  if (!el) return;
+  const game = resolveRowGame(betRows[0] || { gameCode: 'AUTO', selection: '' });
+  const text = game?.description || 'Pilih tipe game, lalu isi angka sesuai aturan game tersebut.';
+  el.textContent = `${game ? `${game.label}: ` : ''}${text}`;
+}
+
 function setupEventListeners() {
   window.removeBetRow = removeRow;
 
@@ -461,6 +511,11 @@ function setupEventListeners() {
   const quickBetBtn = document.getElementById('btn-quick-bet');
   if (quickBetBtn) {
     quickBetBtn.addEventListener('click', applyQuickBet);
+  }
+
+  const pasteBtn = document.getElementById('btn-paste-bet');
+  if (pasteBtn) {
+    pasteBtn.addEventListener('click', applyPastedBets);
   }
 
   const submitBtn = document.getElementById('btn-submit-bet');

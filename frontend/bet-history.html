@@ -315,6 +315,9 @@
     // Filter handlers
     let currentFilter = 'all';
     let currentStatus = '';
+    let currentToken = '';
+    let loadedTogel = [];
+    const TOGEL_PAGE = 50;
 
     document.querySelectorAll('.filter-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -356,6 +359,7 @@
 
       // Load Togel bets
       if (currentFilter === 'all' || currentFilter === 'togel') {
+        currentToken = token;
         await loadTogelBets(token);
       }
 
@@ -365,14 +369,21 @@
       }
     }
 
-    async function loadTogelBets(token) {
+    async function loadTogelBets(token, append = false) {
       const tbody = document.getElementById('togel-tbody');
-      tbody.innerHTML = '<tr><td colspan="7" class="loading-cell"><div class="loading-spinner"></div>Memuat data...</td></tr>';
+      // Riwayat tidak lagi berhenti di 50 baris: "Muat lagi" menambahkan halaman
+      // berikutnya supaya member tetap bisa melihat betting lamunya.
+      if (!append) {
+        loadedTogel = [];
+        tbody.innerHTML = '<tr><td colspan="8" class="loading-cell"><div class="loading-spinner"></div>Memuat data...</td></tr>';
+      }
 
       try {
-        const res = await api.get('/member/bets?limit=50');
+        const res = await api.get(`/member/bets?limit=${TOGEL_PAGE}&offset=${append ? loadedTogel.length : 0}`);
         const bets = Array.isArray(res) ? res : (res.items || res.data || []);
-        const filtered = currentStatus ? bets.filter(b => statusGroup(b.status) === currentStatus) : bets;
+        loadedTogel = append ? loadedTogel.concat(bets) : bets;
+        const filtered = currentStatus ? loadedTogel.filter(b => statusGroup(b.status) === currentStatus) : loadedTogel;
+        syncLoadMoreButton(bets.length);
 
         if (filtered.length === 0) {
           tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">Belum ada riwayat taruhan togel</td></tr>';
@@ -394,6 +405,29 @@
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="8" class="error-cell">Gagal memuat data: ${esc(err.message)}</td></tr>`;
       }
+    }
+
+    // Tombol "Muat lagi" untuk riwayat 신설.
+    function syncLoadMoreButton(lastPageSize) {
+      const tbody = document.getElementById('togel-tbody');
+      const card = tbody?.closest('.history-card');
+      if (!card) return;
+      let btn = document.getElementById('togel-load-more');
+      if (!btn) {
+        btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = 'togel-load-more';
+        btn.className = 'btn btn-secondary btn-sm';
+        btn.style.marginTop = '10px';
+        btn.textContent = `Muat ${TOGEL_PAGE} riwayat berikutnya`;
+        btn.addEventListener('click', async () => {
+          btn.disabled = true;
+          btn.textContent = 'Memuat...';
+          try { await loadTogelBets(currentToken, true); } finally { btn.disabled = false; }
+        });
+        card.appendChild(btn);
+      }
+      btn.style.display = lastPageSize >= TOGEL_PAGE ? 'inline-block' : 'none';
     }
 
     async function loadSportsbookBets(token) {
