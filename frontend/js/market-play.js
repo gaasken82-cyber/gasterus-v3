@@ -149,6 +149,79 @@ function startCountdown() {
   }, 1000);
 }
 
+// Katalog game diambil dari config pasar yang dikirim backend, bukan dari daftar
+// hardcode di klien. Backend hanya mengirim game yang enabled + engineReady, jadi
+// operator cukup membuka/tutup game lewat lottery-control tanpa menyentuh frontend.
+const AUTO_DIGIT_GAMES = [['STRAIGHT_4D', 4], ['STRAIGHT_3D', 3], ['STRAIGHT_2D', 2]];
+
+function enabledGames() {
+  const games = Array.isArray(currentMarketConfig?.games) ? currentMarketConfig.games : [];
+  return games.filter(g => g && g.enabled && g.engineReady && g.uiMode && g.uiMode !== 'unsupported');
+}
+
+function gameByCode(code) {
+  return enabledGames().find(g => g.code === code) || null;
+}
+
+function minStake() {
+  const n = Number(currentMarketConfig?.minStake);
+  return Number.isFinite(n) && n > 0 ? n : 100;
+}
+
+function autoGameCode(digits) {
+  const hit = AUTO_DIGIT_GAMES.find(([, length]) => length === digits);
+  return hit ? hit[0] : '';
+}
+
+// Game bolak-balik (urut bebas) menyimpan digit terurut supaya "21" dan "12"
+// dianggap satu pilihan sama, persis seperti normalizeLotterySelection di backend.
+function normalizeForGame(game, value) {
+  const raw = String(value ?? '').trim();
+  if (!game) return raw;
+  if (game.uiMode === 'jitu') {
+    const [position, digit] = raw.split(':');
+    return position && digit ? `${position}:${digit}` : '';
+  }
+  if (game.uiMode === 'digits' || game.uiMode === 'shio') {
+    const digits = raw.replace(/\D/g, '');
+    return game.unordered ? digits.split('').sort().join('') : digits;
+  }
+  return raw.toUpperCase();
+}
+
+function isSelectionComplete(game, value) {
+  const selection = String(value || '');
+  if (!selection) return false;
+  if (!game) return /^\d{2,4}$/.test(selection);
+  if (game.uiMode === 'digits') return new RegExp(`^\\d{${game.inputDigits}}$`).test(selection);
+  if (game.uiMode === 'shio') return /^(?:[1-9]|1[0-2])$/.test(selection);
+  if (game.uiMode === 'jitu') return /^[^:]+:[0-9]$/.test(selection);
+  if (game.uiMode === 'choice') return (game.choices || []).includes(selection);
+  if (game.uiMode === 'positionChoice') {
+    const [position, choice] = selection.split(':');
+    return (game.positions || []).includes(position) && (game.choices || []).includes(choice);
+  }
+  if (game.uiMode === 'combination') {
+    const [position, size, parity] = selection.split(':');
+    return (game.positions || []).includes(position) && (game.sizes || []).includes(size) && (game.parities || []).includes(parity);
+  }
+  return false;
+}
+
+// Baris dengan gameCode AUTO memakai game yang ditebak dari jumlah digit, sama
+// seperti yang dikirim ke backend.
+function resolveRowGame(r) {
+  if (r.gameCode && r.gameCode !== 'AUTO') return gameByCode(r.gameCode);
+  return gameByCode(autoGameCode(String(r.selection || '').length));
+}
+
+// Kode game yang benar-benar dikirim ke backend. Selalu konkret: kalau config pasar
+// belum memuat katalog game (mis. backend versi lama), baris tetap memakai game
+// straight berdasarkan jumlah digit daripada mengirim literal "AUTO" yang pasti ditolak.
+function rowGameCode(r) {
+  return resolveRowGame(r)?.code || autoGameCode(String(r.selection || '').length) || 'STRAIGHT_4D';
+}
+
 function initBetRows() {
   betRows = [];
   for (let i = 0; i < 5; i++) {
@@ -161,8 +234,8 @@ function addRow() {
   betRows.push({
     id: rowId,
     selection: '',
-    stake: 1000,
-    gameCode: 'STRAIGHT_4D'
+    stake: minStake() * 10,
+    gameCode: 'AUTO'
   });
   renderRows();
 }
@@ -173,21 +246,50 @@ function removeRow(id) {
   renderRows();
 }
 
+function gameOptionList(selected) {
+  const options = [`<option value="AUTO"${selected === 'AUTO' ? ' selected' : ''}>Auto Detect</option>`];
+  for (const g of enabledGames()) {
+    const disc = Number(g.discountPercent || 0);
+    const mult = Number(g.payoutMultiplier || 0);
+    const suffix = `${disc ? `Disc ${disc}%` : ''}${mult ? `x${mult}` : ''}`.trim();
+    options.push(`<option value="${escapeHtml(g.code)}"${g.code === selected ? ' selected' : ''}>${escapeHtml(g.label)}${suffix ? ` (${suffix})` : ''}</option>`);
+  }
+  return options.join('');
+}
+
+function rowField(r) {
+  const game = gameByCode(r.gameCode);
+  const inputStyle = 'text-align:center; font-weight:700; letter-spacing:2px;';
+  if (!game || game.uiMode === 'digits' || game.uiMode === 'shio') {
+    const digits = game ? (game.uiMode === 'shio' ? 2 : game.inputDigits) : 4;
+    const placeholder = game ? (game.uiMode === 'shio' ? 'Shio 1-12' : `Angka ${digits}D`) : 'Angka 2D/3D/4D';
+    return `<input type="text" class="form-control bet-selection" placeholder="${escapeHtml(placeholder)}" maxlength="${digits}" value="${escapeHtml(r.selection)}" style="${inputStyle}">`;
+  }
+  const parts = String(r.selection || '').split(':');
+  const chip = (key, values, current) => `<select class="form-control bet-opt" data-key="${key}" style="max-width:104px;">${(values || []).map(v => `<option value="${escapeHtml(v)}"${v === current ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('')}</select>`;
+  let inner = '';
+  if (Array.isArray(game.positions) && game.uiMode !== 'choice') inner += chip(0, game.positions, parts[0] || game.positions[0]);
+  if (game.uiMode === 'choice') inner += chip(0, game.choices, parts[0] || (game.choices || [])[0]);
+  if (game.uiMode === 'positionChoice') inner += chip(1, game.choices, parts[1] || (game.choices || [])[0]);
+  if (game.uiMode === 'combination') {
+    inner += chip(1, game.sizes, parts[1] || (game.sizes || [])[0]);
+    inner += chip(2, game.parities, parts[2] || (game.parities || [])[0]);
+  }
+  if (game.uiMode === 'jitu') inner += `<input type="text" class="form-control bet-opt-digit" data-key="1" maxlength="1" inputmode="numeric" placeholder="digit" value="${escapeHtml(parts[1] || '')}" style="max-width:68px; text-align:center;">`;
+  return `<span class="bet-extras" style="display:flex; gap:6px; align-items:center; flex:1; min-width:0;">${inner}</span>`;
+}
+
 function renderRows() {
   const container = document.getElementById('bet-rows-container');
   if (!container) return;
+  const stakeMin = minStake();
 
   container.innerHTML = betRows.map((r, idx) => `
     <div class="bet-row" data-id="${Number(r.id)}">
       <span style="font-size:0.8rem; color:var(--text-muted); text-align:center;">${idx + 1}</span>
-      <input type="text" class="form-control bet-selection" placeholder="Angka (4D/3D/2D)" maxlength="4" value="${escapeHtml(r.selection)}" style="text-align:center; font-weight:700; letter-spacing:2px;">
-      <select class="form-control bet-game">
-        <option value="AUTO" ${r.gameCode === 'AUTO' ? 'selected' : ''}>Auto Detect</option>
-        <option value="STRAIGHT_4D" ${r.gameCode === 'STRAIGHT_4D' ? 'selected' : ''}>4D (Disc 66%)</option>
-        <option value="STRAIGHT_3D" ${r.gameCode === 'STRAIGHT_3D' ? 'selected' : ''}>3D (Disc 59%)</option>
-        <option value="STRAIGHT_2D" ${r.gameCode === 'STRAIGHT_2D' ? 'selected' : ''}>2D (Disc 29%)</option>
-      </select>
-      <input type="number" class="form-control bet-stake" placeholder="Taruhan (Rp)" step="1000" min="1000" value="${r.stake}" style="text-align:right;">
+      ${rowField(r)}
+      <select class="form-control bet-game">${gameOptionList(r.gameCode)}</select>
+      <input type="number" class="form-control bet-stake" placeholder="Taruhan (Rp)" step="100" min="${stakeMin}" value="${r.stake}" style="text-align:right;">
       <button type="button" class="btn-remove-row" onclick="window.removeBetRow(${r.id})">&times;</button>
     </div>
   `).join('');
@@ -206,20 +308,56 @@ function bindRowInputs() {
     const gameSelect = rowEl.querySelector('.bet-game');
     const stakeInput = rowEl.querySelector('.bet-stake');
 
-    selectionInput.addEventListener('input', (e) => {
-      item.selection = e.target.value.replace(/\D/g, '');
-      e.target.value = item.selection;
-      // Auto game detect
-      if (item.selection.length === 4) item.gameCode = 'STRAIGHT_4D';
-      else if (item.selection.length === 3) item.gameCode = 'STRAIGHT_3D';
-      else if (item.selection.length === 2) item.gameCode = 'STRAIGHT_2D';
-      gameSelect.value = item.gameCode;
+    // Baris dengan game berbasis pilihan (colok jitu, tengah/tepi, pola, kombinasi)
+    // tidak memakai input teks: nilainya dirakit dari beberapa kontrol.
+    const readExtras = () => {
+      const parts = [];
+      rowEl.querySelectorAll('.bet-opt').forEach(sel => {
+        parts[Number(sel.getAttribute('data-key'))] = sel.value;
+      });
+      const digit = rowEl.querySelector('.bet-opt-digit');
+      if (digit) parts[Number(digit.getAttribute('data-key'))] = digit.value.replace(/\D/g, '');
+      const game = gameByCode(item.gameCode);
+      item.selection = game ? normalizeForGame(game, parts.filter(v => v !== undefined && v !== '').join(':')) : '';
       calculateTotals();
-    });
+    };
+
+    if (selectionInput) {
+      selectionInput.addEventListener('input', (e) => {
+        const game = item.gameCode === 'AUTO' ? null : gameByCode(item.gameCode);
+        item.selection = normalizeForGame(game, e.target.value.replace(/\D/g, ''));
+        e.target.value = item.selection;
+        // Auto detect hanya berlaku saat baris masih di mode AUTO. Kalau member
+        // memilih game sendiri (mis. Colok 2D),digit yang diketik tidak boleh
+        // menimpa pilihan itu.
+        if (item.gameCode === 'AUTO') {
+          const detected = autoGameCode(item.selection.length);
+          if (detected) item.gameCode = detected;
+          gameSelect.value = item.gameCode;
+        }
+        calculateTotals();
+      });
+    }
+
+    rowEl.querySelectorAll('.bet-opt').forEach(sel => sel.addEventListener('change', readExtras));
+    const extraDigit = rowEl.querySelector('.bet-opt-digit');
+    if (extraDigit) {
+      extraDigit.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '');
+        readExtras();
+      });
+    }
+    if (!selectionInput) readExtras();
 
     gameSelect.addEventListener('change', (e) => {
       item.gameCode = e.target.value;
-      calculateTotals();
+      if (item.gameCode === 'AUTO') {
+        const detected = autoGameCode(item.selection.length);
+        if (detected) item.gameCode = detected;
+      }
+      // Kolom input berubah bentuk ketika game berganti (angka -> pilihan),
+      // jadi baris digambar ulang.
+      renderRows();
     });
 
     stakeInput.addEventListener('input', (e) => {
@@ -233,18 +371,17 @@ function calculateTotals() {
   let totalGross = 0;
   let totalDiscount = 0;
   let validItemsCount = 0;
+  const stakeMin = minStake();
 
   betRows.forEach(r => {
-    if (!r.selection || r.selection.length < 2 || !r.stake) return;
+    const game = resolveRowGame(r);
+    if (!isSelectionComplete(game, r.selection)) return;
+    if (!(r.stake >= stakeMin)) return;
     validItemsCount++;
     totalGross += r.stake;
-
-    // Disc percentage
-    let disc = 0;
-    if (r.gameCode === 'STRAIGHT_4D' || r.selection.length === 4) disc = 0.66;
-    else if (r.gameCode === 'STRAIGHT_3D' || r.selection.length === 3) disc = 0.59;
-    else if (r.gameCode === 'STRAIGHT_2D' || r.selection.length === 2) disc = 0.29;
-
+    // Diskon ikut game yang benar-benar dipilih, bukan lagi ditebak dari jumlah
+    // digit — supaya total di layar sama dengan yang dihitung backend.
+    const disc = Number(game?.discountPercent || 0) / 100;
     totalDiscount += Math.round(r.stake * disc);
   });
 
@@ -278,38 +415,28 @@ function setupEventListeners() {
 }
 
 async function handleBetSubmit() {
-  // Validasi format angka: hanya 2/3/4 digit angka murni (sesuai normalizeLotterySelection di backend)
+  // Validasi memakai definisi game dari backend (panjang digit, mode input), bukan
+  // daftar kode game yang ditulis manual di halaman ini.
+  const stakeMin = minStake();
   const invalidRows = betRows
-    .filter(r => r.selection && r.selection.length >= 2 && r.stake > 0)
+    .filter(r => r.selection && r.stake > 0)
     .filter(r => {
-      const gameCode = r.gameCode === 'AUTO'
-        ? (r.selection.length === 4 ? 'STRAIGHT_4D' : r.selection.length === 3 ? 'STRAIGHT_3D' : 'STRAIGHT_2D')
-        : r.gameCode;
-      // Validasi: harus sesuai digit yang diharapkan untuk game code tsb
-      const digitCount = {
-        'STRAIGHT_4D': 4,
-        'STRAIGHT_3D': 3,
-        'STRAIGHT_2D': 2,
-        'POSITION_2D_FRONT': 2,
-        'POSITION_2D_MIDDLE': 2
-      }[gameCode] || 4;
-      // Hanya angka + panjang tepat
-      if (!/^\d+$/.test(r.selection) || r.selection.length !== digitCount) {
-        return true;
-      }
-      // Cek duplikat selection (backend juga validasi ini sebagai BET_DUPLICATE_LINE)
-      const sel = r.selection.toUpperCase();
+      const game = resolveRowGame(r);
+      if (!isSelectionComplete(game, r.selection)) return true;
+      if (r.stake < stakeMin) return true;
+      // Cek duplikat selection per game (backend juga menolak sebagai BET_DUPLICATE_LINE).
+      const sel = `${rowGameCode(r)}|${String(r.selection).toUpperCase()}`;
       return betRows.some(other =>
         other !== r &&
         other.selection &&
-        other.selection.length >= 2 &&
-        other.selection.toUpperCase() === sel
+        `${rowGameCode(other)}|${String(other.selection).toUpperCase()}` === sel
       );
     });
 
   if (invalidRows.length > 0) {
-    const examples = invalidRows.slice(0, 3).map(r => `"${r.selection}" (${r.gameCode})`).join(', ');
-    showToast(`Nomor tidak valid atau duplikat: ${examples}${invalidRows.length > 3 ? ' ...' : ''}`, 'danger');
+    const label = r => `${r.selection} (${resolveRowGame(r)?.label || r.gameCode})`;
+    const examples = invalidRows.slice(0, 3).map(label).join(', ');
+    showToast(`Pilihan tidak valid, kembar, duplikat, atau di bawah min ${stakeMin}: ${examples}${invalidRows.length > 3 ? ' ...' : ''}`, 'danger');
     return;
   }
 
@@ -324,20 +451,15 @@ async function handleBetSubmit() {
   }
 
   const rows = betRows
-    .filter(r => r.selection && r.selection.length >= 2 && r.stake > 0)
-    .map(r => {
-      const gameCode = r.gameCode === 'AUTO'
-        ? (r.selection.length === 4 ? 'STRAIGHT_4D' : r.selection.length === 3 ? 'STRAIGHT_3D' : 'STRAIGHT_2D')
-        : r.gameCode;
-      return {
-        gameCode,
-        selection: r.selection,
-        // amount = nominal bruto yang dimasukkan user.
-        // Backend akan menghitung ulang stake setelah diskon via calculateLotteryPricing,
-        // jadi kita tidak perlu kirim stake dari sini.
-        amount: r.stake
-      };
-    });
+    .filter(r => isSelectionComplete(resolveRowGame(r), r.selection) && r.stake >= stakeMin)
+    .map(r => ({
+      gameCode: rowGameCode(r),
+      selection: r.selection,
+      // amount = nominal bruto yang dimasukkan user.
+      // Backend akan menghitung ulang stake setelah diskon via calculateLotteryPricing,
+      // jadi kita tidak perlu kirim stake dari sini.
+      amount: r.stake
+    }));
 
   // Penjaga terakhir sebelum mengirim. Backend sudah menolak wager pada pasar
   // tertutup, tetapi pemeriksaan di sini mencegah request yang pasti ditolak dan

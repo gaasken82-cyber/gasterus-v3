@@ -1,6 +1,6 @@
 import { query } from './db.js';
 import { AppError } from './errors.js';
-import { LOTTERY_GAMES, publicGameDefinition } from './lottery-games.js';
+import { LOTTERY_GAMES, TOTO_ADVANCED_GAME_RATES, publicGameDefinition } from './lottery-games.js';
 import { config } from './config.js';
 import { logger } from './logger.js';
 
@@ -174,15 +174,13 @@ async function ensureLotteryConfigs(db,marketId){
     SELECT market_id,'POSITION_2D_MIDDLE',TRUE,28,65,max_stake_per_item FROM market_betting_configs WHERE market_id=$1 ON CONFLICT(market_id,game_code) DO NOTHING`,[marketId]);
   // Advanced games that the settlement engine truly supports (engineReady, has a
   // defined UI mode, and do not require operator-specific options like shio labels).
-  // They are seeded live with standard Indonesian togel rates so members can bet
-  // immediately; operators can still tune discount/payout via lottery-control.
-  const ADVANCED_DEFAULT = {
-    COLOK_BEBAS:[5,7],COLOK_2D:[15,70],COLOK_NAGA:[15,350],COLOK_JITU:[5,65],
-    TENGAH_TEPI:[4,2],DASAR:[4,2],SILANG_HOMO:[4,3],KEMBANG_KEMPIS:[4,3],KOMBINASI:[4,3]
-  };
+  // They are seeded live so members can bet immediately; operators can still tune
+  // discount/payout via lottery-control. Rates live in lottery-games.js because they
+  // are derived from the settlement probabilities, not from a static price list.
+  const ADVANCED_DEFAULT = TOTO_ADVANCED_GAME_RATES;
   const seedable=LOTTERY_GAMES.filter(x=>ADVANCED_DEFAULT[x.code]&&x.engineReady&&!x.requiresOptions&&x.uiMode!=='unsupported');
   if(seedable.length){
-    const values=seedable.map(x=>`('${x.code}',${ADVANCED_DEFAULT[x.code][0]},${ADVANCED_DEFAULT[x.code][1]})`).join(',');
+    const values=seedable.map(x=>`('${x.code}',${ADVANCED_DEFAULT[x.code].discountPercent},${ADVANCED_DEFAULT[x.code].payoutMultiplier})`).join(',');
     await db.query(`UPDATE lottery_game_configs SET enabled=TRUE, discount_percent=v.d, payout_multiplier=v.p
       FROM (VALUES ${values}) AS v(game_code,d,p)
       WHERE market_id=$1 AND v.game_code=lottery_game_configs.game_code AND lottery_game_configs.payout_multiplier=0`,[marketId]);

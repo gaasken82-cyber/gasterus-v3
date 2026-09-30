@@ -35,6 +35,42 @@ export const TOTO_STANDARD_RULES=Object.freeze({
   POSITION_2D_MIDDLE:Object.freeze({discountPercent:28,payoutMultiplier:65,minStake:100})
 });
 
+// Rates game lanjutan (colok / pola / 50-50). Angka ini BUKAN diambil dari daftar
+// commercially, tapi dihitung dari probabilitas hasil seragam 0000-9999 memakai
+// evaluateLotterySelection di bawah, dengan syarat:
+//
+//   EV = P(win) x E[factor] x payoutMultiplier  <=  0.75 dari nominal verge
+//
+// (payout selalu dihitung dari nominal verge, bukan dari stake setelah diskon —
+// lihat calculateLotteryPricing.) Perhitungan aktual, brute force 10.000 hasil:
+//
+//   COLOK_BEBAS     E[factor]=0.4972  -> 1.5    EV 0.746
+//   COLOK_2D        P=0.0974          -> 7.7    EV 0.750
+//   COLOK_NAGA      P=0.0204          -> 36.7   EV 0.749
+//   COLOK_JITU      P=0.1000          -> 7.5    EV 0.750
+//   TENGAH_TEPI     P=0.5000          -> 1.5    EV 0.750
+//   DASAR           P=0.5500 (maks)   -> 1.3    EV 0.715
+//   SILANG_HOMO     P=0.5000          -> 1.5    EV 0.750
+//   KEMBANG_KEMPIS  P=0.4500 (maks)   -> 1.6    EV 0.720
+//   KOMBINASI       P=0.2500          -> 3.0    EV 0.750
+//
+// Nilai lama (COLOK_BEBAS 7, COLOK_2D 70, COLOK_NAGA 350, COLOK_JITU 65,
+// TENGAH_TEPI 2, DASAR 2, SILANG_HOMO 3, KEMBANG_KEMPIS 3) menghasilkan EV
+// 1.0 sampai 7.1, artinya platform membayar jauh lebih besar dari peluang
+// jp-nya. Test lottery-games.test.js mengunci batas EV 0.85 supaya angka ini
+// tidak pernah dinaikkan tanpa implementasi settlement yang baru.
+export const TOTO_ADVANCED_GAME_RATES=Object.freeze({
+  COLOK_BEBAS:Object.freeze({discountPercent:5,payoutMultiplier:1.5,minStake:100}),
+  COLOK_2D:Object.freeze({discountPercent:15,payoutMultiplier:7.7,minStake:100}),
+  COLOK_NAGA:Object.freeze({discountPercent:15,payoutMultiplier:36.7,minStake:100}),
+  COLOK_JITU:Object.freeze({discountPercent:5,payoutMultiplier:7.5,minStake:100}),
+  TENGAH_TEPI:Object.freeze({discountPercent:4,payoutMultiplier:1.5,minStake:100}),
+  DASAR:Object.freeze({discountPercent:4,payoutMultiplier:1.3,minStake:100}),
+  SILANG_HOMO:Object.freeze({discountPercent:4,payoutMultiplier:1.5,minStake:100}),
+  KEMBANG_KEMPIS:Object.freeze({discountPercent:4,payoutMultiplier:1.6,minStake:100}),
+  KOMBINASI:Object.freeze({discountPercent:4,payoutMultiplier:3,minStake:100})
+});
+
 export function calculateLotteryPricing(amount,discountPercent,payoutMultiplier,factor=1){
   const gross=Number(amount),discount=Number(discountPercent),multiplier=Number(payoutMultiplier),winFactor=Number(factor||1);
   const stake=Math.max(1,Math.round(gross*(1-discount/100)));
@@ -53,6 +89,12 @@ export function normalizeLotterySelection(gameCode,rawSelection){
   const raw=clean(rawSelection);
   if(game.uiMode==='digits'){
     if(!new RegExp(`^\\d{${game.inputDigits}}$`).test(raw))throw new AppError(400,`Pilihan ${game.label} harus ${game.inputDigits} digit.`,'LOTTERY_SELECTION_INVALID');
+    // Game bolak-balik (urut bebas) hanya boleh memakai digit berbeda. Angka kembar
+    // seperti "11" untuk COLOK_2D punya peluang jp 0.0523, bukan 0.0974 seperti "12",
+    // sehingga satu harga multiplier tidak bisa menutup keduanya dan platform membayar
+    // 7.7x untuk pilihan yang peluang jp-nya lebih kecil. Menolak kembar membuat satu
+    // harga berlaku untuk semua pilihan.
+    if(game.unordered&&new Set(raw).size!==raw.length)throw new AppError(400,`${game.label} memakai digit berbeda (contoh: 1 dan 2), bukan angka kembar.`,'LOTTERY_SELECTION_INVALID');
     return game.unordered?raw.split('').sort().join(''):raw;
   }
   if(game.uiMode==='jitu'){
