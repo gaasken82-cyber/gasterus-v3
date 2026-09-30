@@ -106,7 +106,9 @@ async function loadMarketInfo(code) {
 }
 
 function setBettingControlsDisabled(disabled) {
-  document.querySelectorAll('#bet-rows-container input, #bet-rows-container select, #bet-rows-container button').forEach(control => {
+  // Slip controls di luar #bet-rows-container (tambah baris, generator quick bet,
+  // tombol submit) juga harus ikut mati saat pasaran tertutup.
+  document.querySelectorAll('#bet-rows-container input, #bet-rows-container select, #bet-rows-container button, #btn-add-row, #quick-bet-mode, #btn-quick-bet, #btn-submit-bet').forEach(control => {
     control.disabled = disabled;
   });
   const addRowBtn = document.getElementById('btn-add-row');
@@ -233,6 +235,42 @@ function rowGameCode(r) {
   return resolveRowGame(r)?.code || autoGameCode(String(r.selection || '').length) || 'STRAIGHT_4D';
 }
 
+// Generator quick bet. Semua angka dibuat di MEMBER satu generator, bukan di server,
+// sehingga tidak pernah mengarang pilihan yang tidak dipinta member.
+const QUICK_BET_SETS = Object.freeze({
+  COLOK_2D_ALL: {
+    gameCode: 'COLOK_2D', label: 'Colok 2D',
+    values: () => { const out = []; for (let a = 0; a <= 9; a += 1) for (let b = a + 1; b <= 9; b += 1) out.push(`${a}${b}`); return out; }
+  },
+  COLOK_BEBAS_ALL: { gameCode: 'COLOK_BEBAS', label: 'Colok Bebas', values: () => Array.from({ length: 10 }, (_, i) => String(i)) },
+  '4D_KEMBAR': { gameCode: 'STRAIGHT_4D', label: '4D Kembar', values: () => Array.from({ length: 10 }, (_, i) => String(i).repeat(4)) },
+  '3D_KEMBAR': { gameCode: 'STRAIGHT_3D', label: '3D Kembar', values: () => Array.from({ length: 10 }, (_, i) => String(i).repeat(3)) },
+  '2D_00_49': { gameCode: 'STRAIGHT_2D', label: '2D 00-49', values: () => Array.from({ length: 50 }, (_, i) => String(i).padStart(2, '0')) },
+  '2D_50_99': { gameCode: 'STRAIGHT_2D', label: '2D 50-99', values: () => Array.from({ length: 50 }, (_, i) => String(i + 50).padStart(2, '0')) }
+});
+
+function applyQuickBet() {
+  const mode = document.getElementById('quick-bet-mode')?.value;
+  const set = QUICK_BET_SETS[mode];
+  if (!set) return;
+  const game = gameByCode(set.gameCode);
+  if (!game) {
+    showToast(`${set.label} belum dibuka untuk pasaran ini.`, 'danger');
+    return;
+  }
+  const limit = Math.max(1, Math.min(Number(currentMarketConfig?.maxRows) || 50, 100));
+  const stake = minStake();
+  const values = set.values().slice(0, limit).map(v => normalizeForGame(game, v));
+  betRows = values.map(selection => ({ id: rowIdCounter++, selection, stake, gameCode: set.gameCode }));
+  renderRows();
+  showToast(`${betRows.length} baris ${set.label} terisi. Periksa nominal lalu konfirmasi.`, 'success');
+}
+
+function syncMinStakeLabel() {
+  const el = document.getElementById('bet-min-stake');
+  if (el) el.textContent = `Min. bet Rp ${formatNumber(minStake())} / baris`;
+}
+
 function initBetRows() {
   betRows = [];
   for (let i = 0; i < 5; i++) {
@@ -306,6 +344,7 @@ function renderRows() {
   `).join('');
 
   bindRowInputs();
+  syncMinStakeLabel();
   calculateTotals();
 }
 
@@ -417,6 +456,11 @@ function setupEventListeners() {
   const addRowBtn = document.getElementById('btn-add-row');
   if (addRowBtn) {
     addRowBtn.addEventListener('click', addRow);
+  }
+
+  const quickBetBtn = document.getElementById('btn-quick-bet');
+  if (quickBetBtn) {
+    quickBetBtn.addEventListener('click', applyQuickBet);
   }
 
   const submitBtn = document.getElementById('btn-submit-bet');

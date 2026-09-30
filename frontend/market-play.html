@@ -116,9 +116,20 @@
       <div class="bet-grid-layout">
         <!-- Input Rows Card -->
         <div class="quick-bet-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-            <h3 style="font-size: 1.15rem;">Fast Bet 4D / 3D / 2D</h3>
-            <span style="font-size: 0.8rem; color: var(--text-secondary);">Min. bet Rp 1.000 / baris</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: var(--space-4);">
+            <h3 style="font-size: 1.15rem; margin: 0;">Fast Bet 4D / 3D / 2D</h3>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span id="bet-min-stake" style="font-size: 0.8rem; color: var(--text-secondary);">Min. bet</span>
+              <select id="quick-bet-mode" class="form-control" style="width: auto; min-height: 34px; padding: 4px 8px; font-size: 0.78rem;">
+                <option value="COLOK_2D_ALL">Colok 2D — semua kombinasi (45)</option>
+                <option value="2D_00_49">2D — 00 s/d 49 (50)</option>
+                <option value="2D_50_99">2D — 50 s/d 99 (50)</option>
+                <option value="4D_KEMBAR">4D — kembar 0000 s/d 9999 (10)</option>
+                <option value="3D_KEMBAR">3D — kembar 000 s/d 999 (10)</option>
+                <option value="COLOK_BEBAS_ALL">Colok Bebas — 0 s/d 9 (10)</option>
+              </select>
+              <button type="button" id="btn-quick-bet" class="btn btn-secondary btn-sm">Isi Otomatis</button>
+            </div>
           </div>
 
           <!-- Header Labels for Table -->
@@ -205,7 +216,7 @@
   <!-- v wajib naik setiap kali market-play.js berubah: Cloudflare Pages mengirim
        cache-control max-age=14400 (4 jam) untuk /js/*, jadi query versi lama
        membuat browser member memakai skrip lama berjam-jam. -->
-  <script type="module" src="/js/market-play.js?v=20260930-games2"></script>
+  <script type="module" src="/js/market-play.js?v=20260930-games3"></script>
 <script>
     (function () {
       function openNav() {
