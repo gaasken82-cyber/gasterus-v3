@@ -346,7 +346,7 @@ async function handleRegisterSubmit(e) {
     await auth.register(payload);
     showToast('Pendaftaran Berhasil! Selamat bermain di Gasterus.', 'success');
     setTimeout(() => {
-      window.location.href = '/member';
+      window.location.href = '/member.html';
     }, 800);
   } catch (err) {
     submitBtn.disabled = false;

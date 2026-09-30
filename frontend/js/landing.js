@@ -118,7 +118,7 @@ function renderHasilGrid(items) {
   container.innerHTML = displayItems.map(m => {
     const marketCode = String(m.code || '');
     const marketHref = marketCode
-      ? `/market-play?code=${encodeURIComponent(marketCode)}`
+      ? `/market-play.html?code=${encodeURIComponent(marketCode)}`
       : '#login';
     return `
       <div class="hasil-card fade-in">
@@ -211,7 +211,7 @@ function setupAuthModal() {
         await auth.login(username, password);
         showToast('Login berhasil! Selamat datang kembali.', 'success');
         setTimeout(() => {
-          window.location.href = '/member';
+          window.location.href = '/member.html';
         }, 600);
       } catch (err) {
         submitBtn.disabled = false;

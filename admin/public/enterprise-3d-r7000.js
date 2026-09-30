@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 /* ==========================================================================
-   GASTERUS R7.0.0 — ENTERPRISE 3D GLASS CONTROL — Interaction Layer
+   SBOTOTO R7.0.0 — ENTERPRISE 3D GLASS CONTROL — Interaction Layer
    Companion JS for enterprise-3d-r7000.css. Adds:
    • 3D perspective tilt on cards/panels (data-t3d-tilt)
    • Pointer tracking for dynamic glow position (data-t3d-glow)

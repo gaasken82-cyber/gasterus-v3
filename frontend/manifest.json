@@ -2,7 +2,7 @@
   "name": "Gasterus V3 - Togel & Slot",
   "short_name": "Gasterus",
   "description": "Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya",
-  "start_url": "/",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#050b14",
   "theme_color": "#2563eb",

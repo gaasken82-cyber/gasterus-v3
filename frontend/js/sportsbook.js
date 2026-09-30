@@ -325,7 +325,7 @@ function renderAuthRequired() {
   const empty = el('sb-empty');
   if (empty) {
     empty.hidden = false;
-    empty.innerHTML = 'Sportsbook khusus member. <a href="/"><strong>Login di sini</strong></a> untuk melihat odds dan memasang taruhan.';
+    empty.innerHTML = 'Sportsbook khusus member. <a href="/index.html"><strong>Login di sini</strong></a> untuk melihat odds dan memasang taruhan.';
   }
   const err = el('sb-error');
   if (err) err.hidden = true;
@@ -380,7 +380,7 @@ async function connectStream() {
       if (api.token) headers.Authorization = `Bearer ${api.token}`;
       const res = await fetch(STREAM_URL, { method: 'GET', credentials: 'include', headers });
       if (res.status === 401) {
-        window.location.href = '/?msg=session_expired';
+        window.location.href = '/index.html?msg=session_expired';
         return;
       }
       if (!res.ok || !res.body) throw new Error(`stream http ${res.status}`);
@@ -1566,7 +1566,7 @@ function renderBetslip() {
       <div class="sb-slip-row" style="margin-top:6px"><span>Stake</span><b>${formatRupiah(stake)}</b></div>
       <div class="sb-slip-row"><span>Estimasi menang</span><b class="sb-win" id="slip-est">${formatRupiah(est)}</b></div>
       <div class="sb-slip-hint">Min ${formatRupiah(bettingConfig.minStake)} · Maks ${formatRupiah(bettingConfig.maxStake)}</div>
-      ${overBalance ? `<div class="sb-slip-hint" style="color:#ef4444">Stake melebihi saldo. <a href="/deposit" style="color:#ef4444"><u>Deposit</u></a></div>` : ''}
+      ${overBalance ? `<div class="sb-slip-hint" style="color:#ef4444">Stake melebihi saldo. <a href="/deposit.html" style="color:#ef4444"><u>Deposit</u></a></div>` : ''}
     </div>
     <button type="button" id="btn-place-bet" class="sb-btn sb-btn-place sb-btn-block"${(placing || overBalance) ? ' disabled' : ''}>${placing ? '⏳ Memproses…' : '⚽ Pasang Taruhan'}</button>
     <button type="button" id="btn-clear-slip" class="sb-btn sb-btn-ghost sb-btn-block sb-btn-sm">Kosongkan betslip</button>`;
@@ -1686,7 +1686,7 @@ function onStakeChange() {
 async function placeBet() {
   if (!auth.isLoggedIn()) {
     showToast('Silakan login terlebih dahulu untuk memasang taruhan.', 'warning');
-    setTimeout(() => { window.location.href = '/?msg=login_required'; }, 1200);
+    setTimeout(() => { window.location.href = '/index.html?msg=login_required'; }, 1200);
     return;
   }
   if (placing || !selected.size) return;

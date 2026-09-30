@@ -6,20 +6,15 @@
 import { execFileSync } from 'node:child_process';
 import { createHmac } from 'node:crypto';
 
-const BASE = process.env.E2E_BASE || 'http://localhost:8082';   // member-server (proxies to core with internal secret)
-const REDIS_CLI = process.env.REDIS_CLI || 'redis-cli';
-const SESSION_HMAC_KEY = String(process.env.SESSION_HMAC_KEY || '');
+const BASE = 'http://localhost:8082';           // member-server (proxies to core with internal secret)
+const REDIS_CLI = String.raw`E:\gas terus 25\gasterus-v3\.tools\redis\redis-cli.exe`;
+const SESSION_HMAC_KEY = 'bc62e2ccda2a8de397539be28c5c52a27317aa377dc864d7c24957c9c431540e';
 const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const RESULTS = [];
 
-// Kredensial akun uji dev HARUS dari environment — jangan pernah hardcode di repo.
-const USERNAME = String(process.env.E2E_USERNAME || '');
-const EMAIL = String(process.env.E2E_EMAIL || '');
-const PASSWORD = String(process.env.E2E_PASSWORD || '');
-if (!SESSION_HMAC_KEY || !USERNAME || !PASSWORD) {
-  console.error('Env wajib: SESSION_HMAC_KEY, E2E_USERNAME, E2E_PASSWORD (dan opsional E2E_EMAIL, E2E_BASE, REDIS_CLI).');
-  process.exit(1);
-}
+const USERNAME = 'devtest001';
+const EMAIL = 'devtest001@example.com';
+const PASSWORD = 'DevTest2026pass';
 
 function report(name, pass, status, extra = '') {
   RESULTS.push({ name, pass, status });

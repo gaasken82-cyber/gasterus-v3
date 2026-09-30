@@ -6,20 +6,21 @@
 const CACHE_NAME = 'gasterus-v3-cache-v13-qris-barcode-fixed';
 const STATIC_ASSETS = [
   '/',
-  '/member',
-  '/register',
-  '/deposit',
-  '/withdraw',
-  '/bet-history',
-  '/market-play',
-  '/number-history',
-  '/promotion',
-  '/sportsbook',
-  '/privacy',
-  '/referral',
-  '/rules',
-  '/terms',
-  '/responsible-play',
+  '/index.html',
+  '/member.html',
+  '/register.html',
+  '/deposit.html',
+  '/withdraw.html',
+  '/bet-history.html',
+  '/market-play.html',
+  '/number-history.html',
+  '/promotion.html',
+  '/sportsbook.html',
+  '/privacy.html',
+  '/referral.html',
+  '/rules.html',
+  '/terms.html',
+  '/responsible-play.html',
   '/favicon.svg',
   '/manifest.json',
   '/robots.txt',
@@ -67,7 +68,7 @@ self.addEventListener('fetch', (e) => {
           }
           return res;
         })
-        .catch(() => caches.match(request).then((r) => r || caches.match('/')))
+        .catch(() => caches.match(request).then((r) => r || caches.match('/index.html')))
     );
     return;
   }

@@ -30,31 +30,6 @@ const HEAP_MB={
   'backup-scheduler':heapMB('BACKUP_HEAP_MB',32),
   default:heapMB('SCRIPT_HEAP_MB',128),
 };
-// OOM guard: satu container Railway menampung gateway+core+worker+feed-worker+member+admin.
-// Bila operator mendeklarasikan plafon memori container (CONTAINER_MEMORY_MB atau
-// RAILWAY_MEMORY_LIMIT), cap heap tiap child diturunkan proporsional sampai total hanya
-// memakai ~55% plafon — sisanya untuk overhead non-heap V8/libuv/buffer. Tanpa env itu,
-// perilaku persis seperti sebelumnya (cap eksplisit di atas tetap dipakai apa adanya).
-const CONTAINER_MEMORY_MB = Math.max(0, Number(process.env.CONTAINER_MEMORY_MB || process.env.RAILWAY_MEMORY_LIMIT || 0));
-const HEAP_FLOOR_MB = { gateway:32, core:192, worker:256, 'feed-worker':192, member:96, admin:48, 'health-monitor':24, 'backup-scheduler':24, default:48 };
-// Perkiraan RSS non-heap (~70MB) untuk 6 proses long-lived (gateway/core/worker/feed-worker/member/admin).
-const NON_HEAP_RESERVE_MB = 420;
-const heapBudgetMB = () => Object.values(HEAP_MB).reduce((sum, mb) => sum + mb, 0);
-if (CONTAINER_MEMORY_MB) {
-  const target = Math.floor(CONTAINER_MEMORY_MB * 0.55);
-  const requested = heapBudgetMB();
-  if (requested > target) {
-    const factor = target / requested;
-    for (const key of Object.keys(HEAP_MB)) {
-      HEAP_MB[key] = Math.max(HEAP_FLOOR_MB[key] || HEAP_FLOOR_MB.default, Math.floor(HEAP_MB[key] * factor));
-    }
-    console.warn(JSON.stringify({service:'gasterus-launcher',phase:'heap-budget-tuned',containerMemoryMB:CONTAINER_MEMORY_MB,requestedCapMB:requested,appliedCapMB:heapBudgetMB()}));
-  }
-  if (heapBudgetMB() + NON_HEAP_RESERVE_MB > CONTAINER_MEMORY_MB) {
-    console.error(JSON.stringify({service:'gasterus-launcher',phase:'heap-budget-insufficient',containerMemoryMB:CONTAINER_MEMORY_MB,appliedCapMB:heapBudgetMB(),reserveMB:NON_HEAP_RESERVE_MB,advice:'Naikkan memori service Railway (>=2GB) atau set WORKER_ENABLED=false / FEED_WORKER_ENABLED=false untuk memangkas proses sebelum OOM-kill.'}));
-  }
-}
-
 function childEnv(label='default',overrides={}) {
   const cap=HEAP_MB[label]||HEAP_MB.default;
   const base=String(process.env.NODE_OPTIONS||'').split(/\s+/).filter(Boolean).filter(o=>!o.startsWith('--max-old-space-size='));
@@ -97,7 +72,7 @@ const internalCommon={HOST:'127.0.0.1',CORE_HOST:'127.0.0.1',CORE_PORT:String(CO
 const onRailway=Boolean(process.env.RAILWAY_DEPLOYMENT_ID || process.env.RAILWAY_ENVIRONMENT_ID);
 const runStartupMigrations=bool('RUN_STARTUP_MIGRATIONS', !onRailway);
 
-console.log(JSON.stringify({service:'gasterus-launcher',version:'6.9.0.5',phase:'startup',publicPort:PUBLIC_PORT,corePort:CORE_INTERNAL_PORT,memberPort:MEMBER_INTERNAL_PORT,adminPort:ADMIN_INTERNAL_PORT,onRailway,runStartupMigrations,heapBudgetMB:heapBudgetMB(),containerMemoryMB:CONTAINER_MEMORY_MB||null}));
+console.log(JSON.stringify({service:'gasterus-launcher',version:'6.9.0.5',phase:'startup',publicPort:PUBLIC_PORT,corePort:CORE_INTERNAL_PORT,memberPort:MEMBER_INTERNAL_PORT,adminPort:ADMIN_INTERNAL_PORT,onRailway,runStartupMigrations}));
 // Bind Railway's public PORT immediately. /healthz remains 503 until Core/Member/Admin are ready,
 // preventing edge-level 502 during cold start while preserving the readiness gate.
 start('gateway',deployDir,['gateway.js'],{CORE_INTERNAL_PORT:String(CORE_INTERNAL_PORT),MEMBER_INTERNAL_PORT:String(MEMBER_INTERNAL_PORT),ADMIN_INTERNAL_PORT:String(ADMIN_INTERNAL_PORT)},true);

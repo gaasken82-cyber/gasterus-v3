@@ -1,9 +1,4 @@
 User-agent: *
 Allow: /
-# Back office (ADMIN_PATH_PREFIX di deploy/gateway.js) tidak untuk diindeks.
-Disallow: /cc-x7k9/
-Disallow: /admin
-Disallow: /admin-api/
-Disallow: /api/
 
 Sitemap: https://gasterus.fun/sitemap.xml

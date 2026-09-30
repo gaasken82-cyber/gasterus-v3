@@ -26,15 +26,15 @@ const BRAND_LOGO='assets/gasterus-logo.png';
 function brandContext(el){
  const small=el.querySelector?.('small');
  if(small?.textContent?.trim())return small.textContent.trim();
- return (el.textContent||'').replace(/\s+/g,' ').trim().replace(/^GASTERUS\b/i,'').replace(/^[\s•|·—–-]+/,'').trim();
+ return (el.textContent||'').replace(/\s+/g,' ').trim().replace(/^(?:SBOTOTO|ASEAN777)\b/i,'').replace(/^[\s•|·—–-]+/,'').trim();
 }
 function brandify(el){
  if(!el||el.dataset?.sbototoBrand==='1')return;
  const text=(el.textContent||'').replace(/\s+/g,' ').trim();
- if(!/^GASTERUS\b/i.test(text))return;
+ if(!/^(?:SBOTOTO|ASEAN777)\b/i.test(text))return;
  const context=brandContext(el);
  const img=document.createElement('img');
- img.src=BRAND_LOGO;img.alt='GASTERUS';img.className='sbototo-brand-logo';img.decoding='async';img.loading='eager';
+ img.src=BRAND_LOGO;img.alt='SBOTOTO';img.className='sbototo-brand-logo';img.decoding='async';img.loading='eager';
  el.replaceChildren(img);
  if(context){const ctx=document.createElement('span');ctx.className='sbototo-brand-context';ctx.textContent=context;el.appendChild(ctx)}
  el.classList.add('sbototo-brand-host');el.dataset.sbototoBrand='1';
@@ -44,7 +44,7 @@ function applyBrand(root=document){
  if(root.matches?.(selectors))brandify(root);
  root.querySelectorAll?.(selectors).forEach(brandify);
  const appIcon=root.matches?.('.app-icon')?root:root.querySelector?.('.app-icon');
- if(appIcon){appIcon.textContent='';appIcon.classList.add('sbototo-app-icon');appIcon.setAttribute('aria-label','GASTERUS')}
+ if(appIcon){appIcon.textContent='';appIcon.classList.add('sbototo-app-icon');appIcon.setAttribute('aria-label','SBOTOTO')}
 }
 
 function start(){document.body.classList.add('enterprise-r6820');document.body.classList.remove('enterprise-r689','enterprise-r6811','enterprise-r6812','enterprise-r6815','enterprise-r6817','enterprise-r6818');render();applyBrand();const observer=new MutationObserver(records=>{for(const record of records){for(const node of record.addedNodes){if(node.nodeType!==1)continue;const el=node;if(el.matches?.('[data-modern-icon], [data-e-icon], .e-icon, .r9-icon-host'))el.remove();else{render(el);applyBrand(el)}}}});observer.observe(document.body,{childList:true,subtree:true})}

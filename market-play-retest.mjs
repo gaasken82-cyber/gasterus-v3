@@ -2,14 +2,10 @@
 import { execFileSync } from 'node:child_process';
 import { createHmac } from 'node:crypto';
 
-const BASE = process.env.E2E_BASE || 'http://localhost:8082';
+const BASE = 'http://localhost:8082';
+const REDIS_CLI = String.raw`E:\gas terus 25\gasterus-v3\.tools\redis\redis-cli.exe`;
+const SESSION_HMAC_KEY = 'bc62e2ccda2a8de397539be28c5c52a27317aa377dc864d7c24957c9c431540e';
 const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const USERNAME = String(process.env.E2E_USERNAME || '');
-const PASSWORD = String(process.env.E2E_PASSWORD || '');
-if (!USERNAME || !PASSWORD) {
-  console.error('Env wajib: E2E_USERNAME dan E2E_PASSWORD (opsional E2E_BASE).');
-  process.exit(1);
-}
 
 async function api(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', Accept: 'application/json', ...(options.headers || {}) };
@@ -22,7 +18,7 @@ async function api(path, options = {}) {
 // login fresh
 const login = await api('/api/member/login', {
   method: 'POST',
-  body: JSON.stringify({ username: USERNAME, password: PASSWORD }),
+  body: JSON.stringify({ username: 'devtest001', password: 'DevTest2026pass' }),
 });
 const token = login.body?.data?.token;
 const auth = { Authorization: `Bearer ${token}` };

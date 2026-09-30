@@ -2,10 +2,6 @@
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Cross-Origin-Opener-Policy: same-origin
-  Strict-Transport-Security: max-age=31536000; includeSubDomains
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests; script-src 'self' 'unsafe-inline' https://cdn.livechatinc.com https://*.livechatinc.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.livechatinc.com https://*.livechat.com wss://*.livechatinc.com wss://*.livechat.com; frame-src https://widgets.vegasnet.info https://*.livechatinc.com; worker-src 'self' blob:; media-src 'self' blob:
 
 /css/*
   Cache-Control: public, max-age=300, must-revalidate
