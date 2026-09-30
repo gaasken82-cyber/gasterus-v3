@@ -12,7 +12,7 @@ function generateIdempotencyKey() {
 
 export async function initDeposit() {
   if (!auth.isLoggedIn()) {
-    window.location.href = '/index.html';
+    window.location.href = '/';
     return;
   }
   // Fetch fresh user data from server, then update UI
@@ -41,7 +41,7 @@ function updateDepositUserBar() {
 
 export async function initWithdraw() {
   if (!auth.isLoggedIn()) {
-    window.location.href = '/index.html';
+    window.location.href = '/';
     return;
   }
   // Fetch fresh user data from server, then update UI

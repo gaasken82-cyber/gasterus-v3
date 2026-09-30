@@ -83,7 +83,7 @@ export const auth = {
     }
     api.clearSession();
     this.setUser(null);
-    window.location.href = '/index.html';
+    window.location.href = '/';
   },
 
   updateHeaderAuthUI() {

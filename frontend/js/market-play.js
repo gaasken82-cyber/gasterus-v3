@@ -36,7 +36,7 @@ function isMarketClosed(market) {
 
 export async function initMarketPlay() {
   if (!auth.isLoggedIn()) {
-    window.location.href = '/index.html';
+    window.location.href = '/';
     return;
   }
 
@@ -375,7 +375,7 @@ async function handleBetSubmit() {
     auth.updateHeaderAuthUI();
 
     setTimeout(() => {
-      window.location.href = '/bet-history.html';
+      window.location.href = '/bet-history';
     }, 1000);
   } catch (err) {
     showToast(err.message || 'Gagal memasang taruhan.', 'danger');

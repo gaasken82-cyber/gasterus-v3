@@ -31,7 +31,7 @@
 
 const API_BASE = window.GASTERUS_API_BASE || '/api';
 
-// Redirect-loop guard: mencegah bounce bolak-balik saat 401 dipicu oleh redirect ke /index.html
+// Redirect-loop guard: mencegah bounce bolak-balik saat 401 dipicu oleh redirect ke /index
 let _scheduledLogout = false;
 let _last401Path = '';
 
@@ -98,8 +98,10 @@ class ApiClient {
         if (this._isTokenExpiredResponse(res, url)) {
           this.clearSession();
           const currentPath = window.location.pathname;
-          const isAlreadyOnAuthPage = /\/index\.html(\?|$)/.test(currentPath) ||
-            /\/register\.html(\?|$)/.test(currentPath) ||
+          // URL kanonik kini tanpa .html (Cloudflare clean URLs). Regex tetap
+          // menerima bentuk .html lama agar cache PWA/bookmark lama tidak loop.
+          const isAlreadyOnAuthPage = /^\/(?:index(?:\.html)?)?$/.test(currentPath) ||
+            /^\/register(?:\.html)?$/.test(currentPath) ||
             /\/login/.test(currentPath);
           if (!isAlreadyOnAuthPage && currentPath !== _last401Path) {
             _last401Path = currentPath;
@@ -110,7 +112,7 @@ class ApiClient {
                 _scheduledLogout = false;
                 _last401Path = '';
                 sessionStorage.removeItem('gasterus_redirecting');
-                window.location.href = '/index.html?msg=session_expired';
+                window.location.href = '/?msg=session_expired';
               }, 0);
             }
           }

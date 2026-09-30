@@ -1,4 +1,4 @@
-/* ASEAN777 R6.8.19 — consolidated enterprise admin design system. */
+/* GASTERUS R6.8.19 — consolidated enterprise admin design system. */
 :root{--adm-bg:#080d14;--adm-bg2:#0d141e;--adm-panel:#111a26;--adm-panel2:#162130;--adm-line:#253247;--adm-text:#f3f6fa;--adm-muted:#98a5b6;--adm-red:#d91f35;--adm-gold:#e7b844;--adm-green:#2fbd7a;--adm-blue:#5d8ff5;--adm-radius:12px;--adm-shadow:0 16px 42px rgba(0,0,0,.22)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body.enterprise-r6820{margin:0;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif!important;background:var(--adm-bg)!important;color:var(--adm-text)!important;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}body.enterprise-r6820 a{text-decoration:none}body.enterprise-r6820 button,body.enterprise-r6820 input,body.enterprise-r6820 select,body.enterprise-r6820 textarea{font:inherit}body.enterprise-r6820 :focus-visible{outline:2px solid var(--adm-gold)!important;outline-offset:2px}.ui-icon-svg{width:1.1em;height:1.1em;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.ui-icon-host{display:inline-grid;place-items:center;flex:0 0 auto}[data-modern-icon],[data-e-icon],.e-icon,.r9-icon-host{display:none!important}
 body.enterprise-r6820 .shell,body.enterprise-r6820 .admin-shell{background:var(--adm-bg)!important}
@@ -46,7 +46,7 @@ body.enterprise-r6820.login-page{background:#090e15!important}.login-visual{back
 @media(prefers-reduced-motion:reduce){body.enterprise-r6820 *,body.enterprise-r6820 *::before,body.enterprise-r6820 *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
 
 
-/* ==========================================================================\n   ASEAN777 R6.8.19 — ENTERPRISE BACK-OFFICE POLISH\n   Visual-only hardening. Navigation, URLs, DOM IDs and API contracts unchanged.\n   ========================================================================== */
+/* ==========================================================================\n   GASTERUS R6.8.19 — ENTERPRISE BACK-OFFICE POLISH\n   Visual-only hardening. Navigation, URLs, DOM IDs and API contracts unchanged.\n   ========================================================================== */
 :root{--adm-s0:#080d14;--adm-s1:#0c141f;--adm-s2:#111b28;--adm-s3:#172332;--adm-border2:#2b3b50;--adm-copy2:#d4dce7;--adm-copy3:#95a4b8;--adm-accent2:#e8bb4b}
 html{scroll-padding-top:82px}
 body.enterprise-r6820{background:linear-gradient(180deg,#090f17,#080d14 380px)!important;color:#f7f9fc!important}
@@ -100,7 +100,7 @@ body.enterprise-r6820 .modal{background:rgba(2,6,12,.76)!important;backdrop-filt
 body.enterprise-r6820 .modal-panel{box-shadow:0 30px 90px rgba(0,0,0,.56)!important}
 @media(max-width:760px){body.enterprise-r6820 .sidebar{position:sticky!important;top:0!important;z-index:90!important;background:#091019!important}body.enterprise-r6820 .topbar{top:51px!important}body.enterprise-r6820 .content{padding:14px!important}}
 
-/* SBOTOTO branding patch: visual brand only; layout and application contracts unchanged. */
+/* GASTERUS branding patch: visual brand only; layout and application contracts unchanged. */
 body.enterprise-r6820 .sbototo-brand-host{display:flex!important;align-items:center!important;gap:9px!important;min-width:0!important;text-decoration:none!important}
 body.enterprise-r6820 .sbototo-brand-logo{display:block!important;width:auto!important;height:31px!important;max-width:172px!important;object-fit:contain!important;flex:0 0 auto!important}
 body.enterprise-r6820 .sbototo-brand-context{display:block!important;color:#7e8ca0!important;font-size:8px!important;font-weight:800!important;letter-spacing:1.25px!important;line-height:1.15!important;white-space:nowrap!important}
@@ -111,7 +111,7 @@ body.enterprise-r6820 h1.sbototo-brand-host{justify-content:center!important;fle
 body.enterprise-r6820 h1.sbototo-brand-host .sbototo-brand-logo{height:48px!important;max-width:min(320px,82vw)!important}
 @media(max-width:760px){body.enterprise-r6820 .top .sbototo-brand-logo{height:27px!important;max-width:140px!important}body.enterprise-r6820 .top .sbototo-brand-context{display:none!important}}
 
-/* ==========================================================================\n   SBOTOTO R6.8.19 — CRIMSON GLASS ADMIN REFRESH\n   Visual-only layer. Admin navigation, URLs, IDs and API contracts unchanged.\n   ========================================================================== */
+/* ==========================================================================\n   GASTERUS R6.8.19 — CRIMSON GLASS ADMIN REFRESH\n   Visual-only layer. Admin navigation, URLs, IDs and API contracts unchanged.\n   ========================================================================== */
 :root{
   --adm-bg:#100d0e;--adm-bg2:#171113;--adm-panel:#1d1518;--adm-panel2:#25191d;
   --adm-line:rgba(255,255,255,.105);--adm-text:#fff8fa;--adm-muted:#bcaab0;
@@ -181,7 +181,7 @@ body.enterprise-r6820 .sbototo-brand-context{color:#c4aeb5!important}
 @media(prefers-reduced-motion:reduce){body.enterprise-r6820 .card,body.enterprise-r6820 .kpi,body.enterprise-r6820 .panel,body.enterprise-r6820 .ui-icon-host{transform:none!important;filter:none!important}}
 
 
-/* ==========================================================================\n   SBOTOTO R6.8.19 — ENTERPRISE CONTROL EXPERIENCE 2026\n   Dense, calm backoffice hierarchy with living operational states.\n   ========================================================================== */
+/* ==========================================================================\n   GASTERUS R6.8.19 — ENTERPRISE CONTROL EXPERIENCE 2026\n   Dense, calm backoffice hierarchy with living operational states.\n   ========================================================================== */
 :root{--pe-crimson:#e22d60;--pe-rose:#ff7898;--pe-gold:#f4c16e;--pe-mint:#55d99a;--pe-cyan:#75e2e8;--pe-text:#fff9fb;--pe-muted:#c9b7bd;--pe-line:rgba(255,255,255,.11);--pe-shadow:0 18px 52px rgba(13,3,6,.27);--pe-ease:cubic-bezier(.2,.8,.2,1)}
 body.enterprise-r6820{font-family:Inter,"Manrope","Plus Jakarta Sans","Segoe UI Variable","Segoe UI",Roboto,Arial,sans-serif!important;background-color:#130d0f!important;background-image:linear-gradient(180deg,rgba(14,8,10,.43),rgba(13,8,10,.67)),radial-gradient(circle at 14% 10%,rgba(226,45,96,.16),transparent 30%),url("assets/site-background-r6820-crimson.webp")!important;background-size:cover,cover,cover!important;background-position:center,center,center top!important;background-attachment:fixed,fixed,fixed!important;color:var(--pe-text)!important;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
 body.enterprise-r6820 :where(h1,h2,h3,h4,strong,b){letter-spacing:-.015em}body.enterprise-r6820 :where(.kpi strong,td,.amount,.value){font-variant-numeric:tabular-nums lining-nums}
@@ -230,7 +230,7 @@ body.enterprise-r6820 .modal-panel,body.enterprise-r6820 dialog{border:1px solid
 @media(max-width:430px){body.enterprise-r6820 .kpi-grid{grid-template-columns:1fr!important}}
 
 
-/* ==========================================================================\n   SBOTOTO R6.8.20 — MAXIMUM PREMIUM ENTERPRISE CONTROL SYSTEM\n   Readability and information-density final pass across all 17 admin pages.\n   ========================================================================== */
+/* ==========================================================================\n   GASTERUS R6.8.20 — MAXIMUM PREMIUM ENTERPRISE CONTROL SYSTEM\n   Readability and information-density final pass across all 17 admin pages.\n   ========================================================================== */
 :root{--mx-admin-text:#fffafb;--mx-admin-muted:#c7b2ba;--mx-admin-line:rgba(255,255,255,.12);--mx-admin-hot:#ff7396;--mx-admin-gold:#f4c16e;--mx-admin-mint:#72e3ad}
 body.enterprise-r6820{font-size:14px!important;line-height:1.55!important;color:var(--mx-admin-text)!important}
 body.enterprise-r6820 :where(p,.muted,.hint,.help,.description){font-size:12.5px!important;line-height:1.58!important;color:var(--mx-admin-muted)!important}

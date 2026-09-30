@@ -37,7 +37,7 @@
     <!-- Header -->
     <header class="brand-bar">
       <button type="button" class="menu-toggle" data-nav-open aria-label="Menu"></button>
-      <a href="/member.html" class="brand-title">
+      <a href="/member" class="brand-title">
         <span class="logo-shine-wrap"><img src="/assets/logo.webp?v=20260913-ref-v2" alt="GASTERUS" class="brand-logo-img"></span>
       </a>
       <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
@@ -121,7 +121,7 @@
           <h3>Tautan Referral Anda</h3>
         </div>
         <div class="ref-link-body">
-          <div class="ref-link-box" id="referral-link-input" title="Klik Salin untuk menyalin">https://gasterus.fun/register.html?ref=MYCODE</div>
+          <div class="ref-link-box" id="referral-link-input" title="Klik Salin untuk menyalin">https://gasterus.fun/register?ref=MYCODE</div>
           <button type="button" class="btn-submit ref-copy-btn" onclick="copyRefLink()">
             <span class="btn-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -195,29 +195,29 @@
         <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">✕</button>
       </div>
       <div class="nav-drawer-body nav-drawer-links">
-        <a class="nav-drawer-link" href="/index.html"><span class="nav-drawer-ico">🏠</span>Beranda</a>
-        <a class="nav-drawer-link" href="/member.html"><span class="nav-drawer-ico">🎰</span>Togel & Slot</a>
-        <a class="nav-drawer-link" href="/sportsbook.html"><span class="nav-drawer-ico">⚽</span>Sportsbook</a>
-        <a class="nav-drawer-link" href="/number-history.html"><span class="nav-drawer-ico">🏆</span>Hasil</a>
-        <a class="nav-drawer-link" href="/bet-history.html"><span class="nav-drawer-ico">📜</span>Riwayat Taruhan</a>
-        <a class="nav-drawer-link" href="/notifications.html"><span class="nav-drawer-ico">🔔</span>Notifikasi</a>
-        <a class="nav-drawer-link" href="/wallet-ledger.html"><span class="nav-drawer-ico">💰</span>Mutasi Saldo</a>
-        <a class="nav-drawer-link" href="/gaming-history.html"><span class="nav-drawer-ico">🎮</span>Riwayat Permainan</a>
-        <a class="nav-drawer-link" href="/cashout.html"><span class="nav-drawer-ico">💵</span>Cash Out</a>
-        <a class="nav-drawer-link" href="/support.html"><span class="nav-drawer-ico">❓</span>Pusat Bantuan</a>
-        <a class="nav-drawer-link" href="/deposit.html"><span class="nav-drawer-ico">💳</span>Setor</a>
-        <a class="nav-drawer-link" href="/withdraw.html"><span class="nav-drawer-ico">💸</span>Tarik</a>
-        <a class="nav-drawer-link" href="/promotion.html"><span class="nav-drawer-ico">🎁</span>Promo</a>
-        <a class="nav-drawer-link" href="/referral.html"><span class="nav-drawer-ico">👥</span>Referral</a>
+        <a class="nav-drawer-link" href="/"><span class="nav-drawer-ico">🏠</span>Beranda</a>
+        <a class="nav-drawer-link" href="/member"><span class="nav-drawer-ico">🎰</span>Togel & Slot</a>
+        <a class="nav-drawer-link" href="/sportsbook"><span class="nav-drawer-ico">⚽</span>Sportsbook</a>
+        <a class="nav-drawer-link" href="/number-history"><span class="nav-drawer-ico">🏆</span>Hasil</a>
+        <a class="nav-drawer-link" href="/bet-history"><span class="nav-drawer-ico">📜</span>Riwayat Taruhan</a>
+        <a class="nav-drawer-link" href="/notifications"><span class="nav-drawer-ico">🔔</span>Notifikasi</a>
+        <a class="nav-drawer-link" href="/wallet-ledger"><span class="nav-drawer-ico">💰</span>Mutasi Saldo</a>
+        <a class="nav-drawer-link" href="/gaming-history"><span class="nav-drawer-ico">🎮</span>Riwayat Permainan</a>
+        <a class="nav-drawer-link" href="/cashout"><span class="nav-drawer-ico">💵</span>Cash Out</a>
+        <a class="nav-drawer-link" href="/support"><span class="nav-drawer-ico">❓</span>Pusat Bantuan</a>
+        <a class="nav-drawer-link" href="/deposit"><span class="nav-drawer-ico">💳</span>Setor</a>
+        <a class="nav-drawer-link" href="/withdraw"><span class="nav-drawer-ico">💸</span>Tarik</a>
+        <a class="nav-drawer-link" href="/promotion"><span class="nav-drawer-ico">🎁</span>Promo</a>
+        <a class="nav-drawer-link" href="/referral"><span class="nav-drawer-ico">👥</span>Referral</a>
       </div>
     </nav>
 
     <!-- Footer -->
     <footer>
       <div class="footer-links">
-        <a href="privacy.html">Privacy</a>
-        <a href="responsible-play.html">Responsible Gaming</a>
-        <a href="terms.html">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/responsible-play">Responsible Gaming</a>
+        <a href="/terms">Terms</a>
       </div>
       <div>&copy; Copyright 2014 - 2026 GASTERUS. All Rights Reserved.</div>
     </footer>
@@ -230,7 +230,7 @@
 
     // Redirect ke login jika belum login
     if (!auth.isLoggedIn()) {
-      window.location.href = '/index.html';
+      window.location.href = '/';
     }
 
     const linkBox = document.getElementById('referral-link-input');
@@ -239,7 +239,7 @@
     const cachedUser = auth.getUser();
     const cachedCode = cachedUser?.referral_code || cachedUser?.referralCode || null;
     if (linkBox && cachedCode) {
-      linkBox.textContent = `${window.location.origin}/register.html?ref=${cachedCode}`;
+      linkBox.textContent = `${window.location.origin}/register?ref=${cachedCode}`;
     }
 
     // Fetch data referral dari backend (inviteCode yang benar)
@@ -251,7 +251,7 @@
         // Isi link referral dengan invite_code dari backend
         const inviteCode = data.inviteCode || data.invite_code || cachedCode || 'GASTERUS';
         if (linkBox) {
-          linkBox.textContent = `${window.location.origin}/register.html?ref=${inviteCode}`;
+          linkBox.textContent = `${window.location.origin}/register?ref=${inviteCode}`;
         }
 
         // Isi stats
@@ -270,7 +270,7 @@
         console.warn('Gagal memuat data referral:', err?.message || err);
         // Jika gagal tapi ada cache, biarkan fallback yang tampil
         if (linkBox && !cachedCode) {
-          linkBox.textContent = `${window.location.origin}/register.html?ref=GASTERUS`;
+          linkBox.textContent = `${window.location.origin}/register?ref=GASTERUS`;
         }
       }
     }

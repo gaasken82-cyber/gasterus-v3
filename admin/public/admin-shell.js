@@ -15,7 +15,7 @@ window.AdminShell=(()=>{
   }
   function mount(active,title,subtitle='Enterprise Back Office'){
     const body=document.body;const existing=[...body.children];const app=document.createElement('div');app.className='app';
-    const side=document.createElement('aside');side.className='sidebar';side.innerHTML=`<div class="brand">SBOTOTO<small>ENTERPRISE CONTROL</small></div>${navHtml(active)}<div class="sidebar-footer">Admin Portal • MFA protected<br>RBAC • Audit trail • Four-eyes approval</div>`;
+    const side=document.createElement('aside');side.className='sidebar';side.innerHTML=`<div class="brand">GASTERUS<small>ENTERPRISE CONTROL</small></div>${navHtml(active)}<div class="sidebar-footer">Admin Portal • MFA protected<br>RBAC • Audit trail • Four-eyes approval</div>`;
     const main=document.createElement('main');main.className='main';const top=document.createElement('header');top.className='topbar';top.innerHTML=`<div><h1>${title}</h1><small>${subtitle}</small></div><div class="top-actions"><span id="shellClock" title="Waktu server (lokal browser)">--:--:--</span><span class="badge" id="adminRole">SECURE</span><button class="btn" id="globalLogout">KELUAR</button></div>`;const content=document.createElement('section');content.className='content';existing.forEach(n=>content.appendChild(n));main.append(top,content);app.append(side,main);body.appendChild(app);
     const clock=document.getElementById('shellClock');
     if(clock){const tick=()=>{clock.textContent=new Date().toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',day:'2-digit',month:'short'})};tick();setInterval(tick,1000);}
