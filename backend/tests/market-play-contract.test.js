@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { LOTTERY_GAME_MAP, LOTTERY_GAMES } from '../src/lottery-games.js';
+import { LOTTERY_GAME_MAP, LOTTERY_GAMES, TOTO_ADVANCED_GAME_RATES } from '../src/lottery-games.js';
 
 const repoFile = relative => readFileSync(resolve(import.meta.dirname, '..', '..', relative), 'utf8');
 const marketPlay = () => repoFile('frontend/js/market-play.js');
@@ -113,4 +113,50 @@ test('_worker.js yang menentukan cache-control asset, bukan _headers',()=>{
     /env\.ASSETS\.fetch\(request\)/.test(worker),
     '_worker.js harus tetap mengambil asset dari env.ASSETS'
   );
+});
+// Daftar "14 game" yang dijanjikan member di halaman bet harus sama di tiga
+// tempat: katalog engine, migration yang menyalakannya, dan teks di halaman.
+// Kalau satu daftar berubah dan dua lainnya tidak, member melihat game yang
+// tidak bisa dimainkan (atau sebaliknya, game hilang dari dropdown).
+const FOURTEEN = [
+  'STRAIGHT_4D','STRAIGHT_3D','STRAIGHT_2D',
+  'POSITION_2D_FRONT','POSITION_2D_MIDDLE',
+  'COLOK_BEBAS','COLOK_2D','COLOK_NAGA','COLOK_JITU',
+  'TENGAH_TEPI','DASAR','SILANG_HOMO','KEMBANG_KEMPIS','KOMBINASI'
+];
+
+test('14 game yang dinyalakan migration 037 semuanya ada di katalog dan punya engine',()=>{
+  const sql = repoFile('backend/migrations/037_reassert_fourteen_toto_games.sql');
+  for (const code of FOURTEEN) {
+    assert.ok(sql.includes(`'${code}'`), `migration 037 tidak menyalakan ${code}`);
+    assert.ok(LOTTERY_GAME_MAP.has(code), `${code} tidak ada di katalog backend`);
+    assert.equal(LOTTERY_GAME_MAP.get(code).engineReady, true, `${code} belum punya settlement engine`);
+    assert.notEqual(LOTTERY_GAME_MAP.get(code).uiMode, 'unsupported', `${code} tidak bisa dipakai di UI`);
+  }
+  assert.equal(FOURTEEN.length, 14, 'daftar harus berisi tepat 14 game');
+});
+
+test('harga game lanjutan di migration 037 sama dengan TOTO_ADVANCED_GAME_RATES',()=>{
+  const sql = repoFile('backend/migrations/037_reassert_fourteen_toto_games.sql');
+  // Baris INSERT "<CODE>', <discount>, <multiplier>" dari VALUES pertama.
+  const seeded = [...sql.matchAll(/\(\s*'([A-Z_0-9]+)',\s*(\d+),\s*([\d.]+)\s*\)/g)];
+  const byCode = new Map(seeded.map(m => [m[1], { discount: Number(m[2]), payout: Number(m[3]) }]));
+  const source = readFileSync(resolve(import.meta.dirname, '..', 'src', 'lottery-games.js'), 'utf8');
+  for (const [code, expected] of Object.entries(TOTO_ADVANCED_GAME_RATES)) {
+    const row = byCode.get(code);
+    assert.ok(row, `migration 037 tidak men-seed ${code}`);
+    assert.equal(row.payout, expected.payoutMultiplier, `multiplier ${code} berbeda dari lottery-games.js`);
+    assert.equal(row.discount, expected.discountPercent, `diskon ${code} berbeda dari lottery-games.js`);
+    assert.ok(source.includes(code), `${code} tidak ada di lottery-games.js`);
+  }
+});
+
+test('migration 034 yang sudah applied tidak boleh diubah (migrate.js melompatinya)',()=>{
+  // migrate.js mencatat versi di schema_migrations dan melompati yang sudah ada,
+  // jadi mengedit 033/034 diam-diam tidak akan pernah berefek di produksi.
+  const applied = ['033_lottery_advanced_rates_and_min_stake.sql','034_enable_advanced_games_for_4d_markets.sql'];
+  const head = repoFile('backend/migrations/034_enable_advanced_games_for_4d_markets.sql');
+  assert.ok(head.includes('Idempoten'), '034 yang sudah deployed tidak boleh diedit; buat migration baru');
+  assert.ok(repoFile('backend/migrations/037_reassert_fourteen_toto_games.sql').length > 0);
+  assert.equal(applied.length, 2);
 });
