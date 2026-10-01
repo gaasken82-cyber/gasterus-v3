@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
 // Root repo dihitung dari lokasi file test, bukan process.cwd(): test ini harus
 // konsisten entah dijalankan dari root repo, dari backend/, atau dari CI/Docker.
@@ -118,4 +119,18 @@ test('production deployment uses explicit runtime configuration and pinned Node 
   assert.match(config,/DATABASE_URL/);
   assert.match(config,/REDIS_URL/);
   assert.match(docker,/FROM node:22\.23\.2-trixie-slim/);
+});
+
+// Cloudflare Pages Advanced Mode mengabaikan _headers, sehingga /js/* dilayani
+// dengan cache-control max-age=14400 (4 jam). Satu-satunya cara terakhir agar
+// perubahan frontend sampai ke browser adalah menaikkan ?v= di halaman yang
+// memakainya. Pemeriksa itu sudah ada sebagai script; test ini menjalankannya
+// supaya `npm test` ikut gagal ketika ada file JS yang diubah tanpa menaikkan
+// ?v= — bukan hanya saat `npm run check` dipanggil manual.
+test('setiap perubahan /js/*.js selalu menaikkan ?v= di halaman pemakainya',()=>{
+  const result=spawnSync(process.execPath,[resolve(root,'scripts/check-asset-version.js')],{cwd:root,encoding:'utf8'});
+  assert.equal(
+    result.status,0,
+    `check-asset-version gagal — ada JS yang diubah tanpa menaikkan ?v=\n${result.stdout||''}${result.stderr||''}`
+  );
 });
