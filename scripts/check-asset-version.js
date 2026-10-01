@@ -37,10 +37,10 @@ function git(...args) {
 
 for (const page of pages) {
   const html = readFileSync(resolve(frontend, page), 'utf8');
-  for (const match of html.matchAll(/(?:src|href)="(\/js\/[A-Za-z0-9._-]+\.js)(\?v=[^"]*)?"/g)) {
+  for (const match of html.matchAll(/(?:src|href)="(?:\/|\.\/)?js\/([A-Za-z0-9._-]+\.js)(\?v=[^"]*)?"/g)) {
     checked += 1;
     const [, file, version] = match;
-    const relative = file.replace(/^\//, '');
+    const relative = `js/${file}`;
 
     if (!version) {
       problems.push(`${page}: ${file} tanpa ?v= (browser akan memakai salinan lama sampai 4 jam)`);

@@ -78,6 +78,17 @@ function renderMarketsUnavailable() {
   container.innerHTML = '<div class="alert alert-warning" role="status">Pasaran sedang tidak tersedia. Silakan coba beberapa saat lagi.</div>';
 }
 
+// Jam undian selalu ditulis eksplisit: member harus tahu jamnya dalam WIB,
+// bukan menebak dari kolom periode. Nilai kosong ditampilkan sebagai
+// "Belum ditentukan" supaya tidak pernah tampil seperti jam 00:00 palsu.
+export function formatDrawClock(drawTime) {
+  const raw = String(drawTime || '').trim();
+  const match = raw.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return 'Belum ditentukan';
+  const hour = String(Number(match[1])).padStart(2, '0');
+  return `${hour}:${match[2]} WIB`;
+}
+
 function renderMarkets(markets) {
   const container = document.getElementById('member-markets-container');
   if (!container) return;
@@ -90,6 +101,13 @@ function renderMarkets(markets) {
 
     const digits = String(m.result ?? '----').slice(0, 4).split('');
     const balls = digits.map(d => `<span class="ball-num" style="width:30px;height:30px;font-size:0.95rem;">${escapeHtml(d)}</span>`).join('');
+    // Jam result wajib terlihat di kartu pasar. Data drawTime sudah dikirim API
+    // publik tapi belum pernah ditampilkan, sehingga member tidak tahu jam
+    // undian tiap pasar dan menganggap jadwalnya hilang.
+    const drawClock = formatDrawClock(m.drawTime);
+    const drawLabel = m.drawDate
+      ? `${escapeHtml(String(m.drawDate))} ${drawClock}`
+      : drawClock;
     const marketCode = String(m.slug || m.code || '');
     const marketHref = `/market-play.html?code=${encodeURIComponent(marketCode)}`;
     const marketAction = marketCode
@@ -108,7 +126,11 @@ function renderMarkets(markets) {
         <div style="display:flex; gap:4px; justify-content:center; padding: 4px 0;">
           ${balls}
         </div>
-        <div style="display:flex; justify-content:space-between; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid var(--border-subtle); padding-top: 8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid var(--border-subtle); padding-top: 8px;">
+          <span>Jam Result:</span>
+          <span style="font-weight:700; color: var(--text-primary, #fff);">${drawLabel}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size: 0.8rem; color: var(--text-secondary);">
           <span>Sisa Waktu:</span>
           <span class="countdown-timer" data-close="${escapeHtml(m.closeAt || '')}">${isClosed ? 'Tutup' : '...'}</span>
         </div>

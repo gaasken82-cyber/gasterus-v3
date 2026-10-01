@@ -130,6 +130,7 @@ test('14 game yang dinyalakan migration 037 semuanya ada di katalog dan punya en
   for (const code of FOURTEEN) {
     assert.ok(sql.includes(`'${code}'`), `migration 037 tidak menyalakan ${code}`);
     assert.ok(LOTTERY_GAME_MAP.has(code), `${code} tidak ada di katalog backend`);
+
     assert.equal(LOTTERY_GAME_MAP.get(code).engineReady, true, `${code} belum punya settlement engine`);
     assert.notEqual(LOTTERY_GAME_MAP.get(code).uiMode, 'unsupported', `${code} tidak bisa dipakai di UI`);
   }
@@ -159,4 +160,48 @@ test('migration 034 yang sudah applied tidak boleh diubah (migrate.js melompatin
   assert.ok(head.includes('Idempoten'), '034 yang sudah deployed tidak boleh diedit; buat migration baru');
   assert.ok(repoFile('backend/migrations/037_reassert_fourteen_toto_games.sql').length > 0);
   assert.equal(applied.length, 2);
+});
+
+
+// Jam result WAJIB terlihat member di dua tempat: kartu pasar di lobby dan header
+// slip betting. Sebelumnya drawTime hanya dipakai di number-history.html, jadi di
+// lobby dan halaman bet jam undian tidak pernah tampil sama sekali - member
+// menganggap jadwalnya hilang.
+test('API config pasar mengirim jam result ke frontend',()=>{
+  const markets = repoFile('backend/src/markets.js');
+  assert.ok(markets.includes('result_draw_time'), 'markets.js harus mengambil markets.draw_time');
+  assert.ok(markets.includes('resultDrawTime:r.result_draw_time'), 'mapConfig harus mengirim resultDrawTime');
+  assert.ok(markets.includes('resultDrawDate:r.result_draw_date'), 'mapConfig harus mengirim resultDrawDate');
+});
+
+test('jam result tampil di kartu pasar lobby dan header slip betting',()=>{
+  const member = repoFile('frontend/js/member.js');
+  assert.ok(member.includes('Jam Result:'), 'kartu pasar di lobby harus menampilkan Jam Result');
+  assert.ok(member.includes('m.drawTime'), 'lobby harus membaca drawTime dari API publik');
+
+  const play = repoFile('frontend/js/market-play.js');
+  assert.ok(play.includes('market-draw-time'), 'market-play.js harus mengisi #market-draw-time');
+  assert.ok(play.includes('resultDrawTime'), 'market-play.js harus membaca resultDrawTime');
+
+  const html = repoFile('frontend/market-play.html');
+  assert.ok(html.includes('id="market-draw-time"'), 'market-play.html harus punya elemen #market-draw-time');
+});
+
+test('jam result tidak pernah disamarkan jadi 00:00 saat jadwal kosong',()=>{
+  for (const file of ['frontend/js/member.js', 'frontend/js/market-play.js']) {
+    const src = repoFile(file);
+    assert.ok(src.includes('Belum ditentukan'), `${file} harus menampilkan "Belum ditentukan" untuk jadwal kosong`);
+    assert.ok(src.includes('padStart(2, \'0\')'), `${file} harus menormalkan jam ke dua digit`);
+  }
+});
+
+test('guard cache-buster menutup referensi JS relatif (tanpa garis miring depan)',()=>{
+  const guard = repoFile('scripts/check-asset-version.js');
+  assert.ok(
+    !guard.includes('src|href)="(\\/js\\/'),
+    'guard hanya memeriksa /js/*.js absolut; referensi relatif seperti src="js/member.js" akan lolos'
+  );
+  assert.ok(guard.includes('relative = `js/'), 'guard harus merekonstruksi path relatif ke js/<file>');
+  assert.ok(repoFile('frontend/member.html').includes('js/member.js?v='), 'member.js wajib punya ?v=');
+  assert.ok(repoFile('frontend/register.html').includes('js/register.js?v='), 'register.js wajib punya ?v=');
 });

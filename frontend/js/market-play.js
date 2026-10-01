@@ -202,6 +202,15 @@ function setBettingControlsDisabled(disabled) {
   }
 }
 
+// Jam undian harus selalu tampil jelas di header slip: member memasang betting
+// harus tahu jam result sebelum=deadline tutup. Nilai kosong ditulis eksplisit
+// ("Belum ditentukan"), tidak pernah disamarkan jadi jam 00:00.
+function formatDrawClock(resultDrawTime) {
+  const match = String(resultDrawTime || '').trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return 'Belum ditentukan';
+  return `${String(Number(match[1])).padStart(2, '0')}:${match[2]} WIB`;
+}
+
 function updateMarketHeaderUI(m) {
   const titleEl = document.getElementById('market-title');
   const periodEl = document.getElementById('market-period');
@@ -217,6 +226,15 @@ function updateMarketHeaderUI(m) {
     statusEl.className = open ? 'badge badge-success' : 'badge badge-danger';
   }
   if (timerEl && (unavailable || !m?.closeAt)) timerEl.textContent = 'TIDAK TERSEDIA';
+
+  // Jam result + tanggal draw, selalu eksplisit supaya tidak pernah dikira
+  // jadwal hilang.
+  const drawEl = document.getElementById('market-draw-time');
+  if (drawEl) {
+    const clock = formatDrawClock(m?.resultDrawTime);
+    const date = String(m?.resultDrawDate || '').trim();
+    drawEl.textContent = date ? `${date} - ${clock}` : clock;
+  }
 }
 
 function startCountdown() {
