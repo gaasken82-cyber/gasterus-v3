@@ -7,7 +7,17 @@ const newPassword = process.env.NEW_PASSWORD || 'GasTerus#2026!Admin';
 const username = process.env.TARGET_USERNAME || 'owner';
 const secret = generateTotpSecret();
 
-const dbUrl = process.env.DATABASE_URL_OVERRIDE || 'postgresql://postgres:NhZftJLLQIxhtLoHTxmhftbElWxRgFQL@yamanote.proxy.rlwy.net:35054/railway';
+// Kredensial WAJIB lewat environment. Tidak ada lagi URL database yang tertanam
+// di dalam kode: skrip ini menyentuh database produksi, jadi string koneksi
+// yang menempel di skrip berarti siapa pun yang punya repo bisa menulis ke
+// database(member, saldo, hasil). Password database pun wajib dari Railway.
+//
+//   DATABASE_URL_OVERRIDE='postgresql://...' node scripts/reset-admin-password.mjs
+const dbUrl = process.env.DATABASE_URL_OVERRIDE || process.env.DATABASE_URL;
+if (!dbUrl) {
+  console.error('DATABASE_URL_OVERRIDE wajib diisi (ambil dari Railway > Postgres > Credentials).');
+  process.exit(1);
+}
 const pool = new Pool({ connectionString: dbUrl });
 
 try {

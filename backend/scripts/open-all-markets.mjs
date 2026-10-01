@@ -8,8 +8,14 @@
 //   node scripts/open-all-markets.mjs --apply    -> eksekusi update
 import pg from 'pg';
 
-const DB_URL = process.env.DATABASE_PROD_URL
-  || 'postgresql://postgres:NhZftJLLQIxhtLoHTxmhftbElWxRgFQL@yamanote.proxy.rlwy.net:35054/railway';
+// Koneksi database WAJIB lewat environment; tidak ada URL yang tertanam di kode
+// karena skrip ini menulis ke database produksi.
+//   DATABASE_PROD_URL='postgresql://...' node scripts/open-all-markets.mjs --apply
+const DB_URL = process.env.DATABASE_PROD_URL || process.env.DATABASE_URL;
+if (!DB_URL) {
+  console.error('DATABASE_PROD_URL wajib diisi (ambil dari Railway > Postgres > Credentials).');
+  process.exit(1);
+}
 const APPLY = process.argv.includes('--apply');
 const CLOSE_BUFFER_MINUTES = 30;
 const WIB_OFFSET_MS = 7 * 3600 * 1000;
