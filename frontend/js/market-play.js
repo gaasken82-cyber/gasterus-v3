@@ -306,13 +306,23 @@ function gameOptionList(selected) {
   return options.join('');
 }
 
+// Kotak digit: setiap posisi angka punya kotak sendiri, sama seperti slip angka pada
+// platform togel profesional. Nilai tetap disimpan di item.selection supaya payload,
+// validasi, tempel massal, dan quick bet tidak berubah sama sekali.
+function digitBoxesField(value, count) {
+  const digits = String(value || '');
+  const boxes = Array.from({ length: count }, (_, index) => `<input type="text" inputmode="numeric" autocomplete="off" spellcheck="false" class="digit-box" data-index="${index}" maxlength="1" value="${escapeHtml(digits[index] || '')}" aria-label="Digit ${index + 1}">`).join('');
+  return `<span class="digit-boxes" data-count="${count}">${boxes}</span>`;
+}
+
 function rowField(r) {
   const game = gameByCode(r.gameCode);
-  const inputStyle = 'text-align:center; font-weight:700; letter-spacing:2px;';
-  if (!game || game.uiMode === 'digits' || game.uiMode === 'shio') {
-    const digits = game ? (game.uiMode === 'shio' ? 2 : game.inputDigits) : 4;
-    const placeholder = game ? (game.uiMode === 'shio' ? 'Shio 1-12' : `Angka ${digits}D`) : 'Angka 2D/3D/4D';
-    return `<input type="text" class="form-control bet-selection" placeholder="${escapeHtml(placeholder)}" maxlength="${digits}" value="${escapeHtml(r.selection)}" style="${inputStyle}">`;
+  if (!game || game.uiMode === 'digits') {
+    const digits = game ? game.inputDigits : 4;
+    return digitBoxesField(r.selection, digits);
+  }
+  if (game.uiMode === 'shio') {
+    return `<input type="text" class="form-control bet-selection" placeholder="Shio 1-12" maxlength="2" value="${escapeHtml(r.selection)}" style="text-align:center; font-weight:700; letter-spacing:2px;">`;
   }
   const parts = String(r.selection || '').split(':');
   const chip = (key, values, current) => `<select class="form-control bet-opt" data-key="${key}" style="max-width:104px;">${(values || []).map(v => `<option value="${escapeHtml(v)}"${v === current ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('')}</select>`;
@@ -372,6 +382,46 @@ function bindRowInputs() {
       item.selection = game ? normalizeForGame(game, parts.filter(v => v !== undefined && v !== '').join(':')) : '';
       calculateTotals();
     };
+
+    // Slip angka: satu kotak per digit, perpindahan fokus otomatis, panah & backspace
+    // memindah posisi, dan tempelan banyak digit sekaligus terisi ke kotak yang tepat.
+    const digitBoxes = [...rowEl.querySelectorAll('.digit-box')];
+    if (digitBoxes.length) {
+      const commit = () => {
+        const game = item.gameCode === 'AUTO' ? null : gameByCode(item.gameCode);
+        item.selection = normalizeForGame(game, digitBoxes.map(box => box.value).join(''));
+        if (item.gameCode === 'AUTO') {
+          const detected = autoGameCode(item.selection.length);
+          if (detected) item.gameCode = detected;
+          gameSelect.value = item.gameCode;
+          syncGameHint();
+        }
+        calculateTotals();
+      };
+      digitBoxes.forEach((box, index) => {
+        box.addEventListener('input', (e) => {
+          e.target.value = e.target.value.replace(/\D/g, '').slice(-1);
+          if (e.target.value && index < digitBoxes.length - 1) digitBoxes[index + 1].focus();
+          commit();
+        });
+        box.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !box.value && index > 0) {
+            e.preventDefault();
+            digitBoxes[index - 1].value = '';
+            digitBoxes[index - 1].focus();
+            commit();
+          } else if (e.key === 'ArrowLeft' && index > 0) digitBoxes[index - 1].focus();
+          else if (e.key === 'ArrowRight' && index < digitBoxes.length - 1) digitBoxes[index + 1].focus();
+        });
+        box.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const text = (e.clipboardData?.getData('text') || '').replace(/\D/g, '');
+          digitBoxes.forEach((target, position) => { target.value = text[position] || ''; });
+          commit();
+        });
+        box.addEventListener('focus', () => box.select());
+      });
+    }
 
     if (selectionInput) {
       selectionInput.addEventListener('input', (e) => {

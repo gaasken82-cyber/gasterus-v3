@@ -42,6 +42,64 @@
       navigator.serviceWorker.register('/sw.js').then(r => console.log('SW registered')).catch(e => console.log('SW fail'));
     });
   }
+<style>
+    /* Slip angka TOTO: tiket 3D dengan satu kotak per digit. Styling sengaja
+       diletakkan di halaman ini (bukan !important) supaya tidak bentrok dengan
+       token.css dan tetap mudah ditimpa bila token platform berubah. */
+    .bet-grid-layout .bet-row{
+      align-items:center;gap:10px;padding:10px 12px;
+      border:1px solid rgba(148,180,220,.14);border-radius:14px;
+      background:linear-gradient(180deg,rgba(20,32,48,.92),rgba(11,19,31,.94));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 0 rgba(255,255,255,.03),0 10px 22px -14px rgba(0,0,0,.9);
+      transform-style:preserve-3d;
+      transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+    }
+    .bet-grid-layout .bet-row:focus-within{
+      border-color:rgba(232,189,85,.45);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 12px 26px -14px rgba(0,0,0,.95),0 0 0 3px rgba(232,189,85,.10);
+      transform:perspective(900px) rotateX(1.4deg) translateY(-1px);
+    }
+    .bet-grid-layout .bet-row>span:first-child{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:26px;height:26px;border-radius:8px;
+      background:linear-gradient(180deg,#1b2a3e,#111c2a);
+      border:1px solid rgba(148,180,220,.16);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 0 rgba(0,0,0,.6);
+      color:var(--text-muted,#9fb0c4);font-size:.72rem;font-weight:700;
+    }
+    .bet-grid-layout .digit-boxes{display:inline-flex;gap:6px;flex:1;min-width:0}
+    .bet-grid-layout .digit-box{
+      width:42px;height:46px;border-radius:11px;
+      border:1px solid rgba(148,180,220,.18);
+      background:linear-gradient(180deg,#101c2c,#0a1420);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 0 #050b13,0 8px 16px -10px rgba(0,0,0,.9);
+      color:var(--text,#eef3f8);
+      font:700 1.15rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+      font-variant-numeric:tabular-nums;text-align:center;caret-color:var(--gold,#e8bd55);
+      transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;
+    }
+    .bet-grid-layout .digit-box:focus{
+      outline:none;border-color:rgba(232,189,85,.6);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 3px rgba(232,189,85,.18),0 10px 18px -10px rgba(0,0,0,.9);
+      transform:translateY(-2px);
+    }
+    .bet-grid-layout .bet-game,.bet-grid-layout .bet-stake,.bet-grid-layout .bet-extras{height:46px}
+    .bet-grid-layout .bet-stake{font-variant-numeric:tabular-nums}
+    .bet-grid-layout .btn-remove-row{
+      width:34px;height:34px;border-radius:10px;
+      background:linear-gradient(180deg,#1a2839,#101a27);
+      border:1px solid rgba(148,180,220,.16);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 0 #060c14;
+      color:var(--text-muted,#9fb0c4);font-size:1rem;line-height:1;
+      transition:transform .12s ease,color .12s ease;
+    }
+    .bet-grid-layout .btn-remove-row:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(0,0,0,.4)}
+    @media (max-width:560px){
+      .bet-grid-layout .bet-row{padding:9px 8px;gap:7px}
+      .bet-grid-layout .digit-boxes{gap:5px}
+      .bet-grid-layout .digit-box{width:36px;height:42px;border-radius:9px;font-size:1rem}
+    }
+  </style>
 </script>
 </head>
 <body>
@@ -221,7 +279,7 @@
   <!-- v wajib naik setiap kali market-play.js berubah: Cloudflare Pages mengirim
        cache-control max-age=14400 (4 jam) untuk /js/*, jadi query versi lama
        membuat browser member memakai skrip lama berjam-jam. -->
-  <script type="module" src="/js/market-play.js?v=20260930-games4"></script>
+  <script type="module" src="/js/market-play.js?v=20260930-games5"></script>
 <script>
     (function () {
       function openNav() {
