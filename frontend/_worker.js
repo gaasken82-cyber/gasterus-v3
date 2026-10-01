@@ -28,8 +28,34 @@ function shouldProxyToBackend(pathname, env) {
   return false;
 }
 
+// Domain kanonik tunggal. www dan domain utama adalah situs yang sama, bukan dua
+// situs: cookie sesi dan localStorage dipecah per host, jadi member yang login di
+// www lalu membuka domain utama (atau sebaliknya) terlihat "turun" padahal akunnya
+// sama. Semua permintaan www diarahkan 301 ke domain utama supaya hanya ada satu
+// alamat resmi, konsisten dengan canonical/sitemap yang memakai domain utama.
+const CANONICAL_HOST = 'gasterus.fun';
+
+function canonicalRedirect(request) {
+  const url = new URL(request.url);
+  if (url.hostname.toLowerCase() !== `www.${CANONICAL_HOST}`) return null;
+  const target = new URL(url.toString());
+  target.hostname = CANONICAL_HOST;
+  target.protocol = 'https:';
+  return new Response(null, {
+    status: 301,
+    headers: {
+      location: target.toString(),
+      'cache-control': 'no-store',
+      'x-redirect-reason': 'canonical-host'
+    }
+  });
+}
+
 export default {
   async fetch(request, env) {
+    const redirect = canonicalRedirect(request);
+    if (redirect) return redirect;
+
     const url = new URL(request.url);
     if (!shouldProxyToBackend(url.pathname, env)) {
       return env.ASSETS.fetch(request);
