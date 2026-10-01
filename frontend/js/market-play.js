@@ -66,7 +66,20 @@ export async function initMarketPlay() {
     return;
   }
 
-  await loadMarketInfo(marketCode);
+  const loaded = await loadMarketInfo(marketCode);
+  if (loaded && !isMarketBettable(currentMarket)) {
+    // Config-nya terbaca tapi pasar memang belum bisa dipertaruhkan. Member
+    // deserves alasan yang jelas, bukan "tidak tersedia" yang ambigu.
+    const labels = {
+      BETTING_NOT_OPEN: 'Pasaran ini sedang tutup. Silakan pilih pasaran lain.',
+      RESULT_AUTHORITY_NOT_READY: 'Hasil pasar belum terverifikasi, betting belum dibuka.',
+      BETTING_PERIOD_MISSING: 'Periode betting belum ditentukan, betting belum dibuka.',
+      BETTING_CLOSED: 'Waktu betting pasar ini sudah lewat.',
+      MARKET_SUSPENDED: 'Pasaran ini sedang ditahan operator.'
+    };
+    const reason = String(currentMarketConfig?.readinessReason || '');
+    setMarketNotice(labels[reason] || 'Pasaran ini belum menerima betting. Silakan pilih pasaran lain.');
+  }
   initBetRows();
   setupEventListeners();
   setBettingControlsDisabled(!isMarketBettable(currentMarket));
@@ -77,6 +90,11 @@ export async function initMarketPlay() {
 // tersedia. Angka periode, waktu tutup, dan aturan pembayaran tidak pernah
 // dibuat di klien karena semuanya akan disalahartikan member sebagai data
 // betting yang sah.
+//
+// 401 bukan "pasaran tutup": itu sesi member tidak sah, biasanya token lama masih
+// tersimpan di browser. Dulu error ini ikut ditelan dan member melihat "pasaran
+// tidak tersedia" untuk SEMUA pasar padahal masalahnya login. Sekarang token basi
+// dibersihkan dan member dikembalikan ke halaman masuk.
 async function loadMarketInfo(code) {
   try {
     const res = await api.get(`/member/betting-markets/${encodeURIComponent(code)}`);
@@ -89,10 +107,15 @@ async function loadMarketInfo(code) {
     setNoMarketNotice(false);
     return true;
   } catch (err) {
-    console.warn('Data pasar tidak dapat dimuat; pasar ditampilkan tertutup.', err);
+    const status = Number(err?.status || 0);
+    const message = String(err?.message || '');
+    const authFailed = status === 401 || /AUTH_REQUIRED|Sesi tidak tersedia/i.test(message);
+    console.warn(authFailed
+      ? 'Sesi member tidak valid; pasaaran tidak dimuat dan token basi dibersihkan.'
+      : 'Data pasar tidak dapat dimuat; pasar ditampilkan tertutup.', err);
     currentMarketConfig = null;
     currentMarket = {
-      name: 'Pasaran sedang tidak tersedia',
+      name: authFailed ? 'Sesi berakhir — silakan masuk kembali' : 'Pasaran sedang tidak tersedia',
       code: String(code || '').toUpperCase(),
       available: false,
       bettingStatus: 'UNAVAILABLE',
@@ -101,8 +124,23 @@ async function loadMarketInfo(code) {
     };
     updateMarketHeaderUI(currentMarket);
     setNoMarketNotice(true);
+    if (authFailed) {
+      setBettingControlsDisabled(true);
+      setMarketNotice(authFailed
+        ? 'Sesi Anda sudah berakhir. Silakan masuk kembali untuk memasang betting pada pasaran ini.'
+        : 'Pasaran ini sedang tidak menerima betting. Silakan pilih pasaran lain.');
+      auth.logout(false); // bersihkan token basi lalu kembali ke beranda
+    }
     return false;
   }
+}
+
+function setMarketNotice(message) {
+  const el = document.getElementById('bet-no-market-notice');
+  if (!el) return;
+  if (!message) { el.hidden = true; return; }
+  el.textContent = message;
+  el.hidden = false;
 }
 
 function setBettingControlsDisabled(disabled) {
