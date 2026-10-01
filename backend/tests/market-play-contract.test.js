@@ -60,3 +60,57 @@ test('minimum bet fallback di frontend sama dengan default database',()=>{
   assert.ok(dbDefault, 'default min_stake tidak ditemukan di 001_platform.sql');
   assert.equal(Number(fallback[1]), Number(dbDefault[1]), 'minimum bet di frontend dan database berbeda');
 });
+
+// Regresi: backend membungkus jawaban sukses dalam { data: ... } lewat ok().
+// market-play.js pernah memakai objek respons mentah, sehingga bettingStatus,
+// period, dan closeAt selalu undefined. Efeknya isMarketBettable() selalu
+// false dan SETIAP pasar — termasuk yang OPEN — tampil "Pasaran tidak
+// tersedia" sehingga member tidak bisa memasang betting sama sekali.
+test('market-play membuka amplop { data: ... } dari API config pasar',()=>{
+  const client = marketPlay();
+  assert.ok(
+    /function unwrapMarketConfig\(res\)[\s\S]*?res\?\.data/.test(client),
+    'unwrapMarketConfig harus membaca res.data dari amplop backend'
+  );
+  const loadMarket = client.match(/async function loadMarketInfo\(code\)\s*\{[\s\S]*?\n\}/);
+  assert.ok(loadMarket, 'loadMarketInfo tidak ditemukan di market-play.js');
+  assert.ok(
+    /const config = unwrapMarketConfig\(res\)/.test(loadMarket[0]),
+    'loadMarketInfo harus memakai unwrapMarketConfig, bukan respons mentah'
+  );
+  assert.ok(
+    !/currentMarketConfig = res\s*;/.test(loadMarket[0]),
+    'currentMarketConfig tidak boleh diisi respons mentah (tanpa .data)'
+  );
+});
+
+test('halaman bet tidak pernah buntu saat dibuka tanpa ?code=',()=>{
+  const client = marketPlay();
+  assert.ok(
+    /async function resolveFallbackMarketCode\(\)/.test(client),
+    'halaman bet harus punya resolveFallbackMarketCode untuk link tanpa ?code='
+  );
+  assert.ok(
+    /const marketCode = requestedCode \|\| await resolveFallbackMarketCode\(\)/.test(client),
+    'initMarketPlay harus memakai pasar cadangan ketika ?code= kosong'
+  );
+});
+
+// Regresi cache: Cloudflare Pages Advanced Mode mengabaikan _headers, sehingga
+// /js/* dan /css/* sempat dilayani max-age=14400 (4 jam). Aturan yang benar-benar
+// dieksekusi hanya yang ada di _worker.js.
+test('_worker.js yang menentukan cache-control asset, bukan _headers',()=>{
+  const worker = repoFile('frontend/_worker.js');
+  assert.ok(
+    /function cacheControlFor\(pathname\)/.test(worker),
+    '_worker.js harus punya cacheControlFor'
+  );
+  assert.ok(
+    /cacheHeaders\.set\('cache-control'|assetHeaders\.set\('cache-control'/.test(worker),
+    '_worker.js harus menimpa cache-control untuk asset static'
+  );
+  assert.ok(
+    /env\.ASSETS\.fetch\(request\)/.test(worker),
+    '_worker.js harus tetap mengambil asset dari env.ASSETS'
+  );
+});

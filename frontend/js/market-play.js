@@ -42,6 +42,25 @@ function setNoMarketNotice(show) {
   if (el) el.hidden = !show;
 }
 
+// Cari pasar cadangan ketika halaman dibuka tanpa ?code=. Memakai endpoint publik
+// yang sama seperti member.js supaya daftar, urutan, dan status betting-nya
+// identik dengan kartu pasar di lobby — tidak ada daftar pasar kedua yang bisa
+// berbeda. Pilihan: yang OPEN dulu, kalau tidak ada ambil pasar pertama saja
+// supaya halaman tetap menjelaskan keadaan (tutup) alih-alih kosong.
+async function resolveFallbackMarketCode() {
+  try {
+    const res = await api.get('/public/markets?limit=100');
+    const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : (Array.isArray(res?.items) ? res.items : []));
+    if (!list.length) return '';
+    const isPlayable = m => m?.bettingStatus === 'OPEN' && m?.bettingReady !== false;
+    const chosen = list.find(isPlayable) || list.find(m => m?.slug || m?.code);
+    return String(chosen?.slug || chosen?.code || '');
+  } catch (err) {
+    console.warn('Gagal memilih pasar cadangan; halaman tetap dibuka tanpa pasar.', err);
+    return '';
+  }
+}
+
 export async function initMarketPlay() {
   if (!auth.isLoggedIn()) {
     window.location.href = '/index.html';
@@ -49,7 +68,13 @@ export async function initMarketPlay() {
   }
 
   const urlParams = new URLSearchParams(window.location.search);
-  const marketCode = urlParams.get('code') || urlParams.get('market');
+  const requestedCode = urlParams.get('code') || urlParams.get('market');
+  // Halaman ini bisa dibuka tanpa ?code= (tombol "Pasang Togel" di nav drawer,
+  // banner, tombol "Pasang-system" di riwayat). Dulu kondisi itu langsung
+  // mengunci seluruh form dengan "Pasaran tidak tersedia" padahal 43 pasar
+  // sedang OPEN. Sekarang: kalau tanpa kode, ambil daftar pasar dan pakai
+  // yang benar-benar bisa dipertaruhkan supaya member tidak pernah buntu.
+  const marketCode = requestedCode || await resolveFallbackMarketCode();
   if (!marketCode) {
     currentMarketConfig = null;
     currentMarket = {
@@ -61,9 +86,17 @@ export async function initMarketPlay() {
     };
     updateMarketHeaderUI(currentMarket);
     setNoMarketNotice(true);
+    setMarketNotice('Belum ada pasaran yang siap menerima betting saat ini. Silakan coba lagi beberapa saat lagi.');
     setBettingControlsDisabled(true);
     startCountdown();
     return;
+  }
+  if (!requestedCode) {
+    // Samakan URL dengan pasar yang benar-benar dipakai supaya reload/refresh
+    // tidak mengulang pencarian fallback.
+    try {
+      window.history.replaceState(null, '', `${window.location.pathname}?code=${encodeURIComponent(marketCode)}`);
+    } catch { /* URL tidak bisa ditulis — betting tetap berjalan */ }
   }
 
   const loaded = await loadMarketInfo(marketCode);
@@ -95,15 +128,26 @@ export async function initMarketPlay() {
 // tersimpan di browser. Dulu error ini ikut ditelan dan member melihat "pasaran
 // tidak tersedia" untuk SEMUA pasar padahal masalahnya login. Sekarang token basi
 // dibersihkan dan member dikembalikan ke halaman masuk.
+// Backend membungkus seluruh jawaban sukses dalam { data: ... } (lihat ok() di
+// backend/src/http.js). Halaman lain sudah memakai `res.data || res`; market-play.js
+// pernah memakai `res` mentah, sehingga bettingStatus/period/closeAt selalu
+// undefined dan SEMUA pasar — termasuk yang OPEN — tampil "Pasaran tidak
+// tersedia". Buka amplop di bawah ini supaya config selalu objek config itu
+// sendiri, apa pun bentuknya.
+function unwrapMarketConfig(res) {
+  const inner = res?.data;
+  if (inner && typeof inner === 'object' && !Array.isArray(inner)) return inner;
+  if (res && typeof res === 'object' && !Array.isArray(res)) return res;
+  throw new Error('Konfigurasi pasar tidak dapat dibaca');
+}
+
 async function loadMarketInfo(code) {
   try {
     const res = await api.get(`/member/betting-markets/${encodeURIComponent(code)}`);
-    if (!res || typeof res !== 'object' || Array.isArray(res)) {
-      throw new Error('Konfigurasi pasar tidak dapat dibaca');
-    }
-    currentMarketConfig = res;
-    currentMarket = res;
-    updateMarketHeaderUI(res);
+    const config = unwrapMarketConfig(res);
+    currentMarketConfig = config;
+    currentMarket = config;
+    updateMarketHeaderUI(config);
     setNoMarketNotice(false);
     return true;
   } catch (err) {
