@@ -18,26 +18,6 @@ const HOP_BY_HOP = new Set([
   'connection', 'keep-alive', 'transfer-encoding', 'upgrade',
 ]);
 
-// Cloudflare Pages Advanced Mode (_worker.js) MENGABAIKAN file _headers/_redirects.
-// Aturan di frontend/_headers karena tidak dieksekusi sama sekali, sehingga
-// /js/* dan /css/* dilayani dengan cache-control bawaan 4 jam (max-age=14400).
-// Akibatnya perbaikan frontend belum terlihat member selama 4 jam — terasa seperti
-// "sudah dibetulkan tapi kok masih begitu". Aturan di sini satu-satunya yang benar-benar
-// berlaku, jadi cache asset dikecilkan dan HTML selalu revalidasi.
-const ASSET_CACHE_CONTROL = 'public, max-age=300, must-revalidate';
-const HTML_CACHE_CONTROL = 'no-cache';
-
-function cacheControlFor(pathname) {
-  if (pathname.startsWith('/api/')) return null;
-  if (pathname.startsWith('/admin') || pathname.startsWith('/admin-api/')) return 'no-store';
-  if (/\.(?:html)$/i.test(pathname)) return HTML_CACHE_CONTROL;
-  if (/\.(?:js|css)$/i.test(pathname)) return ASSET_CACHE_CONTROL;
-  if (pathname.startsWith('/assets/')) return ASSET_CACHE_CONTROL;
-  // sw.js & robots.txt harus selalu segar; file lain tanpa ekstensi (ikon, dll)
-  // tidak boleh di-cache lama karena tidak punya ?v= cache-busting.
-  return HTML_CACHE_CONTROL;
-}
-
 function shouldProxyToBackend(pathname, env) {
   if (pathname.startsWith('/api/')) return true;
   if (pathname === '/admin' || pathname.startsWith('/admin/')) return true;
@@ -78,16 +58,7 @@ export default {
 
     const url = new URL(request.url);
     if (!shouldProxyToBackend(url.pathname, env)) {
-      const assetResponse = await env.ASSETS.fetch(request);
-      const cacheControl = cacheControlFor(url.pathname);
-      if (!cacheControl || assetResponse.status >= 400) return assetResponse;
-      const assetHeaders = new Headers(assetResponse.headers);
-      assetHeaders.set('cache-control', cacheControl);
-      return new Response(assetResponse.body, {
-        status: assetResponse.status,
-        statusText: assetResponse.statusText,
-        headers: assetHeaders
-      });
+      return env.ASSETS.fetch(request);
     }
 
     const edgeTtlSeconds = request.method === 'GET' ? PUBLIC_EDGE_CACHE_TTL_SECONDS[url.pathname] || 0 : 0;
