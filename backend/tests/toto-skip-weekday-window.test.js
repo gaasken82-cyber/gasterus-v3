@@ -45,13 +45,18 @@ test('reconciler meneruskan daftar hari libur ke planner',()=>{
   assert.match(lifecycle, /skipWeekdays: TOTO_SKIPPED_WEEKDAYS\[String\(row\.slug/);
 });
 
-test('tiga pool non-harian memakai VegasNet sebagai satu-satunya sumber',()=>{
+test('seluruh pool togel memakai VegasNet sebagai satu-satunya sumber otoritatif',()=>{
   const map = JSON.parse(read('backend/data/toto-source-map.json'));
-  for (const slug of ['hongkong-pool', 'singapore-pool', 'newjerseymid-pool']) {
-    const entry = map.find(item => item.slug === slug);
-    assert.ok(entry, `${slug} tidak ada di toto-source-map.json`);
-    assert.deepEqual(Object.keys(entry.sources), ['vegasnet'], `${slug} masih memakai scraper lain: ${Object.keys(entry.sources).join(',')}`);
-    assert.deepEqual(entry.authoritySources, ['vegasnet'], `${slug} belum menunjuk VegasNet sebagai sumber otoritatif`);
-    assert.ok(entry.schedule?.resultTime, `${slug} kehilangan jadwal result`);
+  assert.ok(map.length > 0, 'toto-source-map.json kosong');
+  for (const entry of map) {
+    const codes = Object.keys(entry.sources || {});
+    assert.deepEqual(codes, ['vegasnet'], `${entry.slug} masih memakai sumber lain: ${codes.join(',') || '(kosong)'}`);
+    assert.deepEqual(entry.authoritySources, ['vegasnet'], `${entry.slug} belum menunjuk VegasNet sebagai sumber otoritatif`);
+    assert.ok(entry.schedule?.resultTime && entry.schedule?.closeTime, `${entry.slug} kehilangan jadwal close/result`);
   }
+});
+
+test('registri sumber sportsbook tidak ikut berubah oleh pemangkasan sumber togel',()=>{
+  const registry = JSON.parse(read('backend/data/sportsbook-source-registry.json'));
+  assert.ok(Array.isArray(registry) ? registry.length > 0 : Object.keys(registry).length > 0, 'registri sporbook kosong');
 });
