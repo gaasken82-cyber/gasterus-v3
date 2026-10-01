@@ -88,15 +88,16 @@
     "name": "HONGKONG POOL",
     "slug": "hongkong-pool",
     "sources": {
-      "poskopaito": "Hongkong Lotto",
-      "datatoto": "Hklotto",
       "vegasnet": "Hkg Lotto"
     },
     "schedule": {
       "closeTime": "23:10",
       "resultTime": "23:25",
       "timezone": "Asia/Jakarta"
-    }
+    },
+    "authoritySources": [
+      "vegasnet"
+    ]
   },
   {
     "sortOrder": 9,
@@ -145,16 +146,16 @@
     "name": "SINGAPORE POOL",
     "slug": "singapore-pool",
     "sources": {
-      "poskopaito": "Singapore",
-      "masterlive": "SINGAPORE",
-      "datatoto": "Singapore",
       "vegasnet": "Singapore"
     },
     "schedule": {
       "closeTime": "22:10",
       "resultTime": "22:25",
       "timezone": "Asia/Jakarta"
-    }
+    },
+    "authoritySources": [
+      "vegasnet"
+    ]
   },
   {
     "sortOrder": 12,
@@ -433,15 +434,16 @@
     "name": "NEWJERSEYMID POOL",
     "slug": "newjerseymid-pool",
     "sources": {
-      "poskopaito": "New Jersey Midday",
-      "datatoto": "New Jersey Midday",
       "vegasnet": "New Jersey Midday"
     },
     "schedule": {
       "closeTime": "05:20",
       "resultTime": "05:35",
       "timezone": "Asia/Jakarta"
-    }
+    },
+    "authoritySources": [
+      "vegasnet"
+    ]
   },
   {
     "sortOrder": 31,

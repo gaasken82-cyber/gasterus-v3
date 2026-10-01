@@ -18,9 +18,26 @@ function dayGap(newer, older) {
   return Number.isFinite(a) && Number.isFinite(b) ? Math.round((a - b) / DAY_MS) : NaN;
 }
 
-export function inferNextCashPeriod(history = [], { schedule = null } = {}) {
+export function inferNextCashPeriod(history = [], { schedule = null, skipWeekdays = null } = {}) {
   const dates = [...new Set((history || []).map(item => isoDate(item.draw_date || item.drawDate || item.period)).filter(Boolean))]
     .sort().reverse();
+  // Pool dengan pola hari tertentu (mis. Hong Kong / Singapore yang tidak draw
+  // tiap hari) memakai daftar hari yang dilewati yang sudah ada di scheduler.
+  // Tanpa ini, planner hanya bisa menyimpulkan irama harian atau interval tetap,
+  // sehingga pool berm polaweekly dianggap "tidak ada window aman" dan tetap SUSPENDED.
+  const skip = Array.isArray(skipWeekdays) ? [...new Set(skipWeekdays.map(Number).filter(day => Number.isInteger(day) && day >= 0 && day <= 6))] : [];
+  if (skip.length) {
+    const anchor = dates[0];
+    if (!anchor) return null;            // belum ada histori terverifikasi -> fail-closed
+    const anchorMs = utcDay(anchor);
+    if (!Number.isFinite(anchorMs)) return null;
+    for (let offset = 1; offset <= 8; offset += 1) {
+      const next = new Date(anchorMs + offset * DAY_MS);
+      if (skip.includes(next.getUTCDay())) continue;
+      return { period: next.toISOString().slice(0, 10), cadenceDays: offset, evidenceCount: dates.length, method: 'CONFIGURED_SKIP_WEEKDAYS' };
+    }
+    return null;
+  }
   // Satu riwayat saja belum cukup untuk menyimpulkan irama, TAPI jadwal pool yang
   // sudah dipetakan (closeTime/resultTime) memberi irama harian secara langsung.
   // Tanpa ini, pasar seperti Sydney yang baru mulai terkumpul riwayatnya tidak
@@ -65,10 +82,10 @@ export function cashCloseAtForPeriod(period, schedule, nowMs = Date.now()) {
   return new Date(closeMs);
 }
 
-export function buildCashWindowPlan({ history = [], decision = null, resultPeriod = null, nowMs = Date.now() } = {}) {
+export function buildCashWindowPlan({ history = [], decision = null, resultPeriod = null, nowMs = Date.now(), skipWeekdays = null } = {}) {
   if (!decision) return null;
   if (decision.status !== undefined && decision.status !== 'VERIFIED') return null;
-  const inferred = inferNextCashPeriod(history, { schedule: decision?.schedule || null });
+  const inferred = inferNextCashPeriod(history, { schedule: decision?.schedule || null, skipWeekdays });
   if (!inferred?.period) return null;
   const latestResult = isoDate(resultPeriod || decision.drawDate);
   // Future betting windows follow source schedule. Result verification is not a prerequisite.

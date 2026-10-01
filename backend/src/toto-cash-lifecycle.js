@@ -1,5 +1,6 @@
 import { query } from './db.js';
 import { buildCashWindowPlan } from './toto-cash-window.js';
+import { TOTO_SKIPPED_WEEKDAYS } from './toto-draw-scheduler.js';
 
 const TRUSTED_SOURCE_SQL = `(source_name LIKE 'OFFICIAL:%' OR source_name LIKE 'CONSENSUS:%')`;
 
@@ -41,7 +42,7 @@ export async function reconcileCashBettingWindows(decisions = [], { nowMs = Date
     const autoManaged = row.auto_cash_window === true || row.updated_by == null;
     if (!autoManaged) { manualPreserved += 1; continue; }
     const decision = bySlug.get(row.slug);
-    const plan = buildCashWindowPlan({ history: histories.get(String(row.id)) || [], decision, resultPeriod: row.result_period, nowMs });
+    const plan = buildCashWindowPlan({ history: histories.get(String(row.id)) || [], decision, resultPeriod: row.result_period, nowMs, skipWeekdays: TOTO_SKIPPED_WEEKDAYS[String(row.slug || '').trim()] });
     const currentClose = row.close_at ? new Date(row.close_at).getTime() : NaN;
     if (plan) {
       const same = row.betting_status === 'OPEN' && row.betting_period === plan.period && Number.isFinite(currentClose) && Math.abs(currentClose - plan.closeAt.getTime()) < 1000;
