@@ -163,6 +163,35 @@ test('migration 034 yang sudah applied tidak boleh diubah (migrate.js melompatin
 });
 
 
+// Jadwal pool di migration 038 adalah SALINAN dari
+// backend/data/toto-source-map.json. Kalau source map berubah (jam undian
+// operator dikoreksi) tapi migration tidak, jadwal di DB dan jadwal di kode
+// akan berbeda diam-diam - persis masalah "jadwal result tidak jelas".
+test('jadwal pool di migration 038 sama persis dengan source map',()=>{
+  const sql = repoFile('backend/migrations/038_seed_market_draw_time_from_schedule.sql');
+  const rows = new Map(
+    [...sql.matchAll(/\('([a-z0-9-]+)',\s*'([0-9:]+)',\s*'([0-9:]+)'\)/g)]
+      .map(m => [m[1], { close: m[2], result: m[3] }])
+  );
+  const raw = JSON.parse(repoFile('backend/data/toto-source-map.json'));
+  const pools = Array.isArray(raw) ? raw : (raw.pools || Object.values(raw.pools || {}));
+  assert.ok(pools.length > 0, 'source map harus punya pool');
+  assert.equal(rows.size, pools.length, `migration 038 punya ${rows.size} pool, source map punya ${pools.length}`);
+  for (const pool of pools) {
+    const row = rows.get(pool.slug);
+    assert.ok(row, `migration 038 tidak memuat pool ${pool.slug}`);
+    assert.equal(row.close, pool.schedule.closeTime, `jam tutup ${pool.slug} berbeda`);
+    assert.equal(row.result, pool.schedule.resultTime, `jam result ${pool.slug} berbeda`);
+  }
+});
+
+test('migration 038 hanya mengisi jadwal kosong, tidak menimpa waktu hasil collector',()=>{
+  const sql = repoFile('backend/migrations/038_seed_market_draw_time_from_schedule.sql');
+  assert.ok(sql.includes('AND m.draw_time IS NULL'), 'hanya baris NULL yang boleh diisi');
+  assert.ok(sql.includes('v.result_time::time'), 'draw_time diisi dari jam RESULT, bukan jam tutup');
+  assert.ok(/NOT\s+EXISTS|IS NULL/.test(sql), 'tidak boleh menimpa jadwal yang sudah terverifikasi');
+});
+
 // Jam result WAJIB terlihat member di dua tempat: kartu pasar di lobby dan header
 // slip betting. Sebelumnya drawTime hanya dipakai di number-history.html, jadi di
 // lobby dan halaman bet jam undian tidak pernah tampil sama sekali - member
