@@ -3,7 +3,11 @@ import pg from '../backend/node_modules/pg/lib/index.js';
 import { hashPassword, encryptSecret, generateTotpSecret, totp } from '../backend/src/security.js';
 
 const { Pool } = pg;
-const newPassword = process.env.NEW_PASSWORD || 'GasTerus#2026!Admin';
+// Password tidak lagi punya nilai default di dalam repo: default yang tertanam
+// berarti password admin bisa ditebak dari sumber. Without NEW_PASSWORD, skrip
+// membuat password acak yang kuat dan mencetaknya sekali.
+const generated = !process.env.NEW_PASSWORD;
+const newPassword = process.env.NEW_PASSWORD || `Gas#${randomBytes(9).toString('base64url')}!${randomBytes(2).toString('base64url')}`;
 const username = process.env.TARGET_USERNAME || 'owner';
 const secret = generateTotpSecret();
 
@@ -48,10 +52,18 @@ try {
       success: true,
       username,
       password: newPassword,
+      passwordGenerated: generated,
       totpSecret: secret,
       otpauthUri: otpauth,
       currentOtp: totp(secret)
     }, null, 2));
+    console.log('\nCara pakai:');
+    console.log('1. Simpan password & TOTP secret di password manager sekarang.');
+    console.log(`2. Buka https://gasterus.fun/cc-x7k9/ lalu login dengan username "${username}".`);
+    console.log('3. Masukkan kode 6 digit dari Google Authenticator / Aegis.');
+    console.log('   ("currentOtp" di atas hanya berlaku 30 detik, jangan dipakai manual.)');
+    console.log('4. Kalau kode ditolak, cek jam perangkat Anda (wajib sinkron, selisih < 30 detik).');
+    console.log('\nSimpan secret di someplace aman. Secretariat ini bisa dirotasi kapan saja.');
   }
 } catch (err) {
   console.error('Error resetting credentials:', err);
