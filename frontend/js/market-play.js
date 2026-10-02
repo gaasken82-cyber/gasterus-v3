@@ -101,9 +101,13 @@ async function loadMarketInfo(code) {
     if (!res || typeof res !== 'object' || Array.isArray(res)) {
       throw new Error('Konfigurasi pasar tidak dapat dibaca');
     }
-    currentMarketConfig = res;
-    currentMarket = res;
-    updateMarketHeaderUI(res);
+    // Backend membungkus jawaban sukses dalam { data: ... }. Membaca respons
+    // mentah membuat period, bettingStatus, dan closeAt selalu undefined, sehingga
+    // "Periode Aktif" kosong dan pasar tampil tutup padahal backend melaporkan OPEN.
+    const config = res?.data && typeof res.data === 'object' ? res.data : res;
+    currentMarketConfig = config;
+    currentMarket = config;
+    updateMarketHeaderUI(config);
     setNoMarketNotice(false);
     return true;
   } catch (err) {
