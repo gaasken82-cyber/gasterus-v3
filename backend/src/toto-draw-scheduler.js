@@ -14,53 +14,51 @@
 //dihentikan. Cara ini berlaku untuk hari libur apa pun, termasuk yang tidak
 //pernah tercatat sebelumnya.
 export const TOTO_RESULT_TIMES_WIB = Object.freeze({
-  // ASIA / PASIFIK
-  'toto-macau-midnight': ['00:01'],
+  'toto-macau-midnight': ['00:00'],
   'toto-macau-siang': ['13:00'],
   'toto-macau-sore': ['16:00'],
   'toto-macau-malam': ['19:00'],
-  'toto-macau-night': ['23:00'],
-  'jepang-pool': ['17:20'],
-  'taiwan-pool': ['20:45'],
-  'hongkong-pool': ['23:00'],
-  'pcso-pool': ['20:10'],
-  'singapore-pool': ['17:45'],
-  'china-pool': ['15:30'],
-  'bullseye-pool': ['13:10'],
-  'king-kong-4d-pool': ['17:00'],
-  'sydney-pool': ['13:55'],
-  'california-pool': ['09:30'],
-  'newyork-pool': ['11:00'],
-  'newyork-eve-pool': ['10:30'],
-
-  // USA - EVENING DRAWS
-  'georgia-eve-pool': ['07:00'],
-  'maryland-eve-pool': ['07:55'],
-  'michigan-eve-pool': ['07:29'],
-  'ohio-eve-pool': ['07:29'],
-  'washington-ev-pool': ['07:57'],
-  'delaware-ngt-pool': ['07:55'],
-  'texas-eve-pool': ['07:00'],
-  'tennessee-eve-pool': ['07:20'],
-
-  // USA - AFTERNOON/NIGHT DRAWS
+  'toto-macau-night': ['22:00'],
+  'king-kong-4d-pool': ['20:15'],
+  'hongkong-pool': ['23:25'],
+  'sydney-pool': ['20:00'],
+  'newyork-pool': ['22:35'],
+  'singapore-pool': ['22:25'],
+  'china-pool': ['21:35'],
+  'california-pool': ['21:15'],
+  'pcso-pool': ['23:25'],
+  'bullseye-pool': ['22:15'],
+  'jepang-pool': ['20:45'],
+  'taiwan-pool': ['21:55'],
+  'wisconsin-pool': ['02:35'],
+  'cambodia-pool': ['20:35'],
+  'georgia-eve-pool': ['04:55'],
   'oregon-1-pool': ['04:00'],
-  'oregon-2-pool': ['01:00'],
-  'oregon-3-pool': ['07:00'],
+  'oregon-2-pool': ['07:00'],
+  'oregon-3-pool': ['10:00'],
   'oregon-4-pool': ['13:00'],
-  'ohio-mid-pool': ['00:29'],
-  'kentucky-mid-pool': ['01:21'],
-  'indiana-mid-pool': ['01:20'],
-  'tennessee-mid-pool': ['01:20'],
-  'florida-mid-pool': ['01:30'],
-  'rhode-island-pool': ['01:30'],
-  'illinois-mid-pool': ['01:40'],
-  'missouri-mid-pool': ['01:45'],
-  'washington-md-pool': ['01:55'],
-  'delaware-day-pool': ['01:57'],
-  'virginia-day-pool': ['02:00'],
-  'texas-day-pool': ['01:27'],
-  'texas-night-pool': ['11:12']
+  'ohio-mid-pool': ['05:35'],
+  'ohio-eve-pool': ['04:35'],
+  'newyork-eve-pool': ['22:35'],
+  'maryland-eve-pool': ['04:35'],
+  'michigan-eve-pool': ['04:35'],
+  'newjersey-mid-pool': ['05:35'],
+  'kentucky-mid-pool': ['05:35'],
+  'indiana-mid-pool': ['05:35'],
+  'tennessee-mid-pool': ['05:35'],
+  'tennessee-eve-pool': ['04:35'],
+  'texas-eve-pool': ['04:35'],
+  'texas-day-pool': ['06:35'],
+  'texas-night-pool': ['08:35'],
+  'florida-mid-pool': ['05:35'],
+  'rhode-island-pool': ['04:35'],
+  'illinois-mid-pool': ['05:35'],
+  'missouri-mid-pool': ['05:35'],
+  'washington-md-pool': ['05:35'],
+  'washington-ev-pool': ['04:35'],
+  'delaware-ngt-pool': ['06:35'],
+  'delaware-day-pool': ['08:35'],
+  'virginia-day-pool': ['08:35']
 });
 
 // Hari tanpa pengundian yang sudah diketahui dan tetap dipakai sebagai
@@ -68,18 +66,9 @@ export const TOTO_RESULT_TIMES_WIB = Object.freeze({
 // Deteksi empiris tetap menjadi penentu utama; daftar ini hanya menghemat
 // polling pada hari libur yang memang sudah jelas.
 export const TOTO_SKIPPED_WEEKDAYS = Object.freeze({
-  'singapore-pool': [2, 5], // Libur Selasa (2) dan Jumat (5)
-  'pcso-pool': [0], // Libur Minggu (0)
-  'texas-eve-pool': [1], // Libur Senin (1)
-  'texas-day-pool': [1], // Libur Senin (1)
-  'texas-night-pool': [1], // Libur Senin (1)
-  'delaware-ngt-pool': [1] // Libur Senin (1)
+  'singapore-pool': [2, 5],
+  'pcso-pool': [0]
 });
-
-// Pasaran yang tidak aktif atau permanen ditutup
-export const TOTO_INACTIVE_MARKETS = Object.freeze([
-  'newjersey-mid-pool' // TUTUP / Tidak aktif
-]);
 
 const WIB_OFFSET_MS = 7 * 3600 * 1000;
 const DAY_MS = 86400000;
@@ -91,7 +80,7 @@ const DAY_MS = 86400000;
 //
 // Jendela T-20 hanya dipakai untuk menutup betting, tidak untuk scraping.
 // Scraping dimulai pada T-5 dan dilanjutkan per pool sampai result baru
-// ditemukan, bukan sampai jam result lewat.
+ditemukan, bukan sampai jam result lewat.
 const CLOSE_LEAD_MINUTES = 20;
 const SCRAPE_LEAD_MINUTES = 5;
 const POLL_INTERVAL_MINUTES = 3;
@@ -154,7 +143,6 @@ function entryFor(slug) {
 // collector tidak mengulang polling sepanjang hari libur itu.
 export function isDrawDay(slug, now = new Date()) {
   const { weekday, dayKey } = wibParts(now);
-  if (TOTO_INACTIVE_MARKETS.includes(String(slug || '').trim())) return false;
   const skipList = TOTO_SKIPPED_WEEKDAYS[String(slug || '').trim()];
   if (Array.isArray(skipList) && skipList.includes(weekday)) return false;
   return !entryFor(slug).skippedDays.has(dayKey);
@@ -221,7 +209,6 @@ function wibMinutesAt(ms) {
 
 function isExplicitSkipped(slug, now) {
   const { weekday } = wibParts(now);
-  if (TOTO_INACTIVE_MARKETS.includes(String(slug || '').trim())) return true;
   const skipList = TOTO_SKIPPED_WEEKDAYS[String(slug || '').trim()];
   return Array.isArray(skipList) && skipList.includes(weekday);
 }
@@ -332,7 +319,6 @@ export function schedulerSnapshot(now = new Date()) {
     holidayGraceMinutes: HOLIDAY_GRACE_MINUTES,
     configuredMarkets: Object.keys(TOTO_RESULT_TIMES_WIB).length,
     explicitWeekdaySkips: TOTO_SKIPPED_WEEKDAYS,
-    inactiveMarkets: TOTO_INACTIVE_MARKETS,
     tracked
   };
 }
