@@ -1,7 +1,11 @@
 /* ==========================================================================
-   GASTERUS v3 — MARKET PLAY / BETTING PAGE STYLES
+   GASTERUS v3 — MARKET PLAY / BETTING PAGE STYLES (CANONICAL CONSOLIDATED)
+   Clean, Maintainable, Audit-Ready Architecture (Zero Redundant Overrides)
    ========================================================================== */
 
+/* ==========================================================================
+   1. PLAY HEADER & MARKET STATUS
+   ========================================================================== */
 .play-header {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
@@ -42,6 +46,14 @@
   word-break: break-word;
 }
 
+.brand-logo .brand-logo-img {
+  height: 34px;
+  max-width: 150px;
+}
+
+/* ==========================================================================
+   2. MAIN TWO-COLUMN LAYOUT (Grid Form & Betslip)
+   ========================================================================== */
 .bet-grid-layout {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
@@ -53,7 +65,6 @@
   box-sizing: border-box;
 }
 
-/* Quick Bet Form */
 .quick-bet-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
@@ -74,33 +85,400 @@
   box-sizing: border-box;
 }
 
+/* ==========================================================================
+   3. TOGEL MODE NAVIGATION TABS (Standard 4D/3D/2D, BBFS, Fast Bet)
+   ========================================================================== */
+.togel-mode-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: var(--space-4);
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mode-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #94a3b8;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.mode-tab-btn:hover {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+  color: #ffffff;
+  border-color: #64748b;
+  transform: translateY(-1px);
+}
+
+.mode-tab-btn.active {
+  background: linear-gradient(180deg, #0284c7 0%, #1d4ed8 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.mode-tab-btn .tab-icon {
+  font-size: 1.05rem;
+}
+
+/* ==========================================================================
+   4. BBFS (BOLAK BALIK FULL SET) GENERATOR PANEL
+   ========================================================================== */
+.bbfs-panel-card {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: var(--space-4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.bbfs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 10px;
+}
+
+.bbfs-title {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: #38bdf8;
+  margin: 0 0 4px;
+}
+
+.bbfs-subtitle {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.bbfs-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bbfs-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bbfs-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.bbfs-input-wrap {
+  display: flex;
+  gap: 8px;
+}
+
+.bbfs-input {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-align: center;
+  background: #0b1326;
+  border: 1px solid #3b82f6;
+  color: #38bdf8;
+  border-radius: 8px;
+  height: 42px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.bbfs-input:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  color: #fbbf24;
+}
+
+.bbfs-digit-counter {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.bbfs-targets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.bbfs-target-item {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bbfs-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.bbfs-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.bbfs-target-name {
+  color: #e2e8f0;
+}
+
+.bbfs-target-badge {
+  font-size: 0.75rem;
+  color: #38bdf8;
+  font-weight: 800;
+  margin-left: auto;
+}
+
+.bbfs-stake-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #0f172a;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  padding: 0 8px;
+  height: 32px;
+}
+
+.bbfs-currency-prefix {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-right: 4px;
+}
+
+.bbfs-stake-input {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0;
+  height: 100%;
+  outline: none;
+  width: 100%;
+}
+
+.bbfs-summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 4px;
+}
+
+.bbfs-summary-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bbfs-summary-stat .stat-label {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.bbfs-summary-stat .stat-val {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.bbfs-summary-stat .stat-val.highlight {
+  color: #38bdf8;
+}
+
+.bbfs-generate-btn {
+  background: linear-gradient(180deg, #38bdf8 0%, #2563eb 50%, #1d4ed8 100%);
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 0.92rem;
+  letter-spacing: 0.5px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid #60a5fa;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bbfs-generate-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.6);
+}
+
+.bbfs-generate-btn:active {
+  transform: translateY(2px);
+}
+
+/* ==========================================================================
+   5. PAY4D QUICK ACTION TOOLBAR (Set Stake & Bulk Actions)
+   ========================================================================== */
+.pay4d-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+.pay4d-mass-set {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pay4d-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.pay4d-input-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pay4d-prefix {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.pay4d-mass-input {
+  max-width: 110px;
+  height: 34px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  text-align: right;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 6px;
+}
+
+.pay4d-row-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-danger-soft {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-danger-soft:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  color: #fee2e2;
+}
+
+/* ==========================================================================
+   6. CANONICAL BET ROW & TABLE STYLES (Single Source of Truth)
+   ========================================================================== */
+.bet-row-header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary, #94a3b8);
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Desktop 6-Column Grid */
 .bet-row {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 40px;
-  gap: var(--space-2);
+  grid-template-columns: 36px minmax(130px, 1.4fr) minmax(170px, 1.6fr) minmax(120px, 1.2fr) minmax(130px, 1.2fr) 36px;
+  gap: 8px 10px;
   align-items: center;
-  margin-bottom: var(--space-2);
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  border-radius: 8px;
+  margin-bottom: 8px;
   width: 100%;
-  max-width: 100%;
-  min-width: 0;
   box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.bet-row:hover,
+.bet-row:focus-within {
+  border-color: rgba(59, 130, 246, 0.45);
+  background: rgba(30, 41, 59, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.bet-row.pay4d-table-header {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 12px 6px;
+  margin-bottom: var(--space-3);
+  box-shadow: none;
 }
 
 .bet-row > * {
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
-}
-
-.bet-row-header {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
 }
 
 .bet-row .form-control,
@@ -118,6 +496,91 @@
   white-space: nowrap;
 }
 
+.cell-mobile-title {
+  display: none;
+}
+
+/* Pay4D Single Number Input */
+.pay4d-number-input {
+  font-family: 'JetBrains Mono', 'Roboto Mono', 'SF Pro Text', monospace, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-align: center;
+  background: rgba(11, 19, 38, 0.95);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #38bdf8;
+  border-radius: 6px;
+  min-height: 42px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  transition: all 0.15s ease;
+}
+
+.pay4d-number-input:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  color: #fbbf24;
+}
+
+.pay4d-number-input::placeholder {
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: rgba(148, 163, 184, 0.45);
+}
+
+.row-no-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.row-net-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 6px;
+  font-size: 0.82rem;
+  min-height: 38px;
+  justify-content: flex-end;
+}
+
+.row-net-badge.active {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #10b981;
+}
+
+.row-net-badge .net-amount {
+  font-weight: 700;
+  color: #34d399;
+}
+
+.row-net-badge .net-disc-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.row-net-badge .net-placeholder {
+  color: var(--text-muted, #64748b);
+  font-size: 0.78rem;
+}
+
 .btn-remove-row {
   color: var(--status-danger);
   font-size: 1.2rem;
@@ -130,9 +593,21 @@
   min-width: 0;
   box-sizing: border-box;
   flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s ease;
 }
 
-/* Bet Slip Sidebar */
+.btn-remove-row:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* ==========================================================================
+   7. BETSLIP SUMMARY CARD (Sidebar)
+   ========================================================================== */
 .betslip-card {
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-brand);
@@ -205,126 +680,9 @@
   white-space: normal;
 }
 
-@media (max-width: 900px) {
-  .bet-grid-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .betslip-card {
-    position: static;
-  }
-  .bet-row {
-    grid-template-columns: 24px minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) 30px;
-    font-size: 0.85rem;
-    gap: 6px;
-  }
-  .quick-bet-card,
-  .betslip-card,
-  .play-header {
-    padding: var(--space-4);
-  }
-}
-
-/* Mobile kecil: 1 baris 5 kolom -> kartu 2 baris agar tidak terpotong kanan */
-@media (max-width: 640px) {
-  .play-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .play-header > div:last-child {
-    text-align: left !important;
-  }
-  .market-meta-title h1 {
-    font-size: 1.2rem;
-  }
-  .bet-grid-layout {
-    gap: var(--space-4);
-  }
-  .quick-bet-card,
-  .betslip-card {
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-  }
-  .quick-bet-card > div {
-    max-width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-  }
-  .quick-bet-card > div[style*="display: flex"] {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .quick-bet-card > .bet-row {
-    display: none;
-  }
-  .bet-row {
-    grid-template-columns: 22px minmax(0, 1fr) minmax(0, 1fr) 28px;
-    grid-template-rows: auto auto;
-    gap: 8px 6px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    padding: 10px 8px;
-    margin-bottom: var(--space-3);
-  }
-  .bet-row > span:first-child {
-    grid-column: 1 / 2;
-    grid-row: 1 / 3;
-    align-self: center;
-    justify-self: center;
-  }
-  .bet-row .bet-selection {
-    grid-column: 2 / 4;
-    grid-row: 1 / 2;
-  }
-  .bet-row .btn-remove-row {
-    grid-column: 4 / 5;
-    grid-row: 1 / 2;
-    height: 34px;
-    max-width: 28px;
-  }
-  .bet-row .bet-game {
-    grid-column: 2 / 3;
-    grid-row: 2 / 3;
-    font-size: 0.8rem;
-  }
-  .bet-row .bet-stake {
-    grid-column: 3 / 5;
-    grid-row: 2 / 3;
-  }
-  .bet-row .form-control {
-    font-size: 0.85rem;
-    padding: 0.5rem 0.6rem;
-  }
-  .betslip-summary-row {
-    font-size: 0.85rem;
-  }
-  .betslip-total-amount {
-    font-size: 1.2rem;
-  }
-}
-
 /* ==========================================================================
-   6. MARKET-PLAY SPECIFIC OVERRIDES (v=20260913-mp1)
+   8. FOOTER LINKS
    ========================================================================== */
-
-/* --- Logo lebih kecil & proporsional di header market-play (selaras halaman member) --- */
-.brand-logo .brand-logo-img {
-  height: 34px;
-  max-width: 150px;
-}
-
-@media (max-width: 480px) {
-  .brand-logo .brand-logo-img {
-    height: 28px;
-    max-width: 118px;
-  }
-  /* Cegah header overflow di layar kecil: aksi kanan cukup lewat nav drawer */
-  .app-header .header-actions {
-    display: none;
-  }
-}
-
-/* --- Footer links (styling dari mobile-blue.css tidak ikut termuat di stack modular) --- */
 .footer-links {
   display: flex;
   flex-wrap: wrap;
@@ -342,558 +700,186 @@
   color: var(--brand-primary);
 }
 
-/* --- Header pasaran: countdown tidak memaksa overflow di layar sempit --- */
+/* ==========================================================================
+   9. RESPONSIVE BREAKPOINTS (Single Unified Cascade)
+   ========================================================================== */
+
+/* Tablet (max-width: 900px) */
+@media (max-width: 900px) {
+  .bet-grid-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .betslip-card {
+    position: static;
+  }
+
+  .quick-bet-card,
+  .betslip-card,
+  .play-header {
+    padding: var(--space-4);
+  }
+}
+
+/* Mobile Screen (max-width: 640px) */
 @media (max-width: 640px) {
+  .play-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .play-header > div:last-child {
+    text-align: left;
+  }
+
   .play-header #market-countdown {
     font-size: 1.25rem;
   }
-}
 
-/* Mobile bet-row handled by Pay4D mobile layout */
+  .market-meta-title h1 {
+    font-size: 1.2rem;
+  }
 
+  .bet-grid-layout {
+    gap: var(--space-4);
+  }
 
-/* --- Togel Mode Tabs & BBFS Generator Luxury Design --- */
-.togel-mode-nav {
-  display: flex;
-  gap: 8px;
-  margin-bottom: var(--space-4);
-  overflow-x: auto;
-  padding-bottom: 4px;
-  -webkit-overflow-scrolling: touch;
-}
-.mode-tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-family: "Outfit", sans-serif;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #94a3b8;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-}
-.mode-tab-btn:hover {
-  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
-  color: #ffffff;
-  border-color: #64748b;
-  transform: translateY(-1px);
-}
-.mode-tab-btn.active {
-  background: linear-gradient(180deg, #0284c7 0%, #1d4ed8 100%);
-  border-color: #38bdf8;
-  color: #ffffff;
-  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-.mode-tab-btn .tab-icon {
-  font-size: 1.05rem;
-}
+  .quick-bet-card,
+  .betslip-card {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+  }
 
-/* BBFS Generator Card */
-.bbfs-panel-card {
-  background: linear-gradient(180deg, #0f172a 0%, #0b1120 100%);
-  border: 1.5px solid #2563eb;
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-  margin-bottom: var(--space-4);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(56, 189, 248, 0.2);
-}
-.bbfs-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-.bbfs-title {
-  font-family: "Outfit", sans-serif;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #38bdf8;
-  margin: 0 0 4px;
-  letter-spacing: 0.3px;
-}
-.bbfs-subtitle {
-  font-size: 0.8rem;
-  color: #94a3b8;
-  margin: 0;
-  line-height: 1.4;
-}
-.bbfs-body {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.bbfs-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.bbfs-label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #e2e8f0;
-  margin: 0;
-}
-.bbfs-input-wrap {
-  display: flex;
-  gap: 8px;
-}
-.bbfs-input {
-  font-family: var(--font-mono);
-  font-size: 1.25rem !important;
-  font-weight: 800 !important;
-  letter-spacing: 3px;
-  color: #38bdf8 !important;
-  background: #020617 !important;
-  border: 2px solid #334155 !important;
-  border-radius: 10px !important;
-  padding: 10px 14px !important;
-  height: 48px !important;
-}
-.bbfs-input:focus {
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25) !important;
-}
-.bbfs-digit-counter {
-  font-size: 0.76rem;
-  color: #64748b;
-  font-family: var(--font-mono);
-}
-
-.bbfs-targets-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 10px;
-}
-.bbfs-target-item {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition: border-color 0.15s ease;
-}
-.bbfs-target-item:hover {
-  border-color: #64748b;
-}
-.bbfs-checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #f1f5f9;
-  cursor: pointer;
-  margin: 0;
-}
-.bbfs-checkbox-label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: #38bdf8;
-  cursor: pointer;
-}
-.bbfs-target-badge {
-  font-size: 0.72rem;
-  color: #38bdf8;
-  font-family: var(--font-mono);
-  margin-left: auto;
-}
-.bbfs-stake-input-wrap {
-  display: flex;
-  align-items: center;
-  background: #0f172a;
-  border: 1px solid #475569;
-  border-radius: 6px;
-  padding: 0 8px;
-  height: 32px;
-}
-.bbfs-currency-prefix {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #94a3b8;
-  margin-right: 4px;
-}
-.bbfs-stake-input {
-  background: transparent !important;
-  border: none !important;
-  color: #ffffff !important;
-  font-size: 0.82rem !important;
-  font-weight: 700 !important;
-  padding: 0 !important;
-  height: 100% !important;
-  outline: none !important;
-  width: 100%;
-}
-
-.bbfs-summary-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-top: 4px;
-}
-.bbfs-summary-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.bbfs-summary-stat .stat-label {
-  font-size: 0.72rem;
-  color: #94a3b8;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-.bbfs-summary-stat .stat-val {
-  font-family: var(--font-mono);
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #ffffff;
-}
-.bbfs-summary-stat .stat-val.highlight {
-  color: #38bdf8;
-}
-.bbfs-generate-btn {
-  background: linear-gradient(180deg, #38bdf8 0%, #2563eb 50%, #1d4ed8 100%) !important;
-  color: #ffffff !important;
-  font-family: "Outfit", sans-serif !important;
-  font-weight: 800 !important;
-  font-size: 0.92rem !important;
-  letter-spacing: 0.5px !important;
-  padding: 10px 20px !important;
-  border-radius: 10px !important;
-  border: 1px solid #60a5fa !important;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4) !important;
-  cursor: pointer !important;
-  transition: all 0.15s ease !important;
-}
-.bbfs-generate-btn:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.6) !important;
-}
-.bbfs-generate-btn:active {
-  transform: translateY(2px) !important;
-}
-
-
-/* ==========================================================================
-   7. PAY4D BETTING TABLE & MOBILE CARD STYLING (v=20261003-pay4d1)
-   ========================================================================== */
-
-/* Pay4D Quick Action Toolbar */
-.pay4d-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 10px 14px;
-  background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
-  border: 1px solid rgba(59, 130, 246, 0.25);
-  border-radius: 8px;
-  margin-bottom: 14px;
-}
-
-.pay4d-mass-set {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.pay4d-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-secondary, #94a3b8);
-}
-
-.pay4d-input-group {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.pay4d-prefix {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #94a3b8;
-}
-
-.pay4d-mass-input {
-  max-width: 110px;
-  height: 34px;
-  padding: 4px 8px;
-  font-size: 0.85rem;
-  text-align: right;
-  background: rgba(15, 23, 42, 0.9) !important;
-  border: 1px solid rgba(59, 130, 246, 0.35) !important;
-  color: #ffffff !important;
-  font-weight: 700 !important;
-  border-radius: 6px !important;
-}
-
-.pay4d-row-btns {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.btn-danger-soft {
-  background: rgba(239, 68, 68, 0.15) !important;
-  border: 1px solid rgba(239, 68, 68, 0.35) !important;
-  color: #f87171 !important;
-  padding: 4px 10px !important;
-  border-radius: 6px !important;
-  font-size: 0.8rem !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-}
-
-.btn-danger-soft:hover {
-  background: rgba(239, 68, 68, 0.25) !important;
-  border-color: #ef4444 !important;
-  color: #fee2e2 !important;
-}
-
-/* Pay4D Desktop Table Row & Header */
-.bet-row.pay4d-table-header {
-  display: grid;
-  grid-template-columns: 36px minmax(130px, 1.4fr) minmax(170px, 1.6fr) minmax(120px, 1.2fr) minmax(130px, 1.2fr) 36px;
-  gap: 8px 10px;
-  align-items: center;
-  padding: 0 12px 6px;
-  margin-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.bet-row.pay4d-bet-row {
-  display: grid;
-  grid-template-columns: 36px minmax(130px, 1.4fr) minmax(170px, 1.6fr) minmax(120px, 1.2fr) minmax(130px, 1.2fr) 36px;
-  gap: 8px 10px;
-  align-items: center;
-  padding: 8px 12px;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(59, 130, 246, 0.18);
-  border-radius: 8px;
-  margin-bottom: 8px;
-  transition: all 0.2s ease;
-}
-
-.bet-row.pay4d-bet-row:hover,
-.bet-row.pay4d-bet-row:focus-within {
-  border-color: rgba(59, 130, 246, 0.45);
-  background: rgba(30, 41, 59, 0.8);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-}
-
-.cell-mobile-title {
-  display: none;
-}
-
-/* Pay4D Single Number Input */
-.pay4d-number-input {
-  font-family: 'JetBrains Mono', 'Roboto Mono', 'SF Pro Text', monospace, sans-serif !important;
-  font-size: 1.15rem !important;
-  font-weight: 800 !important;
-  letter-spacing: 3px !important;
-  text-align: center !important;
-  background: rgba(11, 19, 38, 0.95) !important;
-  border: 1px solid rgba(59, 130, 246, 0.4) !important;
-  color: #38bdf8 !important;
-  border-radius: 6px !important;
-  min-height: 42px !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
-  transition: all 0.15s ease !important;
-}
-
-.pay4d-number-input:focus {
-  border-color: #f59e0b !important;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
-  color: #fbbf24 !important;
-}
-
-.pay4d-number-input::placeholder {
-  font-size: 0.82rem !important;
-  font-weight: 500 !important;
-  letter-spacing: 1px !important;
-  color: rgba(148, 163, 184, 0.45) !important;
-}
-
-.row-no-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: rgba(30, 41, 59, 0.9);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 6px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #94a3b8;
-}
-
-.row-net-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(51, 65, 85, 0.5);
-  border-radius: 6px;
-  font-size: 0.82rem;
-  min-height: 38px;
-  justify-content: flex-end;
-}
-
-.row-net-badge.active {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.35);
-  color: #10b981;
-}
-
-.row-net-badge .net-amount {
-  font-weight: 700;
-  color: #34d399;
-}
-
-.row-net-badge .net-disc-tag {
-  font-size: 0.72rem;
-  font-weight: 700;
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  padding: 1px 5px;
-  border-radius: 4px;
-}
-
-.row-net-badge .net-placeholder {
-  color: var(--text-muted, #64748b);
-  font-size: 0.78rem;
-}
-
-/* Pay4D Mobile View (Screen <= 640px) */
-@media (max-width: 640px) {
+  /* Sembunyikan header tabel desktop di layar mobile */
   .pay4d-table-header {
-    display: none !important;
+    display: none;
   }
 
-  .bet-row.pay4d-bet-row {
-    display: grid !important;
-    grid-template-columns: 32px 1fr 1fr 34px !important;
-    grid-template-rows: auto auto auto !important;
-    gap: 10px 8px !important;
-    padding: 12px 10px !important;
-    background: linear-gradient(180deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
-    border: 1px solid rgba(59, 130, 246, 0.28) !important;
-    border-radius: 10px !important;
-    margin-bottom: 12px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  /* Transformasi Baris Menjadi Kartu Taruhan Pay4D Mobile */
+  .bet-row {
+    display: grid;
+    grid-template-columns: 32px 1fr 1fr 34px;
+    grid-template-rows: auto auto auto;
+    gap: 10px 8px;
+    padding: 12px 10px;
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.28);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 
+  /* Baris 1: Nomor Urut (#1), Input Nomor Tebakan (Tengah), Tombol Hapus */
   .cell-no {
-    grid-column: 1 / 2 !important;
-    grid-row: 1 / 2 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .cell-selection {
-    grid-column: 2 / 4 !important;
-    grid-row: 1 / 2 !important;
+    grid-column: 2 / 4;
+    grid-row: 1 / 2;
   }
 
   .cell-remove {
-    grid-column: 4 / 5 !important;
-    grid-row: 1 / 2 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    grid-column: 4 / 5;
+    grid-row: 1 / 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
+  /* Baris 2: Dropdown Game (Full Width) */
   .cell-game {
-    grid-column: 1 / 5 !important;
-    grid-row: 2 / 3 !important;
+    grid-column: 1 / 5;
+    grid-row: 2 / 3;
   }
 
+  /* Baris 3: 50% Taruhan (Kiri) dan 50% Bayar Net (Kanan) — Bersih, Seimbang, Tidak Bertumpuk */
   .cell-stake {
-    grid-column: 1 / 3 !important;
-    grid-row: 3 / 4 !important;
-    min-width: 0 !important;
+    grid-column: 1 / 3;
+    grid-row: 3 / 4;
+    min-width: 0;
   }
 
   .cell-net {
-    grid-column: 3 / 5 !important;
-    grid-row: 3 / 4 !important;
-    min-width: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    justify-content: flex-start !important;
+    grid-column: 3 / 5;
+    grid-row: 3 / 4;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
   }
 
   .cell-mobile-title {
-    display: block !important;
-    font-size: 0.72rem !important;
-    font-weight: 600 !important;
-    color: var(--text-secondary, #94a3b8) !important;
-    margin-bottom: 4px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary, #94a3b8);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   .cell-no .cell-mobile-title,
   .cell-remove .cell-mobile-title {
-    display: none !important;
+    display: none;
   }
 
   .cell-stake .bet-stake {
-    width: 100% !important;
-    min-height: 40px !important;
-    font-size: 0.95rem !important;
-    font-weight: 700 !important;
-    border-radius: 6px !important;
-    text-align: right !important;
-    padding: 6px 10px !important;
-    box-sizing: border-box !important;
+    width: 100%;
+    min-height: 40px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border-radius: 6px;
+    text-align: right;
+    padding: 6px 10px;
+    box-sizing: border-box;
   }
 
   .cell-net .row-net-badge {
-    width: 100% !important;
-    min-height: 40px !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    padding: 6px 10px !important;
-    border-radius: 6px !important;
-    white-space: nowrap !important;
+    width: 100%;
+    min-height: 40px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
   }
 
   .cell-net .row-net-badge .net-amount {
-    font-size: 0.88rem !important;
-    font-weight: 800 !important;
+    font-size: 0.88rem;
+    font-weight: 800;
   }
 
   .cell-net .row-net-badge .net-disc-tag {
-    font-size: 0.72rem !important;
-    font-weight: 700 !important;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .betslip-summary-row {
+    font-size: 0.85rem;
+  }
+
+  .betslip-total-amount {
+    font-size: 1.2rem;
+  }
+}
+
+/* Small Phones (max-width: 480px) */
+@media (max-width: 480px) {
+  .brand-logo .brand-logo-img {
+    height: 28px;
+    max-width: 118px;
+  }
+
+  .app-header .header-actions {
+    display: none;
   }
 }
