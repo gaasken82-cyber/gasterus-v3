@@ -457,8 +457,8 @@
   },
   {
     "sortOrder": 30,
-    "name": "NEWJERSEYMID POOL",
-    "slug": "newjerseymid-pool",
+    "name": "NEWJERSEY MID POOL",
+    "slug": "newjersey-mid-pool",
     "sources": {
       "vegasnet": "New Jersey Midday"
     },
@@ -505,10 +505,10 @@
   },
   {
     "sortOrder": 33,
-    "name": "TENNESSE MID POOL",
-    "slug": "tennesse-mid-pool",
+    "name": "TENNESSEE MID POOL",
+    "slug": "tennessee-mid-pool",
     "sources": {
-      "vegasnet": "Tennesse Midday"
+      "vegasnet": "Tennessee Midday"
     },
     "schedule": {
       "closeTime": "05:20",
@@ -521,10 +521,10 @@
   },
   {
     "sortOrder": 34,
-    "name": "TENNESSE EVE POOL",
-    "slug": "tennesse-eve-pool",
+    "name": "TENNESSEE EVE POOL",
+    "slug": "tennessee-eve-pool",
     "sources": {
-      "vegasnet": "Tennesse Evening"
+      "vegasnet": "Tennessee Evening"
     },
     "schedule": {
       "closeTime": "04:20",
@@ -649,8 +649,8 @@
   },
   {
     "sortOrder": 42,
-    "name": "WASHINGTONMD POOL",
-    "slug": "washingtonmd-pool",
+    "name": "WASHINGTON MD POOL",
+    "slug": "washington-md-pool",
     "sources": {
       "vegasnet": "Washington Dc Midday"
     },
@@ -665,8 +665,8 @@
   },
   {
     "sortOrder": 43,
-    "name": "WASHINGTONEV POOL",
-    "slug": "washingtonev-pool",
+    "name": "WASHINGTON EV POOL",
+    "slug": "washington-ev-pool",
     "sources": {
       "vegasnet": "Washington Dc Evening"
     },
