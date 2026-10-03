@@ -349,11 +349,10 @@ function gameOptionList(selected) {
 }
 
 function rowField(r) {
+  const isDigitGame = !r.gameCode || r.gameCode === 'AUTO' || ['STRAIGHT_4D', 'STRAIGHT_3D', 'STRAIGHT_2D'].includes(r.gameCode);
   const game = gameByCode(r.gameCode);
-  if (!game || game.uiMode === 'digits') {
-    const digits = game ? game.inputDigits : 4;
-    const placeholder = game ? `Angka ${digits}D` : '4D / 3D / 2D';
-    return `<input type="text" class="form-control bet-selection pay4d-number-input" placeholder="${escapeHtml(placeholder)}" maxlength="${digits}" inputmode="numeric" autocomplete="off" spellcheck="false" value="${escapeHtml(r.selection || '')}">`;
+  if (isDigitGame || !game || game.uiMode === 'digits') {
+    return `<input type="text" class="form-control bet-selection pay4d-number-input" placeholder="4D / 3D / 2D" maxlength="4" inputmode="numeric" autocomplete="off" spellcheck="false" value="${escapeHtml(r.selection || '')}">`;
   }
   if (game.uiMode === 'shio') {
     return `<input type="text" class="form-control bet-selection pay4d-number-input" placeholder="Shio 1-12" maxlength="2" inputmode="numeric" value="${escapeHtml(r.selection || '')}" style="text-align:center; font-weight:700; letter-spacing:2px;">`;
@@ -462,18 +461,33 @@ function bindRowInputs() {
 
     if (selectionInput) {
       selectionInput.addEventListener('input', (e) => {
-        const game = item.gameCode === 'AUTO' ? null : gameByCode(item.gameCode);
-        const cleanVal = e.target.value.replace(/\D/g, '');
-        item.selection = normalizeForGame(game, cleanVal);
-        e.target.value = item.selection;
+        const cleanVal = e.target.value.replace(/\D/g, '').slice(0, 4);
+        item.selection = cleanVal;
+        e.target.value = cleanVal;
 
-        if (item.gameCode === 'AUTO') {
-          const detected = autoGameCode(item.selection.length);
-          if (detected) item.gameCode = detected;
+        const isDigitGame = !item.isManualGame || ['AUTO', 'STRAIGHT_4D', 'STRAIGHT_3D', 'STRAIGHT_2D'].includes(item.gameCode);
+
+        if (isDigitGame) {
+          if (cleanVal.length === 4) {
+            item.gameCode = 'STRAIGHT_4D';
+          } else if (cleanVal.length === 3) {
+            item.gameCode = 'STRAIGHT_3D';
+          } else if (cleanVal.length === 2) {
+            item.gameCode = 'STRAIGHT_2D';
+          } else {
+            item.gameCode = 'AUTO';
+          }
           gameSelect.value = item.gameCode;
+          item.isManualGame = false;
+        } else {
+          const game = gameByCode(item.gameCode);
+          item.selection = normalizeForGame(game, cleanVal);
+          e.target.value = item.selection;
         }
+
         calculateTotals();
         updateRowNetBadge(rowEl, item);
+        syncGameHint();
       });
     }
 
@@ -489,9 +503,16 @@ function bindRowInputs() {
 
     gameSelect.addEventListener('change', (e) => {
       item.gameCode = e.target.value;
-      if (item.gameCode === 'AUTO') {
-        const detected = autoGameCode(item.selection.length);
-        if (detected) item.gameCode = detected;
+      if (['AUTO', 'STRAIGHT_4D', 'STRAIGHT_3D', 'STRAIGHT_2D'].includes(item.gameCode)) {
+        item.isManualGame = false;
+        if (item.gameCode === 'AUTO' && item.selection) {
+          if (item.selection.length === 4) item.gameCode = 'STRAIGHT_4D';
+          else if (item.selection.length === 3) item.gameCode = 'STRAIGHT_3D';
+          else if (item.selection.length === 2) item.gameCode = 'STRAIGHT_2D';
+          gameSelect.value = item.gameCode;
+        }
+      } else {
+        item.isManualGame = true;
       }
       renderRows();
     });
