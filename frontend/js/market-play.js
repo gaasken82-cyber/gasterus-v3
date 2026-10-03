@@ -150,7 +150,7 @@ function setMarketNotice(message) {
 function setBettingControlsDisabled(disabled) {
   // Slip controls di luar #bet-rows-container (tambah baris, generator quick bet,
   // tombol submit) juga harus ikut mati saat pasaran tertutup.
-  document.querySelectorAll('#bet-rows-container input, #bet-rows-container select, #bet-rows-container button, #btn-add-row, #quick-bet-mode, #btn-quick-bet, #btn-submit-bet, #btn-apply-bbfs, #bbfs-digits, #bbfs-panel input').forEach(control => {
+  document.querySelectorAll('#bet-rows-container input, #bet-rows-container select, #bet-rows-container button, #btn-add-row, #quick-bet-mode, #btn-quick-bet, #btn-submit-bet, #btn-apply-bbfs, #bbfs-digits, #bbfs-panel input, #btn-apply-all-stake, #pay4d-quick-stake, #btn-add-1-row, #btn-add-5-rows, #btn-add-10-rows, #btn-clear-all-rows, #btn-add-5-rows-bottom, #btn-clear-rows-bottom').forEach(control => {
     control.disabled = disabled;
   });
   const addRowBtn = document.getElementById('btn-add-row');
@@ -348,23 +348,15 @@ function gameOptionList(selected) {
   return options.join('');
 }
 
-// Kotak digit: setiap posisi angka punya kotak sendiri, sama seperti slip angka pada
-// platform togel profesional. Nilai tetap disimpan di item.selection supaya payload,
-// validasi, tempel massal, dan quick bet tidak berubah sama sekali.
-function digitBoxesField(value, count) {
-  const digits = String(value || '');
-  const boxes = Array.from({ length: count }, (_, index) => `<input type="text" inputmode="numeric" autocomplete="off" spellcheck="false" class="digit-box" data-index="${index}" maxlength="1" value="${escapeHtml(digits[index] || '')}" aria-label="Digit ${index + 1}">`).join('');
-  return `<span class="digit-boxes" data-count="${count}">${boxes}</span>`;
-}
-
 function rowField(r) {
   const game = gameByCode(r.gameCode);
   if (!game || game.uiMode === 'digits') {
     const digits = game ? game.inputDigits : 4;
-    return digitBoxesField(r.selection, digits);
+    const placeholder = game ? `Angka ${digits}D` : '4D / 3D / 2D';
+    return `<input type="text" class="form-control bet-selection pay4d-number-input" placeholder="${escapeHtml(placeholder)}" maxlength="${digits}" inputmode="numeric" autocomplete="off" spellcheck="false" value="${escapeHtml(r.selection || '')}">`;
   }
   if (game.uiMode === 'shio') {
-    return `<input type="text" class="form-control bet-selection" placeholder="Shio 1-12" maxlength="2" value="${escapeHtml(r.selection)}" style="text-align:center; font-weight:700; letter-spacing:2px;">`;
+    return `<input type="text" class="form-control bet-selection pay4d-number-input" placeholder="Shio 1-12" maxlength="2" inputmode="numeric" value="${escapeHtml(r.selection || '')}" style="text-align:center; font-weight:700; letter-spacing:2px;">`;
   }
   const parts = String(r.selection || '').split(':');
   const chip = (key, values, current) => `<select class="form-control bet-opt" data-key="${key}" style="max-width:104px;">${(values || []).map(v => `<option value="${escapeHtml(v)}"${v === current ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('')}</select>`;
@@ -376,7 +368,7 @@ function rowField(r) {
     inner += chip(1, game.sizes, parts[1] || (game.sizes || [])[0]);
     inner += chip(2, game.parities, parts[2] || (game.parities || [])[0]);
   }
-  if (game.uiMode === 'jitu') inner += `<input type="text" class="form-control bet-opt-digit" data-key="1" maxlength="1" inputmode="numeric" placeholder="digit" value="${escapeHtml(parts[1] || '')}" style="max-width:68px; text-align:center;">`;
+  if (game.uiMode === 'jitu') inner += `<input type="text" class="form-control bet-opt-digit pay4d-number-input" data-key="1" maxlength="1" inputmode="numeric" placeholder="digit" value="${escapeHtml(parts[1] || '')}" style="max-width:68px; text-align:center;">`;
   return `<span class="bet-extras" style="display:flex; gap:6px; align-items:center; flex:1; min-width:0;">${inner}</span>`;
 }
 
@@ -385,15 +377,42 @@ function renderRows() {
   if (!container) return;
   const stakeMin = minStake();
 
-  container.innerHTML = betRows.map((r, idx) => `
-    <div class="bet-row" data-id="${Number(r.id)}">
-      <span style="font-size:0.8rem; color:var(--text-muted); text-align:center;">${idx + 1}</span>
-      ${rowField(r)}
-      <select class="form-control bet-game">${gameOptionList(r.gameCode)}</select>
-      <input type="number" class="form-control bet-stake" placeholder="Taruhan (Rp)" step="100" min="${stakeMin}" value="${r.stake}" style="text-align:right;">
-      <button type="button" class="btn-remove-row" onclick="window.removeBetRow(${r.id})">&times;</button>
-    </div>
-  `).join('');
+  container.innerHTML = betRows.map((r, idx) => {
+    const game = resolveRowGame(r);
+    const disc = Number(game?.discountPercent || 0);
+    const isComplete = isSelectionComplete(game, r.selection);
+    const netStake = isComplete && r.stake >= stakeMin ? Math.round(r.stake * (1 - disc / 100)) : 0;
+    const netHtml = isComplete && r.stake >= stakeMin
+      ? `<span class="net-amount">Rp ${formatNumber(netStake)}</span>${disc > 0 ? ` <span class="net-disc-tag">-${disc}%</span>` : ''}`
+      : `<span class="net-placeholder">-</span>`;
+
+    return `
+      <div class="bet-row pay4d-bet-row" data-id="${Number(r.id)}">
+        <div class="cell-no">
+          <span class="row-no-badge">#${idx + 1}</span>
+        </div>
+        <div class="cell-selection">
+          <span class="cell-mobile-title">Nomor</span>
+          ${rowField(r)}
+        </div>
+        <div class="cell-game">
+          <span class="cell-mobile-title">Permainan</span>
+          <select class="form-control bet-game">${gameOptionList(r.gameCode)}</select>
+        </div>
+        <div class="cell-stake">
+          <span class="cell-mobile-title">Taruhan (Rp)</span>
+          <input type="number" class="form-control bet-stake" placeholder="Nominal" step="100" min="${stakeMin}" value="${r.stake}">
+        </div>
+        <div class="cell-net">
+          <span class="cell-mobile-title">Bayar Net</span>
+          <div class="row-net-badge ${isComplete && r.stake >= stakeMin ? 'active' : ''}">${netHtml}</div>
+        </div>
+        <div class="cell-remove">
+          <button type="button" class="btn-remove-row" onclick="window.removeBetRow(${r.id})" title="Hapus baris">&times;</button>
+        </div>
+      </div>
+    `;
+  }).join('');
 
   bindRowInputs();
   syncMinStakeLabel();
@@ -401,8 +420,25 @@ function renderRows() {
   calculateTotals();
 }
 
+function updateRowNetBadge(rowEl, item) {
+  const badgeEl = rowEl.querySelector('.row-net-badge');
+  if (!badgeEl) return;
+  const game = resolveRowGame(item);
+  const stakeMin = minStake();
+  const isComplete = isSelectionComplete(game, item.selection);
+  if (isComplete && item.stake >= stakeMin) {
+    const disc = Number(game?.discountPercent || 0);
+    const netStake = Math.round(item.stake * (1 - disc / 100));
+    badgeEl.innerHTML = `<span class="net-amount">Rp ${formatNumber(netStake)}</span>${disc > 0 ? ` <span class="net-disc-tag">-${disc}%</span>` : ''}`;
+    badgeEl.classList.add('active');
+  } else {
+    badgeEl.innerHTML = `<span class="net-placeholder">-</span>`;
+    badgeEl.classList.remove('active');
+  }
+}
+
 function bindRowInputs() {
-  document.querySelectorAll('.bet-row').forEach(rowEl => {
+  document.querySelectorAll('.bet-row.pay4d-bet-row').forEach(rowEl => {
     const id = Number(rowEl.getAttribute('data-id'));
     const item = betRows.find(r => r.id === id);
     if (!item) return;
@@ -411,8 +447,6 @@ function bindRowInputs() {
     const gameSelect = rowEl.querySelector('.bet-game');
     const stakeInput = rowEl.querySelector('.bet-stake');
 
-    // Baris dengan game berbasis pilihan (colok jitu, tengah/tepi, pola, kombinasi)
-    // tidak memakai input teks: nilainya dirakit dari beberapa kontrol.
     const readExtras = () => {
       const parts = [];
       rowEl.querySelectorAll('.bet-opt').forEach(sel => {
@@ -423,62 +457,23 @@ function bindRowInputs() {
       const game = gameByCode(item.gameCode);
       item.selection = game ? normalizeForGame(game, parts.filter(v => v !== undefined && v !== '').join(':')) : '';
       calculateTotals();
+      updateRowNetBadge(rowEl, item);
     };
-
-    // Slip angka: satu kotak per digit, perpindahan fokus otomatis, panah & backspace
-    // memindah posisi, dan tempelan banyak digit sekaligus terisi ke kotak yang tepat.
-    const digitBoxes = [...rowEl.querySelectorAll('.digit-box')];
-    if (digitBoxes.length) {
-      const commit = () => {
-        const game = item.gameCode === 'AUTO' ? null : gameByCode(item.gameCode);
-        item.selection = normalizeForGame(game, digitBoxes.map(box => box.value).join(''));
-        if (item.gameCode === 'AUTO') {
-          const detected = autoGameCode(item.selection.length);
-          if (detected) item.gameCode = detected;
-          gameSelect.value = item.gameCode;
-          syncGameHint();
-        }
-        calculateTotals();
-      };
-      digitBoxes.forEach((box, index) => {
-        box.addEventListener('input', (e) => {
-          e.target.value = e.target.value.replace(/\D/g, '').slice(-1);
-          if (e.target.value && index < digitBoxes.length - 1) digitBoxes[index + 1].focus();
-          commit();
-        });
-        box.addEventListener('keydown', (e) => {
-          if (e.key === 'Backspace' && !box.value && index > 0) {
-            e.preventDefault();
-            digitBoxes[index - 1].value = '';
-            digitBoxes[index - 1].focus();
-            commit();
-          } else if (e.key === 'ArrowLeft' && index > 0) digitBoxes[index - 1].focus();
-          else if (e.key === 'ArrowRight' && index < digitBoxes.length - 1) digitBoxes[index + 1].focus();
-        });
-        box.addEventListener('paste', (e) => {
-          e.preventDefault();
-          const text = (e.clipboardData?.getData('text') || '').replace(/\D/g, '');
-          digitBoxes.forEach((target, position) => { target.value = text[position] || ''; });
-          commit();
-        });
-        box.addEventListener('focus', () => box.select());
-      });
-    }
 
     if (selectionInput) {
       selectionInput.addEventListener('input', (e) => {
         const game = item.gameCode === 'AUTO' ? null : gameByCode(item.gameCode);
-        item.selection = normalizeForGame(game, e.target.value.replace(/\D/g, ''));
+        const cleanVal = e.target.value.replace(/\D/g, '');
+        item.selection = normalizeForGame(game, cleanVal);
         e.target.value = item.selection;
-        // Auto detect hanya berlaku saat baris masih di mode AUTO. Kalau member
-        // memilih game sendiri (mis. Colok 2D),digit yang diketik tidak boleh
-        // menimpa pilihan itu.
+
         if (item.gameCode === 'AUTO') {
           const detected = autoGameCode(item.selection.length);
           if (detected) item.gameCode = detected;
           gameSelect.value = item.gameCode;
         }
         calculateTotals();
+        updateRowNetBadge(rowEl, item);
       });
     }
 
@@ -498,16 +493,61 @@ function bindRowInputs() {
         const detected = autoGameCode(item.selection.length);
         if (detected) item.gameCode = detected;
       }
-      // Kolom input berubah bentuk ketika game berganti (angka -> pilihan),
-      // jadi baris digambar ulang.
       renderRows();
     });
 
-    stakeInput.addEventListener('input', (e) => {
-      item.stake = Math.max(0, Number(e.target.value) || 0);
-      calculateTotals();
-    });
+    if (stakeInput) {
+      stakeInput.addEventListener('input', (e) => {
+        item.stake = Math.max(0, parseInt(e.target.value, 10) || 0);
+        calculateTotals();
+        updateRowNetBadge(rowEl, item);
+      });
+    }
   });
+}
+
+function applyMassStake() {
+  const input = document.getElementById('pay4d-quick-stake');
+  const stakeMin = minStake();
+  const val = Math.max(stakeMin, parseInt(input?.value, 10) || stakeMin);
+  betRows.forEach(r => { r.stake = val; });
+  renderRows();
+  showToast(`Nominal Rp ${formatNumber(val)} diterapkan ke semua baris.`, 'success');
+}
+
+function addMultipleRows(count) {
+  const limit = Math.max(1, Math.min(Number(currentMarketConfig?.maxRows) || 100, 100));
+  if (betRows.length >= limit) {
+    showToast(`Maksimal ${limit} baris taruhan.`, 'danger');
+    return;
+  }
+  const toAdd = Math.min(count, limit - betRows.length);
+  const stake = parseInt(document.getElementById('pay4d-quick-stake')?.value, 10) || (minStake() * 10);
+  for (let i = 0; i < toAdd; i++) {
+    betRows.push({
+      id: rowIdCounter++,
+      selection: '',
+      stake,
+      gameCode: 'AUTO'
+    });
+  }
+  renderRows();
+  showToast(`+${toAdd} baris ditambahkan.`, 'success');
+}
+
+function clearBetRows() {
+  const stake = parseInt(document.getElementById('pay4d-quick-stake')?.value, 10) || (minStake() * 10);
+  betRows = [];
+  for (let i = 0; i < 5; i++) {
+    betRows.push({
+      id: rowIdCounter++,
+      selection: '',
+      stake,
+      gameCode: 'AUTO'
+    });
+  }
+  renderRows();
+  showToast('Formulir taruhan dibersihkan.', 'success');
 }
 
 function calculateTotals() {
@@ -746,7 +786,7 @@ function setGameModeTab(mode) {
     bbfsPanel.style.display = mode === 'bbfs' ? 'block' : 'none';
   }
   if (quickPanel) {
-    quickPanel.style.display = (mode === 'quick' || mode === 'standard') ? 'flex' : 'none';
+    quickPanel.style.display = mode === 'quick' ? 'flex' : 'none';
   }
   if (mode === 'bbfs') {
     document.getElementById('bbfs-digits')?.focus();
@@ -808,6 +848,25 @@ function setupEventListeners() {
   if (pasteBtn) {
     pasteBtn.addEventListener('click', applyPastedBets);
   }
+
+  // Pay4D Toolbar Actions
+  const applyAllStakeBtn = document.getElementById('btn-apply-all-stake');
+  if (applyAllStakeBtn) {
+    applyAllStakeBtn.addEventListener('click', applyMassStake);
+  }
+  const add1Btn = document.getElementById('btn-add-1-row');
+  if (add1Btn) add1Btn.addEventListener('click', () => addMultipleRows(1));
+  const add5Btn = document.getElementById('btn-add-5-rows');
+  if (add5Btn) add5Btn.addEventListener('click', () => addMultipleRows(5));
+  const add10Btn = document.getElementById('btn-add-10-rows');
+  if (add10Btn) add10Btn.addEventListener('click', () => addMultipleRows(10));
+  const clearBtn = document.getElementById('btn-clear-all-rows');
+  if (clearBtn) clearBtn.addEventListener('click', clearBetRows);
+
+  const add5BottomBtn = document.getElementById('btn-add-5-rows-bottom');
+  if (add5BottomBtn) add5BottomBtn.addEventListener('click', () => addMultipleRows(5));
+  const clearBottomBtn = document.getElementById('btn-clear-rows-bottom');
+  if (clearBottomBtn) clearBottomBtn.addEventListener('click', clearBetRows);
 
   const submitBtn = document.getElementById('btn-submit-bet');
   if (submitBtn) {

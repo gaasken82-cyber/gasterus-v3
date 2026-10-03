@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="/css/components.css?v=20260913-mp1">
   <link rel="stylesheet" href="/css/animations.css?v=20260913-mp1">
   <link rel="stylesheet" href="/css/mobile.css?v=20260913-mp1">
-  <link rel="stylesheet" href="/css/pages/market-play.css?v=20260913-mp1">
+  <link rel="stylesheet" href="/css/pages/market-play.css?v=20261003-pay4d1">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
   <meta property="og:type" content="website">
@@ -308,12 +308,31 @@
             </div>
           </div>
 
-          <!-- Header Labels for Table -->
-          <div class="bet-row" style="margin-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle); padding-bottom: 6px;">
+          <!-- Pay4D Quick Action Bar -->
+          <div class="pay4d-toolbar" id="pay4d-toolbar">
+            <div class="pay4d-mass-set">
+              <span class="pay4d-label">Set Semua Bet:</span>
+              <div class="pay4d-input-group">
+                <span class="pay4d-prefix">Rp</span>
+                <input type="number" id="pay4d-quick-stake" class="form-control pay4d-mass-input" placeholder="1000" value="1000" min="100" step="100">
+                <button type="button" id="btn-apply-all-stake" class="btn btn-primary btn-sm">Terapkan</button>
+              </div>
+            </div>
+            <div class="pay4d-row-btns">
+              <button type="button" id="btn-add-1-row" class="btn btn-secondary btn-sm">+1 Baris</button>
+              <button type="button" id="btn-add-5-rows" class="btn btn-secondary btn-sm">+5 Baris</button>
+              <button type="button" id="btn-add-10-rows" class="btn btn-secondary btn-sm">+10 Baris</button>
+              <button type="button" id="btn-clear-all-rows" class="btn btn-danger-soft btn-sm" title="Hapus semua baris">🗑️ Reset</button>
+            </div>
+          </div>
+
+          <!-- Header Labels for Table (Desktop) -->
+          <div class="bet-row pay4d-table-header" id="pay4d-table-header">
             <span class="bet-row-header" style="text-align: center;">No</span>
             <span class="bet-row-header">Nomor Pilihan</span>
             <span class="bet-row-header">Tipe Game</span>
-            <span class="bet-row-header" style="text-align: right;">Nominal (Rp)</span>
+            <span class="bet-row-header" style="text-align: right;">Taruhan (Rp)</span>
+            <span class="bet-row-header" style="text-align: right;">Bayar Net</span>
             <span></span>
           </div>
 
@@ -336,8 +355,10 @@
             <!-- Dynamic rows rendered by JS -->
           </div>
 
-          <div style="margin-top: var(--space-4); display: flex; gap: var(--space-3);">
+          <div style="margin-top: var(--space-4); display: flex; gap: var(--space-3); flex-wrap: wrap;">
             <button type="button" id="btn-add-row" class="btn btn-secondary btn-sm">+ Tambah 1 Baris</button>
+            <button type="button" id="btn-add-5-rows-bottom" class="btn btn-secondary btn-sm">+ Tambah 5 Baris</button>
+            <button type="button" id="btn-clear-rows-bottom" class="btn btn-danger-soft btn-sm">🗑️ Kosongkan Baris</button>
           </div>
         </div>
 
@@ -395,7 +416,7 @@
   <!-- v wajib naik setiap kali market-play.js berubah: Cloudflare Pages mengirim
        cache-control max-age=14400 (4 jam) untuk /js/*, jadi query versi lama
        membuat browser member memakai skrip lama berjam-jam. -->
-  <script type="module" src="/js/market-play.js?v=20261003-bbfs1"></script>
+  <script type="module" src="/js/market-play.js?v=20261003-pay4d1"></script>
 <script>
     (function () {
       function openNav() {

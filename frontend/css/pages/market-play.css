@@ -349,36 +349,7 @@
   }
 }
 
-/* --- Mobile bet-row: pastikan 4 kolom isi (angka/tipe/nominal/hapus) selalu terlihat --- */
-@media (max-width: 640px) {
-  .bet-row {
-    grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1fr) 30px;
-    grid-template-areas:
-      "no  select select remove"
-      "no  game   stake  stake";
-  }
-  .bet-row > span:first-child {
-    grid-area: no;
-  }
-  .bet-row .bet-selection {
-    grid-area: select;
-  }
-  .bet-row .bet-game {
-    grid-area: game;
-  }
-  .bet-row .bet-stake {
-    grid-area: stake;
-  }
-  .bet-row .btn-remove-row {
-    grid-area: remove;
-    height: 34px;
-    max-width: 30px;
-  }
-  /* Baris header tabel disembunyikan di mobile — pastikan benar-benar tidak menyisakan ruang */
-  .quick-bet-card > .bet-row {
-    display: none;
-  }
-}
+/* Mobile bet-row handled by Pay4D mobile layout */
 
 
 /* --- Togel Mode Tabs & BBFS Generator Luxury Design --- */
@@ -616,4 +587,277 @@
 }
 .bbfs-generate-btn:active {
   transform: translateY(2px) !important;
+}
+
+
+/* ==========================================================================
+   7. PAY4D BETTING TABLE & MOBILE CARD STYLING (v=20261003-pay4d1)
+   ========================================================================== */
+
+/* Pay4D Quick Action Toolbar */
+.pay4d-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+.pay4d-mass-set {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pay4d-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.pay4d-input-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pay4d-prefix {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.pay4d-mass-input {
+  max-width: 110px;
+  height: 34px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  text-align: right;
+  background: rgba(15, 23, 42, 0.9) !important;
+  border: 1px solid rgba(59, 130, 246, 0.35) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+}
+
+.pay4d-row-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-danger-soft {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+  color: #f87171 !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-danger-soft:hover {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-color: #ef4444 !important;
+  color: #fee2e2 !important;
+}
+
+/* Pay4D Desktop Table Row & Header */
+.bet-row.pay4d-table-header {
+  display: grid;
+  grid-template-columns: 36px minmax(130px, 1.4fr) minmax(170px, 1.6fr) minmax(120px, 1.2fr) minmax(130px, 1.2fr) 36px;
+  gap: 8px 10px;
+  align-items: center;
+  padding: 0 12px 6px;
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.bet-row.pay4d-bet-row {
+  display: grid;
+  grid-template-columns: 36px minmax(130px, 1.4fr) minmax(170px, 1.6fr) minmax(120px, 1.2fr) minmax(130px, 1.2fr) 36px;
+  gap: 8px 10px;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.bet-row.pay4d-bet-row:hover,
+.bet-row.pay4d-bet-row:focus-within {
+  border-color: rgba(59, 130, 246, 0.45);
+  background: rgba(30, 41, 59, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.cell-mobile-title {
+  display: none;
+}
+
+/* Pay4D Single Number Input */
+.pay4d-number-input {
+  font-family: 'JetBrains Mono', 'Roboto Mono', 'SF Pro Text', monospace, sans-serif !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 3px !important;
+  text-align: center !important;
+  background: rgba(11, 19, 38, 0.95) !important;
+  border: 1px solid rgba(59, 130, 246, 0.4) !important;
+  color: #38bdf8 !important;
+  border-radius: 6px !important;
+  min-height: 42px !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+  transition: all 0.15s ease !important;
+}
+
+.pay4d-number-input:focus {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+  color: #fbbf24 !important;
+}
+
+.pay4d-number-input::placeholder {
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 1px !important;
+  color: rgba(148, 163, 184, 0.45) !important;
+}
+
+.row-no-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.row-net-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 6px;
+  font-size: 0.82rem;
+  min-height: 38px;
+  justify-content: flex-end;
+}
+
+.row-net-badge.active {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #10b981;
+}
+
+.row-net-badge .net-amount {
+  font-weight: 700;
+  color: #34d399;
+}
+
+.row-net-badge .net-disc-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.row-net-badge .net-placeholder {
+  color: var(--text-muted, #64748b);
+  font-size: 0.78rem;
+}
+
+/* Pay4D Mobile View (Screen <= 640px) */
+@media (max-width: 640px) {
+  .pay4d-table-header {
+    display: none !important;
+  }
+
+  .bet-row.pay4d-bet-row {
+    display: grid !important;
+    grid-template-columns: 32px 1fr 34px !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 8px 10px !important;
+    padding: 12px 10px !important;
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
+    border: 1px solid rgba(59, 130, 246, 0.28) !important;
+    border-radius: 10px !important;
+    margin-bottom: 12px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .cell-no {
+    grid-column: 1 / 2 !important;
+    grid-row: 1 / 2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .cell-selection {
+    grid-column: 2 / 3 !important;
+    grid-row: 1 / 2 !important;
+  }
+
+  .cell-remove {
+    grid-column: 3 / 4 !important;
+    grid-row: 1 / 2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .cell-game {
+    grid-column: 1 / 4 !important;
+    grid-row: 2 / 3 !important;
+  }
+
+  .cell-stake {
+    grid-column: 1 / 3 !important;
+    grid-row: 3 / 4 !important;
+  }
+
+  .cell-net {
+    grid-column: 3 / 4 !important;
+    grid-row: 3 / 4 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+  }
+
+  .cell-mobile-title {
+    display: block !important;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary, #94a3b8) !important;
+    margin-bottom: 3px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .cell-no .cell-mobile-title,
+  .cell-remove .cell-mobile-title {
+    display: none !important;
+  }
 }
