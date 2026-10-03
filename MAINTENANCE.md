@@ -144,8 +144,8 @@ git diff --stat HEAD
 ## 🛠️ ISSUE TRACKER
 
 ### BELUM DIKERJAKAN — Darurat (lakukan segera)
-- [ ] Fix sportsbook.html: Tambah tokens.css sebelum sportsbook.css
-- [ ] Bersihkan duplikat mobile-blue.css: .qris-white-card (8x->1x), .deposit-row (6x->1x)
+- [x] Fix sportsbook.html: Tambah tokens.css sebelum sportsbook.css
+- [x] Bersihkan duplikat mobile-blue.css: .qris-white-card, .deposit-tab-item, .preset-pill-btn, .btn-qris-submit (Consolidated cleanly)
 
 ### BELUM DIKERJAKAN — Tinggi
 - [ ] Bersihkan semua duplikat sportsbook.css (8 class)

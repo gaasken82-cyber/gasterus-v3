@@ -1892,10 +1892,10 @@ select.reg-input {
   padding: 0 10px 10px;
 }
 .deposit-tab-item {
-  background: linear-gradient(180deg, #0a172c 0%, #040914 100%);
-  border: 1px solid #1e3a8a;
-  border-radius: 6px;
-  padding: 8px 4px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 1.5px solid #334155;
+  border-radius: 10px;
+  padding: 10px 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1903,17 +1903,18 @@ select.reg-input {
   gap: 4px;
   color: #94a3b8;
   text-decoration: none;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 800;
   text-align: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   cursor: pointer;
+  transition: all 0.12s ease;
 }
 .deposit-tab-item.active {
   background: linear-gradient(180deg, #38bdf8 0%, #2563eb 50%, #1d4ed8 100%);
-  border: 1px solid #60a5fa;
+  border: 1.5px solid #60a5fa;
   color: #ffffff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 10px rgba(56, 189, 248, 0.7);
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 .deposit-quick-box {
   margin: 0 10px 10px;
@@ -2011,24 +2012,35 @@ select.reg-input {
   margin-bottom: 6px;
 }
 .deposit-note-box ol {
-  padding-left: 18px;
-  font-size: 10.5px;
-  color: #cbd5e1;
-  line-height: 1.5;
-}
-.qris-white-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 16px 14px;
-  margin: 0 10px 16px;
+  pad.qris-white-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  padding: 20px 16px;
+  margin: 0 10px 20px;
   color: #071120;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(203, 213, 225, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+.qris-white-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #38bdf8 0%, #2563eb 50%, #38bdf8 100%);
+  border-radius: 16px 16px 0 0;
 }
 .qris-white-card .title-brand {
-  font-size: 15px;
+  font-family: "Outfit", sans-serif;
+  font-size: 17px;
   font-weight: 900;
-  color: #1e293b;
+  color: #0f172a;
   text-align: center;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
 }
 .qris-white-card .sub-user {
   font-size: 11px;
@@ -2037,12 +2049,16 @@ select.reg-input {
   margin-bottom: 8px;
 }
 .qris-white-card .badge-trust {
-  font-size: 12.5px;
-  font-weight: 900;
-  color: #071120;
+  background: linear-gradient(90deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #166534;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 999px;
+  display: inline-block;
+  margin: 8px auto;
+  letter-spacing: 0.3px;
   text-align: center;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
 }
 .qris-white-card .qris-logo-wrap {
   display: flex;
@@ -2062,48 +2078,78 @@ select.reg-input {
 }
 .qris-white-card input.amount-input {
   width: 100%;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 8px 10px;
-  font-size: 13px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
   font-weight: 700;
-  color: #071120;
+  color: #0f172a;
   outline: none;
   box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.qris-white-card input.amount-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
 }
 .qris-preset-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin: 10px 0 12px;
+  gap: 8px;
+  margin: 12px 0 14px;
 }
 .preset-pill-btn {
-  background: #e2e8f0;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  height: 36px;
+  background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  height: 42px;
   font-size: 12px;
   font-weight: 800;
   color: #1e293b;
   cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.12s ease;
+}
+.preset-pill-btn:hover {
+  background: linear-gradient(180deg, #f0f9ff 0%, #dbeafe 100%);
+  border-color: #38bdf8;
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
 }
 .preset-pill-btn:active {
-  background: #cbd5e1;
+  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
+  transform: translateY(2px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 .btn-qris-submit {
   width: 100%;
   background: linear-gradient(180deg, #38bdf8 0%, #2563eb 50%, #1d4ed8 100%);
   color: #ffffff;
   border: 1px solid #60a5fa;
-  border-radius: 8px;
-  height: 42px;
-  font-size: 13px;
+  border-radius: 12px;
+  height: 48px;
+  font-size: 14px;
   font-weight: 900;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
+  transition: all 0.12s ease;
+}
+.btn-qris-submit:hover {
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+.btn-qris-submit:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+}
+.btn-qris-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+case;
 }
 .btn-qris-submit:disabled {
   opacity: 0.6;
@@ -2860,161 +2906,6 @@ body.nav-open .nav-drawer,
 .menu-toggle:active {
   transform: translateY(1px) !important;
   box-shadow: 0 1px 4px rgba(0,0,0,0.5) !important;
-}
-
-/* --- Deposit Card: Enhanced 3D Effect --- */
-.qris-white-card {
-  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%) !important;
-  border-radius: 16px !important;
-  padding: 20px 16px !important;
-  margin: 0 10px 20px !important;
-  color: #071120 !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.9) !important;
-  border: 1px solid rgba(203,213,225,0.6) !important;
-  position: relative !important;
-  overflow: hidden !important;
-}
-
-.qris-white-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #38bdf8 0%, #2563eb 50%, #38bdf8 100%);
-  border-radius: 16px 16px 0 0;
-}
-
-.qris-white-card .title-brand {
-  font-family: 'Outfit', sans-serif !important;
-  font-size: 17px !important;
-  font-weight: 900 !important;
-  color: #0f172a !important;
-  text-align: center !important;
-  letter-spacing: 0.5px !important;
-  margin-top: 4px !important;
-}
-
-.qris-white-card .badge-trust {
-  background: linear-gradient(90deg, #dcfce7 0%, #bbf7d0 100%) !important;
-  color: #166534 !important;
-  font-size: 11px !important;
-  font-weight: 800 !important;
-  padding: 4px 12px !important;
-  border-radius: 999px !important;
-  display: inline-block !important;
-  margin: 8px auto !important;
-  letter-spacing: 0.3px !important;
-}
-
-/* --- Preset Buttons: Professional 3D Style --- */
-.qris-preset-grid {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 8px !important;
-  margin: 12px 0 14px !important;
-}
-
-.preset-pill-btn {
-  background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%) !important;
-  border: 1.5px solid #cbd5e1 !important;
-  border-radius: 10px !important;
-  height: 42px !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  color: #1e293b !important;
-  cursor: pointer !important;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.8) !important;
-  transition: all 0.12s ease !important;
-}
-
-.preset-pill-btn:hover {
-  background: linear-gradient(180deg, #f0f9ff 0%, #dbeafe 100%) !important;
-  border-color: #38bdf8 !important;
-  box-shadow: 0 4px 12px rgba(56,189,248,0.3), inset 0 1px 0 rgba(255,255,255,0.9) !important;
-  transform: translateY(-1px) !important;
-}
-
-.preset-pill-btn:active {
-  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%) !important;
-  transform: translateY(2px) !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15) !important;
-}
-
-/* --- Submit Button: Enhanced 3D --- */
-.btn-qris-submit {
-  width: 100% !important;
-  background: linear-gradient(180deg, #38bdf8 0%, #2563eb 50%, #1d4ed8 100%) !important;
-  color: #ffffff !important;
-  border: 1px solid #60a5fa !important;
-  border-radius: 12px !important;
-  height: 48px !important;
-  font-size: 14px !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.8px !important;
-  cursor: pointer !important;
-  box-shadow: 0 4px 12px rgba(37,99,235,0.4), inset 0 1px 0 rgba(255,255,255,0.4) !important;
-  text-transform: uppercase !important;
-  transition: all 0.12s ease !important;
-}
-
-.btn-qris-submit:hover {
-  box-shadow: 0 6px 20px rgba(37,99,235,0.5), inset 0 1px 0 rgba(255,255,255,0.5) !important;
-  transform: translateY(-1px) !important;
-}
-
-.btn-qris-submit:active {
-  transform: translateY(2px) !important;
-  box-shadow: 0 2px 6px rgba(37,99,235,0.4) !important;
-}
-
-/* --- Input Field: Enhanced --- */
-.qris-white-card input.amount-input {
-  width: 100% !important;
-  background: #f8fafc !important;
-  border: 2px solid #e2e8f0 !important;
-  border-radius: 10px !important;
-  padding: 10px 14px !important;
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  color: #0f172a !important;
-  outline: none !important;
-  box-sizing: border-box !important;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
-}
-
-.qris-white-card input.amount-input:focus {
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 0 3px rgba(56,189,248,0.15) !important;
-}
-
-/* --- Deposit Tabs: Enhanced --- */
-.deposit-tab-item {
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
-  border: 1.5px solid #334155 !important;
-  border-radius: 10px !important;
-  padding: 10px 6px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 4px !important;
-  color: #94a3b8 !important;
-  text-decoration: none !important;
-  font-size: 10px !important;
-  font-weight: 800 !important;
-  text-align: center !important;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05) !important;
-  cursor: pointer !important;
-  transition: all 0.12s ease !important;
-}
-
-.deposit-tab-item.active {
-  background: linear-gradient(180deg, #38bdf8 0%, #2563eb 50%, #1d4ed8 100%) !important;
-  border: 1.5px solid #60a5fa !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 16px rgba(56,189,248,0.4), inset 0 1px 0 rgba(255,255,255,0.3) !important;
 }
 
 /* --- Register Form Professional Layout --- */

@@ -150,7 +150,7 @@ function setMarketNotice(message) {
 function setBettingControlsDisabled(disabled) {
   // Slip controls di luar #bet-rows-container (tambah baris, generator quick bet,
   // tombol submit) juga harus ikut mati saat pasaran tertutup.
-  document.querySelectorAll('#bet-rows-container input, #bet-rows-container select, #bet-rows-container button, #btn-add-row, #quick-bet-mode, #btn-quick-bet, #btn-submit-bet').forEach(control => {
+  document.querySelectorAll('#bet-rows-container input, #bet-rows-container select, #bet-rows-container button, #btn-add-row, #quick-bet-mode, #btn-quick-bet, #btn-submit-bet, #btn-apply-bbfs, #bbfs-digits, #bbfs-panel input').forEach(control => {
     control.disabled = disabled;
   });
   const addRowBtn = document.getElementById('btn-add-row');
@@ -592,7 +592,206 @@ function syncGameHint() {
   el.textContent = `${game ? `${game.label}: ` : ''}${text}`;
 }
 
+
+// ============================================================================
+// BBFS (Bolak Balik Full Set) Generator Logic
+// ============================================================================
+function getPermutations(arr, length) {
+  const result = new Set();
+  function permute(current, remaining) {
+    if (current.length === length) {
+      result.add(current.join(''));
+      return;
+    }
+    for (let i = 0; i < remaining.length; i++) {
+      permute([...current, remaining[i]], remaining.filter((_, idx) => idx !== i));
+    }
+  }
+  permute([], arr);
+  return Array.from(result);
+}
+
+function updateBBFSPreview() {
+  const digitsRaw = document.getElementById('bbfs-digits')?.value || '';
+  const digits = digitsRaw.replace(/\D/g, '').split('');
+  const infoEl = document.getElementById('bbfs-digit-info');
+  if (infoEl) {
+    infoEl.textContent = `${digits.length} / 7 digit dimasukkan (${digits.join(', ') || '-'})`;
+  }
+
+  const check4d = document.getElementById('bbfs-check-4d')?.checked;
+  const check3d = document.getElementById('bbfs-check-3d')?.checked;
+  const check2d = document.getElementById('bbfs-check-2d')?.checked;
+  const check2dFront = document.getElementById('bbfs-check-2d-front')?.checked;
+  const check2dMid = document.getElementById('bbfs-check-2d-mid')?.checked;
+
+  const stake4d = Math.max(0, Number(document.getElementById('bbfs-stake-4d')?.value) || 0);
+  const stake3d = Math.max(0, Number(document.getElementById('bbfs-stake-3d')?.value) || 0);
+  const stake2d = Math.max(0, Number(document.getElementById('bbfs-stake-2d')?.value) || 0);
+  const stake2dFront = Math.max(0, Number(document.getElementById('bbfs-stake-2d-front')?.value) || 0);
+  const stake2dMid = Math.max(0, Number(document.getElementById('bbfs-stake-2d-mid')?.value) || 0);
+
+  const p4 = (check4d && digits.length >= 4) ? getPermutations(digits, 4).length : 0;
+  const p3 = (check3d && digits.length >= 3) ? getPermutations(digits, 3).length : 0;
+  const p2 = (check2d && digits.length >= 2) ? getPermutations(digits, 2).length : 0;
+  const p2f = (check2dFront && digits.length >= 2) ? getPermutations(digits, 2).length : 0;
+  const p2m = (check2dMid && digits.length >= 2) ? getPermutations(digits, 2).length : 0;
+
+  const el4d = document.getElementById('bbfs-count-4d');
+  const el3d = document.getElementById('bbfs-count-3d');
+  const el2d = document.getElementById('bbfs-count-2d');
+  const el2df = document.getElementById('bbfs-count-2d-front');
+  const el2dm = document.getElementById('bbfs-count-2d-mid');
+
+  if (el4d) el4d.textContent = `(${p4} ln)`;
+  if (el3d) el3d.textContent = `(${p3} ln)`;
+  if (el2d) el2d.textContent = `(${p2} ln)`;
+  if (el2df) el2df.textContent = `(${p2f} ln)`;
+  if (el2dm) el2dm.textContent = `(${p2m} ln)`;
+
+  const totalLines = p4 + p3 + p2 + p2f + p2m;
+  const totalCombEl = document.getElementById('bbfs-total-combinations');
+  if (totalCombEl) totalCombEl.textContent = `${totalLines} Line`;
+
+  // Estimasi bayar setelah diskon
+  const disc4 = Number(gameByCode('STRAIGHT_4D')?.discountPercent || 66) / 100;
+  const disc3 = Number(gameByCode('STRAIGHT_3D')?.discountPercent || 59) / 100;
+  const disc2 = Number(gameByCode('STRAIGHT_2D')?.discountPercent || 29) / 100;
+  const disc2f = Number(gameByCode('POSITION_2D_FRONT')?.discountPercent || 28) / 100;
+  const disc2m = Number(gameByCode('POSITION_2D_MIDDLE')?.discountPercent || 28) / 100;
+
+  const cost4 = p4 * stake4d * (1 - disc4);
+  const cost3 = p3 * stake3d * (1 - disc3);
+  const cost2 = p2 * stake2d * (1 - disc2);
+  const cost2f = p2f * stake2dFront * (1 - disc2f);
+  const cost2m = p2m * stake2dMid * (1 - disc2m);
+  const estNet = Math.round(cost4 + cost3 + cost2 + cost2f + cost2m);
+
+  const estNetEl = document.getElementById('bbfs-estimated-net');
+  if (estNetEl) estNetEl.textContent = formatRupiah(estNet);
+}
+
+function applyBBFS() {
+  const digitsRaw = document.getElementById('bbfs-digits')?.value || '';
+  const digits = digitsRaw.replace(/\D/g, '').split('');
+  if (digits.length < 2) {
+    showToast('Masukkan minimal 2 sampai 7 digit untuk BBFS.', 'danger');
+    return;
+  }
+
+  const check4d = document.getElementById('bbfs-check-4d')?.checked;
+  const check3d = document.getElementById('bbfs-check-3d')?.checked;
+  const check2d = document.getElementById('bbfs-check-2d')?.checked;
+  const check2dFront = document.getElementById('bbfs-check-2d-front')?.checked;
+  const check2dMid = document.getElementById('bbfs-check-2d-mid')?.checked;
+
+  const stake4d = Math.max(0, Number(document.getElementById('bbfs-stake-4d')?.value) || 0);
+  const stake3d = Math.max(0, Number(document.getElementById('bbfs-stake-3d')?.value) || 0);
+  const stake2d = Math.max(0, Number(document.getElementById('bbfs-stake-2d')?.value) || 0);
+  const stake2dFront = Math.max(0, Number(document.getElementById('bbfs-stake-2d-front')?.value) || 0);
+  const stake2dMid = Math.max(0, Number(document.getElementById('bbfs-stake-2d-mid')?.value) || 0);
+
+  const rows = [];
+  const min = minStake();
+
+  if (check4d && digits.length >= 4 && stake4d >= min && gameByCode('STRAIGHT_4D')) {
+    getPermutations(digits, 4).forEach(num => {
+      rows.push({ id: rowIdCounter++, selection: num, stake: stake4d, gameCode: 'STRAIGHT_4D' });
+    });
+  }
+  if (check3d && digits.length >= 3 && stake3d >= min && gameByCode('STRAIGHT_3D')) {
+    getPermutations(digits, 3).forEach(num => {
+      rows.push({ id: rowIdCounter++, selection: num, stake: stake3d, gameCode: 'STRAIGHT_3D' });
+    });
+  }
+  if (check2d && digits.length >= 2 && stake2d >= min && gameByCode('STRAIGHT_2D')) {
+    getPermutations(digits, 2).forEach(num => {
+      rows.push({ id: rowIdCounter++, selection: num, stake: stake2d, gameCode: 'STRAIGHT_2D' });
+    });
+  }
+  if (check2dFront && digits.length >= 2 && stake2dFront >= min && gameByCode('POSITION_2D_FRONT')) {
+    getPermutations(digits, 2).forEach(num => {
+      rows.push({ id: rowIdCounter++, selection: num, stake: stake2dFront, gameCode: 'POSITION_2D_FRONT' });
+    });
+  }
+  if (check2dMid && digits.length >= 2 && stake2dMid >= min && gameByCode('POSITION_2D_MIDDLE')) {
+    getPermutations(digits, 2).forEach(num => {
+      rows.push({ id: rowIdCounter++, selection: num, stake: stake2dMid, gameCode: 'POSITION_2D_MIDDLE' });
+    });
+  }
+
+  if (!rows.length) {
+    showToast('Pilih setidaknya 1 tipe game dan pastikan nominal bet memenuhi minimal stake (' + formatRupiah(min) + ').', 'danger');
+    return;
+  }
+
+  const limit = Math.max(1, Math.min(Number(currentMarketConfig?.maxRows) || 100, 100));
+  const isTruncated = rows.length > limit;
+  betRows = rows.slice(0, limit);
+  renderRows();
+  
+  // Kembalikan view ke tabel standar agar pemain dapat memeriksa baris taruhan
+  setGameModeTab('standard');
+
+  showToast(`Berhasil generate ${betRows.length} baris BBFS ke slip taruhan!${isTruncated ? ` (dibatasi ${limit} baris)` : ''}`, 'success');
+}
+
+function setGameModeTab(mode) {
+  document.querySelectorAll('.mode-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
+  });
+  const bbfsPanel = document.getElementById('bbfs-panel');
+  const quickPanel = document.getElementById('quick-bet-wrap');
+  if (bbfsPanel) {
+    bbfsPanel.style.display = mode === 'bbfs' ? 'block' : 'none';
+  }
+  if (quickPanel) {
+    quickPanel.style.display = (mode === 'quick' || mode === 'standard') ? 'flex' : 'none';
+  }
+  if (mode === 'bbfs') {
+    document.getElementById('bbfs-digits')?.focus();
+    updateBBFSPreview();
+  } else if (mode === 'quick') {
+    document.getElementById('quick-bet-paste')?.focus();
+  }
+}
+
 function setupEventListeners() {
+  // Togel Game Mode Tabs
+  document.querySelectorAll('.mode-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.getAttribute('data-mode');
+      setGameModeTab(mode);
+    });
+  });
+
+  // BBFS Inputs & Calculations
+  const bbfsInput = document.getElementById('bbfs-digits');
+  if (bbfsInput) {
+    bbfsInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/\D/g, '').slice(0, 7);
+      updateBBFSPreview();
+    });
+  }
+
+  const clearBbfsBtn = document.getElementById('btn-clear-bbfs');
+  if (clearBbfsBtn) {
+    clearBbfsBtn.addEventListener('click', () => {
+      if (bbfsInput) bbfsInput.value = '';
+      updateBBFSPreview();
+    });
+  }
+
+  document.querySelectorAll('#bbfs-panel input[type="checkbox"], #bbfs-panel input[type="number"]').forEach(el => {
+    el.addEventListener('input', updateBBFSPreview);
+    el.addEventListener('change', updateBBFSPreview);
+  });
+
+  const applyBbfsBtn = document.getElementById('btn-apply-bbfs');
+  if (applyBbfsBtn) {
+    applyBbfsBtn.addEventListener('click', applyBBFS);
+  }
+
   window.removeBetRow = removeRow;
 
   const addRowBtn = document.getElementById('btn-add-row');
