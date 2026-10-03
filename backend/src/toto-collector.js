@@ -10,6 +10,8 @@ import { collectOfficialTotoSources, officialDecision } from './toto-official-so
 import { buildTotoAuthoritySnapshot, totoAuthoritySnapshotRevision } from './toto-production-acceptance.js';
 import { reconcileCashBettingWindows } from './toto-cash-lifecycle.js';
 import { recordDrawObservations, drawCalibrationSnapshot } from './toto-draw-calibrator.js';
+import { poolsInPollingPhase, TOTO_RESULT_TIMES_WIB } from './toto-draw-scheduler.js';
+import { syncJobs, dueJobs, applyPollResult, pollerSnapshot } from './toto-draw-poller.js';
 const STATUS_KEY = 'toto:collector:status:v1';
 const LOCK_KEY = 'toto:collector:lock:v1';
 const STATUS_TTL_SECONDS = 172800;
@@ -140,8 +142,6 @@ async function applyDecisions(decisions) {
     }
     if (decision.status === 'SINGLE_SOURCE') {
       if (config.totoPublishSingleSource && /^\d{3,6}$/.test(String(decision.result || '')) && decision.drawDate) {
-        // Display-only publication: angka asli 1 sumber ditampilkan ke member.
-        // verification_status TETAP SINGLE_SOURCE -> authorityReady tetap false (betting tetap tertutup).
         await query(`UPDATE markets SET result=$1,period=$2,verification_status='SINGLE_SOURCE',confidence=$3,draw_date=$4,draw_time=COALESCE($5,draw_time),source_updated_at=now(),updated_at=now() WHERE id=$6`,
           [decision.result, decision.drawDate, decision.confidence || 0.6, decision.drawDate, decision.drawTime, market.id]);
         updated += 1;
@@ -194,7 +194,6 @@ async function enrichConsensusSourcesWithBrowserFallback(sourceResults) {
     .filter(source => !sourceInCooldown(source.code))
     .sort((a, b) => {
       const ai = BROWSER_FALLBACK_PRIORITY.indexOf(a.code), bi = BROWSER_FALLBACK_PRIORITY.indexOf(b.code);
-      // Sumber yang sehat di-prioritaskan untuk di-render; yang degraded (di luar cooldown) menunggu giliran.
       const ah = sourceHealthy(a.code) ? 0 : 1, bh = sourceHealthy(b.code) ? 0 : 1;
       return (ah - bh) || ((ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi));
     });
@@ -227,6 +226,22 @@ async function enrichConsensusSourcesWithBrowserFallback(sourceResults) {
 async function executeRun({ fetchImpl = fetch, persist = true, reason = 'scheduled' } = {}) {
   const startedAt = new Date();
   state = { ...state, running: true, lastRunAt: startedAt.toISOString(), lastError: null };
+
+  const manual = reason === 'owner-manual';
+  const activeWakeSet = manual ? [] : poolsInPollingPhase(startedAt, Object.keys(TOTO_RESULT_TIMES_WIB));
+  const duePolls = manual ? [] : dueJobs(startedAt).map(item => item.key);
+
+  if (!manual && !activeWakeSet.length && !duePolls.length) {
+    state = {
+      ...state,
+      running: false,
+      summary: { ...(state.summary || {}), activeWakeSet: 0, duePolls: 0 },
+      poller: pollerSnapshot(startedAt)
+    };
+    await persistSharedState();
+    return { ...state, skipped: true, skipReason: 'NO_ACTIVE_TOTO_WAKE_WINDOW', decisions: [] };
+  }
+
   // Vegasnet adalah sumber tunggal TOTO (lihat toto-source-fetch.js). Jalur
   // scraper lain sudah dibuang agar collector tidak menambah beban dan tidak
   // menggeser angka dengan board yang menulis label berbeda.
@@ -272,6 +287,8 @@ async function executeRun({ fetchImpl = fetch, persist = true, reason = 'schedul
   // Ukur jam result yang terlihat di sumber. Sampel baru hanya diambil ketika
   // tanggal draw berubah, jadi tidak menambah beban request.
   const drawCalibration = recordDrawObservations(decisions, { now: startedAt });
+  const polledKeys = manual ? [] : dueJobs(startedAt).map(item => item.key);
+  const pollOutcome = applyPollResult(decisions, { now: startedAt, polled: polledKeys });
   const persistence = persist ? await applyDecisions(decisions) : { updated: 0, unchanged: 0, autoSuspended: 0 };
   const cashWindows = persist ? await reconcileCashBettingWindows(decisions) : null;
   state = {
@@ -295,15 +312,17 @@ async function executeRun({ fetchImpl = fetch, persist = true, reason = 'schedul
           error: ok && parsedMarkets === 0 ? 'TOTO_SOURCE_PARSE_EMPTY' : error,
           parsedMarkets, selectedMarkets, latestDrawDate: raw.latestDrawDate || null,
           status: status || null, finalUrl: finalUrl || null, contentType: contentType || null,
-          attempts: Array.isArray(attempts) ? attempts : [], renderer: renderer || null, renderAttempted: Boolean(renderAttempted), renderMs: Number(renderMs || 0), renderError: renderError || null, renderCacheAgeMs: Number(renderCacheAgeMs || 0), authority: 'CONSENSUS_INPUT',
-          failCount: Number(sourceHealthEntry(code).failCount || 0), degraded: sourceInCooldown(code)
+          attempts: Array.isArray(attempts) ? attempts : [], renderer: renderer || null, renderAttempted: Boolean(renderAttempted), renderMs: Number(renderMs || 0), renderError: renderError || null,
+          renderCacheAgeMs: Number(renderCacheAgeMs || 0), failCount: Number(sourceHealthEntry(code).failCount || 0), degraded: sourceInCooldown(code)
         };
       })
     ],
-    summary: { ...counts, ...persistence, cashWindows },
+    summary: { ...counts, ...persistence, cashWindows, activeWakeSet: activeWakeSet.length, duePolls: polledKeys.length },
     scheduleReadiness,
     drawCalibration: { ...drawCalibration, snapshot: drawCalibrationSnapshot() },
-    bettingReadiness: persist ? await bettingReadinessSummary() : null
+    bettingReadiness: persist ? await bettingReadinessSummary() : null,
+    poller: pollerSnapshot(startedAt),
+    pollOutcome
   };
   await persistSharedState();
   const authoritySnapshot = buildTotoAuthoritySnapshot(decisions);
@@ -311,7 +330,7 @@ async function executeRun({ fetchImpl = fetch, persist = true, reason = 'schedul
   const authorityChanged = snapshotRevision !== lastAuthoritySnapshotRevision;
   const now = Date.now();
   if (lastAuthoritySnapshotLogAt === 0 || authorityChanged || now - lastAuthoritySnapshotLogAt >= AUTHORITY_SNAPSHOT_LOG_INTERVAL_MS || reason === 'owner-manual') {
-    logger.info('TOTO production result authority snapshot', { reason, deploymentId: process.env.RAILWAY_DEPLOYMENT_ID || null, snapshotVersion: 'R6.9.0.23-V12', snapshotRevision, authorityChanged, ...authoritySnapshot });
+    logger.info('TOTO production result authority snapshot', { reason, deploymentId: process.env.RAILWAY_DEPLOYMENT_ID || null, snapshotVersion: 'R6.9.0.23-V12', snapshotRevision, authorityChanged, scheduleReadiness, bettingReadiness: state.bettingReadiness || null });
     lastAuthoritySnapshotLogAt = now;
   }
   lastAuthoritySnapshotRevision = snapshotRevision;
@@ -322,13 +341,27 @@ async function executeRun({ fetchImpl = fetch, persist = true, reason = 'schedul
     healthySources: state.sources.filter(item => item.ok).length,
     degradedSources: state.sources.filter(item => item.degraded).length,
     sourceHealth: state.sourceHealth || null,
-    sourceDiagnostics: state.sources.map(({ code, ok, transportOk, parsedMarkets, selectedMarkets, latestDrawDate, status, bytes, latencyMs, error, renderer, renderAttempted, renderMs, renderError, renderCacheAgeMs, failCount, degraded }) => ({ code, ok, transportOk: transportOk ?? ok, parsedMarkets: parsedMarkets || 0, selectedMarkets: selectedMarkets || 0, latestDrawDate: latestDrawDate || null, status: status || null, bytes: bytes || 0, latencyMs: latencyMs || 0, error: error || null, renderer: renderer || null, renderAttempted: Boolean(renderAttempted), renderMs: renderMs || 0, renderError: renderError || null, renderCacheAgeMs: renderCacheAgeMs || 0, failCount: failCount || 0, degraded: Boolean(degraded) })),
+    sourceDiagnostics: state.sources.map(({ code, ok, transportOk, parsedMarkets, selectedMarkets, latestDrawDate, status, bytes, latencyMs, error, renderer, renderAttempted, renderMs, renderError }) => ({
+      code, ok, transportOk, parsedMarkets, selectedMarkets, latestDrawDate, status, bytes, latencyMs, error, renderer, renderAttempted, renderMs, renderError
+    })),
     scheduleReadiness: state.scheduleReadiness || null,
-    bettingReadiness: state.bettingReadiness || null
+    bettingReadiness: state.bettingReadiness || null,
+    poller: state.poller || null
   });
-  return { ...state, decisions };
+  return { ...state, decisions, poller: state.poller || null };
 }
 export async function runTotoCollector(options = {}) {
+  const reason = options.reason || 'scheduled';
+  if (reason !== 'owner-manual') {
+    const now = new Date();
+    syncJobs(now);
+    const due = dueJobs(now);
+    const active = poolsInPollingPhase(now, Object.keys(TOTO_RESULT_TIMES_WIB));
+    if (!active.length && !due.length) {
+      return { skipped: true, skipReason: 'NO_ACTIVE_TOTO_WAKE_WINDOW', decisions: [], poller: pollerSnapshot(now), activePolls: 0, duePolls: 0 };
+    }
+  }
+
   if (inFlight) return inFlight;
   const token = randomUUID();
   let distributedLock = false;
@@ -366,4 +399,3 @@ export async function totoCollectorStatus() {
     statusScope: shared ? 'REDIS_SHARED' : 'PROCESS_LOCAL'
   };
 }
-
