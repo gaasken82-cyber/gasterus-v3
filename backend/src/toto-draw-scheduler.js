@@ -323,4 +323,40 @@ export function schedulerSnapshot(now = new Date()) {
   };
 }
 
+// Serialisasi status jadwal (tanggal draw terakhir + hari libur) supaya deteksi
+// libur per pasar tetap bertahan setelah proses restart/redeploy. Modul ini tetap
+// murni (tanpa Redis); persistensi dilakukan oleh pemanggil (feed-worker).
+export function serializeDrawState() {
+  const entries = {};
+  for (const [slug, entry] of state) {
+    entries[slug] = {
+      lastDrawDate: entry.lastDrawDate ?? null,
+      lastDrawDateAt: entry.lastDrawDateAt ?? null,
+      missedDraws: Number(entry.missedDraws) || 0,
+      seenAt: Number(entry.seenAt) || 0,
+      skippedDays: [...entry.skippedDays]
+    };
+  }
+  return { version: 1, entries };
+}
+
+export function hydrateDrawState(payload) {
+  if (!payload || payload.version !== 1 || typeof payload.entries !== 'object' || payload.entries === null) return 0;
+  state.clear();
+  let restored = 0;
+  for (const [slug, entry] of Object.entries(payload.entries)) {
+    if (!slug || !entry) continue;
+    if (state.size >= MAX_TRACKED) break;
+    state.set(slug, {
+      lastDrawDate: entry.lastDrawDate ?? null,
+      lastDrawDateAt: Number.isFinite(Number(entry.lastDrawDateAt)) ? Number(entry.lastDrawDateAt) : null,
+      missedDraws: Number(entry.missedDraws) || 0,
+      seenAt: Number(entry.seenAt) || 0,
+      skippedDays: new Set(Array.isArray(entry.skippedDays) ? entry.skippedDays.filter(day => typeof day === 'string') : [])
+    });
+    restored += 1;
+  }
+  return restored;
+}
+
 export const __totoDrawScheduler = { state, toMinutes, wibParts };

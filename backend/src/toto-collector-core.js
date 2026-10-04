@@ -610,6 +610,3 @@ export function isDrawWindowActive(slug, { now = new Date(), padMin = 15 } = {})
     : (mins >= open - pad) || (mins <= close + pad);
   return active;
 }
-export function isPeriodCompleted(slug, completedSet = new Set()) {
-  return completedSet.has(String(slug || '').trim());
-}

@@ -9,13 +9,15 @@ import { TOTO_SOURCES, collectTotoSources, renderTotoSource } from './toto-sourc
 import { collectOfficialTotoSources, officialDecision } from './toto-official-source.js';
 import { buildTotoAuthoritySnapshot, totoAuthoritySnapshotRevision } from './toto-production-acceptance.js';
 import { reconcileCashBettingWindows } from './toto-cash-lifecycle.js';
-import { recordDrawObservations, drawCalibrationSnapshot } from './toto-draw-calibrator.js';
-import { poolsInPollingPhase, TOTO_RESULT_TIMES_WIB } from './toto-draw-scheduler.js';
+import { recordDrawObservations, drawCalibrationSnapshot, serializeCalibrationState, hydrateCalibrationState } from './toto-draw-calibrator.js';
+import { poolsInPollingPhase, TOTO_RESULT_TIMES_WIB, serializeDrawState, hydrateDrawState } from './toto-draw-scheduler.js';
 import { syncJobs, dueJobs, applyPollResult, pollerSnapshot } from './toto-draw-poller.js';
 const STATUS_KEY = 'toto:collector:status:v1';
 const LOCK_KEY = 'toto:collector:lock:v1';
+const RUNTIME_KEY = 'toto:runtime:state:v1';
 const STATUS_TTL_SECONDS = 172800;
 const LOCK_TTL_SECONDS = 180;
+const RUNTIME_TTL_SECONDS = 604800; // 7 hari
 export { TOTO_SOURCES } from './toto-source-fetch.js';
 
 let state = {
@@ -350,8 +352,46 @@ async function executeRun({ fetchImpl = fetch, persist = true, reason = 'schedul
   });
   return { ...state, decisions, poller: state.poller || null };
 }
+// ---- Persistensi status runtime TOTO (kalibrasi jam result + tanggal draw/libur) ----
+// Disimpan di Redis agar deteksi libur dan jam result terukur tidak hilang saat
+// proses restart/redeploy. Modul scheduler & kalibrator tetap murni (tanpa Redis);
+// serialisasi/restore dilakukan di sini.
+let runtimeHydrated = false;
+export async function loadTotoRuntimeState() {
+  if (runtimeHydrated || !redis.isOpen) return runtimeHydrated;
+  try {
+    const raw = await redis.get(RUNTIME_KEY);
+    if (raw) {
+      const payload = JSON.parse(raw);
+      hydrateCalibrationState(payload?.calibration);
+      hydrateDrawState(payload?.draw);
+    }
+    runtimeHydrated = true;
+  } catch (error) {
+    logger.warn('TOTO runtime state load failed', { error: error.message });
+  }
+  return runtimeHydrated;
+}
+
+export async function persistTotoRuntimeState() {
+  if (!redis.isOpen) return false;
+  try {
+    await redis.set(RUNTIME_KEY, JSON.stringify({
+      version: 1,
+      savedAt: new Date().toISOString(),
+      calibration: serializeCalibrationState(),
+      draw: serializeDrawState()
+    }), { EX: RUNTIME_TTL_SECONDS });
+    return true;
+  } catch (error) {
+    logger.warn('TOTO runtime state save failed', { error: error.message });
+    return false;
+  }
+}
+
 export async function runTotoCollector(options = {}) {
   const reason = options.reason || 'scheduled';
+  await loadTotoRuntimeState();
   if (reason !== 'owner-manual') {
     const now = new Date();
     syncJobs(now);

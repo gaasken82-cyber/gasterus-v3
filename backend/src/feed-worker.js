@@ -2,7 +2,7 @@ import { config } from './config.js';
 import { connectRedis, closeRedis } from './redis.js';
 import { closeDatabase } from './db.js';
 import { logger } from './logger.js';
-import { runTotoCollector } from './toto-collector.js';
+import { runTotoCollector, loadTotoRuntimeState, persistTotoRuntimeState } from './toto-collector.js';
 import { schedulerSnapshot, TOTO_RESULT_TIMES_WIB } from './toto-draw-scheduler.js';
 import { syncJobs, dueJobs, markPolled, applyPollResult, pollerSnapshot } from './toto-draw-poller.js';
 import { refreshSportsbookFeedFromPoll } from './sportsbook-feed.js';
@@ -35,6 +35,7 @@ async function pollDuePools() {
     const result = await runTotoCollector({ reason: 'toto-draw-poller' });
     for (const key of polledKeys) markPolled(key, new Date());
     const outcome = applyPollResult(result?.decisions || [], { now: new Date(), polled: polledKeys });
+    await persistTotoRuntimeState();
     if (outcome.advanced.length) {
       logger.info('TOTO result baru terdeteksi', { pools: outcome.advanced });
     }
@@ -68,6 +69,7 @@ async function refreshSportsFeedIfDue(state) {
 
 async function main() {
   await connectRedis();
+  await loadTotoRuntimeState();
   memoryGuard = startMemoryGuard({ label: 'feed-worker' });
   const state = { lastSportsbookFeedRefresh: 0 };
   logger.info('Feed worker ready', {

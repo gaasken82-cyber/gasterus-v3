@@ -137,4 +137,42 @@ export function drawCalibrationSnapshot() {
   return { count: observations.size, maxSlugs: MAX_SLUGS, maxSamples: MAX_SAMPLES, uncalibratedSafetyMinutes: UNCALIBRATED_SAFETY_MINUTES, calibratedBufferMinutes: CALIBRATED_BUFFER_MINUTES, markets: out };
 }
 
+// Serialisasi sampel kalibrasi supaya jam result terukur tetap bertahan setelah
+// restart/redeploy. Modul ini tetap murni (tanpa Redis).
+export function serializeCalibrationState() {
+  const entries = {};
+  for (const [slug, entry] of observations) {
+    entries[slug] = {
+      lastDrawDate: entry.lastDrawDate ?? null,
+      updatedAt: Number(entry.updatedAt) || 0,
+      samples: entry.samples.map(sample => ({
+        drawDate: String(sample.drawDate || ''),
+        minutes: Number(sample.minutes) || 0,
+        at: Number(sample.at) || 0
+      }))
+    };
+  }
+  return { version: 1, entries };
+}
+
+export function hydrateCalibrationState(payload) {
+  if (!payload || payload.version !== 1 || typeof payload.entries !== 'object' || payload.entries === null) return 0;
+  observations.clear();
+  let restored = 0;
+  for (const [slug, entry] of Object.entries(payload.entries)) {
+    if (!slug || !entry || !Array.isArray(entry.samples)) continue;
+    if (observations.size >= MAX_SLUGS) break;
+    observations.set(slug, {
+      lastDrawDate: entry.lastDrawDate ?? null,
+      updatedAt: Number(entry.updatedAt) || 0,
+      samples: entry.samples
+        .filter(sample => sample && Number.isFinite(Number(sample.minutes)))
+        .map(sample => ({ drawDate: String(sample.drawDate || ''), minutes: Number(sample.minutes), at: Number(sample.at) || 0 }))
+        .slice(-MAX_SAMPLES)
+    });
+    restored += 1;
+  }
+  return restored;
+}
+
 export const __drawCalibrator = { observations, toMinutes, toClock, medianMinutes };

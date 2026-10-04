@@ -10,9 +10,9 @@
  * Per Instruction #2 this is NOT a raw 1-minute poller: collection runs only
  * while at least one market is inside its real draw-result window. The window
  * map lives in backend/src/toto-collector-core.js (DRAW_SCHEDULE) and is reused
- * verbatim via isDrawWindowActive(). runTotoCollector() also honours the Redis
- * per-market completion set (toto:completed:today), so a period already
- * published today is not re-fetched until its window rolls over.
+ * verbatim via isDrawWindowActive(). The live feed worker additionally gates on
+ * the per-pool draw scheduler (T-5..T+55) and drops a pool from polling the
+ * moment a new valid result is observed for it.
  *
  * Safe to schedule on any cadence: the collector takes a distributed Redis lock
  * (toto:collector:lock:v1), so this script serializes cleanly against the live
