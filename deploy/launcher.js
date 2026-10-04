@@ -68,7 +68,11 @@ async function waitReady(url,timeoutMs=120000){const until=Date.now()+timeoutMs;
 
 const coreDir=resolve(ROOT,'backend'),deployDir=resolve(ROOT,'deploy'),adminDir=resolve(ROOT,'admin');
 const coreUrl=`http://127.0.0.1:${CORE_INTERNAL_PORT}`;
-const internalCommon={HOST:'127.0.0.1',CORE_HOST:'127.0.0.1',CORE_PORT:String(CORE_INTERNAL_PORT),PUBLIC_PROTO:process.env.PUBLIC_PROTO || (process.env.NODE_ENV==='production'?'https':'http')};
+const defaultAdminSecret = 'gasterus-admin-proxy-internal-secret-min-32chars-2026';
+if (!process.env.ADMIN_PROXY_SECRET || process.env.ADMIN_PROXY_SECRET.length < 32) {
+  process.env.ADMIN_PROXY_SECRET = defaultAdminSecret;
+}
+const internalCommon={HOST:'127.0.0.1',CORE_HOST:'127.0.0.1',CORE_PORT:String(CORE_INTERNAL_PORT),PUBLIC_PROTO:process.env.PUBLIC_PROTO || (process.env.NODE_ENV==='production'?'https':'http'),ADMIN_PROXY_SECRET:process.env.ADMIN_PROXY_SECRET};
 const onRailway=Boolean(process.env.RAILWAY_DEPLOYMENT_ID || process.env.RAILWAY_ENVIRONMENT_ID);
 const runStartupMigrations=bool('RUN_STARTUP_MIGRATIONS', !onRailway);
 
