@@ -3,6 +3,7 @@ import { mkdir, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
+import { registerChild, unregisterChild } from './memory-guard.js';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const execFileAsync = promisify(execFile);
@@ -10,6 +11,34 @@ const renderCache = new Map();
 let queue = Promise.resolve();
 const persistentProfileDir = path.join(os.tmpdir(), `gasterus-sportsbook-chromium-profile-${process.pid}`);
 let renderSequence = 0;
+
+const IS_POSIX = process.platform !== 'win32';
+// PID proses Chromium yang sedang hidup. Dipakai untuk membersihkan anak yatim
+// ketika proses Node keluar mendadak (mis. memory-guard recycle via exit(0)).
+const liveChildren = new Set();
+
+function killGroup(pid, signal) {
+  try {
+    // PID negatif = seluruh process group. Di POSIX semua sub-proses Chromium
+    // (browser, renderer, gpu, zygote, utility) ikut mati; proses Node sendiri
+    // bukan anggota group tersebut sehingga tidak ikut tersentuh.
+    if (IS_POSIX) process.kill(-pid, signal);
+    else process.kill(pid, signal);
+    return true;
+  } catch {
+    try { process.kill(pid, signal); return true; } catch { return false; }
+  }
+}
+
+function killOrphanedChildren() {
+  for (const pid of liveChildren) killGroup(pid, 'SIGKILL');
+  liveChildren.clear();
+}
+
+// process.exit(0) dari memory-guard MELOMPATI blok finally renderOnce, sehingga
+// tanpa hook ini Chromium yang sedang render akan yatim dan terus menahan RSS
+// sampai container dibunuh OOM. Handler 'exit' harus sinkron; process.kill sinkron.
+process.once('exit', killOrphanedChildren);
 
 function nextProfileDir() {
   renderSequence += 1;
@@ -36,10 +65,13 @@ function waitForChildExit(child, timeoutMs) {
 async function terminateChild(child) {
   if (!child) return;
   const pid = child.pid;
+  if (pid) { liveChildren.delete(pid); unregisterChild(pid); }
   if (child.exitCode === null && child.signalCode === null) {
-    try { child.kill('SIGTERM'); } catch {}
+    if (pid) killGroup(pid, 'SIGTERM');
+    else { try { child.kill('SIGTERM'); } catch {} }
     if (!(await waitForChildExit(child, 1200))) {
-      try { child.kill('SIGKILL'); } catch {}
+      if (pid) killGroup(pid, 'SIGKILL');
+      else { try { child.kill('SIGKILL'); } catch {} }
       await waitForChildExit(child, 1200);
     }
   }
@@ -216,7 +248,10 @@ async function renderOnce(url, options = {}) {
     '--remote-debugging-port=0', `--user-data-dir=${profileDir}`, 'about:blank'
   ];
   if (options.userAgent) args.splice(args.length - 1, 0, `--user-agent=${options.userAgent}`);
-  const child = spawn(executable, args, { stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true });
+  // detached: Chromium menjadi process group sendiri, sehingga seluruh sub-prosesnya
+  // bisa dibersihkan lewat kill(-pid) di POSIX dan RSS-nya bisa dipantau guard.
+  const child = spawn(executable, args, { stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true, detached: IS_POSIX });
+  if (child.pid) { liveChildren.add(child.pid); registerChild(child.pid, 'chromium'); }
   let stderr = '';
   child.stderr?.on('data', chunk => { if (stderr.length < 12000) stderr += String(chunk); });
   let client = null;
