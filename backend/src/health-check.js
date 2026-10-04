@@ -5,6 +5,7 @@
 
 import { query } from './db.js';
 import { ok, fail } from './http.js';
+import { isOrphanMarketSlug } from './toto-market-identity.js';
 
 /**
  * Get toto market health status
@@ -25,8 +26,17 @@ export async function totoMarketsHealth({ res }) {
     `);
     
     const stats = result.rows[0];
-    const healthy = parseInt(stats.ready_for_betting) > 0;
-    
+    // Pasar orphan: slug-nya di luar source map sehingga collector tidak pernah
+    // menyentuhnya lagi. Angka di dalamnya akan membeku diam-diam.
+    const openRows = await query(`SELECT slug FROM markets WHERE status = 'open'`);
+    const orphanSlugs = openRows.rows.map(r => r.slug).filter(isOrphanMarketSlug);
+    const readyCount = parseInt(stats.ready_for_betting);
+    const healthy = readyCount > 0 && orphanSlugs.length === 0;
+
+    const reasons = [];
+    if (orphanSlugs.length) reasons.push(`${orphanSlugs.length} orphan market(s) di luar source map: ${orphanSlugs.join(', ')}`);
+    if (!readyCount) reasons.push('tidak ada pasar yang siap menerima bet');
+
     ok(res, {
       status: healthy ? 'healthy' : 'degraded',
       timestamp: new Date().toISOString(),
@@ -35,11 +45,13 @@ export async function totoMarketsHealth({ res }) {
         verified: parseInt(stats.verified_markets),
         open: parseInt(stats.open_markets),
         suspended: parseInt(stats.suspended_markets),
-        ready_for_betting: parseInt(stats.ready_for_betting)
+        ready_for_betting: readyCount,
+        orphan: orphanSlugs.length
       },
-      message: healthy 
-        ? `${stats.ready_for_betting} markets ready for betting` 
-        : 'No markets ready for betting - run migration 022_fix_betting_period_critical.sql'
+      orphan_markets: orphanSlugs,
+      message: healthy
+        ? `${readyCount} markets ready for betting`
+        : reasons.join('; ')
     });
   } catch (error) {
     fail(res, 500, 'Failed to check toto market health', 'HEALTH_CHECK_FAILED');
@@ -71,22 +83,26 @@ export async function totoMarketsDetail({ res }) {
       ORDER BY m.slug
     `);
     
-    const markets = result.rows;
-    const readyMarkets = markets.filter(r => r.is_ready);
-    const issueMarkets = markets.filter(r => !r.is_ready);
-    
+    const markets = result.rows.map(r => ({ ...r, is_orphan: isOrphanMarketSlug(r.slug) }));
+    const readyMarkets = markets.filter(r => r.is_ready && !r.is_orphan);
+    const issueMarkets = markets.filter(r => !r.is_ready || r.is_orphan);
+    const orphanMarkets = markets.filter(r => r.is_orphan);
+
     ok(res, {
       timestamp: new Date().toISOString(),
       summary: {
         total: markets.length,
         ready: readyMarkets.length,
-        issues: issueMarkets.length
+        issues: issueMarkets.length,
+        orphan: orphanMarkets.length
       },
       ready_markets: readyMarkets.map(r => r.slug),
+      orphan_markets: orphanMarkets.map(r => r.slug),
       markets_with_issues: issueMarkets.map(r => ({
         slug: r.slug,
         name: r.name,
         issues: [
+          r.is_orphan && 'orphan_not_in_source_map',
           !r.is_verified && 'not_verified',
           !r.is_open && 'not_open',
           !r.has_period && 'no_betting_period',

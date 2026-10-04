@@ -95,6 +95,31 @@ test('migration 039 memetakan tepat 5 slug lama ke slug kanonik', () => {
   }
 });
 
+// --- Deteksi pasar orphan (anti pasar membeku diam-diam) ---------------------
+
+test('slug di luar source map terdeteksi sebagai orphan, kecuali pool tersembunyi', async () => {
+  const { isOrphanMarketSlug } = await import('../src/toto-market-identity.js');
+  // Slug kanonik: pasti disentuh collector.
+  assert.equal(isOrphanMarketSlug('hongkong-pool'), false);
+  assert.equal(isOrphanMarketSlug('tennessee-mid-pool'), false);
+  // Slug lama: tidak akan pernah disentuh collector -> harus terdeteksi.
+  for (const typo of LEGACY_TYPO) {
+    assert.equal(isOrphanMarketSlug(typo), true, `${typo} seharusnya terdeteksi orphan`);
+  }
+  // Pool yang memang disembunyikan operator sengaja tidak dikumpulkan.
+  assert.equal(isOrphanMarketSlug('prague-pool'), false);
+  assert.equal(isOrphanMarketSlug('wellington-pool'), false);
+  // Slug kosong bukan sinyal apa pun.
+  assert.equal(isOrphanMarketSlug(''), false);
+  assert.equal(isOrphanMarketSlug(null), false);
+});
+
+test('tidak ada satu pun dari 45 slug kanonik yang salah dianggap orphan', async () => {
+  const { isOrphanMarketSlug } = await import('../src/toto-market-identity.js');
+  const salah = [...canonicalSlugs].filter(slug => isOrphanMarketSlug(slug));
+  assert.deepEqual(salah, [], 'slug kanonik tidak boleh dianggap orphan');
+});
+
 test('migrasi wajib membungkus perubahan dalam transaksi', () => {
   for (const file of ['039_canonicalize_market_slugs.sql']) {
     const sql = read(`backend/migrations/${file}`);

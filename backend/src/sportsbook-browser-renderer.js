@@ -347,6 +347,26 @@ function sweepExpiredRenderCache(now = Date.now(), graceMs = RENDER_CACHE_SWEEP_
   return removed;
 }
 
+// Start-up Chromium bisa gagal sesaat saat CPU sedang sibuk (container Railway di
+// bawah tekanan, atau banyak proses lain hors). Failure seperti itu tidak akan
+// membaik dengan menunggu, tapi akan dengan mencoba lagi. Hanya kegagalan
+// start-up yang diulang; kegagalan render/parsing dibiarkan apa adanya.
+const RETRYABLE_STARTUP_ERROR = /DevTools tidak aktif|DevToolsActivePort|Chromium/;
+
+async function renderOnceWithRetry(url, options = {}, attempts = 2) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await renderOnce(url, options);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= attempts || !RETRYABLE_STARTUP_ERROR.test(String(error?.message || ''))) throw error;
+      await sleep(750);
+    }
+  }
+  throw lastError;
+}
+
 export async function renderSportsbookPage(url, options = {}) {
   const key = String(url);
   const now = Date.now();
@@ -356,7 +376,7 @@ export async function renderSportsbookPage(url, options = {}) {
   if (cached?.value && now < cached.expiresAt) return { ...cached.value, cacheHit: true };
   if (cached?.inFlight) return cached.inFlight;
 
-  const work = queue.then(() => renderOnce(url, options));
+  const work = queue.then(() => renderOnceWithRetry(url, options));
   queue = work.catch(() => {});
   const inFlight = work.then(value => {
     renderCache.set(key, { value, expiresAt: Date.now() + ttlMs, inFlight: null });
