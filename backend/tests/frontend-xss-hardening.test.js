@@ -67,7 +67,10 @@ test('server-fed frontend renderers escape dynamic values before HTML interpolat
   assert.match(member, /escapeHtml\(m\.name/);
   assert.match(member, /encodeURIComponent\(marketCode\)/);
   assert.match(landing, /escapeHtml\(m\.result/);
-  assert.match(marketPlay, /escapeHtml\(r\.selection\)/);
+  // Form wager wajib menyandikan nilai ke escapeHtml. Bentuk yang aman boleh
+  // memakai fallback nullish (escapeHtml(r.selection || '')) sehingga tetap
+  // ter-escape walau selection kosong/undefined.
+  assert.match(marketPlay, /escapeHtml\(r\.selection\s*(?:\|\|\s*''\s*)?\)/);
   assert.match(register, /escapeHtml\(data\.image\)/);
   assert.match(transaction, /escapeHtml\(String\(m\.id\)\)/);
   assert.match(sportsbook, /escapeHtml\(String\(s\.odds\)\)/);
