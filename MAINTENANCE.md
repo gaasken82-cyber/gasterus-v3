@@ -204,17 +204,24 @@ seluruh container sekaligus:
 | `ADMIN_HEAP_MB` | 64 | admin |
 | `SCRIPT_HEAP_MB` | 128 | script lain |
 
-### `TREE_RSS_LIMIT_MB` (wajib disetel per deployment)
+### Batas tree RSS (otomatis — tidak perlu set env)
 `backend/src/memory-guard.js` me-recycle sebuah service bila **heap V8** ATAU
 **RSS total proses** (diri sendiri + proses anak terdaftar, mis. Chromium)
 melewati batas, 3x berturut-turut, lalu `exit(0)` halus supaya launcher
 me-restart hanya service itu — bukan seluruh container.
 
-- Default: **900**.
-- ⚠️ **Atur sekitar 70–80% dari limit memori container Railway.** Kalau nilainya
-  lebih besar dari limit container, guard tidak akan pernah menyala sebelum OS
-  OOM-killer turun, sehingga guard jadi sia-sia.
-  Contoh: plan 512MB → `350`; plan 1GB → `700`; plan 2GB → `1400`; plan 4GB → `3000`.
+Batas RSS **diturunkan otomatis** dari limit memori container yang dibaca dari
+cgroup (`memory.max` v2 / `memory.limit_in_bytes` v1), yaitu **75%** dari limit
+tersebut dengan lantai 256MB. Jadi guard otomatis benar pada semua ukuran plan
+Railway **tanpa konfigurasi env**. Yang terjadi saat start, terbaca di log:
+
+```
+memory-guard[feed-worker] heap 256MB | tree RSS 1536MB (sumber: cgroup:2048MB) | jendela 3x60s
+```
+
+- Tidak terdeteksi (mis. bukan container/cgroup) → jatuh ke default **900MB**.
+- `TREE_RSS_LIMIT_MB` **hanya sebagai override** bila Anda memang ingin
+  memaksa angka tertentu. Kosongkan saja kalau tidak perlu.
 - Cara memantau: `/internal/monitoring` → `memory.rssBytes`,
   `memory.childRssBytes`, `memory.childCount`, plus log
   `memory-guard[<label>] heap … | tree … | child …`.
@@ -265,6 +272,7 @@ tertentu, berguna saat menelusuri masalah memori.
 | 09 Sep 2026 | Semua 21 file | +3113/-525 baris belum di-commit | Cline |
 | 09 Sep 2026 | MAINTENANCE.md | Dibuat pertama kali | Claude/Antigravity |
 | 10 Okt 2026 | MAINTENANCE.md | Tambah bagian "ENV RUNTIME, MEMORI & ANTI-OOM" (`TREE_RSS_LIMIT_MB`, `SPORTS_SOURCE_BROWSER_EXECUTABLE`, kontrol spawn Chromium, state Redis TOTO) | Cline |
+| 10 Okt 2026 | memory-guard.js | Batas tree RSS otomatis dari cgroup (75% limit container) — env jadi opsional | Cline |
 
 ---
 Update dokumen ini setiap kali ada perubahan signifikan pada CSS/HTML structure.

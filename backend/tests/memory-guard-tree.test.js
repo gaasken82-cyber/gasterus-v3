@@ -10,7 +10,9 @@ import {
   unregisterChild,
   registeredChildCount,
   treeMemory,
-  startMemoryGuard
+  startMemoryGuard,
+  detectContainerMemoryMB,
+  resolveRssLimitMB
 } from '../src/memory-guard.js';
 
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../src');
@@ -82,6 +84,96 @@ test('startMemoryGuard mengembalikan batas heap dan batas tree RSS', () => {
     assert.ok(guard.highWater > 0);
     assert.equal(guard.rssLimitMB, 512);
     assert.equal(guard.rssHighWater, 512 * 1024 * 1024);
+  } finally {
+    guard.stop();
+  }
+});
+
+// --- Batas RSS diturunkan otomatis dari cgroup container (tanpa env manual) ---
+
+function withoutEnv(name, fn) {
+  const saved = process.env[name];
+  delete process.env[name];
+  try { return fn(); } finally {
+    if (saved === undefined) delete process.env[name];
+    else process.env[name] = saved;
+  }
+}
+
+// Pembaca file palsu: hanya file yang ada di map yang bisa dibaca.
+const fakeReader = map => file => {
+  if (!(file in map)) throw new Error(`ENOENT: ${file}`);
+  return map[file];
+};
+const V2 = '/sys/fs/cgroup/memory.max';
+const V1 = '/sys/fs/cgroup/memory/memory.limit_in_bytes';
+
+test('batas memori container terbaca dari cgroup v2', () => {
+  const reader = fakeReader({ [V2]: String(1024 * 1024 * 1024) });
+  assert.equal(detectContainerMemoryMB(reader), 1024);
+});
+
+test('batas memori container terbaca dari cgroup v1 saat v2 tidak terbatas', () => {
+  const reader = fakeReader({ [V2]: 'max', [V1]: String(512 * 1024 * 1024) });
+  assert.equal(detectContainerMemoryMB(reader), 512);
+});
+
+test('limit tak terbatas dan nilai ganjil diabaikan', () => {
+  // "max" (v2) dan sentinel v1 yang berarti infinite tidak boleh dipakai.
+  assert.equal(detectContainerMemoryMB(fakeReader({ [V2]: 'max' })), null);
+  assert.equal(detectContainerMemoryMB(fakeReader({ [V2]: 'max', [V1]: '9223372036854771712' })), null);
+  // Di atas 64GB dianggap bukan limit container yang masuk akal.
+  assert.equal(detectContainerMemoryMB(fakeReader({ [V2]: String(128 * 1024 * 1024 * 1024) })), null);
+});
+
+test('berkas cgroup yang tidak ada menghasilkan null', () => {
+  assert.equal(detectContainerMemoryMB(fakeReader({})), null);
+});
+
+test('opsi eksplisit mengalahkan env dan cgroup', () => {
+  const reader = fakeReader({ [V2]: String(1024 * 1024 * 1024) });
+  const result = resolveRssLimitMB({ rssLimitMb: 700, readCgroup: reader });
+  assert.equal(result.rssLimitMB, 700);
+  assert.equal(result.source, 'option');
+});
+
+test('tanpa opsi/env batas diturunkan 75% dari limit container', () => {
+  const reader = fakeReader({ [V2]: String(2048 * 1024 * 1024) });
+  const result = withoutEnv('TREE_RSS_LIMIT_MB', () => resolveRssLimitMB({ readCgroup: reader }));
+  assert.equal(result.rssLimitMB, 1536);
+  assert.equal(result.source, 'cgroup:2048MB');
+});
+
+test('limit container kecil tetap punya lantai agar tidak recycle buta', () => {
+  const reader = fakeReader({ [V2]: String(300 * 1024 * 1024) });
+  const result = withoutEnv('TREE_RSS_LIMIT_MB', () => resolveRssLimitMB({ readCgroup: reader }));
+  assert.equal(result.rssLimitMB, 256);
+  assert.equal(result.source, 'cgroup:300MB');
+});
+
+test('env dipakai bila ada override eksplisit dari operator', () => {
+  process.env.TREE_RSS_LIMIT_MB = '1234';
+  try {
+    const reader = fakeReader({ [V2]: String(2048 * 1024 * 1024) });
+    const result = resolveRssLimitMB({ readCgroup: reader });
+    assert.equal(result.rssLimitMB, 1234);
+    assert.equal(result.source, 'env');
+  } finally {
+    delete process.env.TREE_RSS_LIMIT_MB;
+  }
+});
+
+test('fallback ke default bila tidak ada cgroup maupun env', () => {
+  const result = withoutEnv('TREE_RSS_LIMIT_MB', () => resolveRssLimitMB({ readCgroup: fakeReader({}) }));
+  assert.equal(result.rssLimitMB, 900);
+  assert.equal(result.source, 'default');
+});
+
+test('startMemoryGuard melaporkan sumber batas tree RSS', () => {
+  const guard = startMemoryGuard({ label: 'test-guard-source', intervalMs: 600000, rssLimitMb: 640 });
+  try {
+    assert.equal(guard.rssLimitMB, 640);
+    assert.equal(guard.rssLimitSource, 'option');
   } finally {
     guard.stop();
   }

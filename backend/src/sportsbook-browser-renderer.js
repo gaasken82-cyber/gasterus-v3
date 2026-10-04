@@ -13,6 +13,11 @@ const persistentProfileDir = path.join(os.tmpdir(), `gasterus-sportsbook-chromiu
 let renderSequence = 0;
 
 const IS_POSIX = process.platform !== 'win32';
+// Batas kesabaran menunggu DevTools siap. Start-up Chromium saat dingin bisa
+// memakan waktu lebih dari 8 detik bila container sedang sibuk; batas lama
+// membuat render fallback gagal dan status pasar turun dari VERIFIED. Batas ini
+// tetap dibatasi oleh timeout pemanggil.
+const DEVTOOLS_READY_TIMEOUT_CAP_MS = 15000;
 // PID proses Chromium yang sedang hidup. Dipakai untuk membersihkan anak yatim
 // ketika proses Node keluar mendadak (mis. memory-guard recycle via exit(0)).
 const liveChildren = new Set();
@@ -258,7 +263,7 @@ async function renderOnce(url, options = {}) {
   let page = null;
   const startedAt = Date.now();
   try {
-    const port = await waitForDevtools(profileDir, child, Math.min(timeoutMs, 8000));
+    const port = await waitForDevtools(profileDir, child, Math.min(timeoutMs, DEVTOOLS_READY_TIMEOUT_CAP_MS));
     page = await createPage(port, child, Math.min(timeoutMs, 4000));
     client = createCdpClient(page.webSocketDebuggerUrl);
     await client.opened;
