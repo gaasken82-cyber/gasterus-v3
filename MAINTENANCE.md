@@ -2,6 +2,9 @@
 
 > **Baca dokumen ini PERTAMA sebelum menyentuh CSS atau HTML apapun.**
 > Tujuan: Mencegah duplikasi, konflik, dan patch berulang yang membuang token.
+>
+> Untuk CSS/HTML ikuti alur di bawah. Untuk env, batas memori, dan anti-OOM
+> backend, lihat bagian **⚙️ ENV RUNTIME, MEMORI & ANTI-OOM** di akhir dokumen.
 
 ---
 
@@ -183,12 +186,85 @@ frontend/css/
 
 ---
 
+## ⚙️ ENV RUNTIME, MEMORI & ANTI-OOM
+
+Dokumen ini juga menjadi panduan operasi backend, bukan hanya CSS.
+
+### Batas memori per proses (`deploy/launcher.js`)
+Setiap service punya ceiling heap sendiri supaya OOM killer tidak menjatuhkan
+seluruh container sekaligus:
+
+| Env | Default | Service |
+|-----|---------|---------|
+| `GATEWAY_HEAP_MB` | 48 | gateway |
+| `CORE_HEAP_MB` | 256 | core |
+| `WORKER_HEAP_MB` | 384 | worker (settlement) |
+| `FEED_WORKER_HEAP_MB` | 256 | feed-worker (collector TOTO + feed) |
+| `MEMBER_HEAP_MB` | 128 | member |
+| `ADMIN_HEAP_MB` | 64 | admin |
+| `SCRIPT_HEAP_MB` | 128 | script lain |
+
+### `TREE_RSS_LIMIT_MB` (wajib disetel per deployment)
+`backend/src/memory-guard.js` me-recycle sebuah service bila **heap V8** ATAU
+**RSS total proses** (diri sendiri + proses anak terdaftar, mis. Chromium)
+melewati batas, 3x berturut-turut, lalu `exit(0)` halus supaya launcher
+me-restart hanya service itu — bukan seluruh container.
+
+- Default: **900**.
+- ⚠️ **Atur sekitar 70–80% dari limit memori container Railway.** Kalau nilainya
+  lebih besar dari limit container, guard tidak akan pernah menyala sebelum OS
+  OOM-killer turun, sehingga guard jadi sia-sia.
+  Contoh: plan 512MB → `350`; plan 1GB → `700`; plan 2GB → `1400`; plan 4GB → `3000`.
+- Cara memantau: `/internal/monitoring` → `memory.rssBytes`,
+  `memory.childRssBytes`, `memory.childCount`, plus log
+  `memory-guard[<label>] heap … | tree … | child …`.
+
+### `SPORTS_SOURCE_BROWSER_EXECUTABLE`
+Override path binary browser untuk `backend/src/sportsbook-browser-renderer.js`
+(DevTools/CDP). Urutan pencarian:
+1. argumen eksplisit → 2. `SPORTS_SOURCE_BROWSER_EXECUTABLE` → 3. Windows
+   (`CHROME_PATH`/path default) → 4. `/usr/bin/chromium`,
+   `/usr/bin/chromium-browser`, `/usr/bin/google-chrome`,
+   `/usr/bin/google-chrome-stable`.
+
+⚠️ **Jebakan Ubuntu 24.04:** paket `chromium` dari apt hanya *stub snap*
+("System doesn't have a working snapd") dan tidak bisa dipakai di container.
+Karena `/usr/bin/chromium-browser` diperiksa **sebelum** `google-chrome`, stub
+rusak itu akan dipilih lebih dulu sehingga rendering gagal. Buang stub-nya
+(`apt-get remove chromium-browser`) lalu pasang Google Chrome stable, atau set
+`SPORTS_SOURCE_BROWSER_EXECUTABLE` ke binary yang benar. (Image produksi
+`deploy/Dockerfile` sudah memasang Chromium, jadi ini hanya relevan untuk mesin
+dev/CI.)
+
+### Kontrol jumlah spawn Chromium
+- `TOTO_BROWSER_FALLBACK_MAX_SOURCES` — default **0** (fallback browser TOTO mati).
+- `TOTO_OFFICIAL_BROWSER_FALLBACK_MAX_SOURCES` — default **2**.
+
+Naikkan hanya kalau result sering `SINGLE_SOURCE`; tiap kenaikan berarti lebih
+banyak spawn Chromium sehingga RSS naik. Sportsbook feed sendiri API-only dan
+tidak memakai Chromium. Membuka banyak halaman TOTO sekaligus akan menumpuk
+memori — browser fallback hanya jalur cadangan.
+
+### State TOTO persisten di Redis
+Kalibrasi jam result dan status libur per pasar disimpan di key
+`toto:runtime:state:v1` (TTL 7 hari), dimuat ulang saat start
+(`loadTotoRuntimeState`) dan ditulis tiap siklus poll (`persistTotoRuntimeState`).
+Kalau key hilang, pasar kembali memakai jadwal operator konservatif sampai
+terkalibrasi lagi — itu aman (pasar selalu menutup lebih awal), bukan rusak.
+
+### Mematikan service tertentu
+`WORKER_ENABLED=false` atau `FEED_WORKER_ENABLED=false` untuk mematikan service
+tertentu, berguna saat menelusuri masalah memori.
+
+---
+
 ## 📝 LOG PERUBAHAN
 
 | Tanggal | File | Perubahan | Oleh |
 |---------|------|-----------|------|
 | 09 Sep 2026 | Semua 21 file | +3113/-525 baris belum di-commit | Cline |
 | 09 Sep 2026 | MAINTENANCE.md | Dibuat pertama kali | Claude/Antigravity |
+| 10 Okt 2026 | MAINTENANCE.md | Tambah bagian "ENV RUNTIME, MEMORI & ANTI-OOM" (`TREE_RSS_LIMIT_MB`, `SPORTS_SOURCE_BROWSER_EXECUTABLE`, kontrol spawn Chromium, state Redis TOTO) | Cline |
 
 ---
 Update dokumen ini setiap kali ada perubahan signifikan pada CSS/HTML structure.
