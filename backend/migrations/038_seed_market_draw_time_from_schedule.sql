@@ -17,7 +17,11 @@
 --
 -- Tabel nilai di bawah adalah salinan backend/data/toto-source-map.json; test
 -- "jadwal pool di migration 038 sama dengan source map" menjaga keduanya tetap
--- sinkron. Idempoten: aman dijalankan berkali-kali.
+-- sinkron. (CATATAN: test tersebut sempat tidak ada sehingga migrasi ini pernah
+-- memakai slug lama bertypo — tennesse-*, newjerseymid-*, washingtonmd-* — dan
+-- markets.draw_time tidak pernah terisi untuk lima pool itu (test di file
+-- backend/tests/toto-slug-vocabulary.test.js sekarang menutup celah itu.)
+-- Idempoten: aman dijalankan berkali-kali.
 
 UPDATE markets m
 SET draw_time = v.result_time::time,
@@ -51,11 +55,11 @@ FROM (VALUES
     ('oregon-2-pool', '06:45', '07:00'),
     ('maryland-eve-pool', '04:20', '04:35'),
     ('michigan-eve-pool', '04:20', '04:35'),
-    ('newjerseymid-pool', '05:20', '05:35'),
+    ('newjersey-mid-pool', '05:20', '05:35'),
     ('kentucky-mid-pool', '05:20', '05:35'),
     ('indiana-mid-pool', '05:20', '05:35'),
-    ('tennesse-mid-pool', '05:20', '05:35'),
-    ('tennesse-eve-pool', '04:20', '04:35'),
+    ('tennessee-mid-pool', '05:20', '05:35'),
+    ('tennessee-eve-pool', '04:20', '04:35'),
     ('texas-eve-pool', '04:20', '04:35'),
     ('texas-day-pool', '06:20', '06:35'),
     ('texas-night-pool', '08:20', '08:35'),
@@ -63,8 +67,8 @@ FROM (VALUES
     ('rhode-island-pool', '04:20', '04:35'),
     ('illinois-mid-pool', '05:20', '05:35'),
     ('missouri-mid-pool', '05:20', '05:35'),
-    ('washingtonmd-pool', '05:20', '05:35'),
-    ('washingtonev-pool', '04:20', '04:35'),
+    ('washington-md-pool', '05:20', '05:35'),
+    ('washington-ev-pool', '04:20', '04:35'),
     ('delaware-ngt-pool', '06:20', '06:35'),
     ('delaware-day-pool', '08:20', '08:35'),
     ('virginia-day-pool', '08:20', '08:35')

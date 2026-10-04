@@ -236,7 +236,7 @@ function parseTennessee(source, html) {
     const result = four(collectAfter(lines, i, 8, 5));
     if (!result) continue;
     const session = m[1].toLowerCase();
-    const slug = session === 'morning' ? 'tennesse-mor-pool' : session === 'midday' ? 'tennesse-mid-pool' : 'tennesse-eve-pool';
+    const slug = session === 'morning' ? 'tennesse-mor-pool' : session === 'midday' ? 'tennessee-mid-pool' : 'tennessee-eve-pool';
     items.push(observation(source, slug, result, currentDate, session));
   }
   const bySlug = new Map();
@@ -357,7 +357,7 @@ function parseNewJersey(source, html) {
     const date = officialDate(m[2]), session = m[1].toLowerCase();
     const result = four(collectAfter(lines, i, 10, 5));
     if (!date || !result) continue;
-    items.push(observation(source, session === 'midday' ? 'newjerseymid-pool' : 'newjerseyeve-pool', result, date, session));
+    items.push(observation(source, session === 'midday' ? 'newjersey-mid-pool' : 'newjerseyeve-pool', result, date, session));
   }
   return items.filter(Boolean);
 }
@@ -404,13 +404,13 @@ export const OFFICIAL_MARKET_SLUGS = Object.freeze(new Set([
   'pcso-pool','california-pool','wisconsin-pool',
   'maryland-mid-pool','maryland-eve-pool',
   'indiana-mid-pool','indiana-eve-pool',
-  'tennesse-mor-pool','tennesse-mid-pool','tennesse-eve-pool',
+  'tennesse-mor-pool','tennessee-mid-pool','tennessee-eve-pool',
   'texas-mor-pool','texas-day-pool','texas-eve-pool','texas-night-pool',
   'illinois-mid-pool','illinois-eve-pool',
   'missouri-mid-pool','missouri-eve-pool',
   'virginia-day-pool','virginia-ngt-pool',
   'northcaroday-pool','northcaroeve-pool',
-  'newjerseymid-pool','newjerseyeve-pool',
+  'newjersey-mid-pool','newjerseyeve-pool',
   'newyork-mid-pool','newyork-eve-pool'
 ]));
 

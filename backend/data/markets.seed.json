@@ -847,7 +847,7 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "newjerseymid-pool",
+    "slug": "newjersey-mid-pool",
     "code": "NJM",
     "name": "NEWJERSEYMID POOL",
     "result": "2609",
@@ -892,7 +892,7 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "tennesse-mid-pool",
+    "slug": "tennessee-mid-pool",
     "code": "TMP",
     "name": "TENNESSE MID POOL",
     "result": "0285",
@@ -907,7 +907,7 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "tennesse-eve-pool",
+    "slug": "tennessee-eve-pool",
     "code": "TEV",
     "name": "TENNESSE EVE POOL",
     "result": "4401",
@@ -1027,7 +1027,7 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "washingtonmd-pool",
+    "slug": "washington-md-pool",
     "code": "WMD",
     "name": "WASHINGTONMD POOL",
     "result": "7266",
@@ -1042,7 +1042,7 @@
     "verificationStatus": "VERIFIED"
   },
   {
-    "slug": "washingtonev-pool",
+    "slug": "washington-ev-pool",
     "code": "WEV",
     "name": "WASHINGTONEV POOL",
     "result": "2536",

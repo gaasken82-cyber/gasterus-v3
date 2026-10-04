@@ -64,8 +64,8 @@ test('Indiana Daily 4 ignores Superball fifth value',()=>{
 test('Tennessee Cash 4 ignores Wild Ball fifth value',()=>{
   const items=obs('tennessee',['Sat, August 01, 2026','Draw Results','morning','9','3','4','7','8','midday','4','7','7','7','1','evening','9','7','6','6','8']);
   assert.equal(bySlug(items,'tennesse-mor-pool')?.result,'9347');
-  assert.equal(bySlug(items,'tennesse-mid-pool')?.result,'4777');
-  assert.equal(bySlug(items,'tennesse-eve-pool')?.result,'9766');
+  assert.equal(bySlug(items,'tennessee-mid-pool')?.result,'4777');
+  assert.equal(bySlug(items,'tennessee-eve-pool')?.result,'9766');
 });
 
 test('Texas Daily 4 ignores Fireball and preserves all four sessions',()=>{
@@ -102,7 +102,7 @@ test('North Carolina Pick 4 uses base four digits before Fireball',()=>{
 
 test('New Jersey Pick-4 uses base four digits before Fireball',()=>{
   const items=obs('newjersey',['PICK-4 BRINGS YOU FUN, EXCITEMENT AND PRIZES.','MIDDAY (06/14/2026)','9','8','6','2','6','EVENING (06/13/2026)','9','6','3','5','6']);
-  assert.equal(bySlug(items,'newjerseymid-pool')?.result,'9862');
+  assert.equal(bySlug(items,'newjersey-mid-pool')?.result,'9862');
   assert.equal(bySlug(items,'newjerseyeve-pool')?.result,'9635');
 });
 
