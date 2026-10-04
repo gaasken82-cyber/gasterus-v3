@@ -10,7 +10,7 @@ import { collectOfficialTotoSources, officialDecision } from './toto-official-so
 import { buildTotoAuthoritySnapshot, totoAuthoritySnapshotRevision } from './toto-production-acceptance.js';
 import { reconcileCashBettingWindows } from './toto-cash-lifecycle.js';
 import { recordDrawObservations, drawCalibrationSnapshot, serializeCalibrationState, hydrateCalibrationState } from './toto-draw-calibrator.js';
-import { poolsInPollingPhase, TOTO_RESULT_TIMES_WIB, serializeDrawState, hydrateDrawState } from './toto-draw-scheduler.js';
+import { poolsInPollingPhase, TOTO_RESULT_TIMES_WIB, serializeDrawState, hydrateDrawState, scheduleDriftFor } from './toto-draw-scheduler.js';
 import { syncJobs, dueJobs, applyPollResult, pollerSnapshot } from './toto-draw-poller.js';
 const STATUS_KEY = 'toto:collector:status:v1';
 const LOCK_KEY = 'toto:collector:lock:v1';
@@ -427,6 +427,22 @@ export async function runTotoCollector(options = {}) {
   });
   return inFlight;
 }
+// Laporan pool yang jam terukur sudah menyimpang jauh dari tabel operator.
+// Tabel SENGAJA tidak diubah otomatis — itu keputusan produk. Laporan ini
+// supaya operator bisa memperbarui tabel berdasarkan bukti, bukan tebakan.
+const SCHEDULE_DRIFT_THRESHOLD_MINUTES = 5;
+function scheduleDriftSnapshot() {
+  const pools = [];
+  for (const slug of Object.keys(TOTO_RESULT_TIMES_WIB)) {
+    const drift = scheduleDriftFor(slug);
+    if (!drift || drift.deltaMinutes === null) continue;
+    if (Math.abs(drift.deltaMinutes) <= SCHEDULE_DRIFT_THRESHOLD_MINUTES) continue;
+    pools.push({ slug, ...drift });
+  }
+  pools.sort((a, b) => Math.abs(b.deltaMinutes) - Math.abs(a.deltaMinutes));
+  return { thresholdMinutes: SCHEDULE_DRIFT_THRESHOLD_MINUTES, count: pools.length, pools };
+}
+
 export async function totoCollectorStatus() {
   const shared = await readSharedState();
   return {
@@ -436,6 +452,7 @@ export async function totoCollectorStatus() {
     unmappedMarkets: MARKET_MAP.filter(item => !Object.keys(item.sources || {}).length).length,
     totalMarkets: MARKET_MAP.length,
     ...(shared || state),
+    scheduleDrift: scheduleDriftSnapshot(),
     statusScope: shared ? 'REDIS_SHARED' : 'PROCESS_LOCAL'
   };
 }
