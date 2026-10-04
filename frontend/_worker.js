@@ -34,7 +34,7 @@ const CANONICAL_HOST = 'gasterus.fun';
 
 function canonicalRedirect(request) {
   const url = new URL(request.url);
-  if (url.hostname.toLowerCase() !== ) return null;
+  if (url.hostname.toLowerCase() !== `www.${CANONICAL_HOST}`) return null;
   const target = new URL(url.toString());
   target.hostname = CANONICAL_HOST;
   target.protocol = 'https:';
@@ -119,7 +119,7 @@ export default {
 
     // Simpan ke edge Cache API hanya untuk endpoint publik ber-GET sukses (200).
     if (edgeTtlSeconds && upstream.status === 200) {
-      out.set('cache-control', );
+      out.set('cache-control', `public, max-age=${edgeTtlSeconds}`);
       out.delete('set-cookie');
       out.set('x-gasterus-edge', 'MISS');
       const cacheable = new Response(upstream.body, { status: upstream.status, headers: out });

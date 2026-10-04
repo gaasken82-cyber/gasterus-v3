@@ -80,7 +80,7 @@ const DAY_MS = 86400000;
 //
 // Jendela T-20 hanya dipakai untuk menutup betting, tidak untuk scraping.
 // Scraping dimulai pada T-5 dan dilanjutkan per pool sampai result baru
-ditemukan, bukan sampai jam result lewat.
+// ditemukan, bukan sampai jam result lewat.
 const CLOSE_LEAD_MINUTES = 20;
 const SCRAPE_LEAD_MINUTES = 5;
 const POLL_INTERVAL_MINUTES = 3;
