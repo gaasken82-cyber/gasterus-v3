@@ -1,6 +1,7 @@
 // Cloudflare Pages Advanced Mode (_worker.js) — reverse proxy API dan Admin ke backend Railway.
 // Semua request non-proxy dilayani dari static assets frontend (env.ASSETS).
-const BACKEND = 'https://web-production-dc041.up.railway.app';
+
+const DEFAULT_BACKEND = 'https://web-production-dc041.up.railway.app';
 
 // Edge cache (Cloudflare Cache API) HANYA untuk endpoint publik non-personal ber-GET.
 // Jalur lain (/api/member/*, /api/owner/*, /admin-api/*, /internal/*,
@@ -28,16 +29,12 @@ function shouldProxyToBackend(pathname, env) {
   return false;
 }
 
-// Domain kanonik tunggal. www dan domain utama adalah situs yang sama, bukan dua
-// situs: cookie sesi dan localStorage dipecah per host, jadi member yang login di
-// www lalu membuka domain utama (atau sebaliknya) terlihat "turun" padahal akunnya
-// sama. Semua permintaan www diarahkan 301 ke domain utama supaya hanya ada satu
-// alamat resmi, konsisten dengan canonical/sitemap yang memakai domain utama.
+// Domain kanonik tunggal. www dan domain utama adalah situs yang sama.
 const CANONICAL_HOST = 'gasterus.fun';
 
 function canonicalRedirect(request) {
   const url = new URL(request.url);
-  if (url.hostname.toLowerCase() !== `www.${CANONICAL_HOST}`) return null;
+  if (url.hostname.toLowerCase() !== ) return null;
   const target = new URL(url.toString());
   target.hostname = CANONICAL_HOST;
   target.protocol = 'https:';
@@ -61,6 +58,8 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
+    const backendOrigin = (env?.BACKEND_URL || DEFAULT_BACKEND).replace(/\/+$/, '');
+
     const edgeTtlSeconds = request.method === 'GET' ? PUBLIC_EDGE_CACHE_TTL_SECONDS[url.pathname] || 0 : 0;
     if (edgeTtlSeconds) {
       try {
@@ -83,12 +82,30 @@ export default {
       headers.set('x-forwarded-for', clientIp);
     }
 
-    const upstream = await fetch(BACKEND + url.pathname + url.search, {
-      method: request.method,
-      headers,
-      body: (request.method === 'GET' || request.method === 'HEAD') ? undefined : request.body,
-      redirect: 'manual',
-    });
+    let upstream;
+    try {
+      upstream = await fetch(backendOrigin + url.pathname + url.search, {
+        method: request.method,
+        headers,
+        body: (request.method === 'GET' || request.method === 'HEAD') ? undefined : request.body,
+        redirect: 'manual',
+      });
+    } catch (fetchErr) {
+      return new Response(JSON.stringify({
+        ok: false,
+        error: 'BACKEND_UNAVAILABLE',
+        message: 'Layanan backend sedang dalam pemeliharaan berkala atau proses restart. Silakan refresh beberapa detik lagi.',
+        upstream: backendOrigin,
+        time: new Date().toISOString()
+      }), {
+        status: 503,
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+          'retry-after': '10',
+          'cache-control': 'no-store'
+        }
+      });
+    }
 
     const out = new Headers(upstream.headers);
     out.delete('content-encoding');
@@ -96,19 +113,19 @@ export default {
     out.delete('transfer-encoding');
 
     const loc = out.get('location');
-    if (loc && loc.includes('web-production-dc041.up.railway.app')) {
-      out.set('location', loc.replace('https://web-production-dc041.up.railway.app', ''));
+    if (loc && loc.includes(backendOrigin)) {
+      out.set('location', loc.replace(backendOrigin, ''));
     }
 
     // Simpan ke edge Cache API hanya untuk endpoint publik ber-GET sukses (200).
     if (edgeTtlSeconds && upstream.status === 200) {
-      out.set('cache-control', `public, max-age=${edgeTtlSeconds}`);
+      out.set('cache-control', );
       out.delete('set-cookie');
       out.set('x-gasterus-edge', 'MISS');
       const cacheable = new Response(upstream.body, { status: upstream.status, headers: out });
       try {
         await caches.default.put(new Request(url.toString()), cacheable.clone());
-      } catch { /* tidak bisa disimpan — tetap sajikan response segar */ }
+      } catch { /* ignore cache write fail */ }
       return cacheable;
     }
 
