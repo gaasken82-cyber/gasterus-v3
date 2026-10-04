@@ -145,6 +145,21 @@ test('status scheduler memakai T-20/T-5/3 menit dan tidak menyimpan apa pun di l
   assert.ok(__totoDrawScheduler.state.size <= 96, 'state scheduler harus dibatasi');
 });
 
+test('registry jadwal tidak punya tabel jam kedua yang bertentangan', async () => {
+  const registry = await import('../src/toto-schedule-registry.js');
+  const bySlug = new Map(registry.SCHEDULE_REGISTRY.map(row => [row.slug, row]));
+  for (const [slug, times] of Object.entries(TOTO_RESULT_TIMES_WIB)) {
+    const row = bySlug.get(slug);
+    assert.ok(row, `${slug} tidak ada di SCHEDULE_REGISTRY`);
+    assert.equal(row.drawWib, times[0], `jam ${slug} berbeda dari scheduler kanonik`);
+  }
+  assert.equal(registry.SCHEDULE_COUNTS.total, Object.keys(TOTO_RESULT_TIMES_WIB).length);
+  // Nilai lama yang bertentangan dengan scheduler harus hilang total.
+  assert.equal(bySlug.get('sydney-pool').drawWib, '20:00');
+  assert.equal(bySlug.get('jepang-pool').drawWib, '20:45');
+  assert.equal(bySlug.get('california-pool').drawWib, '21:15');
+});
+
 test('pool tanpa jam operator tidak pernah membangunkan collector sendiri', () => {
   assert.equal(TOTO_RESULT_TIMES_WIB['pool-tanpa-jadwal'], undefined);
   assert.equal(wakeWindowFor('pool-tanpa-jadwal', new Date('2026-09-27T12:00:00Z')), null);

@@ -120,6 +120,30 @@ test('tidak ada satu pun dari 45 slug kanonik yang salah dianggap orphan', async
   assert.deepEqual(salah, [], 'slug kanonik tidak boleh dianggap orphan');
 });
 
+// --- Fallback frontend (dipakai member saat API gagal) -----------------------
+
+test('fallback frontend tidak pernah memakai slug typo lama', () => {
+  const fallback = JSON.parse(read('frontend/public_markets.json')).data;
+  assert.equal(fallback.length, 45);
+  const slugs = fallback.map(m => m.slug);
+  assert.equal(new Set(slugs).size, 45, 'slug fallback harus unik');
+  for (const typo of LEGACY_TYPO) {
+    assert.equal(slugs.includes(typo), false, `${typo} masih ada di public_markets.json`);
+  }
+  assert.deepEqual([...canonicalSlugs].filter(s => !slugs.includes(s)), [], 'slug kanonik hilang dari fallback');
+});
+
+test('fallback frontend memakai nama kanonik dari source map', () => {
+  const canonicalNames = new Map(
+    JSON.parse(read('backend/data/toto-source-map.json')).map(m => [m.slug, m.name])
+  );
+  const fallback = JSON.parse(read('frontend/public_markets.json')).data;
+  const salah = fallback
+    .filter(m => canonicalNames.has(m.slug) && canonicalNames.get(m.slug) !== m.name)
+    .map(m => `${m.slug}: "${m.name}" bukan "${canonicalNames.get(m.slug)}"`);
+  assert.deepEqual(salah, [], 'nama pasar harus sama dengan source map');
+});
+
 test('migrasi wajib membungkus perubahan dalam transaksi', () => {
   for (const file of ['039_canonicalize_market_slugs.sql']) {
     const sql = read(`backend/migrations/${file}`);

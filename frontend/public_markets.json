@@ -639,9 +639,9 @@
       "readinessReason": null
     },
     {
-      "slug": "newjerseymid-pool",
+      "slug": "newjersey-mid-pool",
       "code": "NJM",
-      "name": "NEWJERSEYMID POOL",
+      "name": "NEWJERSEY MID POOL",
       "result": "3790",
       "period": "2026-09-27",
       "category": "america",
@@ -705,9 +705,9 @@
       "readinessReason": null
     },
     {
-      "slug": "tennesse-mid-pool",
+      "slug": "tennessee-mid-pool",
       "code": "TMP",
-      "name": "TENNESSE MID POOL",
+      "name": "TENNESSEE MID POOL",
       "result": "2026",
       "period": "2026-09-28",
       "category": "america",
@@ -727,9 +727,9 @@
       "readinessReason": null
     },
     {
-      "slug": "tennesse-eve-pool",
+      "slug": "tennessee-eve-pool",
       "code": "TEV",
-      "name": "TENNESSE EVE POOL",
+      "name": "TENNESSEE EVE POOL",
       "result": "4467",
       "period": "2026-09-28",
       "category": "america",
@@ -903,9 +903,9 @@
       "readinessReason": null
     },
     {
-      "slug": "washingtonmd-pool",
+      "slug": "washington-md-pool",
       "code": "WMD",
-      "name": "WASHINGTONMD POOL",
+      "name": "WASHINGTON MD POOL",
       "result": "6965",
       "period": "2026-09-28",
       "category": "america",
@@ -925,9 +925,9 @@
       "readinessReason": null
     },
     {
-      "slug": "washingtonev-pool",
+      "slug": "washington-ev-pool",
       "code": "WEV",
-      "name": "WASHINGTONEV POOL",
+      "name": "WASHINGTON EV POOL",
       "result": "4555",
       "period": "2026-09-28",
       "category": "america",

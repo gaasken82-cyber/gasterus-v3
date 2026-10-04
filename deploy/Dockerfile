@@ -47,6 +47,7 @@ RUN node --check deploy/launcher.js \
  && node --check backend/src/memory-guard.js \
  && node --check backend/src/sportsbook-browser-renderer.js \
  && node --check backend/src/toto-market-identity.js \
+ && node --check backend/src/toto-schedule-registry.js \
  && node --check backend/src/health-check.js
 
 RUN mkdir -p /data/backups && chown -R node:node /app /data/backups

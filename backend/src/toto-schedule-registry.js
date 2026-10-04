@@ -1,30 +1,34 @@
 // ============================================================
 // TOTO V3 — SCHEDULE REGISTRY (explicit, Asia/Jakarta WIB)
-// AUDIT + BUILD phase — READ-ONLY scheduler, NOT WIRED into worker.
+// READ-ONLY scheduler, NOT WIRED into worker.
+//
+// CATATAN PENTING: modul ini dulunya punya tabel jam sendiri
+// (VERIFIED_DRAW_WIB) yang BERTENTANGAN dengan jadwal kanonik di
+// toto-draw-scheduler.js — misalnya sydney-pool 12:50 di sini vs 20:00 di sana.
+// Dua sumber kebenaran untuk jam draw adalah bom waktu: begitu salah satu dipakai,
+// pasar salah buka/tutup. Sekarang modul ini hanya TAMPILAN(read-only) di atas
+// TOTO_RESULT_TIMES_WIB, jadi tidak ada lagi tabel jadwal kedua di repo.
+//
 // Rules enforced here:
-// - draw_time DB is NEVER used as schedule (explicit registry only).
-// - WINDOW_DEFAULT is NEVER used as schedule for the 85 markets.
-// - No guessed times. Unverified markets => draw:null, STATUS=UNVERIFIED,
-//   and they NEVER enter the active wake set.
-// - Slug/name/source mapping untouched (derived from MARKET_MAP).
-// - Betting logic / parser / consensus / schema / auth / API / FE untouched.
-// - Single centralized scheduler helper (no 85 timers, no 1s polling).
-// - Poll cadence reuses existing TOTO_COLLECTOR_INTERVAL_SECONDS (60-120s).
+// - Jam draw SELALU berasal dari toto-draw-scheduler.js, tidak pernah ditulis manual.
+// - markets.draw_time di DB tidak pernah dipakai sebagai jadwal.
+// - Pasar tanpa jam pada scheduler tetap UNVERIFIED dan tidak pernah waking.
 // ============================================================
 import { MARKET_MAP } from './toto-collector-core.js';
+import { TOTO_RESULT_TIMES_WIB } from './toto-draw-scheduler.js';
 
 export const SCHEDULE_TIMEZONE = 'Asia/Jakarta';
 export const WAKE_LEAD_MINUTES = 5;
 export const POLL_MIN_SECONDS = 60;
 export const POLL_MAX_SECONDS = 120;
 
-// --- Explicit verified draw times (WIB HH:MM), per operator instruction.
-// ONLY these three were explicitly provided. Everything else stays UNVERIFIED.
-const VERIFIED_DRAW_WIB = Object.freeze({
-  'sydney-pool': '12:50',
-  'jepang-pool': '17:00',
-  'california-pool': '08:30',
-});
+// Jam draw = milik scheduler kanonik. Di sini hanya diambil nilai pertama untuk
+// pool yang punya lebih dari satu undian per hari.
+const VERIFIED_DRAW_WIB = Object.freeze(Object.fromEntries(
+  Object.entries(TOTO_RESULT_TIMES_WIB)
+    .map(([slug, times]) => [slug, Array.isArray(times) && times.length ? times[0] : null])
+    .filter(([, draw]) => draw)
+));
 
 function minusMinutes(hhmm, minutes) {
   const [h, m] = String(hhmm).split(':').map(Number);
