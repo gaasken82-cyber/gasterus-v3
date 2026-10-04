@@ -102,3 +102,44 @@ test('migrasi wajib membungkus perubahan dalam transaksi', () => {
     assert.match(sql, /COMMIT;/);
   }
 });
+
+// --- Kebijakan: jangan duplikat, jangan menimpa ------------------------------
+
+test('migrasi 039 tidak pernah INSERT atau DELETE baris pasar', () => {
+  const sql = read('backend/migrations/039_canonicalize_market_slugs.sql');
+  assert.doesNotMatch(sql, /\bINSERT\s+INTO\s+markets\b/i);
+  assert.doesNotMatch(sql, /\bDELETE\s+FROM\s+markets\b/i);
+  assert.doesNotMatch(sql, /\bTRUNCATE\b/i);
+});
+
+test('rename markets hanya menyentuh kolom slug (tidak menimpa data hasil)', () => {
+  const sql = read('backend/migrations/039_canonicalize_market_slugs.sql');
+  const renames = [...sql.matchAll(/UPDATE markets SET ([^\n;]+) WHERE slug = '[a-z0-9-]+';/g)].map(m => m[1]);
+  assert.equal(renames.length, 5, 'harus ada tepat 5 UPDATE rename');
+  for (const clause of renames) {
+    assert.match(clause, /^slug\s*=\s*'[a-z0-9-]+'$/, `kolom lain ikut ditulis: ${clause}`);
+  }
+  // Kolom yang harus tetap utuh.
+  for (const column of ['updated_at', 'result', 'verification_status', 'draw_time', 'source_updated_at', 'period']) {
+    assert.doesNotMatch(sql, new RegExp(`SET slug[^;]*${column}\\s*=`, 'i'), `kolom ${column} ikut ditimpa`);
+  }
+});
+
+test('migrasi 039 batalkan diri bila slug kanonik sudah ada (anti duplikat)', () => {
+  const sql = read('backend/migrations/039_canonicalize_market_slugs.sql');
+  const guardAt = sql.indexOf('RAISE EXCEPTION');
+  const firstRename = sql.indexOf('UPDATE markets SET slug');
+  assert.ok(guardAt > -1, 'harus ada pre-flight guard');
+  assert.ok(firstRename > -1, 'harus ada rename');
+  assert.ok(guardAt < firstRename, 'guard duplikat harus mendahului rename');
+  assert.match(sql, /JOIN markets m ON m\.slug = t\.target/);
+});
+
+test('migrasi 039 menutup diri dengan verifikasi akhir', () => {
+  const sql = read('backend/migrations/039_canonicalize_market_slugs.sql');
+  const lastVerify = sql.lastIndexOf('RAISE EXCEPTION');
+  const lastRename = sql.lastIndexOf('UPDATE markets SET slug');
+  assert.ok(lastVerify > lastRename, 'verifikasi harus berada setelah rename');
+  assert.match(sql, /sisa_lama <> 0/);
+  assert.match(sql, /LEFT JOIN markets m ON m\.slug = t\.target/);
+});
