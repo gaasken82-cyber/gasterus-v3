@@ -13,6 +13,9 @@
 //tidak berubah, pasar dianggap libur hari itu dan penjadwalan untuk hari itu
 //dihentikan. Cara ini berlaku untuk hari libur apa pun, termasuk yang tidak
 //pernah tercatat sebelumnya.
+// Jam draw hanya bisa diukur, tidak boleh dikarang.
+import { calibratedSchedule } from './toto-draw-calibrator.js';
+
 export const TOTO_RESULT_TIMES_WIB = Object.freeze({
   'toto-macau-midnight': ['00:00'],
   'toto-macau-siang': ['13:00'],
@@ -120,8 +123,40 @@ function wibParts(now = new Date()) {
   };
 }
 
+// Jadwal TIDAK boleh hanya mempercayai tabel manual operator. Pada audit live,
+// 20 dari 45 pool meleset jauh dari jam yang benar-benar dilaporkan sumber
+// (bullseye-pool 22:15 di tabel vs 12:10 di sumber). Jendela polling ikut salah
+// kalau hanya mengikuti tabel, sehingga hasil pool itu datang lambat atau tidak
+// sama sekali.
+//
+// Karena itu: begitu sebuah pool punya cukup pengamatan dari sumber, jam yang
+// TERUKUR yang dipakai. Tabel operator tetap dipakai sebagai cadangan saat
+// belum ada bukti, jadi tidak pernah ada pool tanpa jadwal.
+const MEASURED_MIN_SAMPLES = 5;
+
+// Jam result terukur (median waktu tanggal draw berubah di sumber), atau null bila
+// belum cukup bukti.
+export function measuredResultTimeFor(slug) {
+  const measured = calibratedSchedule(slug);
+  if (!measured || Number(measured.samples) < MEASURED_MIN_SAMPLES) return null;
+  const minutes = toMinutes(measured.resultTime);
+  return Number.isFinite(minutes) && minutes !== null ? { resultTime: measured.resultTime, samples: measured.samples } : null;
+}
+
+// Selisih tabel operator vs jam terukur; dipakai untuk laporan drift.
+export function scheduleDriftFor(slug) {
+  const table = (TOTO_RESULT_TIMES_WIB[String(slug || '').trim()] || [])[0] || null;
+  const measured = measuredResultTimeFor(slug);
+  if (!table || !measured) return null;
+  const delta = toMinutes(measured.resultTime) - toMinutes(table);
+  return { table, measured: measured.resultTime, samples: measured.samples, deltaMinutes: Number.isFinite(delta) ? delta : null };
+}
+
 function resultTimesFor(slug) {
-  return (TOTO_RESULT_TIMES_WIB[String(slug || '').trim()] || []).map(toMinutes).filter(value => value !== null);
+  const key = String(slug || '').trim();
+  const measured = measuredResultTimeFor(key);
+  if (measured) return [toMinutes(measured.resultTime)].filter(value => value !== null);
+  return (TOTO_RESULT_TIMES_WIB[key] || []).map(toMinutes).filter(value => value !== null);
 }
 
 function entryFor(slug) {

@@ -24,8 +24,27 @@ const {
   TOTO_POLL_INTERVAL_MINUTES,
   TOTO_SCRAPE_LEAD_MINUTES,
   TOTO_CLOSE_LEAD_MINUTES,
+  measuredResultTimeFor,
+  scheduleDriftFor,
   __totoDrawScheduler
 } = await import('../src/toto-draw-scheduler.js');
+
+const calibrator = await import('../src/toto-draw-calibrator.js');
+
+// Memberi sebuah pool 'samples' pengamatan pada jam WIB tertentu, supaya
+// jadwal terukur bisa diuji. Pengamatan pertama hanya mencatat tanggal.
+function seedMeasured(slug, clockWib, samples) {
+  calibrator.__drawCalibrator.observations.clear();
+  const [hh, mm] = clockWib.split(':').map(Number);
+  for (let i = 0; i <= samples; i += 1) {
+    const day = String(i + 1).padStart(2, '0');
+    const utcMs = Date.parse(`2026-10-${day}T00:00:00Z`) + (hh * 60 + mm - 7 * 60) * 60000;
+    calibrator.recordDrawObservations(
+      [{ slug, drawDate: `2026-10-${day}`, status: 'VERIFIED' }],
+      { now: new Date(utcMs) }
+    );
+  }
+}
 
 const SLUGS = Object.keys(TOTO_RESULT_TIMES_WIB);
 const wib = (iso) => new Date(Date.parse(iso) + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
@@ -158,6 +177,32 @@ test('registry jadwal tidak punya tabel jam kedua yang bertentangan', async () =
   assert.equal(bySlug.get('sydney-pool').drawWib, '20:00');
   assert.equal(bySlug.get('jepang-pool').drawWib, '20:45');
   assert.equal(bySlug.get('california-pool').drawWib, '21:15');
+});
+
+test('jadwal mengikuti jam terukur begitu cukup bukti; tabel operator hanya cadangan', () => {
+  const slug = 'bullseye-pool';
+  assert.equal(TOTO_RESULT_TIMES_WIB[slug][0], '22:15', 'tabel operator adalah titik awal');
+  // Tanpa bukti dari sumber, tabel yang dipakai.
+  calibrator.__drawCalibrator.observations.clear();
+  assert.equal(measuredResultTimeFor(slug), null);
+  assert.equal(scheduleDriftFor(slug), null);
+
+  // Bukti cukup: jam yang benar-benar dilaporkan sumber (12:10) menggantikan tabel.
+  seedMeasured(slug, '12:10', 5);
+  const measured = measuredResultTimeFor(slug);
+  assert.ok(measured, 'jam terukur harus dipakai setelah cukup sampel');
+  assert.equal(measured.resultTime, '12:10');
+  const drift = scheduleDriftFor(slug);
+  assert.equal(drift.table, '22:15');
+  assert.equal(drift.measured, '12:10');
+  assert.equal(drift.deltaMinutes, 12 * 60 + 10 - (22 * 60 + 15));
+
+  // Jendela polling ikut pindah ke jam terukur: T-5 = 12:05 WIB = 05:05Z.
+  assert.ok(poolsInPollingPhase(new Date('2026-10-07T05:05:00Z'), [slug]).some(item => item.slug === slug));
+  // Jam lama dari tabel tidak lagi dipakai: 22:20 WIB bukan lagi fase polling.
+  assert.equal(poolsInPollingPhase(new Date('2026-10-07T15:20:00Z'), [slug]).length, 0);
+
+  calibrator.__drawCalibrator.observations.clear();
 });
 
 test('pool tanpa jam operator tidak pernah membangunkan collector sendiri', () => {
