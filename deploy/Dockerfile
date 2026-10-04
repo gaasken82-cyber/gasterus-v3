@@ -39,7 +39,8 @@ RUN node --check deploy/launcher.js \
  && node --check backend/src/auth.js \
  && node --check backend/src/betting.js \
  && node --check backend/src/sportsbook-feed.js \
- && node --check backend/src/toto-collector-core.js
+ && node --check backend/src/toto-collector-core.js \
+ && node --check backend/src/toto-draw-scheduler.js
 
 RUN mkdir -p /data/backups && chown -R node:node /app /data/backups
 

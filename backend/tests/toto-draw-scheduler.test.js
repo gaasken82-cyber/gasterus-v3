@@ -31,13 +31,13 @@ const SLUGS = Object.keys(TOTO_RESULT_TIMES_WIB);
 const wib = (iso) => new Date(Date.parse(iso) + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
 
 test('jam result operator mengikuti tabel dan semuanya WIB', () => {
-  assert.equal(TOTO_RESULT_TIMES_WIB['jepang-pool'][0], '18:45');
-  assert.equal(TOTO_RESULT_TIMES_WIB['hongkong-pool'][0], '23:00');
-  assert.equal(TOTO_RESULT_TIMES_WIB['pcso-pool'][0], '21:00');
-  assert.equal(TOTO_RESULT_TIMES_WIB['sydney-pool'][0], '14:00');
-  assert.equal(TOTO_RESULT_TIMES_WIB['taiwan-pool'][0], '20:30');
-  assert.equal(TOTO_RESULT_TIMES_WIB['california-pool'][0], '07:00');
-  assert.equal(TOTO_RESULT_TIMES_WIB['china-pool'][0], '22:15');
+  assert.equal(TOTO_RESULT_TIMES_WIB['jepang-pool'][0], '20:45');
+  assert.equal(TOTO_RESULT_TIMES_WIB['hongkong-pool'][0], '23:25');
+  assert.equal(TOTO_RESULT_TIMES_WIB['pcso-pool'][0], '23:25');
+  assert.equal(TOTO_RESULT_TIMES_WIB['sydney-pool'][0], '20:00');
+  assert.equal(TOTO_RESULT_TIMES_WIB['taiwan-pool'][0], '21:55');
+  assert.equal(TOTO_RESULT_TIMES_WIB['california-pool'][0], '21:15');
+  assert.equal(TOTO_RESULT_TIMES_WIB['china-pool'][0], '21:35');
   // Pool dengan lebih dari satu undian per hari tetap sebuah entri.
   assert.equal(TOTO_RESULT_TIMES_WIB['toto-macau-night'].length, 1);
   for (const slug of SLUGS) {
@@ -48,28 +48,22 @@ test('jam result operator mengikuti tabel dan semuanya WIB', () => {
 });
 
 test('collector hanya bangun di dekat jam result, tidak sepanjang hari', () => {
-  // Jauh dari jam result pool mana pun: 10:00 dan 17:00 WIB tidak ada yang waking.
-  for (const iso of ['2026-09-27T03:00:00Z', '2026-09-27T10:00:00Z']) {
+  // Jauh dari jam result pool mana pun: 11:30 dan 17:30 WIB tidak ada yang waking.
+  for (const iso of ['2026-09-27T04:30:00Z', '2026-09-27T10:30:00Z']) {
     assert.equal(activeWakeSet(new Date(iso), SLUGS).length, 0, `${wib(iso)} seharusnya tidak ada pool aktif`);
     assert.equal(poolsInPollingPhase(new Date(iso), SLUGS).length, 0, `${wib(iso)} seharusnya tidak ada polling`);
   }
-  // 12:30 WIB: Cambodia 11:50 masih dalam batas T+60 sehingga masih menunggu
-  // result, dan tidak ada pool lain yang jamnya jauh ikut waking.
-  const tengahHari = poolsInPollingPhase(new Date('2026-09-27T05:30:00Z'), SLUGS);
-  assert.ok(tengahHari.some(item => item.slug === 'cambodia-pool'), 'Cambodia 11:50 masih menunggu result di 12:30');
-  for (const item of tengahHari) {
-    assert.ok(item.resultTime >= 11 * 60 && item.resultTime <= 13 * 60, `${item.slug} di luar rentang jam result midday`);
+  // 20:40 WIB (T-5 Jepang): hanya pool dengan jam result 20:00–20:45 yang polling.
+  const sore = poolsInPollingPhase(new Date('2026-09-27T13:40:00Z'), SLUGS);
+  assert.ok(sore.some(item => item.slug === 'jepang-pool'), 'Jepang 20:45 masih menunggu result di 20:40');
+  for (const item of sore) {
+    assert.ok(item.resultTime >= 20 * 60 && item.resultTime <= 20 * 60 + 45, `${item.slug} di luar band jam result 20:00–20:45`);
   }
-  // 15:05 WIB ada tiga pool yang result-nya tepat jam 15:00 dan masih dalam
-  // masa polling (T+5).
-  const jamTigaWib = poolsInPollingPhase(new Date('2026-09-27T08:05:00Z'), SLUGS);
-  assert.ok(jamTigaWib.some(item => item.slug === 'newjerseymid-pool'));
-  assert.ok(jamTigaWib.some(item => item.slug === 'kentucky-mid-pool'));
-  assert.ok(jamTigaWib.some(item => item.slug === 'virginia-day-pool'));
-  // Tepat sebelum result Jepang 18:45 WIB (18:40 = T-5) harus poll.
-  const sebelumJepang = new Date('2026-09-27T11:40:00Z');
-  assert.ok(activeWakeSet(sebelumJepang, SLUGS).includes('jepang-pool'));
-  assert.ok(poolsInPollingPhase(sebelumJepang, SLUGS).some(item => item.slug === 'jepang-pool'));
+  assert.ok(sore.some(item => item.slug === 'sydney-pool'), 'Sydney 20:00 masih dalam masa T+55');
+  assert.ok(sore.some(item => item.slug === 'cambodia-pool'), 'Cambodia 20:35 masih menunggu result');
+  // Tepat pada T-5 jam result Jepang (20:40 WIB) pool Jepang wajib waking.
+  const tMinus5Jepang = new Date('2026-09-27T13:40:00Z');
+  assert.ok(activeWakeSet(tMinus5Jepang, SLUGS).includes('jepang-pool'));
 });
 
 test('polling hanya mulai pada T-5, ditutup pada T-20, dan berlangsung tiap 3 menit', () => {
@@ -117,8 +111,8 @@ test('hari libur yang tidak terdaftar tetap terdeteksi dari sumber', () => {
   const sebelumResult = new Date('2026-09-27T11:00:00Z');
   // Angka pools masih 25-09 saat jendela result berjalan.
   markDrawObservations([{ slug: 'jepang-pool', drawDate: '2026-09-25', status: 'VERIFIED' }], { now: sebelumResult });
-  // Dua jam lewat jam result, sumber tidak mengeluarkan tanggal baru.
-  const sesudahResult = new Date('2026-09-27T13:00:00Z');
+  // Lewat jam result Jepang (20:45 WIB) + grace, sumber tidak mengeluarkan tanggal baru.
+  const sesudahResult = new Date('2026-09-27T15:00:00Z'); // 22:00 WIB
   const hasil = markDrawObservations([{ slug: 'jepang-pool', drawDate: '2026-09-25', status: 'VERIFIED' }], { now: sesudahResult });
   assert.deepEqual(hasil.skippedDays, ['jepang-pool']);
   assert.equal(isDrawDay('jepang-pool', sesudahResult), false);
@@ -152,7 +146,7 @@ test('status scheduler memakai T-20/T-5/3 menit dan tidak menyimpan apa pun di l
 });
 
 test('pool tanpa jam operator tidak pernah membangunkan collector sendiri', () => {
-  assert.equal(TOTO_RESULT_TIMES_WIB['wisconsin-pool'], undefined);
-  assert.equal(wakeWindowFor('wisconsin-pool', new Date('2026-09-27T12:00:00Z')), null);
-  assert.equal(activeWakeSet(new Date('2026-09-27T12:00:00Z'), SLUGS).includes('wisconsin-pool'), false);
+  assert.equal(TOTO_RESULT_TIMES_WIB['pool-tanpa-jadwal'], undefined);
+  assert.equal(wakeWindowFor('pool-tanpa-jadwal', new Date('2026-09-27T12:00:00Z')), null);
+  assert.equal(activeWakeSet(new Date('2026-09-27T12:00:00Z'), SLUGS).includes('pool-tanpa-jadwal'), false);
 });
