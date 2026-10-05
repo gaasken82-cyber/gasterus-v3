@@ -509,9 +509,24 @@ function syncSelectedOdds(events) {
 function renderStatusMeta() {
   const banner = el('sb-stale-banner');
   if (banner) {
-    if (feed.stale) {
+    const src = feed.source || {};
+    const mode = String(src.mode || '');
+    const isCached = /CACHED|SNAPSHOT|STALE/i.test(mode) || Boolean(src.cachedFallback);
+    // P1: tampilkan umur feed + tanggal update agar jadwal cached tidak dikira acak.
+    const stamp = src.fetchedAt || src.capturedAt || null;
+    let stampText = '';
+    if (stamp) {
+      const d = new Date(stamp);
+      if (!Number.isNaN(d.getTime())) {
+        stampText = ` • update ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      }
+    }
+    if (feed.stale || isCached) {
       banner.hidden = false;
-      banner.textContent = 'Sumber odds sedang stale — sportsbook sementara read-only. Feed akan memperbarui otomatis.';
+      banner.textContent = `Jadwal sementara (data cached${stampText}) — odds dapat berubah saat feed pulih. Feed akan memperbarui otomatis.`;
+    } else if (feed.degraded) {
+      banner.hidden = false;
+      banner.textContent = `Feed terhubung tetapi belum bisa terima taruhan${stampText}. Menunggu otoritas settlement.`;
     } else banner.hidden = true;
   }
 }

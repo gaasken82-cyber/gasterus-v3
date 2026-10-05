@@ -524,8 +524,14 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
   // Batasi jumlah event sebelum disimpan ke lifecycle/cache. Ini mencegah lonjakan
   // dari satu sumber provider mengembang tanpa batas di heap proses feed atau payload Redis.
   events = boundedEvents(events);
-  // Artwork enrichment is metadata-only. A badge provider failure can never suspend odds.
-  events = await enrichTeamArtwork(events);
+  // Artwork enrichment dimatikan default (SPORTSBOOK_ARTWORK_ENABLED=false): logo tim
+  // adalah metadata-only, tetapi enrichTeamArtwork() melakukan structuredClone SELURUH
+  // events + 16 fetch logo per siklus refresh. Odds/settlement tidak membutuhkannya.
+  // File team-artwork.js tetap ada (test tetap hijau); panggilannya yang di-skip.
+  if (config.sportsbookArtworkEnabled) {
+    // Artwork enrichment is metadata-only. A badge provider failure can never suspend odds.
+    events = await enrichTeamArtwork(events);
+  }
   // Feed-level safety: a finished/suspended event or a prematch event whose kickoff
   // has passed without confirmed live state must not remain counted or rendered as bettable.
   events = enforceEventBettingWindow(events, Date.now());

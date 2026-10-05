@@ -125,13 +125,16 @@ export const config = Object.freeze({
   theOddsApiEnabled: pricedProviderEnabled('THE_ODDS_API_ENABLED', theOddsApiKey),
   theOddsApiRegions: text('THE_ODDS_API_REGIONS', 'eu,uk'),
   theOddsApiMarkets: text('THE_ODDS_API_MARKETS', 'h2h,spreads,totals'),
-  theOddsApiEventMarketsEnabled: bool('THE_ODDS_API_EVENT_MARKETS_ENABLED', true),
+  theOddsApiEventMarketsEnabled: bool('THE_ODDS_API_EVENT_MARKETS_ENABLED', false),
   theOddsApiEventMarkets: text('THE_ODDS_API_EVENT_MARKETS', 'h2h_3_way_h1,spreads_h1,totals_h1,btts,btts_h1,double_chance,double_chance_h1,halftime_fulltime'),
   theOddsApiEventMaxEventsPerSport: int('THE_ODDS_API_EVENT_MAX_EVENTS_PER_SPORT', 8, 0, 50),
   // Hard global ceiling for all the-odds-api sports combined. Keeps the in-memory
   // sportsbook catalog well inside the Railway container budget even when NBA,
   // tennis ATP/WTA and esports sport keys are enabled alongside football leagues.
-  theOddsApiMaxTotalEvents: int('THE_ODDS_API_MAX_TOTAL_EVENTS', 250, 0, 1200),
+  // Global ceiling diturunkan 250->80: the-odds-api tanpa KEY tidak fetch sama
+  // sekali (nol request), tetapi kalau suatu hari KEY masuk, 250 events x detail
+  // markets per-sport bisa jebol heap 512MB bareng Sportmonks. 80 cukup untuk 9 sport keys.
+  theOddsApiMaxTotalEvents: int('THE_ODDS_API_MAX_TOTAL_EVENTS', 80, 0, 1200),
   theOddsApiRefreshSeconds: int('THE_ODDS_API_REFRESH_SECONDS', 300, 60, 1800),
   theOddsApiEventRefreshSeconds: int('THE_ODDS_API_EVENT_REFRESH_SECONDS', 300, 60, 1800),
   theOddsApiBookmakers: text('THE_ODDS_API_BOOKMAKERS'),
@@ -156,7 +159,10 @@ export const config = Object.freeze({
   sportmonksDaysAhead: int('SPORTMONKS_DAYS_AHEAD', 2, 0, 7),
   sportmonksRefreshSeconds: int('SPORTMONKS_REFRESH_SECONDS', 300, 60, 1800),
   sportmonksOddsRefreshSeconds: int('SPORTMONKS_ODDS_REFRESH_SECONDS', 180, 30, 1800),
-  sportmonksMaxTotalEvents: int('SPORTMONKS_MAX_TOTAL_EVENTS', 40, 0, 250),
+  // Cap diturunkan 40->20: Sportmonks include=odds ~1.5MB/fixture. 40 events =
+  // ~60MB payload mentah per siklus di heap feed-worker 256MB. 20 events tetap
+  // cukup untuk 2 hari matchday, dan env override tetap bisa naikkan lagi.
+  sportmonksMaxTotalEvents: int('SPORTMONKS_MAX_TOTAL_EVENTS', 20, 0, 250),
   sportmonksMaxParallel: int('SPORTMONKS_MAX_PARALLEL', 6, 1, 12),
   sportsSourceRegistryEnabled: bool('SPORTS_SOURCE_REGISTRY_ENABLED', true),
   sportsSourceEvictUnhealthyHours: int('SPORTS_SOURCE_EVICT_UNHEALTHY_HOURS', 2, 1, 720),
@@ -167,7 +173,7 @@ export const config = Object.freeze({
   // Provider fan-out budget: do not fetch every enabled provider at once.
   // 0 keeps the legacy unlimited-parallel behaviour.
   sportsSourceMaxParallel: int('SPORTS_SOURCE_MAX_PARALLEL', 3, 0, 20),
-  sportsbookArtworkEnabled: bool('SPORTSBOOK_ARTWORK_ENABLED', true),
+  sportsbookArtworkEnabled: bool('SPORTSBOOK_ARTWORK_ENABLED', false),
   sportsbookArtworkBaseUrl: text('SPORTSBOOK_ARTWORK_BASE_URL', 'https://www.thesportsdb.com/api/v1/json'),
   // TheSportsDB publishes 123 as its current free V1 API key. Artwork is metadata-only and
   // never participates in pricing, bet acceptance or settlement authority.
@@ -186,7 +192,7 @@ export const config = Object.freeze({
   publicMarketExtraFixturesPageUrl: text('PUBLIC_MARKET_EXTRA_FIXTURES_PAGE_URL', 'https://www.football-data.co.uk/matches_new_leagues.php'),
   publicMarketLatestResultsUrl: text('PUBLIC_MARKET_LATEST_RESULTS_URL', 'https://www.football-data.co.uk/new/Latest_Results.csv'),
   publicMarketRefreshSeconds: int('PUBLIC_MARKET_REFRESH_SECONDS', 900, 300, 21600),
-  publicMarketMaxStaleSeconds: int('PUBLIC_MARKET_MAX_STALE_SECONDS', 604800, 1800, 604800),
+  publicMarketMaxStaleSeconds: int('PUBLIC_MARKET_MAX_STALE_SECONDS', 172800, 1800, 604800),
   publicMarketRequestTimeoutMs: int('PUBLIC_MARKET_REQUEST_TIMEOUT_MS', 12000, 2000, 30000),
   publicMarketMaxEvents: int('PUBLIC_MARKET_MAX_EVENTS', 500, 10, 1200),
   publicMarketDerivedMarketsEnabled: bool('PUBLIC_MARKET_DERIVED_MARKETS_ENABLED', true),
