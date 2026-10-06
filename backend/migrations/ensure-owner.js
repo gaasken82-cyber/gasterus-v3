@@ -18,6 +18,13 @@ try {
       LIMIT 1
     `);
     if(existing.rowCount) return {created:false,username:existing.rows[0].username};
+    // Jika owner belum ada DAN kredensial bootstrap tidak diset (mis. deploy
+    // ulang dengan preDeploy aktif), skip dengan aman alih-alih menggagalkan
+    // seluruh deployment. Owner bisa dibuat manual via bootstrap-owner.js.
+    if(!password || !secret) {
+      console.log('Owner bootstrap skipped: OWNER_PASSWORD/OWNER_TOTP_SECRET not set and no OWNER exists yet');
+      return {created:false,username:'(pending manual bootstrap)'};
+    }
     if(!username) throw new Error('OWNER_USERNAME is required for first deploy');
     if(password.length<14||password.length>128) throw new Error('OWNER_PASSWORD must contain 14-128 characters for first deploy');
     if(secret.length<16) throw new Error('OWNER_TOTP_SECRET must be a valid Base32 secret for first deploy');
