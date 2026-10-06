@@ -1,4 +1,15 @@
+import { existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { bool, int, optionalSecret, requiredSecret, text } from './env.js';
+
+// Local development: muat backend/.env (gitignored) jika ada. process.loadEnvFile
+// TIDAK menimpa variabel yang sudah ada di process.env, jadi variabel produksi
+// (Railway dashboard) selalu menang; file ini hanya pengisi celah saat dev lokal.
+const localEnvFile = resolve(dirname(fileURLToPath(import.meta.url)), '../.env');
+if (existsSync(localEnvFile)) {
+  try { process.loadEnvFile(localEnvFile); } catch { /* .env rusak tidak boleh menggagalkan boot */ }
+}
 
 const isProduction = process.env.NODE_ENV === 'production';
 const apiSportsKey = optionalSecret('API_SPORTS_KEY');
@@ -107,6 +118,13 @@ export const config = Object.freeze({
   apiSportsOddsPages: int('API_SPORTS_ODDS_PAGES', 2, 1, 20),
   apiSportsLiveRefreshSeconds: int('API_SPORTS_LIVE_REFRESH_SECONDS', 30, 15, 300),
   apiSportsPrematchRefreshSeconds: int('API_SPORTS_PREMATCH_REFRESH_SECONDS', 300, 60, 1800),
+  // API-Sports free plan = 100 request/hari (divalidasi via GET /status:
+  // {"plan":"Free","requests":{"limit_day":100}}). Guard kuota di
+  // sportsbook-providers.js memecah angka ini menjadi jeda minimum per endpoint
+  // (live 75%, prematch 25%) sehingga loop refresh 30 detik tidak pernah
+  // meledakkan kuota. Naikkan ke 7500 bila upgrade Pro ($19/bln): floor otomatis
+  // jatuh di bawah TTL konfigurasi dan guard menjadi transparan.
+  apiSportsDailyQuota: int('API_SPORTS_DAILY_QUOTA', 100, 10, 200000),
   sharpApiKey,
   sharpApiBaseUrl: text('SHARP_API_BASE_URL', 'https://api.sharpapi.io'),
   sharpApiEnabled: pricedProviderEnabled('SHARP_API_ENABLED', sharpApiKey),

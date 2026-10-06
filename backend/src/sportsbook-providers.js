@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { config } from './config.js';
+import { logger } from './logger.js';
 
 const MAX_PROVIDER_EVENTS = 1200;
 const MARKET_TYPES = Object.freeze({
@@ -229,10 +230,55 @@ async function cachedRequest(key, ttlMs, fetcher) {
   providerRequestCache.set(key, { value: cached?.value, fetchedAt: cached?.fetchedAt || 0, inFlight });
   return inFlight;
 }
-function cachedApiSports(path, params, ttlSeconds) {
+// ---------------------------------------------------------------------------
+// API-Sports daily quota guard (free plan: 100 req/hari, divalidasi via
+// GET /status -> {"requests":{"limit_day":100}}). Cache hit gratis; yang harus
+// dijaga hanya seberapa sering HTTP benar-benar dikirim ke provider.
+//
+// Tiap bucket (live/prematch) diberi jatah harian dari API_SPORTS_DAILY_QUOTA,
+// lalu jatah itu diubah menjadi jeda minimum per endpoint:
+//     floorDetik = 86400 * jumlahEndpointBucket / jatahHarian
+// TTL efektif = max(TTL konfigurasi, floor), sehingga walaupun loop refresh
+// berjalan tiap 30 detik, provider tidak pernah dipanggil lebih cepat dari
+// jatahnya. Dua bucket terpisah supaya prematch (banyak endpoint) tidak pernah
+// melahap jatah live. Upgrade ke Pro? cukup naikkan API_SPORTS_DAILY_QUOTA
+// (7500) — floor jatuh di bawah TTL konfigurasi dan guard jadi transparan.
+//
+// Jika provider tetap membalas 429 (race lintas proses/restart), payload cache
+// terakhir disajikan tanpa dihitung sebagai gangguan transport, dan retry tidak
+// dipaksa tiap 30 detik.
+const API_SPORTS_LIVE_ENDPOINTS = 2; // fixtures?live=all + odds/live
+
+function apiSportsEndpointCount(bucket) {
+  return bucket === 'live' ? API_SPORTS_LIVE_ENDPOINTS : 1 + Math.max(1, Number(config.apiSportsOddsPages) || 1);
+}
+
+export function apiSportsQuotaFloorSeconds(bucket) {
+  const budget = Math.max(10, Number(config.apiSportsDailyQuota) || 100);
+  const prematchShare = Math.min(Math.max(10, Math.round(budget * 0.25)), budget - 10);
+  const share = bucket === 'live' ? budget - prematchShare : prematchShare;
+  return Math.ceil(86400 * apiSportsEndpointCount(bucket) / share);
+}
+
+function cachedApiSports(path, params, ttlSeconds, bucket = 'prematch') {
   const entries = Object.entries(params || {}).sort(([a], [b]) => a.localeCompare(b));
   const key = `api-sports:${path}:${JSON.stringify(entries)}`;
-  return cachedRequest(key, ttlSeconds * 1000, () => apiSports(path, params));
+  const floorSeconds = apiSportsQuotaFloorSeconds(bucket);
+  const ttl = Math.max(ttlSeconds, floorSeconds);
+  return cachedRequest(key, ttl * 1000, async () => {
+    try {
+      return await apiSports(path, params);
+    } catch (error) {
+      if (!String(error?.message || '').includes('HTTP 429')) throw error;
+      const cached = providerRequestCache.get(key);
+      logger.warn('API-Sports daily quota reached; serving cached payload', { endpoint: path, bucket, floorSeconds });
+      if (cached?.value !== undefined) return cached.value;
+      // Belum ada data tersimpan: kembalikan payload kosong berbentuk sah supaya
+      // feed tetap hidup dan siklus SETELAH floor berikutnya mencoba lagi,
+      // bukan membanjiri provider dengan retry 429 tiap 30 detik.
+      return { response: [] };
+    }
+  });
 }
 function utcDate(offsetDays = 0) {
   const date = new Date();
@@ -959,12 +1005,12 @@ async function apiSports(path, params = {}) {
 export async function fetchApiSports() {
   if (!config.apiSportsEnabled || !config.apiSportsKey) return { provider: 'api-sports', enabled: false, events: [] };
   const requests = [
-    cachedApiSports('fixtures', { live: 'all' }, config.apiSportsLiveRefreshSeconds),
-    cachedApiSports('fixtures', { from: utcDate(0), to: utcDate(config.apiSportsDaysAhead) }, config.apiSportsPrematchRefreshSeconds),
-    cachedApiSports('odds/live', {}, config.apiSportsLiveRefreshSeconds)
+    cachedApiSports('fixtures', { live: 'all' }, config.apiSportsLiveRefreshSeconds, 'live'),
+    cachedApiSports('fixtures', { from: utcDate(0), to: utcDate(config.apiSportsDaysAhead) }, config.apiSportsPrematchRefreshSeconds, 'prematch'),
+    cachedApiSports('odds/live', {}, config.apiSportsLiveRefreshSeconds, 'live')
   ];
   for (let page = 1; page <= config.apiSportsOddsPages; page += 1) {
-    requests.push(cachedApiSports('odds', { date: utcDate(0), page }, config.apiSportsPrematchRefreshSeconds));
+    requests.push(cachedApiSports('odds', { date: utcDate(0), page }, config.apiSportsPrematchRefreshSeconds, 'prematch'));
   }
   const settled = await Promise.allSettled(requests);
   const fixturePayloads = settled.slice(0, 2).filter(item => item.status === 'fulfilled').map(item => item.value);
@@ -985,6 +1031,21 @@ export async function fetchApiSports() {
     if (!id || seen.has(id)) continue;
     seen.add(id);
     events.push(normalizeApiSportsFixture(fixture, oddsByFixture.get(id) || []));
+  }
+  // Stempel harga LIVE dari fetchedAt cache odds/live yang ASLI — bukan Date.now():
+  // siklus refresh menormalisasi ulang payload cache tiap 30 detik, jadi stempel
+  // harus menua bersama cache dan hanya kembali segar saat fetch provider benar-
+  // benar terjadi. suspendStaleLiveMarkets() memakai angka ini untuk menutup
+  // market live yang harganya basi; tanpa stempel = dianggap basi (fail-closed).
+  const oddsLiveFetchedAt = providerRequestCache.get('api-sports:odds/live:[]')?.fetchedAt;
+  if (Number.isFinite(oddsLiveFetchedAt)) {
+    const stamp = new Date(oddsLiveFetchedAt).toISOString();
+    for (const event of events) {
+      if (!event.live) continue;
+      for (const market of event.markets || []) {
+        if (!market.updatedAt) market.updatedAt = stamp;
+      }
+    }
   }
   const errors = settled.filter(result => result.status === 'rejected').map(result => clean(result.reason?.message || 'request failed'));
   return { provider: 'api-sports', enabled: true, events: events.slice(0, MAX_PROVIDER_EVENTS), errors };
@@ -1057,6 +1118,33 @@ function sourcePriority(source, live) {
 
 function marketBettingAvailable(market) {
   return Boolean(market && !market.suspended && (market.selections || []).some(selection => !selection.suspended && Number(selection.odds) > 1));
+}
+// Fail-closed LIVE: market pada event live hanya boleh ditawarkan selama harga
+// provider benar-benar segar (<= SPORTSBOOK_MAX_LIVE_PRICE_AGE_SECONDS). Market
+// tanpa timestamp sama sekali dianggap basi — unknown = tidak aman. Tanpa kunci
+// ini, provider free-tier yang refresh tiap puluhan menit akan menawarkan odds
+// basi saat skor di lapangan sudah berubah (celah rugi untuk rumah). Prematch
+// TIDAK disentuh: jendela usia prematch (SPORTSBOOK_MAX_PREMATCH_PRICE_AGE_SECONDS)
+// berlaku seperti biasa lewat assertSelectionFresh.
+function suspendStaleLiveMarkets(events = [], now = Date.now()) {
+  const maxAgeMs = Number(config.sportsbookMaxLivePriceAgeSeconds || 0) * 1000;
+  return events.map(event => {
+    const status = String(event?.status || '').toUpperCase();
+    const live = Boolean(event?.live) || ['LIVE', 'IN_PLAY', 'IN-PLAY'].includes(status);
+    if (!live) return event;
+    let changed = false;
+    const markets = (event.markets || []).map(market => {
+      const updatedMs = Date.parse(market?.updatedAt || '');
+      if (Number.isFinite(updatedMs) && now - updatedMs <= maxAgeMs) return market;
+      changed = true;
+      return {
+        ...market,
+        suspended: true,
+        selections: (market.selections || []).map(selection => ({ ...selection, suspended: true }))
+      };
+    });
+    return changed ? { ...event, markets } : event;
+  });
 }
 function mergeMarkets(target, incoming, live) {
   const map = new Map(target.map(item => [marketIdentity(item), item]));
@@ -1219,6 +1307,8 @@ export const __sportsbookProviders = {
   selectionId,
   periodFromName,
   extractApiSportsOdds,
+  apiSportsQuotaFloorSeconds,
+  suspendStaleLiveMarkets,
   providerRequestCache
 };
 

@@ -6,7 +6,7 @@ import { logger } from './logger.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { fetchSportmonks, fetchSharpApi, fetchApiSports, fetchTheOddsApi, mergeProviderEvents, publicEvent } from './sportsbook-providers.js';
+import { fetchSportmonks, fetchSharpApi, fetchApiSports, fetchTheOddsApi, mergeProviderEvents, publicEvent, suspendStaleLiveMarkets } from './sportsbook-providers.js';
 import { fetchPublicMarketFeed } from './sportsbook-public-market.js';
 import { advanceProviderLifecycle, publicProviderLifecycle, shouldProbeProvider, transitionProviderLifecycle } from './sportsbook-provider-lifecycle.js';
 import { recordSportsbookMarketTransitions, recordSportsbookProviderTransitions, sportsbookPricingExposureSnapshot } from './sportsbook-operations.js';
@@ -535,6 +535,12 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
   // Feed-level safety: a finished/suspended event or a prematch event whose kickoff
   // has passed without confirmed live state must not remain counted or rendered as bettable.
   events = enforceEventBettingWindow(events, Date.now());
+  // Fail-closed LIVE: market live dengan harga provider basi/tanpa timestamp ditahan
+  // (suspended) — tetap terlihat di papan, tetapi tidak bisa dipasang taruhan sampai
+  // harga segar datang. Ini kunci keselamatan live betting pada provider free-tier
+  // yang refresh-nya jauh lebih lambat dari detik; market otomatis terbuka lagi di
+  // siklus berikutnya begitu fetch provider baru mengirim harga segar.
+  events = suspendStaleLiveMarkets(events, Date.now());
   // Validasi odds handicap untuk mencegah odds tidak normal (misal: 1.068 vs 9.196)
   events = validateAllHandicapOdds(events);
   let snapshotFallback = false;

@@ -14,6 +14,11 @@ test('R6.9.0.22 feed closes finished and kickoff-pending markets before bettable
   assert.match(feed,/if \(!eventBettingOpen\(event, now\)\) return total/);
 });
 
+test('R6.9.0.22 feed suspends stale live markets fail-closed before bettable counting', () => {
+  assert.match(feed,/events = suspendStaleLiveMarkets\(events, Date\.now\(\)\)/);
+  assert.match(feed,/import \{[^}]*suspendStaleLiveMarkets[^}]*\} from '\.\/sportsbook-providers\.js'/);
+});
+
 test('R6.9.0.22 member catalog removes closed results and has bounded horizon', () => {
   assert.match(feed,/function memberVisibleEvent/);
   assert.match(feed,/sportsbookMemberHorizonDays/);

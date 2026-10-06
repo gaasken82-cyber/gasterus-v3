@@ -203,3 +203,22 @@ test('SharpAPI core market is fail-closed when any required outcome is suspended
   ]);
   assert.equal(event.markets[0].suspended, true);
 });
+
+
+test('Live markets fail closed when the provider price timestamp is stale, missing, or heartbeat-only', () => {
+  const now = Date.parse('2026-10-06T12:00:00Z');
+  const market = updatedAt => ({ id: 'm1', suspended: false, updatedAt, selections: [{ key: 's1', suspended: false, odds: 1.9, updatedAt }] });
+  const liveEvent = (updatedAt, overrides = {}) => ({ id: 'e1', live: true, status: 'LIVE', markets: [market(updatedAt)], ...overrides });
+  const guard = events => __sportsbookProviders.suspendStaleLiveMarkets(events, now);
+
+  // Harga baru (30 detik lalu, jendela live = 90 detik) tetap terbuka.
+  assert.equal(guard([liveEvent('2026-10-06T11:59:30Z')])[0].markets[0].suspended, false);
+  // Harga basi (10 menit lalu) ditahan, beserta seluruh selection-nya.
+  const stale = guard([liveEvent('2026-10-06T11:50:00Z')])[0].markets[0];
+  assert.equal(stale.suspended, true);
+  assert.ok(stale.selections.every(selection => selection.suspended));
+  // Tanpa timestamp = tidak bisa dibuktikan segar -> dianggap basi (fail-closed).
+  assert.equal(guard([liveEvent(null)])[0].markets[0].suspended, true);
+  // Prematch tidak pernah disentuh oleh guard ini.
+  assert.equal(guard([liveEvent(null, { live: false, status: 'SCHEDULED' })])[0].markets[0].suspended, false);
+});
