@@ -1126,7 +1126,7 @@ function marketBettingAvailable(market) {
 // basi saat skor di lapangan sudah berubah (celah rugi untuk rumah). Prematch
 // TIDAK disentuh: jendela usia prematch (SPORTSBOOK_MAX_PREMATCH_PRICE_AGE_SECONDS)
 // berlaku seperti biasa lewat assertSelectionFresh.
-function suspendStaleLiveMarkets(events = [], now = Date.now()) {
+export function suspendStaleLiveMarkets(events = [], now = Date.now()) {
   const maxAgeMs = Number(config.sportsbookMaxLivePriceAgeSeconds || 0) * 1000;
   return events.map(event => {
     const status = String(event?.status || '').toUpperCase();
