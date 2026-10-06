@@ -52,6 +52,7 @@ export function validateAllHandicapOdds(events = []) {
 
       let activeSelectionCount = 0;
       let activeOverround = 0;
+      let activeHandicapOverround = 0;
       let minOdds = Number.POSITIVE_INFINITY;
       let maxOdds = 0;
       let legacyOddsCount = 0;
@@ -73,18 +74,29 @@ export function validateAllHandicapOdds(events = []) {
         }
         activeSelectionCount += 1;
         if (market.type === '1X2') activeOverround += 1 / odds;
+        if (market.type === 'HANDICAP') activeHandicapOverround += 1 / odds;
       }
 
       if (!reason && market.type === '1X2' && activeSelectionCount === 3
         && (activeOverround < MIN_1X2_OVERROUND || activeOverround > MAX_1X2_OVERROUND)) {
         reason = 'OVERROUND_1X2';
       }
+      if (!reason && market.type === 'HANDICAP' && activeSelectionCount === 2
+        && (activeHandicapOverround < MIN_1X2_OVERROUND || activeHandicapOverround > MAX_1X2_OVERROUND)) {
+        reason = 'OVERROUND_HANDICAP';
+      }
+      if (!reason && market.type === 'HANDICAP' && activeSelectionCount > 0 && activeSelectionCount !== 2) {
+        reason = 'INCOMPLETE_HANDICAP';
+      }
+      if (!reason && market.type === 'HANDICAP' && activeSelectionCount === 2 && maxOdds / minOdds > 3) {
+        reason = 'ABNORMAL_HANDICAP_ODDS';
+      }
 
       // Preserve the existing pick'em handicap safeguard.
       if (!reason && market.type === 'HANDICAP'
         && (market.line === 0 || market.line === null || market.line === '')
         && legacyOddsCount >= 2
-        && (minOdds < 1.50 || maxOdds / minOdds > 3)) {
+        && minOdds < 1.50) {
         reason = 'ABNORMAL_HANDICAP_ODDS';
       }
 
@@ -108,8 +120,8 @@ export function validateAllHandicapOdds(events = []) {
   return events;
 }
 
-const LIFECYCLE_GENERATION = 'r6915';
-const CACHE_KEY = 'sportsbook:aggregated-feed:v11';
+const LIFECYCLE_GENERATION = 'r6917';
+const CACHE_KEY = 'sportsbook:aggregated-feed:v13';
 const LIFECYCLE_KEY = 'sportsbook:provider-lifecycle:v6';
 const MARKET_LIFECYCLE_KEY = 'sportsbook:market-lifecycle:v6';
 const REFRESH_MS = config.sportsFeedRefreshSeconds * 1000;
@@ -150,6 +162,7 @@ function clean(value) {
 const CLOSED_EVENT_STATUSES = new Set(['FINISHED', 'CANCELLED', 'CANCELED', 'ABANDONED', 'POSTPONED', 'VOID']);
 const MAX_FEED_EVENTS = config.sportsFeedMaxEvents;
 const MAX_CACHE_BYTES = config.sportsFeedMaxCacheBytes;
+let lastCacheLimitWarningAt = 0;
 
 function boundedEvents(events = []) {
   if (!Array.isArray(events) || events.length <= MAX_FEED_EVENTS) return Array.isArray(events) ? events : [];
@@ -164,15 +177,35 @@ function boundedEvents(events = []) {
 
 function cacheWithinLimit(value) {
   const bounded = { ...value, events: boundedEvents(value?.events) };
-  const encoded = JSON.stringify(bounded);
-  if (Buffer.byteLength(encoded, 'utf8') <= MAX_CACHE_BYTES) return bounded;
-  const events = [...bounded.events];
-  while (events.length > 1) {
-    events.splice(Math.ceil(events.length * 0.1));
-    const candidate = { ...bounded, events };
-    if (Buffer.byteLength(JSON.stringify(candidate), 'utf8') <= MAX_CACHE_BYTES) return candidate;
+  const byteLength = candidate => Buffer.byteLength(JSON.stringify(candidate), 'utf8');
+  if (byteLength(bounded) <= MAX_CACHE_BYTES) return bounded;
+
+  let low = 0;
+  let high = bounded.events.length - 1;
+  let best = { ...bounded, events: [] };
+  let bestCount = 0;
+  while (low <= high) {
+    const count = Math.floor((low + high) / 2);
+    const candidate = { ...bounded, events: bounded.events.slice(0, count) };
+    if (byteLength(candidate) <= MAX_CACHE_BYTES) {
+      best = candidate;
+      bestCount = count;
+      low = count + 1;
+    } else {
+      high = count - 1;
+    }
   }
-  return { ...bounded, events: [] };
+
+  const now = Date.now();
+  if (now - lastCacheLimitWarningAt >= 60000) {
+    logger.warn('Sportsbook Redis cache event list reduced to fit byte limit', {
+      originalEvents: bounded.events.length,
+      cachedEvents: bestCount,
+      maxBytes: MAX_CACHE_BYTES
+    });
+    lastCacheLimitWarningAt = now;
+  }
+  return best;
 }
 
 function eventBettingOpen(event, now = Date.now()) {

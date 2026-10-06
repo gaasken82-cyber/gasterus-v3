@@ -7,7 +7,7 @@ const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.u
 const worker = readFileSync(new URL('../src/worker.js', import.meta.url), 'utf8');
 
 test('stale Sportsbook feed cache is read-only and cannot be settled', () => {
-  assert.match(feed, /sportsbook:aggregated-feed:v11/);
+  assert.match(feed, /sportsbook:aggregated-feed:v13/);
   assert.match(feed, /READ_ONLY_STALE_SOURCE/);
   assert.match(feed, /feed\.readOnlySource \|\| feed\.snapshotFallback/);
   assert.match(feed, /SPORTS_SETTLEMENT_SOURCE_STALE/);
@@ -39,6 +39,38 @@ test('failed Sportsbook background refresh immediately suspends cached odds and 
   assert.match(feedSource, /events:\s*readOnlyEvents/);
   assert.match(feedSource, /readOnlySource:\s*true/);
   assert.match(feedSource, /await writeRedisCache\(memory\)/);
+});
+
+test('feed Redis cache retains the maximum number of events that fit its byte cap', () => {
+  const source = readFileSync(new URL('../src/sportsbook-feed.js', import.meta.url), 'utf8');
+  const start = source.indexOf('function cacheWithinLimit');
+  const end = source.indexOf('\nfunction eventBettingOpen', start);
+  assert.ok(start >= 0 && end > start, 'cache limit function must exist');
+  const cacheWithinLimit = new Function(
+    'boundedEvents',
+    'MAX_CACHE_BYTES',
+    'logger',
+    'Buffer',
+    'lastCacheLimitWarningAt',
+    `${source.slice(start, end)}; return cacheWithinLimit;`
+  )(
+    events => events,
+    6000,
+    { warn() {} },
+    Buffer,
+    0
+  );
+  const input = {
+    events: Array.from({ length: 100 }, (_, index) => ({ id: index, payload: 'x'.repeat(1000) }))
+  };
+  const cached = cacheWithinLimit(input);
+  const canFit = count => Buffer.byteLength(JSON.stringify({
+    ...input,
+    events: input.events.slice(0, count)
+  }), 'utf8') <= 6000;
+  assert.ok(cached.events.length > 1, 'should not discard 90% of events on each reduction');
+  assert.ok(canFit(cached.events.length), 'cached payload must stay inside the byte limit');
+  assert.equal(canFit(cached.events.length + 1), false, 'no additional event should fit');
 });
 
 test('background poll guard skips an overlapping cycle instead of queueing it', () => {

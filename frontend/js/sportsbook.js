@@ -47,13 +47,10 @@ const oddsMovementMap = new Map(); // selKey -> { direction: 'up' | 'down', time
 const oddsCleanupTimers = new Map(); // selKey -> timeoutId
 let isInitialSnapshot = true;
 
-function updateOddsInDOM(key, direction, curOdds, sk, mk) {
+function updateOddsInDOM(key, direction, curOdds, sk) {
   const elements = document.querySelectorAll(`[data-sel="${key}"]`);
   if (!elements.length) return;
-  const is1x2 = String(mk?.type || '').toUpperCase() === '1X2';
-  const indo = formatIndoOdds(curOdds);
-  const oddsText = is1x2 ? Number(curOdds).toFixed(2) : indo.text;
-  const oddsClass = is1x2 ? 'pos' : (indo.isNeg ? 'neg' : 'pos');
+  const oddsText = formatDecimalOdds(curOdds);
   const arrowHtml = direction === 'up'
     ? '<span class="sb-odd-movement-arrow up" aria-label="Odds naik">↑</span>'
     : '<span class="sb-odd-movement-arrow down" aria-label="Odds turun">↓</span>';
@@ -65,14 +62,13 @@ function updateOddsInDOM(key, direction, curOdds, sk, mk) {
 
     const oddsSpan = btn.querySelector('.sb-cell-odds');
     if (oddsSpan) {
-      oddsSpan.className = `sb-cell-odds ${oddsClass}`;
+      oddsSpan.className = 'sb-cell-odds pos';
       oddsSpan.innerHTML = `${escapeHtml(oddsText)}${arrowHtml}`;
     } else {
       const quickText = btn.querySelector('div[style*="font-size:11px"]');
       if (quickText) {
-        const color = indo.isNeg ? 'color:#dc2626;' : 'color:#111827;';
-        quickText.style.cssText = `font-size:11px; font-weight:800; ${color}`;
-        quickText.innerHTML = `${escapeHtml(indo.text)}${arrowHtml}`;
+        quickText.style.cssText = 'font-size:11px; font-weight:800; color:#111827;';
+        quickText.innerHTML = `${escapeHtml(oddsText)}${arrowHtml}`;
       }
     }
 
@@ -109,7 +105,7 @@ function trackOddsMovement(events) {
               oddsMovementMap.set(key, { direction, timestamp: now });
               previousOddsMap.set(key, curOdds);
               anyMoved = true;
-              updateOddsInDOM(key, direction, curOdds, sk, mk);
+              updateOddsInDOM(key, direction, curOdds, sk);
               scheduleOddsMovementCleanup(key, 1000);
             }
           } else {
@@ -543,17 +539,9 @@ function renderStatusMeta() {
  * - If Decimal Odds < 2.00: Indo odds = -1.00 / (Decimal - 1.00) (Negative, RED)
  * Returns { text: string, isNeg: boolean }
  */
-function formatIndoOdds(decOdds) {
-  const d = Number(decOdds);
-  if (!Number.isFinite(d) || d <= 1) return { text: '—', isNeg: false, fav: false };
-  if (d >= 2.00) {
-    // Underdog: Indo odds positif (contoh: 2.50 → +2.50)
-    return { text: (d - 1).toFixed(2), isNeg: false, fav: false };
-  } else {
-    // Favorit: Indo odds negatif (contoh: 1.21 → -1.21) — standar SBOBET/WAM
-    const val = -1.0 / (d - 1.0);
-    return { text: val.toFixed(2), isNeg: true, fav: true };
-  }
+function formatDecimalOdds(value) {
+  const odds = Number(value);
+  return Number.isFinite(odds) && odds > 1 ? odds.toFixed(2) : '—';
 }
 
 // Timezone-aware "today" check (WIB = UTC+7).
@@ -1012,10 +1000,8 @@ function renderLiveCarousel() {
 function renderQuickOddBtn(e, m, s, label) {
   if (!m || !s) return `<div class="sb-quick-odd-btn disabled"><span>${label}</span><span>—</span></div>`;
   const key = selKey(e.id, m.id, s.key);
-  const indo = formatIndoOdds(s.odds);
   const line = s.line ?? m.line;
   const lineStr = line != null ? (Number(line) > 0 ? `+${Number(line).toFixed(2)}` : Number(line).toFixed(2)) : '';
-  const oddsColor = indo.isNeg ? 'color:#dc2626;' : 'color:#111827;';
 
   let movementClass = '';
   let movementArrow = '';
@@ -1037,7 +1023,7 @@ function renderQuickOddBtn(e, m, s, label) {
       <span>${label}</span>
       <div style="text-align:right;">
         ${lineStr ? `<div style="font-size:9px; color:#0284c7; font-weight:700;">${lineStr}</div>` : ''}
-        <div style="font-size:11px; font-weight:800; ${oddsColor}">${indo.text}${movementArrow}</div>
+        <div style="font-size:11px; font-weight:800; color:#111827;">${formatDecimalOdds(s.odds)}${movementArrow}</div>
       </div>
     </button>
   `;
@@ -1078,7 +1064,7 @@ function findMarket(e, type, period) {
   );
 }
 
-function renderOddCell(e, m, s, lineOverride, forceDecimal = false) {
+function renderOddCell(e, m, s, lineOverride) {
   if (!m || !s || s.suspended) {
     return `<div class="sb-odd-cell disabled"><span class="sb-cell-odds">—</span></div>`;
   }
@@ -1089,14 +1075,11 @@ function renderOddCell(e, m, s, lineOverride, forceDecimal = false) {
   const key = selKey(e.id, m.id, s.key);
   const isChosen = selected.has(key);
   
-  const indo = formatIndoOdds(decOdds);
   const lineVal = lineOverride != null ? lineOverride : (s.line ?? m.line);
-  const lineFormatted = (!forceDecimal && lineVal != null) 
+  const lineFormatted = lineVal != null
     ? (Number(lineVal) > 0 ? `+${Number(lineVal).toFixed(2)}` : Number(lineVal).toFixed(2)) 
     : '';
-  
-  const oddsText = forceDecimal ? decOdds.toFixed(2) : indo.text;
-  const oddsClass = forceDecimal ? 'pos' : (indo.isNeg ? 'neg' : 'pos');
+  const oddsText = formatDecimalOdds(decOdds);
 
   // Visual Odds Movement
   let movementClass = '';
@@ -1123,7 +1106,7 @@ function renderOddCell(e, m, s, lineOverride, forceDecimal = false) {
       aria-pressed="${isChosen ? 'true' : 'false'}"
       title="${escapeHtml(s.label || s.key)} @ ${decOdds.toFixed(2)}">
       ${lineFormatted ? `<span class="sb-cell-line">${escapeHtml(lineFormatted)}</span>` : ''}
-      <span class="sb-cell-odds ${oddsClass}">${oddsText}${movementArrow}</span>
+      <span class="sb-cell-odds pos">${oddsText}${movementArrow}</span>
     </button>
   `;
 }
@@ -1250,15 +1233,15 @@ function renderMatch(e) {
           <div class="sb-mcol">
             <div class="sb-mrow-item">
               <span class="sb-mletter">H</span>
-              ${renderOddCell(e, bp1x2, h1x2, null, true)}
+              ${renderOddCell(e, bp1x2, h1x2)}
             </div>
             <div class="sb-mrow-item">
               <span class="sb-mletter">A</span>
-              ${renderOddCell(e, bp1x2, a1x2, null, true)}
+              ${renderOddCell(e, bp1x2, a1x2)}
             </div>
             <div class="sb-mrow-item">
               <span class="sb-mletter">D</span>
-              ${renderOddCell(e, bp1x2, d1x2, null, true)}
+              ${renderOddCell(e, bp1x2, d1x2)}
             </div>
           </div>
         </div>
@@ -1300,15 +1283,15 @@ function renderMatch(e) {
           <div class="sb-mcol">
             <div class="sb-mrow-item">
               <span class="sb-mletter">H</span>
-              ${renderOddCell(e, b11x2, h1x2_1, null, true)}
+              ${renderOddCell(e, b11x2, h1x2_1)}
             </div>
             <div class="sb-mrow-item">
               <span class="sb-mletter">A</span>
-              ${renderOddCell(e, b11x2, a1x2_1, null, true)}
+              ${renderOddCell(e, b11x2, a1x2_1)}
             </div>
             <div class="sb-mrow-item">
               <span class="sb-mletter">D</span>
-              ${renderOddCell(e, b11x2, d1x2_1, null, true)}
+              ${renderOddCell(e, b11x2, d1x2_1)}
             </div>
           </div>
         </div>
@@ -1374,7 +1357,7 @@ function renderAccordionMarketRows(e) {
               ? selections.map((s) => `
                 <div style="display:flex; flex-direction:column; gap:2px;">
                   <span style="font-size:10px; color:#64748b; text-align:center;">${escapeHtml(s.label || s.key)}</span>
-                  ${renderOddCell(e, market, s, null, true)}
+                  ${renderOddCell(e, market, s)}
                 </div>
               `).join('')
               : `<div style="font-size:11px; color:#94a3b8; grid-column:1/-1; text-align:center; padding:6px;">Pasaran ditutup atau belum dibuka</div>`}

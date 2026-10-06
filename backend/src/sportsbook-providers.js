@@ -613,13 +613,20 @@ function normalizeOddsApiEvent(raw) {
   const sourceMarkets = new Map();
   for (const bookmaker of raw.bookmakers || []) {
     for (const market of bookmaker.markets || []) {
-      const existing = sourceMarkets.get(market.key) || { key: market.key, outcomes: [], last_update: market.last_update };
-      existing.outcomes.push(...(market.outcomes || []));
-      if (Date.parse(market.last_update || '') > Date.parse(existing.last_update || '')) existing.last_update = market.last_update;
-      sourceMarkets.set(market.key, existing);
+      const normalized = oddsApiMarket(event, market);
+      if (!normalized) continue;
+      const key = marketIdentity(normalized);
+      const impliedTotal = normalized.selections.reduce((sum, selection) => sum + 1 / selection.odds, 0);
+      if (((normalized.type === 'HANDICAP' && normalized.selections.length === 2)
+        || (normalized.type === '1X2' && normalized.selections.length === 3))
+        && (impliedTotal < 1 || impliedTotal > 1.25)) continue;
+      const current = sourceMarkets.get(key);
+      if (!current || impliedTotal < current.impliedTotal) {
+        sourceMarkets.set(key, { market: normalized, impliedTotal });
+      }
     }
   }
-  event.markets = [...sourceMarkets.values()].map(market => oddsApiMarket(event, market)).filter(Boolean);
+  event.markets = [...sourceMarkets.values()].map(item => item.market);
   return event;
 }
 export async function fetchTheOddsApi() {
@@ -1111,9 +1118,10 @@ function sourcePriority(source, live) {
 
   if (source === 'footballdata-io') return 55;
   if (source === 'sharpapi') return 50;
+  if (source === 'the-odds-api') return 45;
   if (source === 'public-market') return 40;
 
-  return source === 'the-odds-api' ? 30 : source === 'api-sports' ? 20 : 10;
+  return source === 'api-sports' ? 20 : 10;
 }
 
 function marketBettingAvailable(market) {

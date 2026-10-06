@@ -1,7 +1,7 @@
 /* ==========================================================================
    GASTERUS v3 — PROFESSIONAL ASIAN SPORTSBOOK (SBOBET / WAM STYLE)
-   Design: Indonesian Asian Handicap Sportsbook
-   Colors: Blue / Red / Black Indo Odds, Deep Navy Header, Light Sports Matrix
+   Design: Decimal Odds Sportsbook
+   Colors: Decimal odds in black, market lines in blue, Deep Navy Header, Light Sports Matrix
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Bebas+Neue&display=swap');
@@ -23,10 +23,10 @@
   --sb-text-muted:    #64748b;
   --sb-text-dim:      #94a3b8;
   
-  /* CRITICAL ODDS COLOR CODING */
+  /* Odds and market-line colors */
   --sb-odd-blue:      #0284c7; /* Lines / spreads / voor (0.00, -0.25, 2.75) */
-  --sb-odd-red:       #dc2626; /* Negative Indo odds / Kei (-1.21, -1.33) */
-  --sb-odd-black:     #111827; /* Positive Indo odds / decimal (1.03, 2.66) */
+  --sb-odd-red:       #dc2626;
+  --sb-odd-black:     #111827;
   --sb-fav-red:       #dc2626; /* Favorite team giving handicap */
   
   --sb-live-orange:   #ea580c;
@@ -891,7 +891,7 @@ body.sb-page {
   line-height: 1.1;
 }
 
-/* Odds Values: RED for Negative, BLACK for Positive */
+/* Decimal odds use one consistent color across all markets. */
 .sb-cell-odds {
   font-size: 12px;
   font-weight: 800;
@@ -899,11 +899,8 @@ body.sb-page {
   line-height: 1.1;
   margin-top: 2px;
 }
-.sb-cell-odds.neg {
-  color: var(--sb-odd-red); /* Negative odds in RED e.g. -1.21, -1.33 */
-}
 .sb-cell-odds.pos {
-  color: var(--sb-odd-black); /* Positive odds in BLACK e.g. 1.03, 2.66 */
+  color: var(--sb-odd-black);
 }
 
 /* ==========================================================================

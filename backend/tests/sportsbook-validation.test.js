@@ -98,6 +98,22 @@ test('accepts 1X2 overround 1.05 and quarantines overrounds outside 1.00-1.25', 
   }
 });
 
+test('quarantines handicap prices that form an implausible underround', () => {
+  const events = [eventWithMarket(market('HANDICAP', -0.5, [-0.5, 0.5], [11.76, 1.25]))];
+  validateAllHandicapOdds(events);
+  assert.equal(events[0].markets.length, 0);
+  assert.equal(validationLogs.at(-1)[1].reasons.OVERROUND_HANDICAP, 1);
+});
+
+test('quarantines incomplete or excessively imbalanced handicap markets', () => {
+  const events = [
+    eventWithMarket(market('HANDICAP', -0.5, [-0.5, 0.5], [1.95])),
+    eventWithMarket(market('HANDICAP', -0.5, [-0.5, 0.5], [1.25, 5]))
+  ];
+  validateAllHandicapOdds(events);
+  assert.deepEqual(events.map(event => event.markets.length), [0, 0]);
+});
+
 test('does not change valid markets and retains events whose markets are all quarantined', () => {
   const validMarket = market('TOTALS', 2.5, [2.5, 2.5], [1.91, 1.95]);
   const before = structuredClone(validMarket);
