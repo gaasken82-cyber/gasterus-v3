@@ -34,3 +34,15 @@ test('public healthz is heartbeat-gated while the core route stays status-only',
   assert.match(gateway, /coreHealthy \? 200 : 503/);
   assert.doesNotMatch(gateway, /url\.pathname === '\/healthz'[\s\S]{0,180}deploymentId/);
 });
+
+test('core readiness is HTTP-unready when database or cache is unhealthy', () => {
+  const app = read('backend/src/app.js');
+  const readyRoute = app.match(/add\('GET',\/\^\\\/ready\$\/,[\s\S]*?\n\}\);/);
+
+  assert.ok(readyRoute, 'core /ready route should exist');
+  assert.match(readyRoute[0], /checkDatabase\(\),checkRedis\(\)/);
+  assert.match(readyRoute[0], /database\.ok&&cache\.ok/);
+  assert.match(readyRoute[0], /status:ready\?'ready':'degraded'/);
+  assert.match(readyRoute[0], /ready\?200:503/);
+  assert.match(readyRoute[0], /database,cache/);
+});

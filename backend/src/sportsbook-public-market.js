@@ -176,7 +176,7 @@ function calibrateLambdas(oneXtwo, ou25) {
 
 function bookOddsFromProbability(p, margin = 0.045) {
   if (!Number.isFinite(p) || p <= 0) return null;
-  return clamp(Math.round((1 / (p * (1 + margin))) * 1000) / 1000, 1.01, 250);
+  return clamp(Math.round((1 / (p * (1 + margin))) * 1000) / 1000, 1.01, 100);
 }
 function twoWayBook(pA, pB, margin = 0.045) {
   const sum = pA + pB;
@@ -186,7 +186,7 @@ function twoWayBook(pA, pB, margin = 0.045) {
 function pushAdjustedOdds(win, push, margin = 0.045) {
   if (!(win > 0) || win + push > 1.000001) return null;
   const fair = (1 - push) / win;
-  return clamp(Math.round((fair / (1 + margin)) * 1000) / 1000, 1.01, 250);
+  return clamp(Math.round((fair / (1 + margin)) * 1000) / 1000, 1.01, 100);
 }
 function asianComponent(scoreDiff, line) {
   const adjusted = scoreDiff + line;

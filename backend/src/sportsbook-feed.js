@@ -18,54 +18,94 @@ import { eventSettlementAuthority, settlementAuthoritySummary } from './sportsbo
 import { enrichTeamArtwork } from './sportsbook-team-artwork.js';
 import { compactMemberMarkets, projectMemberMarkets } from './sportsbook-member-projection.js';
 
+const MIN_1X2_OVERROUND = 1.00;
+const MAX_1X2_OVERROUND = 1.25;
+// Keeps Indonesian negative odds at or above -5.00 (decimal odds >= 1.20).
+const MIN_DECIMAL_ODDS = 1.20;
+
+function hasValidQuarterLine(line) {
+  if (line === null || line === undefined || line === '') return true;
+  const value = Number(line);
+  return Number.isFinite(value) && Math.abs(value * 4 - Math.round(value * 4)) <= 1e-8;
+}
+
 /**
- * Validasi odds handicap untuk mencegah odds tidak normal
- * Odds handicap 0 (pick'em) harus seimbang (sekitar 1.70-2.10)
- * Jika terlalu tidak seimbang, hapus market (jangan tampilkan)
+ * Quarantine invalid markets in place so the large feed is not cloned.
+ * Valid market objects and events are retained unchanged.
  */
-// Log abnormal-odds membanjiri stdout (~3000 baris per siklus refresh) dan
-// String::SlowFlatten ada di stack trace OOM worker. Dedup per kombinasi
-// event+line supaya tiap kombinasi hanya dilog sekali per siklus refresh.
-let abnormalOddsLogged = new Set();
-function resetAbnormalOddsLog() { abnormalOddsLogged = new Set(); }
-function validateAllHandicapOdds(events = []) {
-  return events.map(event => ({
-    ...event,
-    markets: (event.markets || []).filter(market => {
-      // Hanya validasi handicap market dengan line 0 atau null
-      if (market.type !== 'HANDICAP') return true;
-      if (market.line !== 0 && market.line !== null && market.line !== '') return true;
-      
+export function validateAllHandicapOdds(events = []) {
+  const quarantined = Object.create(null);
+  let totalQuarantined = 0;
+
+  for (const event of events) {
+    const markets = event.markets || [];
+    let writeIndex = 0;
+
+    for (let readIndex = 0; readIndex < markets.length; readIndex += 1) {
+      const market = markets[readIndex];
       const selections = market.selections || [];
-      
-      const odds = selections.map(s => Number(s.odds)).filter(o => o > 1);
-      if (odds.length < 2) return true;
-      
-      const minOdds = Math.min(...odds);
-      const maxOdds = Math.max(...odds);
-      
-      // Jika odds terendah < 1.50 atau ratio > 3x, data tidak valid (1X2 tercampur)
-      const isAbnormal = minOdds < 1.50 || (maxOdds / minOdds) > 3;
-      
-      if (isAbnormal) {
-        const dedupKey = `${event.home?.name}|${event.away?.name}|${market.line}`;
-        if (!abnormalOddsLogged.has(dedupKey)) {
-          abnormalOddsLogged.add(dedupKey);
-          logger.warn('Abnormal handicap odds detected, removing market', {
-            event: `${event.home?.name} vs ${event.away?.name}`,
-            line: market.line,
-            odds: odds.join(', '),
-            minOdds,
-            maxOdds,
-            ratio: (maxOdds / minOdds).toFixed(2)
-          });
-        }
-        return false; // Hapus market ini
+      let reason = null;
+
+      if (market.type === 'HANDICAP' || market.type === 'TOTALS') {
+        if (!hasValidQuarterLine(market.line)) reason = 'INVALID_LINE';
       }
-      
-      return true;
-    })
-  }));
+
+      let activeSelectionCount = 0;
+      let activeOverround = 0;
+      let minOdds = Number.POSITIVE_INFINITY;
+      let maxOdds = 0;
+      let legacyOddsCount = 0;
+
+      for (const selection of selections) {
+        if ((market.type === 'HANDICAP' || market.type === 'TOTALS')
+          && !hasValidQuarterLine(selection.line)) reason = 'INVALID_LINE';
+        const odds = Number(selection.odds);
+        if (odds > 1) {
+          legacyOddsCount += 1;
+          minOdds = Math.min(minOdds, odds);
+          maxOdds = Math.max(maxOdds, odds);
+        }
+
+        if (market.suspended || selection.suspended) continue;
+        if (!Number.isFinite(odds) || odds < MIN_DECIMAL_ODDS || odds > 100) {
+          reason ||= 'ODDS_RANGE';
+          continue;
+        }
+        activeSelectionCount += 1;
+        if (market.type === '1X2') activeOverround += 1 / odds;
+      }
+
+      if (!reason && market.type === '1X2' && activeSelectionCount === 3
+        && (activeOverround < MIN_1X2_OVERROUND || activeOverround > MAX_1X2_OVERROUND)) {
+        reason = 'OVERROUND_1X2';
+      }
+
+      // Preserve the existing pick'em handicap safeguard.
+      if (!reason && market.type === 'HANDICAP'
+        && (market.line === 0 || market.line === null || market.line === '')
+        && legacyOddsCount >= 2
+        && (minOdds < 1.50 || maxOdds / minOdds > 3)) {
+        reason = 'ABNORMAL_HANDICAP_ODDS';
+      }
+
+      if (reason) {
+        quarantined[reason] = (quarantined[reason] || 0) + 1;
+        totalQuarantined += 1;
+      } else {
+        markets[writeIndex] = market;
+        writeIndex += 1;
+      }
+    }
+
+    markets.length = writeIndex;
+  }
+
+  logger.info('Sportsbook market validation quarantine summary', {
+    total: totalQuarantined,
+    reasons: quarantined
+  });
+
+  return events;
 }
 
 const LIFECYCLE_GENERATION = 'r6915';
@@ -451,7 +491,6 @@ function suppliedSnapshotResult() {
   };
 }
 async function performRefresh({ reason = 'scheduled' } = {}) {
-  resetAbnormalOddsLog();
   const configured = enabledProviders();
   if (!configured.some(provider => provider.enabled)) {
     throw new AppError(503, 'Belum ada sumber sportsbook yang dikonfigurasi pada core service.', 'SPORTS_PROVIDERS_NOT_CONFIGURED');
