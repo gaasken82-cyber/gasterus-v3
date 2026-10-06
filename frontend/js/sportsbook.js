@@ -34,12 +34,8 @@ let lastRenderRevision = '';
 let lastStructureRevision = '';
 let bettingConfig = { minStake: 1000, maxStake: 50000000, maxLegs: 12, quoteRequired: true };
 let streamClosed = false;
-let restRefreshTimer = null;
-let lastStreamAt = 0;
 let quote = null; // last successful server quote
 let placing = false;
-// REST berkala hanya jalan bila SSE sepi >= 30 detik — mencegah hasil terfilter menimpa snapshot penuh SSE.
-const REST_FALLBACK_IDLE_MS = 30000;
 let lastStake = 0; // fallback stake saat input tidak ada di DOM (mobile sheet tertutup)
 
 const el = (id) => document.getElementById(id);
@@ -299,8 +295,7 @@ export async function initSportsbook() {
   } else {
     // Public preview: unauthenticated visitors can view all matches and live odds
     setStatus('online');
-    loadRestSnapshot();
-    if (!restRefreshTimer) restRefreshTimer = setInterval(() => { loadRestSnapshot(); }, 45000);
+    loadRestSnapshot(); // 1x saja — SSE member yang mengambil alih realtime setelah login
   }
 }
 
@@ -353,16 +348,16 @@ console.info(`[GASTERUS] sportsbook build ${SB_BUILD}`);
 function startStream() {
   streamClosed = false;
   setStatus('connecting');
-  loadRestSnapshot(); // REST bootstrap — render papan data seketika; SSE mengambil alih realtime.
-  if (!restRefreshTimer) restRefreshTimer = setInterval(() => { if (!streamClosed) loadRestSnapshot(); }, 45000); // periodic fallback refresh (skip di dalam loadRestSnapshot bila SSE segar)
+  loadRestSnapshot(); // REST bootstrap 1x — render papan data seketika; SSE mengambil alih realtime.
+  // Timer REST 45 detik DIHAPUS: SSE broadcast tiap revisi feed, jadi polling berkala
+  // hanya mengulang snapshot yang sama (beban request + render sia-sia, dan sempat jadi
+  // akar pola 222↔5). Cadangan tetap ada: bootstrap 1x di atas + loadRestSnapshot()
+  // di catch SSE (baris ~415) saat stream benar-benar putus.
   connectStream();
 }
 
 // REST bootstrap/fallback — papan tetap terisi walau SSE terblokir/dibuffer perantara.
 async function loadRestSnapshot() {
-  // SSE segar (< 30 detik) → skip total: hemat 1 request + 1 render penuh tiap 45 detik,
-  // dan cegah snapshot basi menimpa papan (akar pola 222↔5 di halaman member).
-  if (!streamClosed && streamActive && lastStreamAt && Date.now() - lastStreamAt < REST_FALLBACK_IDLE_MS) return false;
   try {
     const headers = { Accept: 'application/json' };
     if (api.token) { headers.Authorization = `Bearer ${api.token}`; headers['x-session-token'] = api.token; }
@@ -371,7 +366,7 @@ async function loadRestSnapshot() {
     const json = await res.json();
     const payload = json?.data || json || null;
     if (payload && Array.isArray(payload.events) && payload.events.length) {
-      onSnapshot(payload, { fromStream: false });
+      onSnapshot(payload);
       return true;
     }
   } catch (e) { console.warn('[GASTERUS] snapshot bootstrap gagal', e); }
@@ -427,25 +422,21 @@ function handleFrame(frame) {
     if (line.startsWith('event:')) event = line.slice(6).trim();
     else if (line.startsWith('data:')) data += (data ? '\n' : '') + line.slice(5).trim();
   }
-  if (event === 'ready') { streamActive = true; lastStreamAt = Date.now(); return; } // handshake only
+  if (event === 'ready') { streamActive = true; return; } // handshake only
   if (event === 'degraded') { setStatus('online'); return; }
   if (event === 'snapshot' && data) {
     let payload;
     try { payload = JSON.parse(data); } catch { return; }
-    if (payload) lastStreamAt = Date.now();
-    onSnapshot(payload, { fromStream: true });
+    onSnapshot(payload);
   }
 }
 
 // Re-render only when the feed revision actually changes (prevents flicker).
-// Guard lastStreamAt: REST 45 detik TIDAK boleh menimpa snapshot SSE yang lebih baru —
-// ini akar pola 222↔5 di halaman member (REST basi menimpa feed global tepat setelah
-// SSE mengirim snapshot penuh).
-function onSnapshot(snapshot, { fromStream = false } = {}) {
+// Satu sumber kebenaran: SSE adalah penulis utama feed. REST hanya bootstrap 1x +
+// darurat saat SSE putus — tidak ada lagi dua penulis yang saling menimpa (akar pola 222↔5).
+function onSnapshot(snapshot) {
   if (!snapshot || !Array.isArray(snapshot.events)) return;
   const revision = snapshot.source?.feedRevision || '';
-  if (fromStream) lastStreamAt = Date.now();
-  else if (feed.events.length && lastStreamAt && Date.now() - lastStreamAt < REST_FALLBACK_IDLE_MS) return;
   feed = {
     events: snapshot.events,
     stale: Boolean(snapshot.stale),
