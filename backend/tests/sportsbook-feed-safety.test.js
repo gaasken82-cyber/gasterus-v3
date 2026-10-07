@@ -8,6 +8,36 @@ const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.u
 const worker = readFileSync(new URL('../src/worker.js', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../src/config.js', import.meta.url), 'utf8');
 
+test('production sportsbook cannot enable model-generated events or derived markets', () => {
+  const script = `
+    const { config } = await import('./src/config.js');
+    console.log(JSON.stringify({
+      openFootball: config.publicMarketOpenFootballEnabled,
+      derivedMarkets: config.publicMarketDerivedMarketsEnabled
+    }));
+  `;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    cwd: new URL('..', import.meta.url),
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      NODE_ENV: 'production',
+      DATABASE_URL: 'postgres://user:password@example.com/db',
+      REDIS_URL: 'redis://example.com:6379',
+      MEMBER_PROXY_SECRET: 'm'.repeat(48),
+      ADMIN_PROXY_SECRET: 'a'.repeat(48),
+      OPS_INTERNAL_SECRET: 'o'.repeat(48),
+      SESSION_HMAC_KEY: 's'.repeat(48),
+      API_KEY_PEPPER: 'p'.repeat(48),
+      MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
+      PUBLIC_MARKET_OPENFOOTBALL_ENABLED: 'true',
+      PUBLIC_MARKET_DERIVED_MARKETS_ENABLED: 'true'
+    }
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(result.stdout.split(/\r?\n/).includes('{"openFootball":false,"derivedMarkets":false}'));
+});
+
 test('Sportmonks is hard-disabled and cannot be re-enabled by production environment variables', () => {
   assert.match(config, /sportmonksEnabled:\s*false/);
   assert.doesNotMatch(feed, /fetchSportmonks|code:\s*'sportmonks'/);
@@ -40,7 +70,7 @@ test('Sportmonks is hard-disabled and cannot be re-enabled by production environ
 });
 
 test('stale Sportsbook feed cache is read-only and cannot be settled', () => {
-  assert.match(feed, /sportsbook:aggregated-feed:v13/);
+  assert.match(feed, /sportsbook:aggregated-feed:v14/);
   assert.match(feed, /READ_ONLY_STALE_SOURCE/);
   assert.match(feed, /feed\.readOnlySource \|\| feed\.snapshotFallback/);
   assert.match(feed, /SPORTS_SETTLEMENT_SOURCE_STALE/);

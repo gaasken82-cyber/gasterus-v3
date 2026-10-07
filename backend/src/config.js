@@ -200,7 +200,7 @@ export const config = Object.freeze({
   // Upcoming fixtures + bookmaker anchor prices are collected from Football-Data's downloadable public CSV,
   // then normalized and expanded by Gasterus's own probability/market engine.
   publicMarketEnabled: bool('PUBLIC_MARKET_ENABLED', true),
-  publicMarketOpenFootballEnabled: bool('PUBLIC_MARKET_OPENFOOTBALL_ENABLED', true),
+  publicMarketOpenFootballEnabled: isProduction ? false : bool('PUBLIC_MARKET_OPENFOOTBALL_ENABLED', true),
   publicMarketFixturesUrl: text('PUBLIC_MARKET_FIXTURES_URL', 'https://www.football-data.co.uk/fixtures.csv'),
   publicMarketExtraFixturesPageUrl: text('PUBLIC_MARKET_EXTRA_FIXTURES_PAGE_URL', 'https://www.football-data.co.uk/matches_new_leagues.php'),
   publicMarketLatestResultsUrl: text('PUBLIC_MARKET_LATEST_RESULTS_URL', 'https://www.football-data.co.uk/new/Latest_Results.csv'),
@@ -208,7 +208,7 @@ export const config = Object.freeze({
   publicMarketMaxStaleSeconds: int('PUBLIC_MARKET_MAX_STALE_SECONDS', 172800, 1800, 604800),
   publicMarketRequestTimeoutMs: int('PUBLIC_MARKET_REQUEST_TIMEOUT_MS', 12000, 2000, 30000),
   publicMarketMaxEvents: int('PUBLIC_MARKET_MAX_EVENTS', 500, 10, 1200),
-  publicMarketDerivedMarketsEnabled: bool('PUBLIC_MARKET_DERIVED_MARKETS_ENABLED', true),
+  publicMarketDerivedMarketsEnabled: isProduction ? false : bool('PUBLIC_MARKET_DERIVED_MARKETS_ENABLED', true),
   publicMarketDerivedMarginBps: int('PUBLIC_MARKET_DERIVED_MARGIN_BPS', 450, 100, 1200),
   publicMarketPriceMaxAgeSeconds: int('PUBLIC_MARKET_PRICE_MAX_AGE_SECONDS', 604800, 900, 604800),
   sportsbookRiskRepricingEnabled: bool('SPORTSBOOK_RISK_REPRICING_ENABLED', true),

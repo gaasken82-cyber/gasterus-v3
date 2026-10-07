@@ -58,7 +58,7 @@ test('R6.9.0.15 feed cache is generation-isolated from the previous production l
   const feed = readFileSync(new URL('../src/sportsbook-feed.js', import.meta.url), 'utf8');
 
   assert.match(feed, /LIFECYCLE_GENERATION\s*=\s*'r6917'/);
-  assert.match(feed, /sportsbook:aggregated-feed:v13/);
+  assert.match(feed, /sportsbook:aggregated-feed:v14/);
   assert.match(feed, /sportsbook:provider-lifecycle:v6/);
   assert.match(feed, /sportsbook:market-lifecycle:v6/);
   assert.match(feed, /parsed\.lifecycleGeneration !== LIFECYCLE_GENERATION/);
