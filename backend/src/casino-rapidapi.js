@@ -14,7 +14,13 @@ const ALLOWED_PATHS = new Set([
   '/casino/getbalance',
   '/casino/launch',
   '/casino/login',
+  '/casino/games',
+  '/casino/providers',
+  '/casino/provider-games',
+  '/v0/games',
 ]);
+
+const DIAG_PATHS = new Set([...ALLOWED_PATHS]);
 
 const cache = new Map();
 const inFlight = new Map();
@@ -110,7 +116,13 @@ async function rapidFetch(path, params = {}) {
       let payload = null;
       try { payload = text ? JSON.parse(text) : null; } catch { payload = { raw: String(text || '').slice(0, 2000) }; }
       if (!res.ok) {
-        throw new AppError(res.status === 429 ? 429 : 502, 'Provider casino gagal.', res.status === 429 ? 'CASINO_RATE_LIMITED' : 'CASINO_UPSTREAM_ERROR');
+        const upstreamStatus = Number(res.status) || 502;
+        const upstreamMessage = clean(payload?.message || payload?.error || payload?.raw, 180) || ('upstream ' + upstreamStatus);
+        logger.error('Casino RapidAPI upstream error', { path, status: upstreamStatus, message: upstreamMessage });
+        failureCache.set(cacheKey, { message: upstreamMessage, retryAt: now + 60 * 1000 });
+        if (upstreamStatus === 429) throw new AppError(429, 'Provider casino sibuk (batas request). Coba lagi nanti.', 'CASINO_RATE_LIMITED', { upstreamStatus });
+        if (upstreamStatus >= 400 && upstreamStatus < 500) throw new AppError(upstreamStatus, 'Provider casino menolak permintaan (' + upstreamStatus + '): ' + upstreamMessage, 'CASINO_UPSTREAM_REJECTED', { upstreamStatus, upstreamMessage });
+        throw new AppError(502, 'Provider casino gagal.', 'CASINO_UPSTREAM_ERROR');
       }
       if (cache.size > 200) {
         const oldest = [...cache.entries()].sort((a, b) => a[1].fetchedAt - b[1].fetchedAt);
@@ -145,6 +157,54 @@ export async function casinoProviders() {
     categories: [...new Set(providers.map((p) => p.category))].sort(),
     fetchedAt: new Date().toISOString(),
   };
+}
+
+async function probeUpstream(path, params) {
+  const key = rapidApiKey();
+  const url = new URL('https://' + HOST + path);
+  for (const entry of Object.entries(params || {})) {
+    if (entry[1] === undefined || entry[1] === null || entry[1] === '') continue;
+    url.searchParams.set(entry[0], String(entry[1]));
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(url.toString(), {
+      method: 'GET',
+      headers: { 'x-rapidapi-host': HOST, 'x-rapidapi-key': key, accept: 'application/json' },
+      signal: controller.signal,
+    });
+    const text = await res.text();
+    let shape = 'empty';
+    try {
+      const payload = text ? JSON.parse(text) : null;
+      shape = Array.isArray(payload) ? 'array:' + payload.length
+        : payload && typeof payload === 'object' ? 'keys:' + Object.keys(payload).slice(0, 8).join(',') : 'scalar';
+    } catch { shape = 'non-json:' + String(text || '').slice(0, 80); }
+    // TIDAK pernah mengembalikan key / body penuh — hanya status + bentuk.
+    return { path, params, status: res.status, ok: res.ok, shape };
+  } catch (error) {
+    return { path, params, status: 0, ok: false, shape: 'fetch-failed:' + clean(error?.message, 60) };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function diagnoseCasinoUpstream(provider) {
+  if (!config.rapidApiCasinoEnabled) throw new AppError(503, 'Layanan casino belum diaktifkan.', 'CASINO_DISABLED');
+  if (!rapidApiKey()) throw new AppError(503, 'Kunci RapidAPI casino belum dikonfigurasi.', 'CASINO_NOT_CONFIGURED');
+  const code = clean(provider, 40) || 'PGSOFT';
+  const candidates = [
+    ['/casino/getgames', { provider: code }],
+    ['/casino/getgames', { provider: code.toLowerCase() }],
+    ['/casino/getgames', { gameProvider: code }],
+    ['/casino/games', { provider: code }],
+    ['/casino/provider-games', { provider: code }],
+    ['/v0/games', { provider: code }],
+  ].filter(([path]) => DIAG_PATHS.has(path));
+  const results = [];
+  for (const [path, params] of candidates) results.push(await probeUpstream(path, params));
+  return { provider: code, host: HOST, results, fetchedAt: new Date().toISOString() };
 }
 
 export async function casinoPassthrough(path, params = {}) {

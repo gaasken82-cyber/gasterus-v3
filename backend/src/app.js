@@ -31,7 +31,7 @@ import { createSportsbookCashoutOffer, listMemberSportsbookCashoutOffers, accept
 import { openSportsbookRealtimeStream, sportsbookRealtimeStatus } from './sportsbook-realtime.js';
 import { totoMarketsHealth, totoMarketsDetail, simpleHealth } from './health-check.js';
 import { requestMemberPasswordReset, resetMemberPasswordByToken } from './password-reset.js';
-import { casinoProviders, casinoPassthrough, casinoRapidApiStatus } from './casino-rapidapi.js';
+import { casinoProviders, casinoPassthrough, casinoRapidApiStatus, diagnoseCasinoUpstream } from './casino-rapidapi.js';
 
 const startedAt=Date.now();const metrics={requests:0,errors:0,rateLimited:0,latencyTotal:0};
 const route=(method,pattern,handler,options={})=>({method,pattern,handler,...options});
@@ -189,6 +189,7 @@ add('POST',/^\/api\/owner\/bets\/settle$/,async({req,res,ip})=>{const s=await ow
 add('POST',/^\/api\/owner\/bets\/void$/,async({req,res,ip})=>{const s=await ownerSession(req,'settlements:request');requireCsrf(req,s);ok(res,await requestSettlement(s,await body(req),'VOID',ip),202);});
 add('GET',/^\/api\/owner\/sportsbook\/health$/,async({req,res,url})=>{await ownerSession(req,'bets:read');const [feed,risk,incidents,controls,marketLifecycle,settlements]=await Promise.all([sportsbookOperationalStatus(),sportsbookRiskExposureSummary(),listSportsbookProviderIncidents({limit:url.searchParams.get('incidents')||config.sportsbookProviderIncidentLimit}),listActiveSportsbookTradingControls({limit:500}),listSportsbookMarketLifecycleHistory({limit:url.searchParams.get('lifecycle')||100}),sportsbookSettlementRevisionSummary({limit:url.searchParams.get('settlements')||50})]);ok(res,{feed,risk,incidents,controls,marketLifecycle,settlements});});
 add('GET',/^\/api\/owner\/sportsbook\/events$/,async({req,res,url})=>{await ownerSession(req,'bets:read');ok(res,await sportsbookSnapshot({sport:url.searchParams.get('sport'),live:url.searchParams.get('live'),q:url.searchParams.get('q'),league:url.searchParams.get('league')},{memberView:false}));});
+add('GET',/^\/internal\/casino\/diagnose$/,async({req,res,url})=>{internal(req,'ops');ok(res,await diagnoseCasinoUpstream(url.searchParams.get('provider')||'PGSOFT'));});
 add('GET',/^\/api\/owner\/sportsbook\/provider-incidents$/,async({req,res,url})=>{await ownerSession(req,'bets:read');ok(res,await listSportsbookProviderIncidents({limit:url.searchParams.get('limit')||config.sportsbookProviderIncidentLimit}));});
 add('GET',/^\/api\/owner\/sportsbook\/controls$/,async({req,res,url})=>{await ownerSession(req,'bets:read');ok(res,await listActiveSportsbookTradingControls({eventId:url.searchParams.get('eventId')||'',limit:url.searchParams.get('limit')||1000}));});
 add('GET',/^\/api\/owner\/sportsbook\/controls\/history$/,async({req,res,url})=>{await ownerSession(req,'bets:read');ok(res,await listSportsbookTradingControlHistory({scopeKey:url.searchParams.get('scopeKey')||'',limit:url.searchParams.get('limit')||100}));});

@@ -17,3 +17,6 @@ test('casinoRapidApiStatus never leaks key', () => {
   assert.equal('rapidApiKey' in status, false);
   assert.equal(JSON.stringify(status).toLowerCase().includes('rapidapi-key'), false);
 });
+test('diagnoseCasinoUpstream is exported and probes without leaking key', async () => {
+  assert.equal(typeof casino.diagnoseCasinoUpstream, 'function');
+});

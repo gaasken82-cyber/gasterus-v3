@@ -7,7 +7,8 @@ export function json(response, status, data, headers = {}) {
 export function ok(response, data, status = 200, headers = {}) { json(response, status, { data }, headers); }
 export function fail(response, error) {
   const status = Number(error?.status) || 500;
-  const payload = { error: { message: status >= 500 ? 'Layanan sedang mengalami gangguan.' : error.message, code: error?.code || 'INTERNAL_ERROR' } };
+  const generic = status >= 500 && error?.code !== 'CASINO_UPSTREAM_ERROR';
+  const payload = { error: { message: generic ? 'Layanan sedang mengalami gangguan.' : error.message, code: error?.code || 'INTERNAL_ERROR' } };
   if (error?.details && status < 500) payload.error.details = error.details;
   json(response, status, payload);
 }

@@ -77,7 +77,9 @@ async function loadGames(provider) {
       box.innerHTML = '';
       const empty = document.createElement('div');
       empty.className = 'casino-empty';
-      empty.textContent = 'Gagal memuat game: ' + (e.message || 'error');
+      const detail = e?.data?.error?.message || e?.message || 'error';
+      const code = e?.data?.error?.code || e?.code || '';
+      empty.textContent = 'Gagal memuat game ' + provider + ': ' + detail + (code ? ' [' + code + ']' : '');
       box.appendChild(empty);
     }
   }
