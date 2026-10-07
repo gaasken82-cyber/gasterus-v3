@@ -7,17 +7,17 @@ import { AppError } from './errors.js';
 const HOST = 'live-casino-slots-evolution-jili-and-50-plus-provider.p.rapidapi.com';
 
 // Allowlist path agar proxy tidak bisa dipakai SSRF ke endpoint lain.
+// Path diverifikasi dari respons provider asli:
+// - /casino/getallproviders -> daftar provider (games:[...])
+// - /casino/getallgamesandprovider?provider=SPRIBE -> daftar game (games:[{name,id,img,type,provider}])
 const ALLOWED_PATHS = new Set([
   '/casino/getallproviders',
+  '/casino/getallgamesandprovider',
   '/casino/getgames',
   '/casino/getgameurl',
   '/casino/getbalance',
   '/casino/launch',
   '/casino/login',
-  '/casino/games',
-  '/casino/providers',
-  '/casino/provider-games',
-  '/v0/games',
 ]);
 
 const DIAG_PATHS = new Set([...ALLOWED_PATHS]);
@@ -75,6 +75,30 @@ export function normalizeProviders(payload) {
   }
   providers.sort((a, b) => a.code.localeCompare(b.code));
   return providers;
+}
+export function normalizeGames(payload, providerCode = '') {
+  // Bentuk sukses: { success:true, provider:'SPRIBE', totalGames:16,
+  //   games:[{name:'Aviator',id,img,type:'crash',provider:'SPRIBE'}] }
+  // Bentuk PG: { success:true, data:[{game_uid,game_name,game_type,...}] }
+  const rawList = Array.isArray(payload?.games)
+    ? payload.games
+    : Array.isArray(payload?.data)
+      ? payload.data
+      : [];
+  const games = [];
+  for (const item of rawList) {
+    if (!item || typeof item !== 'object') continue;
+    const name = clean(item.name || item.game_name || item.title || item.game, 80);
+    if (!name) continue;
+    games.push({
+      name,
+      id: clean(item.id || item.game_uid || item.uid || '', 80) || null,
+      img: clean(item.img || item.image || item.thumbnail || '', 300) || null,
+      type: clean(item.type || item.game_type || '', 30) || null,
+      provider: clean(item.provider || providerCode, 40) || null,
+    });
+  }
+  return games;
 }
 async function rapidFetch(path, params = {}) {
   const key = rapidApiKey();
@@ -205,6 +229,19 @@ export async function diagnoseCasinoUpstream(provider) {
   const results = [];
   for (const [path, params] of candidates) results.push(await probeUpstream(path, params));
   return { provider: code, host: HOST, results, fetchedAt: new Date().toISOString() };
+}
+
+export async function casinoGames(provider) {
+  const code = clean(provider, 40).toUpperCase();
+  if (!code) throw new AppError(400, 'Provider wajib dipilih.', 'CASINO_PROVIDER_REQUIRED');
+  const payload = await rapidFetch('/casino/getallgamesandprovider', { provider: code });
+  const games = normalizeGames(payload, code);
+  return {
+    provider: payload?.provider || code,
+    total: Number(payload?.totalGames) || games.length,
+    games,
+    fetchedAt: new Date().toISOString(),
+  };
 }
 
 export async function casinoPassthrough(path, params = {}) {

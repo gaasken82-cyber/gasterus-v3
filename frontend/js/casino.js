@@ -102,12 +102,27 @@ function renderGames() {
   const grid = document.createElement('div');
   grid.className = 'casino-grid';
   for (const g of state.games.slice(0, 200)) {
-    const name = (g && (g.name || g.title || g.game)) || 'Game';
-    const d = document.createElement('div');
-    d.className = 'casino-card';
-    d.innerHTML = '<span class="casino-code"></span>';
-    d.querySelector('.casino-code').textContent = String(name).slice(0, 60);
-    grid.appendChild(d);
+    const card = document.createElement('div');
+    card.className = 'casino-card';
+    if (g.img) {
+      const img = document.createElement('img');
+      img.src = g.img;
+      img.alt = g.name;
+      img.loading = 'lazy';
+      img.className = 'casino-thumb';
+      card.appendChild(img);
+    }
+    const nameEl = document.createElement('span');
+    nameEl.className = 'casino-code';
+    nameEl.textContent = String(g.name || 'Game').slice(0, 60);
+    card.appendChild(nameEl);
+    if (g.type) {
+      const typeEl = document.createElement('span');
+      typeEl.className = 'casino-cat';
+      typeEl.textContent = String(g.type).slice(0, 20);
+      card.appendChild(typeEl);
+    }
+    grid.appendChild(card);
   }
   box.appendChild(grid);
 }

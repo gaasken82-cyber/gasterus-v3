@@ -17,6 +17,27 @@ test('casinoRapidApiStatus never leaks key', () => {
   assert.equal('rapidApiKey' in status, false);
   assert.equal(JSON.stringify(status).toLowerCase().includes('rapidapi-key'), false);
 });
+test('normalizeGames maps SPRIBE-style and PG-style game payloads', () => {
+  const spribe = casino.normalizeGames({
+    success: true, provider: 'SPRIBE', totalGames: 2,
+    games: [
+      { name: 'Aviator', id: 'a04d', img: 'https://cdn.example/spribe/0.png', type: 'crash', provider: 'SPRIBE' },
+      { name: 'Dice', id: '8a87', img: 'https://cdn.example/spribe/1.png', type: 'crash', provider: 'SPRIBE' },
+    ],
+  }, 'SPRIBE');
+  assert.equal(spribe.length, 2);
+  assert.deepEqual(spribe[0], { name: 'Aviator', id: 'a04d', img: 'https://cdn.example/spribe/0.png', type: 'crash', provider: 'SPRIBE' });
+  const pg = casino.normalizeGames({
+    success: true,
+    data: [{ game_uid: '1189', game_name: 'Mahjong Ways', game_type: 'Slot', status: 1 }],
+  }, 'PG');
+  assert.equal(pg.length, 1);
+  assert.equal(pg[0].id, '1189');
+  assert.equal(pg[0].name, 'Mahjong Ways');
+  assert.equal(pg[0].type, 'Slot');
+  assert.equal(pg[0].provider, 'PG');
+  assert.deepEqual(casino.normalizeGames({}), []);
+});
 test('diagnoseCasinoUpstream is exported and probes without leaking key', async () => {
   assert.equal(typeof casino.diagnoseCasinoUpstream, 'function');
 });
