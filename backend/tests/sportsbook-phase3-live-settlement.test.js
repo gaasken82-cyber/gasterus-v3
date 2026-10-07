@@ -55,11 +55,41 @@ test('HF6 Phase 3 automatic BET STOP and reopen require fresh provider observati
   assert.equal(confirmed.transitions[0].action, 'REOPEN');
 });
 
-test('HF6 Phase 3 missing market fails closed with automatic BET STOP', () => {
-  const initial = reconcileSportsbookMarketLifecycle({}, feedEvent(), { now: 100000, reopenSuccesses: 2, reopenObservationSeconds: 30, retentionSeconds: 3600 });
-  const missing = reconcileSportsbookMarketLifecycle(initial.state, [{ id:'evt-1', status:'SCHEDULED', markets:[] }], { now: 108000, reopenSuccesses: 2, reopenObservationSeconds: 30, retentionSeconds: 3600 });
-  assert.equal(Object.values(missing.state)[0].state, 'SUSPENDED');
-  assert.equal(missing.transitions[0].reason, 'MISSING_FROM_FEED');
+test('HF6 Phase 3 absent market is retained without a false BET STOP, then requires confirmation on return', () => {
+  const opts = { reopenSuccesses: 2, reopenObservationSeconds: 30, retentionSeconds: 3600 };
+  const initial = reconcileSportsbookMarketLifecycle({}, feedEvent(), { ...opts, now: 100000 });
+  const missing = reconcileSportsbookMarketLifecycle(initial.state, [{ id:'evt-1', status:'SCHEDULED', markets:[] }], { ...opts, now: 108000 });
+  assert.equal(missing.events[0].markets.length, 0);
+  assert.equal(Object.values(missing.state)[0].state, 'ACTIVE');
+  assert.equal(missing.transitions.length, 0);
+
+  const returned = reconcileSportsbookMarketLifecycle(missing.state, feedEvent(), { ...opts, now: 131000 });
+  assert.equal(returned.events[0].markets[0].lifecycleState, 'REOPENING');
+  assert.equal(returned.events[0].markets[0].suspended, true);
+  assert.equal(returned.transitions[0].action, 'REOPENING');
+
+  const confirmed = reconcileSportsbookMarketLifecycle(returned.state, feedEvent(), { ...opts, now: 162000 });
+  assert.equal(confirmed.events[0].markets[0].lifecycleState, 'ACTIVE');
+  assert.equal(confirmed.transitions[0].action, 'REOPEN');
+});
+
+test('HF6 Phase 3 absent market expires from lifecycle state after retention', () => {
+  const opts = { reopenSuccesses: 2, reopenObservationSeconds: 30, retentionSeconds: 300 };
+  const initial = reconcileSportsbookMarketLifecycle({}, feedEvent(), { ...opts, now: 100000 });
+  const expired = reconcileSportsbookMarketLifecycle(initial.state, [{ id:'evt-1', status:'SCHEDULED', markets:[] }], { ...opts, now: 401000 });
+  assert.deepEqual(expired.state, {});
+  assert.equal(expired.transitions.length, 0);
+});
+
+test('HF6 Phase 3 explicit provider suspension still stops a market after a feed omission', () => {
+  const opts = { reopenSuccesses: 2, reopenObservationSeconds: 30, retentionSeconds: 3600 };
+  const initial = reconcileSportsbookMarketLifecycle({}, feedEvent(), { ...opts, now: 100000 });
+  const missing = reconcileSportsbookMarketLifecycle(initial.state, [{ id:'evt-1', status:'SCHEDULED', markets:[] }], { ...opts, now: 108000 });
+  const suspended = reconcileSportsbookMarketLifecycle(missing.state, feedEvent({ marketSuspended: true }), { ...opts, now: 131000 });
+
+  assert.equal(suspended.events[0].markets[0].lifecycleState, 'SUSPENDED');
+  assert.equal(suspended.transitions[0].action, 'BET_STOP');
+  assert.equal(suspended.transitions[0].reason, 'UPSTREAM_SUSPENDED');
 });
 
 test('HF6 Phase 3 observation token changes on tradable state and price terms', () => {
