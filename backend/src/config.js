@@ -17,7 +17,6 @@ const theOddsApiKey = optionalSecret('THE_ODDS_API_KEY');
 const sharpApiKey = optionalSecret('SHARP_API_KEY');
 const theSportsDbKey = optionalSecret('THESPORTSDB_API_KEY');
 const footballDataIoKey = optionalSecret('FOOTBALLDATA_IO_KEY');
-const sportmonksKey = optionalSecret('SPORTMONKS_API_KEY');
 function pricedProviderEnabled(name, key) {
   const raw = String(process.env[name] ?? '').trim().toLowerCase();
   if (!raw || raw === 'auto') return isProduction && Boolean(key);
@@ -166,14 +165,10 @@ export const config = Object.freeze({
   footballDataIoEnabled: pricedProviderEnabled('FOOTBALLDATA_IO_ENABLED', footballDataIoKey),
   footballDataIoRefreshSeconds: int('FOOTBALLDATA_IO_REFRESH_SECONDS', 300, 60, 1800),
   footballDataIoUpcomingLimit: int('FOOTBALLDATA_IO_UPCOMING_LIMIT', 200, 10, 1000),
-  // Sportmonks v3. The supplied plan does not expose the standalone /football/odds/*
-  // endpoints (HTTP 404) and the `markets` filter is ignored on fixture includes, so
-  // prices arrive only through the per-fixture `include=odds` (~1.5 MB each, every
-  // market/bookmaker). The event cap therefore bounds both resident memory and the
-  // number of outbound odds requests per refresh cycle.
-  sportmonksKey,
+  // Disabled: this credential currently returns HTTP 401, and this source does not
+  // provide bettable markets for our feed. Do not re-enable from environment variables.
   sportmonksBaseUrl: text('SPORTMONKS_BASE_URL', 'https://api.sportmonks.com/v3'),
-  sportmonksEnabled: pricedProviderEnabled('SPORTMONKS_ENABLED', sportmonksKey),
+  sportmonksEnabled: false,
   sportmonksDaysAhead: int('SPORTMONKS_DAYS_AHEAD', 2, 0, 7),
   sportmonksRefreshSeconds: int('SPORTMONKS_REFRESH_SECONDS', 300, 60, 1800),
   sportmonksOddsRefreshSeconds: int('SPORTMONKS_ODDS_REFRESH_SECONDS', 180, 30, 1800),

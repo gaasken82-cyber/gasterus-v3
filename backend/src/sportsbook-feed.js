@@ -6,7 +6,7 @@ import { logger } from './logger.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { fetchSportmonks, fetchSharpApi, fetchApiSports, fetchTheOddsApi, mergeProviderEvents, publicEvent, suspendStaleLiveMarkets } from './sportsbook-providers.js';
+import { fetchSharpApi, fetchApiSports, fetchTheOddsApi, mergeProviderEvents, publicEvent, suspendStaleLiveMarkets } from './sportsbook-providers.js';
 import { fetchPublicMarketFeed } from './sportsbook-public-market.js';
 import { advanceProviderLifecycle, publicProviderLifecycle, shouldProbeProvider, transitionProviderLifecycle } from './sportsbook-provider-lifecycle.js';
 import { recordSportsbookMarketTransitions, recordSportsbookProviderTransitions, sportsbookPricingExposureSnapshot } from './sportsbook-operations.js';
@@ -344,7 +344,6 @@ function enabledProviders() {
     { name: 'SharpAPI', code: 'sharpapi', enabled: config.sharpApiEnabled && Boolean(config.sharpApiKey) },
     { name: 'API-Sports', code: 'api-sports', enabled: config.apiSportsEnabled && Boolean(config.apiSportsKey) },
     { name: 'The Odds API', code: 'the-odds-api', enabled: config.theOddsApiEnabled && Boolean(config.theOddsApiKey) },
-    { name: 'Sportmonks', code: 'sportmonks', enabled: config.sportmonksEnabled && Boolean(config.sportmonksKey) },
     { name: 'TheSportsDB', code: 'thesportsdb', enabled: config.theSportsDbEnabled && Boolean(config.theSportsDbKey) },
     { name: 'FootballData.io', code: 'footballdata-io', enabled: config.footballDataIoEnabled && Boolean(config.footballDataIoKey) }
   ];
@@ -532,7 +531,6 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
   // Gunakan public-market (gratis) sebagai sumber utama, dengan fallback ke provider berbayar jika dikonfigurasi
   const descriptors = [
     { code: 'public-market', enabled: Boolean(config.publicMarketEnabled), fetcher: fetchPublicMarketFeed },
-    { code: 'sportmonks', enabled: config.sportmonksEnabled && Boolean(config.sportmonksKey), fetcher: fetchSportmonks },
     { code: 'sharpapi', enabled: config.sharpApiEnabled && Boolean(config.sharpApiKey), fetcher: fetchSharpApi },
     { code: 'api-sports', enabled: config.apiSportsEnabled && Boolean(config.apiSportsKey), fetcher: fetchApiSports },
     { code: 'the-odds-api', enabled: config.theOddsApiEnabled && Boolean(config.theOddsApiKey), fetcher: fetchTheOddsApi }
