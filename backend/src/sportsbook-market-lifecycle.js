@@ -84,10 +84,6 @@ function resolveObservedMarket(previous, event, market, { reopenSuccesses, reope
   const key = sportsbookMarketLifecycleKey(event.id, market.id);
   const before = previous ? normalizedPrevious(previous, key) : null;
   const observationGapMs = Math.max(1, reopenObservationSeconds) * 1000;
-  const wasMissing = Boolean(before?.lastSeenAt && now - before.lastSeenAt >= observationGapMs);
-  const prior = wasMissing && before.state === MARKET_LIFECYCLE_STATES.ACTIVE
-    ? { ...before, state: MARKET_LIFECYCLE_STATES.SUSPENDED, reopenSuccessStreak: 0, reason: 'MISSING_FROM_FEED' }
-    : before;
   const source = market.source || market.selections?.find(selection => selection.source)?.source || null;
   const observationToken = marketObservationToken(market);
   const base = {
@@ -104,9 +100,9 @@ function resolveObservedMarket(previous, event, market, { reopenSuccesses, reope
       ...base,
       state: MARKET_LIFECYCLE_STATES.CLOSED,
       reopenSuccessStreak: 0,
-      lastStateChangeAt: prior?.state === MARKET_LIFECYCLE_STATES.CLOSED ? prior.lastStateChangeAt : Number(now),
+      lastStateChangeAt: before?.state === MARKET_LIFECYCLE_STATES.CLOSED ? before.lastStateChangeAt : Number(now),
       reason: 'EVENT_CLOSED',
-      lastReopenObservationAt: prior?.lastReopenObservationAt || 0
+      lastReopenObservationAt: before?.lastReopenObservationAt || 0
     };
     const transition = before?.state !== next.state ? transitionRecord(before, next, 'CLOSE', next.reason, now) : null;
     return { next, transition };
@@ -119,9 +115,9 @@ function resolveObservedMarket(previous, event, market, { reopenSuccesses, reope
       ...base,
       state: MARKET_LIFECYCLE_STATES.SUSPENDED,
       reopenSuccessStreak: 0,
-      lastStateChangeAt: prior?.state === MARKET_LIFECYCLE_STATES.SUSPENDED ? prior.lastStateChangeAt : Number(now),
+      lastStateChangeAt: before?.state === MARKET_LIFECYCLE_STATES.SUSPENDED ? before.lastStateChangeAt : Number(now),
       reason,
-      lastReopenObservationAt: prior?.lastReopenObservationAt || 0
+      lastReopenObservationAt: before?.lastReopenObservationAt || 0
     };
     const transition = before && before.state !== MARKET_LIFECYCLE_STATES.SUSPENDED
       ? transitionRecord(before, next, 'BET_STOP', reason, now)
@@ -129,7 +125,7 @@ function resolveObservedMarket(previous, event, market, { reopenSuccesses, reope
     return { next, transition };
   }
 
-  if (!prior) {
+  if (!before) {
     return {
       next: {
         ...base,
@@ -143,20 +139,20 @@ function resolveObservedMarket(previous, event, market, { reopenSuccesses, reope
     };
   }
 
-  if (prior.state === MARKET_LIFECYCLE_STATES.ACTIVE) {
+  if (before.state === MARKET_LIFECYCLE_STATES.ACTIVE) {
     return {
-      next: { ...base, state: MARKET_LIFECYCLE_STATES.ACTIVE, reopenSuccessStreak: reopenSuccesses, lastStateChangeAt: prior.lastStateChangeAt, reason: 'UPSTREAM_ACTIVE', lastReopenObservationAt: prior.lastReopenObservationAt || Number(now) },
+      next: { ...base, state: MARKET_LIFECYCLE_STATES.ACTIVE, reopenSuccessStreak: reopenSuccesses, lastStateChangeAt: before.lastStateChangeAt, reason: 'UPSTREAM_ACTIVE', lastReopenObservationAt: before.lastReopenObservationAt || Number(now) },
       transition: null
     };
   }
 
-  const tokenChanged = Boolean(observationToken && observationToken !== prior.lastObservationToken);
-  const observationDue = !prior.lastReopenObservationAt || Number(now) - prior.lastReopenObservationAt >= observationGapMs;
+  const tokenChanged = Boolean(observationToken && observationToken !== before.lastObservationToken);
+  const observationDue = !before.lastReopenObservationAt || Number(now) - before.lastReopenObservationAt >= observationGapMs;
   const confirmedObservation = tokenChanged || observationDue;
   const successStreak = confirmedObservation
-    ? Math.min(reopenSuccesses, prior.reopenSuccessStreak + 1)
-    : prior.reopenSuccessStreak;
-  const lastReopenObservationAt = confirmedObservation ? Number(now) : prior.lastReopenObservationAt;
+    ? Math.min(reopenSuccesses, before.reopenSuccessStreak + 1)
+    : before.reopenSuccessStreak;
+  const lastReopenObservationAt = confirmedObservation ? Number(now) : before.lastReopenObservationAt;
   if (successStreak >= reopenSuccesses) {
     const next = {
       ...base,
@@ -166,19 +162,19 @@ function resolveObservedMarket(previous, event, market, { reopenSuccesses, reope
       reason: 'REOPEN_CONFIRMED',
       lastReopenObservationAt
     };
-    return { next, transition: transitionRecord(prior, next, 'REOPEN', next.reason, now) };
+    return { next, transition: transitionRecord(before, next, 'REOPEN', next.reason, now) };
   }
 
   const next = {
     ...base,
     state: MARKET_LIFECYCLE_STATES.REOPENING,
     reopenSuccessStreak: successStreak,
-    lastStateChangeAt: prior.state === MARKET_LIFECYCLE_STATES.REOPENING ? prior.lastStateChangeAt : Number(now),
+    lastStateChangeAt: before.state === MARKET_LIFECYCLE_STATES.REOPENING ? before.lastStateChangeAt : Number(now),
     reason: confirmedObservation ? 'REOPEN_CONFIRMATION_REQUIRED' : 'WAITING_FRESH_PROVIDER_OBSERVATION',
     lastReopenObservationAt
   };
-  const transition = prior.state !== MARKET_LIFECYCLE_STATES.REOPENING
-    ? transitionRecord(prior, next, 'REOPENING', next.reason, now)
+  const transition = before.state !== MARKET_LIFECYCLE_STATES.REOPENING
+    ? transitionRecord(before, next, 'REOPENING', next.reason, now)
     : null;
   return { next, transition };
 }
