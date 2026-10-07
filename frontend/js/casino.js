@@ -1,0 +1,131 @@
+/**
+ * Gasterus v3 — Casino Lobby (via backend proxy, tanpa RapidAPI key di frontend).
+ * Backend: GET /api/member/casino/providers, /api/member/casino/games?provider=PGSOFT, /api/member/casino/status
+ */
+import { api } from './api.js';
+
+const state = { providers: [], categories: [], filter: 'ALL', q: '', games: [], gamesProvider: '' };
+
+function el(id) { return document.getElementById(id); }
+
+function categoryLabel(c) {
+  return { ALL: 'Semua', SLOTS: 'Slots', LIVE_CASINO: 'Live Casino', SPORTSBOOK: 'Sportsbook', CRASH_ARCADE: 'Crash/Arcade', OTHER: 'Lainnya' }[c] || c;
+}
+
+function renderFilters(categories) {
+  const wrap = el('casino-filters');
+  if (!wrap) return;
+  const cats = ['ALL', ...categories];
+  wrap.innerHTML = '';
+  for (const c of cats) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'casino-chip' + (state.filter === c ? ' active' : '');
+    b.textContent = categoryLabel(c);
+    b.onclick = () => { state.filter = c; renderFilters(state.categories); renderProviders(); };
+    wrap.appendChild(b);
+  }
+}
+
+function renderProviders() {
+  const grid = el('casino-grid');
+  const count = el('casino-count');
+  if (!grid) return;
+  const q = state.q.trim().toLowerCase();
+  const list = state.providers.filter((p) =>
+    (state.filter === 'ALL' || p.category === state.filter) &&
+    (!q || p.code.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)));
+  if (count) count.textContent = list.length + ' provider';
+  grid.innerHTML = '';
+  if (!list.length) {
+    grid.innerHTML = '<div class="casino-empty">Tidak ada provider yang cocok.</div>';
+    return;
+  }
+  for (const p of list.slice(0, 300)) {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'casino-card';
+    card.innerHTML = '<span class="casino-code"></span><span class="casino-cat"></span>';
+    card.querySelector('.casino-code').textContent = p.code;
+    card.querySelector('.casino-cat').textContent = categoryLabel(p.category);
+    card.title = p.name;
+    card.onclick = () => loadGames(p.code);
+    grid.appendChild(card);
+  }
+}
+
+async function loadGames(provider) {
+  state.gamesProvider = provider;
+  const box = el('casino-games');
+  if (box) {
+    box.innerHTML = '';
+    const loading = document.createElement('div');
+    loading.className = 'casino-empty';
+    loading.textContent = 'Memuat game ' + provider + '...';
+    box.appendChild(loading);
+  }
+  try {
+    const res = await api.get('/api/member/casino/games?provider=' + encodeURIComponent(provider));
+    const payload = res?.data ?? res;
+    const games = Array.isArray(payload?.games) ? payload.games
+      : Array.isArray(payload?.data) ? payload.data
+      : Array.isArray(payload) ? payload : [];
+    state.games = games;
+    renderGames();
+  } catch (e) {
+    if (box) {
+      box.innerHTML = '';
+      const empty = document.createElement('div');
+      empty.className = 'casino-empty';
+      empty.textContent = 'Gagal memuat game: ' + (e.message || 'error');
+      box.appendChild(empty);
+    }
+  }
+}
+
+function renderGames() {
+  const box = el('casino-games');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!state.games.length) {
+    const empty = document.createElement('div');
+    empty.className = 'casino-empty';
+    empty.textContent = 'Pilih provider untuk melihat game. (' + state.gamesProvider + ' kosong / belum ada endpoint getgames)';
+    box.appendChild(empty);
+    return;
+  }
+  const title = document.createElement('h3');
+  title.textContent = state.gamesProvider + ' (' + state.games.length + ')';
+  box.appendChild(title);
+  const grid = document.createElement('div');
+  grid.className = 'casino-grid';
+  for (const g of state.games.slice(0, 200)) {
+    const name = (g && (g.name || g.title || g.game)) || 'Game';
+    const d = document.createElement('div');
+    d.className = 'casino-card';
+    d.innerHTML = '<span class="casino-code"></span>';
+    d.querySelector('.casino-code').textContent = String(name).slice(0, 60);
+    grid.appendChild(d);
+  }
+  box.appendChild(grid);
+}
+
+async function init() {
+  const statusBox = el('casino-status');
+  try {
+    const res = await api.get('/api/member/casino/providers');
+    const payload = res?.data ?? res;
+    state.providers = Array.isArray(payload?.providers) ? payload.providers : [];
+    state.categories = Array.isArray(payload?.categories) ? payload.categories : [...new Set(state.providers.map((p) => p.category))];
+    renderFilters(state.categories);
+    renderProviders();
+    if (statusBox) statusBox.textContent = 'Terhubung: ' + state.providers.length + ' provider';
+  } catch (e) {
+    if (statusBox) statusBox.textContent = 'Casino belum tersedia: ' + (e.message || 'error');
+    renderProviders();
+  }
+  const search = el('casino-search');
+  if (search) search.addEventListener('input', () => { state.q = search.value; renderProviders(); });
+}
+
+document.addEventListener('DOMContentLoaded', init);

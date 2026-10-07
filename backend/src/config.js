@@ -17,6 +17,7 @@ const theOddsApiKey = optionalSecret('THE_ODDS_API_KEY');
 const sharpApiKey = optionalSecret('SHARP_API_KEY');
 const theSportsDbKey = optionalSecret('THESPORTSDB_API_KEY');
 const footballDataIoKey = optionalSecret('FOOTBALLDATA_IO_KEY');
+const rapidApiKey = optionalSecret('RAPIDAPI_CASINO_KEY') || optionalSecret('RAPIDAPI_KEY');
 function pricedProviderEnabled(name, key) {
   const raw = String(process.env[name] ?? '').trim().toLowerCase();
   if (!raw || raw === 'auto') return isProduction && Boolean(key);
@@ -273,7 +274,13 @@ export const config = Object.freeze({
   qrisOrderTtlMinutes: int('QRIS_ORDER_TTL_MINUTES', 30, 5, 1440),
   qrisProviderTimeoutMs: int('QRIS_PROVIDER_TIMEOUT_MS', 12000, 2000, 30000),
   qrisStaticPayload: text('QRIS_STATIC_PAYLOAD', ''),
-  qrisStaticImageUrl: text('QRIS_STATIC_IMAGE_URL', '')
+  qrisStaticImageUrl: text('QRIS_STATIC_IMAGE_URL', ''),
+
+  // Casino aggregator via RapidAPI (key hanya dari env, tidak pernah ke frontend).
+  rapidApiKey,
+  rapidApiCasinoEnabled: bool('RAPIDAPI_CASINO_ENABLED', Boolean(rapidApiKey)),
+  rapidApiCasinoCacheSeconds: int('RAPIDAPI_CASINO_CACHE_SECONDS', 300, 15, 3600),
+  rapidApiCasinoTimeoutMs: int('RAPIDAPI_CASINO_TIMEOUT_MS', 12000, 3000, 30000)
 });
 
 const mfaKey = Buffer.from(config.mfaEncryptionKeyBase64, 'base64');

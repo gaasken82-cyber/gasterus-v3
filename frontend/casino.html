@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Casino dan Slots - GASTERUS V3</title>
+  <meta name="description" content="Lobby casino Gasterus: 140+ provider slots, live casino, sportsbook dan arcade.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/mobile-blue.css?v=20260925-unified">
+  <link rel="stylesheet" href="css/loader-3d.css?v=20260925-1">
+  <link rel="stylesheet" href="/css/animations.css">
+  <meta name="theme-color" content="#2563eb">
+  <meta property="og:title" content="GASTERUS - Casino dan Slots">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gasterus.fun/casino.html">
+  <meta property="og:image" content="https://gasterus.fun/favicon.svg">
+  <meta name="twitter:card" content="summary">
+  <style>
+    .page-casino { --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; }
+    .page-casino .app-main { flex: 1 0 auto; padding-bottom: var(--space-8); }
+    .page-casino .container { width: 100%; max-width: 100%; box-sizing: border-box; }
+    .casino-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: var(--space-4); }
+    .casino-search { flex: 1 1 220px; padding: 11px 14px; border-radius: 10px; border: 1px solid rgba(56,189,248,.35); background: rgba(15,23,42,.8); color: #f1f5f9; font: inherit; }
+    .casino-count, .casino-status { color: #94a3b8; font-size: .85rem; }
+    .casino-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: var(--space-4); }
+    .casino-chip { padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(56,189,248,.35); background: rgba(30,41,59,.85); color: #38bdf8; font-weight: 700; font-size: .85rem; cursor: pointer; font-family: inherit; }
+    .casino-chip.active { background: rgba(56,189,248,.25); color: #fff; border-color: #38bdf8; }
+    .casino-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .casino-card { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 14px; border-radius: 12px; background: rgba(15,23,42,.75); border: 1.5px solid rgba(255,255,255,.1); color: #f8fafc; cursor: pointer; font-family: inherit; text-align: left; }
+    button.casino-card:hover { border-color: rgba(56,189,248,.5); }
+    .casino-code { font-weight: 800; font-size: .95rem; letter-spacing: .02em; }
+    .casino-cat { font-size: .72rem; color: #38bdf8; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .casino-empty { padding: 24px; text-align: center; color: #94a3b8; border: 1px dashed rgba(255,255,255,.15); border-radius: 12px; }
+    .casino-games { margin-top: var(--space-6); }
+    .casino-games h3 { color: #f8fafc; margin-bottom: var(--space-3); }
+    .page-casino .app-footer { margin-top: auto; padding: var(--space-6) var(--space-4); text-align: center; }
+    .page-casino .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-4); margin-bottom: var(--space-2); }
+    .page-casino .footer-links a { color: #94a3b8; text-decoration: none; font-size: .8rem; }
+    .page-casino .footer-bottom { font-size: .75rem; color: #64748b; }
+    .page-casino .nav-drawer-body { display: flex; flex-direction: column; }
+    @media (max-width: 480px) { .casino-grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+
+<body class="page-casino">
+  <script type="module" src="js/loader-3d.js?v=20260925-1"></script>
+  <div class="site">
+    <header class="brand-bar">
+      <button type="button" class="menu-toggle" data-nav-open aria-label="Menu"></button>
+      <a href="/member.html" class="brand-title">
+        <span class="logo-shine-wrap"><img src="/assets/logo.png?v=20260912-logo-v4" alt="GASTERUS" class="brand-logo-img"></span>
+      </a>
+      <a class="btn-livechat" href="https://wa.me/6285136342563" target="_blank" rel="noopener noreferrer">Live Chat</a>
+    </header>
+    <div class="nav-drawer-backdrop" id="navBackdrop"></div>
+    <nav class="nav-drawer" id="site-nav-drawer" aria-label="Main navigation">
+      <div class="nav-drawer-head">
+        <span class="nav-drawer-title">Menu</span>
+        <button type="button" class="nav-drawer-close" data-nav-close aria-label="Tutup Menu">X</button>
+      </div>
+      <div class="nav-drawer-body nav-drawer-links">
+        <a class="nav-drawer-link" href="/index.html"><span class="nav-drawer-ico">#</span>Beranda</a>
+        <a class="nav-drawer-link" href="/member.html"><span class="nav-drawer-ico">#</span>Togel dan Slot</a>
+        <a class="nav-drawer-link" href="/sportsbook.html"><span class="nav-drawer-ico">#</span>Sportsbook</a>
+        <a class="nav-drawer-link" href="/casino.html"><span class="nav-drawer-ico">#</span>Casino</a>
+        <a class="nav-drawer-link" href="/number-history.html"><span class="nav-drawer-ico">#</span>Hasil</a>
+        <a class="nav-drawer-link" href="/bet-history.html"><span class="nav-drawer-ico">#</span>Riwayat Taruhan</a>
+        <a class="nav-drawer-link" href="/notifications.html"><span class="nav-drawer-ico">#</span>Notifikasi</a>
+        <a class="nav-drawer-link" href="/wallet-ledger.html"><span class="nav-drawer-ico">#</span>Mutasi Saldo</a>
+        <a class="nav-drawer-link" href="/gaming-history.html"><span class="nav-drawer-ico">#</span>Riwayat Permainan</a>
+        <a class="nav-drawer-link" href="/support.html"><span class="nav-drawer-ico">#</span>Pusat Bantuan</a>
+        <a class="nav-drawer-link" href="/deposit.html"><span class="nav-drawer-ico">#</span>Setor</a>
+        <a class="nav-drawer-link" href="/withdraw.html"><span class="nav-drawer-ico">#</span>Tarik</a>
+        <a class="nav-drawer-link" href="/promotion.html"><span class="nav-drawer-ico">#</span>Promo</a>
+        <a class="nav-drawer-link" href="/referral.html"><span class="nav-drawer-ico">#</span>Referral</a>
+        <div style="margin-top:16px; border-top:1px solid #1e293b; padding-top:12px;">
+          <a class="nav-drawer-link" href="/rules.html"><span class="nav-drawer-ico">#</span>Cara Bermain</a>
+          <a class="nav-drawer-link" href="/privacy.html"><span class="nav-drawer-ico">#</span>Privasi</a>
+          <a class="nav-drawer-link" href="/terms.html"><span class="nav-drawer-ico">#</span>Ketentuan</a>
+        </div>
+      </div>
+    </nav>
+    <main class="app-main">
+      <div class="container">
+        <div style="text-align:center; max-width:680px; margin-inline:auto; margin-bottom: var(--space-4);">
+          <h1 style="font-size: 2rem; color:#f8fafc;">Lobby Casino</h1>
+          <p style="color:#cbd5e1;">140+ provider slots, live casino, sportsbook dan arcade. Klik provider untuk melihat game.</p>
+          <p class="casino-status" id="casino-status">Menghubungkan...</p>
+        </div>
+        <div class="casino-toolbar">
+          <input class="casino-search" id="casino-search" type="search" placeholder="Cari provider: pragmatic, pgsoft, evolution..." autocomplete="off">
+          <span class="casino-count" id="casino-count"></span>
+        </div>
+        <div class="casino-filters" id="casino-filters"></div>
+        <div class="casino-grid" id="casino-grid"><div class="casino-empty">Memuat provider...</div></div>
+        <div class="casino-games" id="casino-games"></div>
+      </div>
+    </main>
+    <footer class="app-footer">
+      <div class="footer-links">
+        <a href="privacy.html">Privacy</a>
+        <a href="rules.html">Cara Bermain</a>
+        <a href="terms.html">Terms</a>
+      </div>
+      <div class="container footer-bottom">GASTERUS V3 2026. Platform Togel Resmi dan Sportsbook.</div>
+    </footer>
+  </div>
+
+  <script src="/runtime-config.js"></script>
+  <script type="module" src="/js/casino.js?v=20261007-casino-lobby"></script>
+  <script>
+    (function () {
+      function openNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.getElementById('navBackdrop');
+        if (drawer) drawer.classList.add('open');
+        if (backdrop) backdrop.classList.add('show');
+        document.body.classList.add('nav-open');
+      }
+      function closeNav() {
+        var drawer = document.getElementById('site-nav-drawer');
+        var backdrop = document.getElementById('navBackdrop');
+        if (drawer) drawer.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.classList.remove('nav-open');
+      }
+      document.querySelectorAll('[data-nav-open]').forEach(function (t) { t.addEventListener('click', function (e) { e.preventDefault(); openNav(); }); });
+      document.querySelectorAll('[data-nav-close]').forEach(function (e) { e.addEventListener('click', closeNav); });
+      var bd = document.getElementById('navBackdrop');
+      if (bd) bd.addEventListener('click', closeNav);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeNav(); });
+    })();
+  </script>
+</body>
+</html>

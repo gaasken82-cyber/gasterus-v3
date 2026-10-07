@@ -3,7 +3,7 @@
    Untuk PWA: Offline caching dasar
    ========================================================================== */
 
-const CACHE_NAME = 'gasterus-v3-cache-v13-qris-barcode-fixed';
+const CACHE_NAME = 'gasterus-v3-cache-v14-casino-lobby';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -15,6 +15,7 @@ const STATIC_ASSETS = [
   '/market-play.html',
   '/number-history.html',
   '/promotion.html',
+  '/casino.html',
   '/sportsbook.html',
   '/privacy.html',
   '/referral.html',
