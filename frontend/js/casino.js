@@ -5,6 +5,7 @@
 import { api } from './api.js';
 
 const state = { providers: [], categories: [], filter: 'ALL', q: '', games: [], gamesProvider: '' };
+const slotsView = new URLSearchParams(window.location.search).get('view') === 'slots';
 
 function el(id) { return document.getElementById(id); }
 
@@ -129,16 +130,28 @@ function renderGames() {
 
 async function init() {
   const statusBox = el('casino-status');
+  const title = el('casino-title');
+  const description = el('casino-description');
+  const filters = el('casino-filters');
+  if (slotsView) {
+    document.title = 'Slot - GASTERUS V3';
+    if (title) title.textContent = 'Lobby Slot';
+    if (description) description.textContent = 'Pilih provider slot untuk melihat grid permainan slot.';
+    if (filters) filters.hidden = true;
+  }
   try {
     const res = await api.get('/api/member/casino/providers');
     const payload = res?.data ?? res;
-    state.providers = Array.isArray(payload?.providers) ? payload.providers : [];
-    state.categories = Array.isArray(payload?.categories) ? payload.categories : [...new Set(state.providers.map((p) => p.category))];
+    const providers = Array.isArray(payload?.providers) ? payload.providers : [];
+    state.providers = providers.filter((provider) => slotsView
+      ? provider.category === 'SLOTS'
+      : provider.category !== 'SLOTS');
+    state.categories = [...new Set(state.providers.map((provider) => provider.category))].sort();
     renderFilters(state.categories);
     renderProviders();
-    if (statusBox) statusBox.textContent = 'Terhubung: ' + state.providers.length + ' provider';
+    if (statusBox) statusBox.textContent = 'Terhubung: ' + state.providers.length + (slotsView ? ' provider Slot' : ' provider Casino');
   } catch (e) {
-    if (statusBox) statusBox.textContent = 'Casino belum tersedia: ' + (e.message || 'error');
+    if (statusBox) statusBox.textContent = (slotsView ? 'Slot' : 'Casino') + ' belum tersedia: ' + (e.message || 'error');
     renderProviders();
   }
   const search = el('casino-search');
