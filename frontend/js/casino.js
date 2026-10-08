@@ -86,6 +86,43 @@ async function loadGames(provider) {
   }
 }
 
+async function launchGame(game, card) {
+  const popup = window.open('about:blank', '_blank');
+  if (!popup) {
+    const box = el('casino-games');
+    if (box) {
+      const notice = document.createElement('div');
+      notice.className = 'casino-empty';
+      notice.textContent = 'Izinkan popup untuk membuka game demo.';
+      box.prepend(notice);
+    }
+    return;
+  }
+  popup.opener = null;
+  card.disabled = true;
+  try {
+    const res = await api.post('/api/member/casino/launch', {
+      gameId: game.id,
+      platform: window.matchMedia('(pointer: coarse)').matches ? 2 : 1
+    });
+    const payload = res?.data ?? res;
+    const launchUrl = new URL(String(payload?.gameUrl || ''));
+    if (launchUrl.protocol !== 'https:') throw new Error('URL game tidak aman.');
+    popup.location.replace(launchUrl.href);
+  } catch (error) {
+    popup.close();
+    const box = el('casino-games');
+    if (box) {
+      const notice = document.createElement('div');
+      notice.className = 'casino-empty';
+      notice.textContent = 'Gagal membuka game demo: ' + (error?.data?.error?.message || error?.message || 'error');
+      box.prepend(notice);
+    }
+  } finally {
+    card.disabled = false;
+  }
+}
+
 function renderGames() {
   const box = el('casino-games');
   if (!box) return;
@@ -100,11 +137,18 @@ function renderGames() {
   const title = document.createElement('h3');
   title.textContent = state.gamesProvider + ' (' + state.games.length + ')';
   box.appendChild(title);
+  const demoNote = document.createElement('p');
+  demoNote.className = 'casino-status';
+  demoNote.textContent = 'MODE DEMO - saldo member tidak digunakan.';
+  box.appendChild(demoNote);
   const grid = document.createElement('div');
   grid.className = 'casino-grid';
   for (const g of state.games.slice(0, 200)) {
-    const card = document.createElement('div');
+    const card = document.createElement('button');
+    card.type = 'button';
     card.className = 'casino-card';
+    card.disabled = !g.id;
+    card.title = 'Main demo - saldo member tidak digunakan';
     if (g.img) {
       const img = document.createElement('img');
       img.src = g.img;
@@ -120,9 +164,10 @@ function renderGames() {
     if (g.type) {
       const typeEl = document.createElement('span');
       typeEl.className = 'casino-cat';
-      typeEl.textContent = String(g.type).slice(0, 20);
+      typeEl.textContent = 'DEMO - ' + String(g.type).slice(0, 20);
       card.appendChild(typeEl);
     }
+    if (g.id) card.addEventListener('click', () => launchGame(g, card));
     grid.appendChild(card);
   }
   box.appendChild(grid);
