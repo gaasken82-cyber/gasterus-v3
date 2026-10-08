@@ -18,6 +18,8 @@ const sharpApiKey = optionalSecret('SHARP_API_KEY');
 const theSportsDbKey = optionalSecret('THESPORTSDB_API_KEY');
 const footballDataIoKey = optionalSecret('FOOTBALLDATA_IO_KEY');
 const rapidApiKey = optionalSecret('RAPIDAPI_CASINO_KEY') || optionalSecret('RAPIDAPI_KEY');
+const betnexApiKey = optionalSecret('BETNEX_API_KEY');
+const betnexCallbackKey = optionalSecret('BETNEX_CALLBACK_KEY') || betnexApiKey;
 function pricedProviderEnabled(name, key) {
   const raw = String(process.env[name] ?? '').trim().toLowerCase();
   if (!raw || raw === 'auto') return isProduction && Boolean(key);
@@ -280,7 +282,10 @@ export const config = Object.freeze({
   rapidApiKey,
   rapidApiCasinoEnabled: bool('RAPIDAPI_CASINO_ENABLED', Boolean(rapidApiKey)),
   rapidApiCasinoCacheSeconds: int('RAPIDAPI_CASINO_CACHE_SECONDS', 300, 15, 3600),
-  rapidApiCasinoTimeoutMs: int('RAPIDAPI_CASINO_TIMEOUT_MS', 12000, 3000, 30000)
+  rapidApiCasinoTimeoutMs: int('RAPIDAPI_CASINO_TIMEOUT_MS', 12000, 3000, 30000),
+  betnexApiKey,
+  betnexCallbackKey,
+  betnexRealMoneyEnabled: bool('BETNEX_REAL_MONEY_ENABLED', false)
 });
 
 const mfaKey = Buffer.from(config.mfaEncryptionKeyBase64, 'base64');

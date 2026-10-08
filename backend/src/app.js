@@ -6,7 +6,7 @@ import { treeMemory } from './memory-guard.js';
 import { connectRedis, checkRedis, redis } from './redis.js';
 import { checkDatabase, query, tx } from './db.js';
 import { AppError, assert } from './errors.js';
-import { body, clientIp, fail, ok, securityHeaders } from './http.js';
+import { body, clientIp, fail, json, ok, securityHeaders } from './http.js';
 import { acceptRules, authenticateApiKey, clearSessionCookie, loginMember, loginOwner, logout, registerMember, requireCsrf, requirePermission, session, sessionCookie, userById } from './auth.js';
 import { createWalletRequest, listMemberRequests, numberHistory, numberHistoryMarkets, referralOverview } from './member.js';
 import { bettingConfig, betReceipt, cancelBet, createBet, gameEvAudit, getAnyBet, getMemberBet, listAllBets, listBettingMarkets, listMemberBets, lotteryExposureSnapshot, quoteBet, submitDraft, updateBettingConfig, updateLotteryGameConfig, updateSelectionLimit, walletLedger } from './betting.js';
@@ -31,7 +31,8 @@ import { createSportsbookCashoutOffer, listMemberSportsbookCashoutOffers, accept
 import { openSportsbookRealtimeStream, sportsbookRealtimeStatus } from './sportsbook-realtime.js';
 import { totoMarketsHealth, totoMarketsDetail, simpleHealth } from './health-check.js';
 import { requestMemberPasswordReset, resetMemberPasswordByToken } from './password-reset.js';
-import { casinoProviders, casinoGames, casinoPassthrough, casinoRapidApiStatus, diagnoseCasinoUpstream, launchCasinoDemo } from './casino-rapidapi.js';
+import { casinoProviders, casinoGames, casinoPassthrough, casinoRapidApiStatus, diagnoseCasinoUpstream, launchCasinoGame } from './casino-rapidapi.js';
+import { processBetnexCallback } from './casino-wallet.js';
 
 const startedAt=Date.now();const metrics={requests:0,errors:0,rateLimited:0,latencyTotal:0};
 const route=(method,pattern,handler,options={})=>({method,pattern,handler,...options});
@@ -110,7 +111,8 @@ add('GET',/^\/api\/member\/gaming-history$/,async({req,res,url})=>{const s=await
 add('GET',/^\/api\/member\/sportsbook\/events$/,async({req,res,url})=>{await optionalMemberSession(req);await rateLimit(req,'sportsbook-feed',180,60);ok(res,await sportsbookSnapshot({sport:url.searchParams.get('sport'),live:url.searchParams.get('live'),q:url.searchParams.get('q')}));});
 add('GET',/^\/api\/member\/casino\/providers$/,async({req,res})=>{await optionalMemberSession(req);await rateLimit(req,'casino-providers',60,60);ok(res,await casinoProviders());});
 add('GET',/^\/api\/member\/casino\/games$/,async({req,res,url})=>{await optionalMemberSession(req);await rateLimit(req,'casino-games',60,60);ok(res,await casinoGames(url.searchParams.get('provider')||''));});
-add('POST',/^\/api\/member\/casino\/launch$/,async({req,res})=>{const s=await memberSession(req);requireCsrf(req,s);await rateLimit(req,'casino-launch',12,60);ok(res,await launchCasinoDemo(s.userId,await body(req)));});
+add('POST',/^\/api\/member\/casino\/launch$/,async({req,res})=>{const s=await memberSession(req);requireCsrf(req,s);await rateLimit(req,'casino-launch',12,60);const member=await userById(s.userId);assert(member.status==='ACTIVE',403,'Akun tidak aktif.','ACCOUNT_INACTIVE');ok(res,await launchCasinoGame(member,await body(req)));});
+add('POST',/^\/api\/member\/casino\/callback$/,async({req,res})=>{internal(req,'member');let input;try{input=await body(req,65536);}catch{return json(res,200,{success:false,msg:'Callback payload tidak valid.',handle:false,money:0});}try{const result=await processBetnexCallback(input);return json(res,result.status,result.body);}catch(error){logger.error('Betnex callback route failed',{code:error?.code||'CALLBACK_FAILED',message:error?.message||'unknown'});return json(res,500,{success:false,msg:'Callback belum dapat diproses.',handle:false,money:0});}});
 add('GET',/^\/api\/member\/casino\/status$/,async({req,res})=>{await optionalMemberSession(req);ok(res,casinoRapidApiStatus());});
 add('GET',/^\/api\/member\/sportsbook\/stream$/,async({req,res})=>{await memberSession(req);await rateLimit(req,'sportsbook-stream',20,60);openSportsbookRealtimeStream(req,res);});
 add('GET',/^\/api\/member\/sportsbook\/events\/(?<id>[^/]+)$/,async({req,res,params})=>{await optionalMemberSession(req);await rateLimit(req,'sportsbook-event-detail',120,60);ok(res,await sportsbookEventSnapshot(params.id));});

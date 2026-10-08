@@ -4,7 +4,7 @@
  */
 import { api } from './api.js';
 
-const state = { providers: [], categories: [], filter: 'ALL', q: '', games: [], gamesProvider: '' };
+const state = { providers: [], categories: [], filter: 'ALL', q: '', games: [], gamesProvider: '', launchMode: 'DEMO' };
 const slotsView = new URLSearchParams(window.location.search).get('view') === 'slots';
 
 function el(id) { return document.getElementById(id); }
@@ -93,7 +93,7 @@ async function launchGame(game, card) {
     if (box) {
       const notice = document.createElement('div');
       notice.className = 'casino-empty';
-      notice.textContent = 'Izinkan popup untuk membuka game demo.';
+      notice.textContent = 'Izinkan popup untuk membuka game.';
       box.prepend(notice);
     }
     return;
@@ -115,7 +115,7 @@ async function launchGame(game, card) {
     if (box) {
       const notice = document.createElement('div');
       notice.className = 'casino-empty';
-      notice.textContent = 'Gagal membuka game demo: ' + (error?.data?.error?.message || error?.message || 'error');
+      notice.textContent = 'Gagal membuka game: ' + (error?.data?.error?.message || error?.message || 'error');
       box.prepend(notice);
     }
   } finally {
@@ -139,7 +139,11 @@ function renderGames() {
   box.appendChild(title);
   const demoNote = document.createElement('p');
   demoNote.className = 'casino-status';
-  demoNote.textContent = 'MODE DEMO - saldo member tidak digunakan.';
+  demoNote.textContent = state.launchMode === 'REAL'
+    ? 'SALDO GASTERUS - transaksi diproses melalui callback Betnex.'
+    : state.launchMode === 'REAL_NOT_CONFIGURED'
+      ? 'Mode saldo Gasterus belum dikonfigurasi; game belum dapat diluncurkan.'
+      : 'MODE DEMO - saldo member tidak digunakan.';
   box.appendChild(demoNote);
   const grid = document.createElement('div');
   grid.className = 'casino-grid';
@@ -147,8 +151,8 @@ function renderGames() {
     const card = document.createElement('button');
     card.type = 'button';
     card.className = 'casino-card';
-    card.disabled = !g.id;
-    card.title = 'Main demo - saldo member tidak digunakan';
+    card.disabled = !g.id || state.launchMode === 'REAL_NOT_CONFIGURED';
+    card.title = state.launchMode === 'REAL' ? 'Main dengan saldo Gasterus' : 'Main demo - saldo member tidak digunakan';
     if (g.img) {
       const img = document.createElement('img');
       img.src = g.img;
@@ -164,7 +168,7 @@ function renderGames() {
     if (g.type) {
       const typeEl = document.createElement('span');
       typeEl.className = 'casino-cat';
-      typeEl.textContent = 'DEMO - ' + String(g.type).slice(0, 20);
+      typeEl.textContent = (state.launchMode === 'REAL' ? 'GASTERUS - ' : 'DEMO - ') + String(g.type).slice(0, 20);
       card.appendChild(typeEl);
     }
     if (g.id) card.addEventListener('click', () => launchGame(g, card));
@@ -185,6 +189,11 @@ async function init() {
     if (filters) filters.hidden = true;
   }
   try {
+    const statusResponse = await api.get('/api/member/casino/status');
+    const wallet = (statusResponse?.data ?? statusResponse)?.wallet;
+    if (['DEMO', 'REAL', 'REAL_NOT_CONFIGURED'].includes(wallet?.launchMode)) state.launchMode = wallet.launchMode;
+  } catch {}
+  try {
     const res = await api.get('/api/member/casino/providers');
     const payload = res?.data ?? res;
     const providers = Array.isArray(payload?.providers) ? payload.providers : [];
@@ -194,7 +203,7 @@ async function init() {
     state.categories = [...new Set(state.providers.map((provider) => provider.category))].sort();
     renderFilters(state.categories);
     renderProviders();
-    if (statusBox) statusBox.textContent = 'Terhubung: ' + state.providers.length + (slotsView ? ' provider Slot' : ' provider Casino');
+    if (statusBox) statusBox.textContent = 'Terhubung: ' + state.providers.length + (slotsView ? ' provider Slot' : ' provider Casino') + (state.launchMode === 'REAL_NOT_CONFIGURED' ? ' · saldo game belum dikonfigurasi' : '');
   } catch (e) {
     if (statusBox) statusBox.textContent = (slotsView ? 'Slot' : 'Casino') + ' belum tersedia: ' + (e.message || 'error');
     renderProviders();
