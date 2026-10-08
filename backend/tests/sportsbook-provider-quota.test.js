@@ -24,6 +24,7 @@ Object.assign(process.env, {
 
 const originalFetch = globalThis.fetch;
 const calls = [];
+let apiAccessError = false;
 // Payload mock menyerupai bentuk asli API-Football: satu laga LIVE dengan odds
 // 1X2, sehingga jalur normalisasi + stempel harga live ikut teruji.
 const liveFixture = {
@@ -44,9 +45,9 @@ const liveOddsPayload = {
 globalThis.fetch = async url => {
   const target = String(url);
   calls.push(target);
-  let body = { response: [] };
-  if (target.includes('/fixtures?live=all')) body = { response: [liveFixture] };
-  else if (target.includes('/odds/live')) body = liveOddsPayload;
+  let body = apiAccessError ? { errors: { access: 'private upstream message' }, response: [] } : { response: [] };
+  if (!apiAccessError && target.includes('/fixtures?live=all')) body = { response: [liveFixture] };
+  else if (!apiAccessError && target.includes('/odds/live')) body = liveOddsPayload;
   return {
     ok: true,
     status: 200,
@@ -91,6 +92,26 @@ test('live endpoints stay cached beyond their configured refresh TTL while still
   liveEntry[1].fetchedAt -= 60_000;
   await fetchApiSports();
   assert.equal(calls.length, first, 'quota window must hold the endpoint despite the configured 30s TTL expiring');
+});
+
+test('API-Sports HTTP 200 payload errors are surfaced safely and remain quota-cached', async () => {
+  __sportsbookProviders.providerRequestCache.clear();
+  calls.length = 0;
+  apiAccessError = true;
+  try {
+    const result = await fetchApiSports();
+    assert.equal(result.transportOk, false);
+    assert.equal(result.events.length, 0);
+    assert.ok(result.errors.some(error => error === 'API-Sports fixtures (prematch) response reported access error.'));
+    assert.ok(result.errors.every(error => !error.includes('private upstream message')));
+    const first = calls.length;
+    const cachedResult = await fetchApiSports();
+    assert.equal(calls.length, first, 'application-level errors must remain cached within the provider quota window');
+    assert.equal(cachedResult.transportOk, false);
+  } finally {
+    apiAccessError = false;
+    __sportsbookProviders.providerRequestCache.clear();
+  }
 });
 
 test('live price stamp ages with the real odds/live fetch time and the fail-closed guard closes it', async () => {

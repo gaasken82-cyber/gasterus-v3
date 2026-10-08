@@ -1009,8 +1009,17 @@ async function apiSports(path, params = {}) {
   Object.entries(params).forEach(([key, value]) => { if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value)); });
   return requestJson(url, { headers: { 'x-apisports-key': config.apiSportsKey }, label: 'API-Sports' });
 }
+function apiSportsPayloadErrors(payload, endpoint) {
+  const errors = payload?.errors;
+  if (!errors || typeof errors !== 'object') return [];
+  const fields = Array.isArray(errors)
+    ? errors.map((_, index) => String(index))
+    : Object.keys(errors).filter(key => errors[key] !== null && errors[key] !== undefined && errors[key] !== '' && errors[key] !== false);
+  return fields.map(field => `API-Sports ${endpoint} response reported ${clean(field, 40)} error.`);
+}
 export async function fetchApiSports() {
   if (!config.apiSportsEnabled || !config.apiSportsKey) return { provider: 'api-sports', enabled: false, events: [] };
+  const requestNames = ['fixtures (live)', 'fixtures (prematch)', 'odds/live'];
   const requests = [
     cachedApiSports('fixtures', { live: 'all' }, config.apiSportsLiveRefreshSeconds, 'live'),
     cachedApiSports('fixtures', { from: utcDate(0), to: utcDate(config.apiSportsDaysAhead) }, config.apiSportsPrematchRefreshSeconds, 'prematch'),
@@ -1018,6 +1027,7 @@ export async function fetchApiSports() {
   ];
   for (let page = 1; page <= config.apiSportsOddsPages; page += 1) {
     requests.push(cachedApiSports('odds', { date: utcDate(0), page }, config.apiSportsPrematchRefreshSeconds, 'prematch'));
+    requestNames.push(`odds (page ${page})`);
   }
   const settled = await Promise.allSettled(requests);
   const fixturePayloads = settled.slice(0, 2).filter(item => item.status === 'fulfilled').map(item => item.value);
@@ -1054,8 +1064,10 @@ export async function fetchApiSports() {
       }
     }
   }
-  const errors = settled.filter(result => result.status === 'rejected').map(result => clean(result.reason?.message || 'request failed'));
-  return { provider: 'api-sports', enabled: true, events: events.slice(0, MAX_PROVIDER_EVENTS), errors };
+  const errors = settled.flatMap((result, index) => result.status === 'fulfilled'
+    ? apiSportsPayloadErrors(result.value, requestNames[index])
+    : [clean(result.reason?.message || 'request failed')]);
+  return { provider: 'api-sports', enabled: true, transportOk: errors.length === 0, events: events.slice(0, MAX_PROVIDER_EVENTS), errors };
 }
 
 function normalizeSportsDbEvent(raw) {
