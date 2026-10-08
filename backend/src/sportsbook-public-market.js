@@ -326,7 +326,7 @@ function buildDerivedMarkets(eventId, anchor, updatedAt) {
 }
 
 export function normalizeFootballDataFixture(row, { updatedAt = new Date().toISOString() } = {}) {
-  const home = clean(row.HomeTeam, 120), away = clean(row.AwayTeam, 120);
+  const home = clean(row.HomeTeam || row.Home, 120), away = clean(row.AwayTeam || row.Away, 120);
   const startTime = parseKickoff(row.Date, row.Time);
   const oneXtwo = oddsTriplet(row);
   if (!home || !away || !startTime || !oneXtwo) return null;

@@ -42,6 +42,27 @@ test('R6.9.0.15 public fixture creates real anchor markets plus broad Gasterus-d
   assert.ok(event.markets.flatMap(m=>m.selections).every(s=>Number.isFinite(s.odds)&&s.odds>1));
 });
 
+test('public extra-league fixture columns normalize team names and market-average odds', () => {
+  const event = normalizeFootballDataFixture({
+    Country: 'Brazil',
+    League: 'Serie A',
+    Date: '09/10/2026',
+    Time: '01:30',
+    Home: 'Fluminense',
+    Away: 'Coritiba',
+    AvgH: '1.47',
+    AvgD: '4.14',
+    AvgA: '6.50'
+  }, { updatedAt: '2026-10-08T12:00:00.000Z' });
+
+  assert.ok(event);
+  assert.equal(event.home.name, 'Fluminense');
+  assert.equal(event.away.name, 'Coritiba');
+  assert.equal(event.league, 'Serie A');
+  assert.equal(event.country, 'Brazil');
+  assert.equal(event.markets.find(market => market.type === '1X2').selections[0].odds, 1.47);
+});
+
 test('R6.9.0.15 public market source unlocks FT and 1H without any commercial provider key', () => {
   const event=normalizeFootballDataFixture(fixtureRow,{updatedAt:'2026-08-17T12:00:00Z'});
   const [merged]=__sportsbookProviders.mergeProviderEvents([{provider:'public-market',enabled:true,events:[event]}]);
