@@ -1309,38 +1309,35 @@ function renderMatch(e) {
 
   return `
     <article class="sb-match-card" data-evid="${escapeHtml(e.id)}">
-      
-      <!-- Slanted Banner -->
-      <div class="sb-card-banner">
-        <div class="sb-banner-left">
-          ${isLive 
-            ? `<div class="sb-badge-slanted-live"><span>LANGSUNG</span></div>` 
-            : `<div class="sb-badge-slanted-live" style="background:#2563eb;"><span>${formatShortDate(e.startTime)}</span></div>`}
-          <div class="sb-badge-slanted-league"><span>${escapeHtml(e.league || 'SPORTSBOOK')}</span></div>
-        </div>
+      <div class="sb-match-info">
+        <div class="sb-card-banner">
+          ${isLive
+            ? '<span class="sb-match-status is-live"><span></span> LANGSUNG</span>'
+            : `<span class="sb-match-status">${formatKickoffDate(e.startTime)}</span>`}
         <button type="button" class="sb-banner-refresh" onclick="window.location.reload()" title="Muat ulang odds">↻</button>
-      </div>
-
-      <!-- Teams Row -->
-      <div class="sb-teams-row">
-        <div class="sb-team-col ${isHomeFav ? 'is-fav' : ''}">
-          ${home.logo ? `<img class="sb-team-logo" src="${escapeHtml(home.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<span class="sb-team-name">${escapeHtml(home.name || 'TBA')}</span>
+        </div>
+        <div class="sb-teams-row">
+          <div class="sb-team-col ${isHomeFav ? 'is-fav' : ''}">
+            ${home.logo ? `<img class="sb-team-logo" src="${escapeHtml(home.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}
+            <span class="sb-team-name">${escapeHtml(home.name || 'TBA')}</span>
+            ${isLive ? `<span class="sb-team-score">${escapeHtml(scoreText(home.score))}</span>` : ''}
+          </div>
+          <div class="sb-team-col away ${isAwayFav ? 'is-fav' : ''}">
+            ${away.logo ? `<img class="sb-team-logo" src="${escapeHtml(away.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}
+            <span class="sb-team-name">${escapeHtml(away.name || 'TBA')}</span>
+            ${isLive ? `<span class="sb-team-score">${escapeHtml(scoreText(away.score))}</span>` : ''}
+          </div>
         </div>
         <div class="sb-score-col">
-          ${isLive 
-            ? `<span class="sb-match-live-score">${escapeHtml(scoreText(home.score))} - ${escapeHtml(scoreText(away.score))}</span>
-               <span class="sb-match-live-clock" data-live-clock-id="${escapeHtml(e.id)}">${escapeHtml(getLiveClockDisplay(e))}</span>`
-            : `<span class="sb-match-date">${formatKickoffDate(e.startTime)}</span>
-               <span class="sb-match-kickoff">${timeLabel(e.startTime)}</span>`}
-        </div>
-        <div class="sb-team-col away ${isAwayFav ? 'is-fav' : ''}">
-          <span class="sb-team-name">${escapeHtml(away.name || 'TBA')}</span>${away.logo ? `<img class="sb-team-logo" src="${escapeHtml(away.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}
+          ${isLive
+            ? `<span class="sb-match-live-clock" data-live-clock-id="${escapeHtml(e.id)}">${escapeHtml(getLiveClockDisplay(e))}</span>`
+            : `<span class="sb-match-kickoff">${timeLabel(e.startTime)} WIB</span>`}
         </div>
       </div>
 
       <div class="sb-match-market-head">
-        <span>ODDS UTAMA</span>
-        <span>${marketsCount ? `${marketsCount} pasar tersedia` : 'Pasar dari provider'}</span>
+        <span>PASAR UTAMA</span>
+        <span>${marketsCount ? `${marketsCount} pasar` : 'Odds provider'}</span>
       </div>
 
       <div class="sb-matrix-table">
@@ -1372,9 +1369,9 @@ function renderMatch(e) {
         </div>
       </div>` : ''}
 
-      <!-- Card Footer -->
       <div class="sb-card-footer">
-        <span class="sb-market-help">Pilih odds untuk menambahkan pilihan ke betslip</span>
+        <span class="sb-market-help">${isLive ? 'Pertandingan langsung' : 'Pilih odds untuk menambahkan ke betslip'}</span>
+        <span class="sb-match-quick-time">${isLive ? escapeHtml(getLiveClockDisplay(e)) : `${formatKickoffDate(e.startTime)} · ${timeLabel(e.startTime)} WIB`}</span>
       </div>
 
     </article>
@@ -1508,13 +1505,6 @@ async function loadEventMarkets(eventId, { force = false, notify = true } = {}) 
   })();
   eventDetailRequests.set(eventId, request);
   return request;
-}
-
-function formatShortDate(iso) {
-  if (!iso) return 'JADWAL';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return 'JADWAL';
-  return new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: '2-digit' }).format(d);
 }
 
 function formatKickoffDate(iso) {

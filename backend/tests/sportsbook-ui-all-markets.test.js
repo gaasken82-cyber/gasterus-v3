@@ -67,3 +67,16 @@ test('zero-valued market lines remain visible in the betslip', () => {
   assert.match(frontend, /marketLine: market\.line \?\? selection\.line \?\? null/);
   assert.match(frontend, /s\.marketLine !== null && s\.marketLine !== undefined/);
 });
+
+test('match cards present fixtures and provider-backed markets as a responsive sportsbook board', () => {
+  const styles = readFileSync(new URL('../../frontend/css/pages/sportsbook-v3.css', import.meta.url), 'utf8');
+  const page = readFileSync(new URL('../../frontend/sportsbook.html', import.meta.url), 'utf8');
+  assert.match(page, /<h1>Pertandingan &amp; Odds<\/h1>/);
+  assert.match(frontend, /<div class="sb-match-info">[\s\S]*<div class="sb-teams-row">[\s\S]*<div class="sb-match-market-head">/);
+  assert.match(frontend, /PASAR UTAMA/);
+  assert.match(styles, /\.sb-match-card\s*\{[\s\S]*grid-template-columns: minmax\(176px, 0\.72fr\) minmax\(0, 1\.7fr\)/);
+  assert.match(styles, /\.sb-market-grid\s*\{[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /@media \(max-width: 860px\)[\s\S]*?\.sb-match-card\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(page, /sportsbook-v3\.css\?v=20261009-pro-sportsbook/);
+  assert.match(page, /sportsbook\.js\?v=20261009-pro-sportsbook/);
+});
