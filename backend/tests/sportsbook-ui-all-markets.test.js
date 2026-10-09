@@ -39,4 +39,5 @@ test('sportsbook filters and mix-parlay shortcuts update the actual active betti
   assert.match(frontend, /function setMatchFilter\(filter\)[\s\S]*aria-pressed[\s\S]*renderAll\(\)/);
   assert.match(frontend, /setSlipTab\('parlay'\)/);
   assert.match(frontend, /setMatchFilter\(currentFilter === 'fav' \? 'today' : 'fav'\)/);
+  assert.match(frontend, /mixParlayButton\.classList\.toggle\('active', tab === 'parlay'\)/);
 });

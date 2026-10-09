@@ -342,7 +342,7 @@ function setStatus(state) {
 // SSE stream — manual client so the Authorization header can be sent.
 // EventSource cannot set headers, and the member session may be Bearer-based.
 // ---------------------------------------------------------------------------
-const SB_BUILD = 'sb7';
+const SB_BUILD = 'sb8';
 window.__SB_BUILD = SB_BUILD;
 console.info(`[GASTERUS] sportsbook build ${SB_BUILD}`);
 
@@ -688,7 +688,6 @@ function setupMixParlay() {
   const btn = el('btn-toggle-parlay');
   if (!btn) return;
   btn.addEventListener('click', () => {
-    btn.classList.add('active');
     setSlipTab('parlay');
     if (window.innerWidth <= 1024 && selected.size) openSlipSheet();
     showToast('Mode Mix Parlay Aktif', 'info');
@@ -817,6 +816,8 @@ function closeSlipSheet() {
 
 function setSlipTab(tab) {
   activeSlipTab = tab;
+  const mixParlayButton = el('btn-toggle-parlay');
+  if (mixParlayButton) mixParlayButton.classList.toggle('active', tab === 'parlay');
   // Single mode hanya mendukung 1 selection — batasi dengan aman + pesan jelas.
   if (tab === 'single' && selected.size > 1) {
     const [firstKey, firstLeg] = [...selected.entries()][0];
