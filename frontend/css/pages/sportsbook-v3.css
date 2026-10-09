@@ -806,7 +806,6 @@ body.sb-page {
   color: #475569;
   text-align: center;
   padding: 6px 4px;
-  width: 33.33%;
   border-right: 1px solid #f1f5f9;
 }
 .sb-mth:last-child { border-right: none; }

@@ -962,8 +962,8 @@ function renderLiveCarousel() {
   section.hidden = false;
   carousel.innerHTML = liveList.slice(0, 6).map((e) => {
     const hdp = findMarket(e, 'HANDICAP', 'FT');
-    const hSel = hdp?.selections?.find((s) => /^(home|1)$/i.test(s.key || s.label)) || hdp?.selections?.[0];
-    const aSel = hdp?.selections?.find((s) => /^(away|2)$/i.test(s.key || s.label)) || hdp?.selections?.[1];
+    const hSel = findMarketSelection(hdp, ['home', '1'], 0);
+    const aSel = findMarketSelection(hdp, ['away', '2'], 1);
     
     return `
       <div class="sb-live-card">
@@ -1064,6 +1064,18 @@ function findMarket(e, type, period) {
   );
 }
 
+function findMarketSelection(market, aliases, fallbackIndex, allowPrefix = false) {
+  const selections = Array.isArray(market?.selections) ? market.selections : [];
+  const matches = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return aliases.some(alias => normalized === alias || (allowPrefix && normalized.startsWith(`${alias} `)));
+  };
+  return selections.find(selection => matches(selection.label))
+    || selections.find(selection => matches(selection.key))
+    || selections[fallbackIndex]
+    || null;
+}
+
 function renderOddCell(e, m, s, lineOverride) {
   if (!m || !s || s.suspended) {
     return `<div class="sb-odd-cell disabled"><span class="sb-cell-odds">—</span></div>`;
@@ -1111,6 +1123,28 @@ function renderOddCell(e, m, s, lineOverride) {
   `;
 }
 
+function renderMarketColumns(e, markets) {
+  if (!markets.length) return '';
+  const columns = `repeat(${markets.length}, minmax(0, 1fr))`;
+  return `
+    <div class="sb-mth-row" style="display:grid; grid-template-columns:${columns};">
+      ${markets.map(item => `<div class="sb-mth">${escapeHtml(item.title)}</div>`).join('')}
+    </div>
+    <div class="sb-matrix-row" style="grid-template-columns:${columns};">
+      ${markets.map(item => `
+        <div class="sb-mcol">
+          ${item.outcomes.map(([label, selection]) => `
+            <div class="sb-mrow-item">
+              <span class="sb-mletter">${escapeHtml(label)}</span>
+              ${renderOddCell(e, item.market, selection)}
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
 function renderMatch(e) {
   const isLive = Boolean(e.live) || String(e.status || '').toUpperCase() === 'LIVE';
   const home = e.home || {}, away = e.away || {};
@@ -1130,32 +1164,42 @@ function renderMatch(e) {
   const isAwayFav = hdpLine > 0;
 
   // HDP Selections
-  const hHdp = bpHdp?.selections?.find((s) => /^(home|1)$/i.test(s.key || s.label)) || bpHdp?.selections?.[0];
-  const aHdp = bpHdp?.selections?.find((s) => /^(away|2)$/i.test(s.key || s.label)) || bpHdp?.selections?.[1];
+  const hHdp = findMarketSelection(bpHdp, ['home', '1'], 0);
+  const aHdp = findMarketSelection(bpHdp, ['away', '2'], 1);
 
   // OU Selections
-  const oOu = bpOu?.selections?.find((s) => /^over\b/i.test(s.key || s.label)) || bpOu?.selections?.[0];
-  const uOu = bpOu?.selections?.find((s) => /^under\b/i.test(s.key || s.label)) || bpOu?.selections?.[1];
+  const oOu = findMarketSelection(bpOu, ['over'], 0, true);
+  const uOu = findMarketSelection(bpOu, ['under'], 1, true);
 
   // 1X2 Selections
-  const h1x2 = bp1x2?.selections?.find((s) => /^(home|1)$/i.test(s.key || s.label)) || bp1x2?.selections?.[0];
-  const a1x2 = bp1x2?.selections?.find((s) => /^(away|2)$/i.test(s.key || s.label)) || bp1x2?.selections?.[1];
-  const d1x2 = bp1x2?.selections?.find((s) => /^(draw|x)$/i.test(s.key || s.label)) || bp1x2?.selections?.[2];
+  const h1x2 = findMarketSelection(bp1x2, ['home', '1'], 0);
+  const d1x2 = findMarketSelection(bp1x2, ['draw', 'x'], 1);
+  const a1x2 = findMarketSelection(bp1x2, ['away', '2'], 2);
 
   // 1H HDP Selections
-  const hHdp1 = b1Hdp?.selections?.find((s) => /^(home|1)$/i.test(s.key || s.label)) || b1Hdp?.selections?.[0];
-  const aHdp1 = b1Hdp?.selections?.find((s) => /^(away|2)$/i.test(s.key || s.label)) || b1Hdp?.selections?.[1];
+  const hHdp1 = findMarketSelection(b1Hdp, ['home', '1'], 0);
+  const aHdp1 = findMarketSelection(b1Hdp, ['away', '2'], 1);
 
   // 1H OU Selections
-  const oOu1 = b1Ou?.selections?.find((s) => /^over\b/i.test(s.key || s.label)) || b1Ou?.selections?.[0];
-  const uOu1 = b1Ou?.selections?.find((s) => /^under\b/i.test(s.key || s.label)) || b1Ou?.selections?.[1];
+  const oOu1 = findMarketSelection(b1Ou, ['over'], 0, true);
+  const uOu1 = findMarketSelection(b1Ou, ['under'], 1, true);
 
   // 1H 1X2 Selections
-  const h1x2_1 = b11x2?.selections?.find((s) => /^(home|1)$/i.test(s.key || s.label)) || b11x2?.selections?.[0];
-  const a1x2_1 = b11x2?.selections?.find((s) => /^(away|2)$/i.test(s.key || s.label)) || b11x2?.selections?.[1];
-  const d1x2_1 = b11x2?.selections?.find((s) => /^(draw|x)$/i.test(s.key || s.label)) || b11x2?.selections?.[2];
+  const h1x2_1 = findMarketSelection(b11x2, ['home', '1'], 0);
+  const d1x2_1 = findMarketSelection(b11x2, ['draw', 'x'], 1);
+  const a1x2_1 = findMarketSelection(b11x2, ['away', '2'], 2);
 
-  const extraCount = Math.max((e.markets || []).length - 6, 14);
+  const fullTimeMarkets = [
+    bpHdp && { title: 'BP Handicap', market: bpHdp, outcomes: [['H', hHdp], ['A', aHdp]] },
+    bpOu && { title: 'BP Atas/Bawah', market: bpOu, outcomes: [['O', oOu], ['U', uOu]] },
+    bp1x2 && { title: 'BP 1X2', market: bp1x2, outcomes: [['H', h1x2], ['D', d1x2], ['A', a1x2]] }
+  ].filter(Boolean);
+  const firstHalfMarkets = [
+    b1Hdp && { title: 'B1 Handicap', market: b1Hdp, outcomes: [['H', hHdp1], ['A', aHdp1]] },
+    b1Ou && { title: 'B1 Atas/Bawah', market: b1Ou, outcomes: [['O', oOu1], ['U', uOu1]] },
+    b11x2 && { title: 'B1 1X2', market: b11x2, outcomes: [['H', h1x2_1], ['D', d1x2_1], ['A', a1x2_1]] }
+  ].filter(Boolean);
+  const extraMarkets = availableAccordionMarkets(e);
 
   return `
     <article class="sb-match-card" data-evid="${escapeHtml(e.id)}">
@@ -1196,132 +1240,35 @@ function renderMatch(e) {
 
       <!-- The 3-Column Odds Matrix Grid -->
       <div class="sb-matrix-table">
-        <!-- Headers -->
-        <div class="sb-mth-row" style="display:grid; grid-template-columns: 1fr 1fr 1fr;">
-          <div class="sb-mth">BP Handicap</div>
-          <div class="sb-mth">BP Atas/Bawah</div>
-          <div class="sb-mth">BP 1X2</div>
-        </div>
-
-        <!-- Babak Penuh (FT) Rows -->
-        <div class="sb-matrix-row">
-          <!-- Col 1: BP Handicap -->
-          <div class="sb-mcol">
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">H</span>
-              ${renderOddCell(e, bpHdp, hHdp)}
-            </div>
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">A</span>
-              ${renderOddCell(e, bpHdp, aHdp)}
-            </div>
-          </div>
-
-          <!-- Col 2: BP Atas/Bawah -->
-          <div class="sb-mcol">
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">O</span>
-              ${renderOddCell(e, bpOu, oOu)}
-            </div>
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">U</span>
-              ${renderOddCell(e, bpOu, uOu)}
-            </div>
-          </div>
-
-          <!-- Col 3: BP 1X2 -->
-          <div class="sb-mcol">
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">H</span>
-              ${renderOddCell(e, bp1x2, h1x2)}
-            </div>
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">A</span>
-              ${renderOddCell(e, bp1x2, a1x2)}
-            </div>
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">D</span>
-              ${renderOddCell(e, bp1x2, d1x2)}
-            </div>
-          </div>
-        </div>
-
-        <!-- Babak 1 (1H) Subheader -->
-        <div class="sb-mth-row sb-mth-sub" style="display:grid; grid-template-columns: 1fr 1fr 1fr;">
-          <div>B1 Handicap</div>
-          <div>B1 Atas/Bawah</div>
-          <div>B1 1X2</div>
-        </div>
-
-        <!-- Babak 1 (1H) Rows -->
-        <div class="sb-matrix-row">
-          <!-- Col 1: B1 Handicap -->
-          <div class="sb-mcol">
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">H</span>
-              ${renderOddCell(e, b1Hdp, hHdp1)}
-            </div>
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">A</span>
-              ${renderOddCell(e, b1Hdp, aHdp1)}
-            </div>
-          </div>
-
-          <!-- Col 2: B1 Atas/Bawah -->
-          <div class="sb-mcol">
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">O</span>
-              ${renderOddCell(e, b1Ou, oOu1)}
-            </div>
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">U</span>
-              ${renderOddCell(e, b1Ou, uOu1)}
-            </div>
-          </div>
-
-          <!-- Col 3: B1 1X2 -->
-          <div class="sb-mcol">
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">H</span>
-              ${renderOddCell(e, b11x2, h1x2_1)}
-            </div>
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">A</span>
-              ${renderOddCell(e, b11x2, a1x2_1)}
-            </div>
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">D</span>
-              ${renderOddCell(e, b11x2, d1x2_1)}
-            </div>
-          </div>
-        </div>
+        ${renderMarketColumns(e, fullTimeMarkets)}
+        ${renderMarketColumns(e, firstHalfMarkets)}
+        ${!fullTimeMarkets.length && !firstHalfMarkets.length ? '<div class="sb-empty">Belum ada odds aktif untuk pertandingan ini.</div>' : ''}
       </div>
 
       <!-- Extra Markets Accordion -->
-      <div class="sb-accordion-wrapper" id="acc-wrap-${escapeHtml(e.id)}" hidden>
-        <div class="sb-accordion-top-tab" data-toggle-accordion="${escapeHtml(e.id)}">
-          <span>Tampilkan Odds</span>
-          <span>▲</span>
+      ${extraMarkets.length ? `
+        <div class="sb-accordion-wrapper" id="acc-wrap-${escapeHtml(e.id)}" hidden>
+          <div class="sb-accordion-top-tab" data-toggle-accordion="${escapeHtml(e.id)}">
+            <span>Tampilkan Odds</span>
+            <span>▲</span>
+          </div>
+          <div class="sb-accordion-list">
+            ${renderAccordionMarketRows(e, extraMarkets)}
+          </div>
         </div>
-        <div class="sb-accordion-list">
-          ${renderAccordionMarketRows(e)}
-        </div>
-      </div>
+      ` : ''}
 
       <!-- Card Footer -->
       <div class="sb-card-footer">
         <span class="sb-pitch-icon">⚽ 🏟️</span>
-        <button type="button" class="sb-more-pill" data-toggle-accordion="${escapeHtml(e.id)}">
-          <span>${extraCount}</span> ●
-        </button>
+        ${extraMarkets.length ? `<button type="button" class="sb-more-pill" data-toggle-accordion="${escapeHtml(e.id)}"><span>${extraMarkets.length}</span> ●</button>` : ''}
       </div>
 
     </article>
   `;
 }
 
-function renderAccordionMarketRows(e) {
-  const accordionCategories = [
+const ACCORDION_MARKET_CATEGORIES = [
     { title: 'Ganjil/Genap Babak Penuh', type: 'ODD_EVEN', period: 'FT' },
     { title: 'Tebak Skor Babak Penuh', type: 'CORRECT_SCORE', period: 'FT' },
     { title: 'Tebak Skor Babak 1', type: 'CORRECT_SCORE', period: '1H' },
@@ -1336,19 +1283,27 @@ function renderAccordionMarketRows(e) {
     { title: 'Jumlah Tendangan Sudut - Ganjil/Genap Babak Penuh', type: 'CORNERS_OE', period: 'FT' },
     { title: 'Jumlah Tendangan Sudut - 1X2 Babak Penuh', type: 'CORNERS_1X2', period: 'FT' },
     { title: 'Jumlah Tendangan Sudut - 1X2 Babak 1', type: 'CORNERS_1X2', period: '1H' }
-  ];
+];
 
-  return accordionCategories.map((cat) => {
-    const market = (e.markets || []).find((m) =>
-      String(m.type || '').toUpperCase() === cat.type &&
-      String(m.period || 'FT').toUpperCase() === cat.period
+function availableAccordionMarkets(e) {
+  return ACCORDION_MARKET_CATEGORIES.flatMap(category => {
+    const market = (e.markets || []).find(item =>
+      String(item.type || '').toUpperCase() === category.type &&
+      String(item.period || 'FT').toUpperCase() === category.period
     );
+    const hasActiveSelection = (market?.selections || []).some(selection => !selection.suspended && Number(selection.odds) > 1);
+    return market && !market.suspended && hasActiveSelection ? [{ ...category, market }] : [];
+  });
+}
+
+function renderAccordionMarketRows(e, markets = availableAccordionMarkets(e)) {
+  return markets.map(({ title, market }) => {
     const selections = market?.selections || [];
 
     return `
       <div class="sb-accordion-row">
         <div class="sb-accordion-header">
-          <span>${escapeHtml(cat.title)}</span>
+          <span>${escapeHtml(title)}</span>
           <span class="sb-accordion-arrow">▼</span>
         </div>
         <div class="sb-accordion-body" hidden>
