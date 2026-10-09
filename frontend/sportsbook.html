@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/mobile.css">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="/css/pages/sportsbook-v3.css?v=20261009-market-board">
+  <link rel="stylesheet" href="/css/pages/sportsbook-v3.css?v=20261010-sportsbook-audit">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
   <meta property="og:type" content="website">
@@ -198,6 +198,11 @@
 
       <!-- CENTER: Matches & Featured Live -->
       <section class="sb-content">
+        <div class="sb-feed-overview" id="sb-feed-overview" aria-live="polite">
+          <div><strong id="sb-feed-status">Menghubungkan feed</strong><span id="sb-feed-updated"></span></div>
+          <div><strong id="sb-feed-events-count">0</strong><span>Pertandingan</span></div>
+          <div><strong id="sb-feed-markets-count">0</strong><span>Pasar ber-odds</span></div>
+        </div>
         <div id="sb-stale-banner" class="sb-stale-banner" hidden></div>
         <div id="sb-error" class="sb-error" hidden></div>
 
@@ -319,7 +324,7 @@
 
   <noscript><div class="sb-error">Javascript diperlukan untuk menampilkan sportsbook.</div></noscript>
 
-  <script type="module" src="/js/sportsbook.js?v=20261009-market-board"></script>
+  <script type="module" src="/js/sportsbook.js?v=20261010-sportsbook-audit"></script>
 
   <script>
     (function () {

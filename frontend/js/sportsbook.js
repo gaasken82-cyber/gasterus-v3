@@ -13,10 +13,13 @@
 import api from './api.js';
 import auth from './auth.js';
 import { formatRupiah, showToast, escapeHtml } from './utils.js';
+import { primaryMarketColumns } from './sportsbook-markets.js';
 
 const STREAM_URL = '/api/member/sportsbook/stream';
 const SNAPSHOT_URL = '/api/member/sportsbook/events';
 const FEED_DETAIL_URL = (id) => `/api/member/sportsbook/events/${encodeURIComponent(id)}`;
+const EVENTS_PAGE_SIZE = 30;
+const BETSLIP_MOBILE_BREAKPOINT = 860;
 
 // ---------------------------------------------------------------------------
 // State
@@ -31,6 +34,7 @@ let currentSport = 'all';
 let currentLeague = 'all';
 let currentFilter = 'all'; // all | live | today | early | fav
 let searchQuery = '';
+let visibleEventLimit = EVENTS_PAGE_SIZE;
 const FAV_KEY = 'gasterus_sb_fav_leagues';
 let favLeagues = new Set();
 try { favLeagues = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch { favLeagues = new Set(); }
@@ -524,7 +528,13 @@ function pruneSelections(events) {
   const liveKeys = new Set();
   for (const ev of events) {
     for (const mk of ev.markets || []) {
-      for (const sk of mk.selections || []) liveKeys.add(selKey(ev.id, mk.id, sk.key));
+      if (mk.suspended) continue;
+      for (const sk of mk.selections || []) {
+        const odds = Number(sk.odds);
+        if (!sk.suspended && Number.isFinite(odds) && odds > 1) {
+          liveKeys.add(selKey(ev.id, mk.id, sk.key));
+        }
+      }
     }
   }
   let changed = false;
@@ -548,7 +558,7 @@ function syncSelectedOdds(events) {
   for (const s of selected.values()) {
     const mk = byId.get(s.eventId)?.markets?.find((m) => m.id === s.marketId);
     const sel = mk?.selections?.find((x) => x.key === s.selectionId);
-    if (!sel || sel.suspended) continue; // penghapusan ditangani pruneSelections
+    if (!mk || mk.suspended || !sel || sel.suspended) continue; // penghapusan ditangani pruneSelections
     const fresh = Number(sel.odds);
     if (Number.isFinite(fresh) && fresh > 1 &&
       (fresh !== Number(s.odds) || String(sel.priceVersion || '') !== String(s.priceVersion || ''))) {
@@ -563,19 +573,33 @@ function syncSelectedOdds(events) {
 
 function renderStatusMeta() {
   const banner = el('sb-stale-banner');
+  const feedStatus = el('sb-feed-status');
+  const feedUpdated = el('sb-feed-updated');
+  const eventCount = el('sb-feed-events-count');
+  const marketCount = el('sb-feed-markets-count');
+  const status = String(feed.source?.status || '').toUpperCase();
+  if (feedStatus) {
+    feedStatus.textContent = feed.stale || /STALE|OFFLINE/.test(status)
+      ? 'Feed tertunda'
+      : feed.degraded || status === 'DEGRADED'
+        ? 'Feed terbatas'
+        : feed.events.length && Number(feed.source?.bettableMarkets || feed.source?.pricedMarkets) > 0
+          ? 'Feed aktif'
+          : 'Menunggu odds';
+  }
+  if (eventCount) eventCount.textContent = fmt(feed.events.length);
+  if (marketCount) marketCount.textContent = fmt(feed.source?.bettableMarkets ?? feed.source?.pricedMarkets ?? 0);
+  if (feedUpdated) {
+    const stamp = feed.source?.fetchedAt || feed.source?.capturedAt;
+    feedUpdated.textContent = stamp ? `Update ${formatWibDateTime(stamp)} WIB` : '';
+  }
   if (banner) {
     const src = feed.source || {};
     const mode = String(src.mode || '');
     const isCached = /CACHED|SNAPSHOT|STALE/i.test(mode) || Boolean(src.cachedFallback);
     // P1: tampilkan umur feed + tanggal update agar jadwal cached tidak dikira acak.
     const stamp = src.fetchedAt || src.capturedAt || null;
-    let stampText = '';
-    if (stamp) {
-      const d = new Date(stamp);
-      if (!Number.isNaN(d.getTime())) {
-        stampText = ` • update ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-      }
-    }
+    const stampText = stamp ? ` • update ${formatWibDateTime(stamp)}` : '';
     if (feed.stale || isCached) {
       banner.hidden = false;
       banner.textContent = `Jadwal sementara (data cached${stampText}) — odds dapat berubah saat feed pulih. Feed akan memperbarui otomatis.`;
@@ -584,6 +608,19 @@ function renderStatusMeta() {
       banner.textContent = `Feed terhubung tetapi belum bisa terima taruhan${stampText}. Menunggu otoritas settlement.`;
     } else banner.hidden = true;
   }
+}
+
+function formatWibDateTime(stamp) {
+  const date = new Date(stamp);
+  return Number.isNaN(date.getTime())
+    ? ''
+    : new Intl.DateTimeFormat('id-ID', {
+      timeZone: 'Asia/Jakarta',
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
 }
 // ---------------------------------------------------------------------------
 // Asian Handicap & Indo Odds Helpers
@@ -660,6 +697,7 @@ function setupFilterTabs() {
 
 function setMatchFilter(filter) {
   currentFilter = filter;
+  visibleEventLimit = EVENTS_PAGE_SIZE;
   document.querySelectorAll('#sb-primary-tabs .sb-cat-tab').forEach((tab) => {
     tab.classList.toggle('active', tab.getAttribute('data-filter') === filter);
   });
@@ -689,7 +727,7 @@ function setupMixParlay() {
   if (!btn) return;
   btn.addEventListener('click', () => {
     setSlipTab('parlay');
-    if (window.innerWidth <= 1024 && selected.size) openSlipSheet();
+    if (window.innerWidth <= BETSLIP_MOBILE_BREAKPOINT && selected.size) openSlipSheet();
     showToast('Mode Mix Parlay Aktif', 'info');
   });
 }
@@ -713,6 +751,7 @@ function setupSportDropdown() {
     const option = e.target.closest('.sb-sport-opt');
     if (!option) return;
     currentSport = option.getAttribute('data-sport') || 'all';
+    visibleEventLimit = EVENTS_PAGE_SIZE;
     if (label) label.textContent = option.dataset.sportLabel || option.textContent.trim();
     menu.hidden = true;
     renderAll();
@@ -781,7 +820,7 @@ let activeSlipTab = 'single'; // 'single' | 'parlay'
 
 function openSlipSheet() {
   // Don't open mobile sheet on desktop - betslip is already visible in sidebar
-  if (window.innerWidth > 1024) return;
+  if (window.innerWidth > BETSLIP_MOBILE_BREAKPOINT) return;
   const sheet = el('sb-slip-sheet');
   const overlay = el('sb-slip-overlay');
   if (!sheet) return;
@@ -931,7 +970,11 @@ function setupSearch() {
   let t;
   input.addEventListener('input', () => {
     clearTimeout(t);
-    t = setTimeout(() => { searchQuery = input.value.trim().toLowerCase(); renderAll(); }, 200);
+    t = setTimeout(() => {
+      searchQuery = input.value.trim().toLowerCase();
+      visibleEventLimit = EVENTS_PAGE_SIZE;
+      renderAll();
+    }, 200);
   });
 }
 
@@ -954,6 +997,11 @@ function bindEventHandlers() {
       void loadEventMarkets(retryMarketsButton.getAttribute('data-retry-event-markets'), { force: true });
       return;
     }
+    if (e.target.closest('[data-load-more-events]')) {
+      visibleEventLimit += EVENTS_PAGE_SIZE;
+      renderAll();
+      return;
+    }
     const accRowHead = e.target.closest('.sb-accordion-header');
     if (accRowHead) {
       const row = accRowHead.closest('.sb-accordion-row');
@@ -962,10 +1010,11 @@ function bindEventHandlers() {
     }
     const leagueHead = e.target.closest('.sb-league-head');
     if (leagueHead) {
-      leagueHead.classList.toggle('collapsed');
-      const list = leagueHead.nextElementSibling;
-      if (list) list.hidden = leagueHead.classList.contains('collapsed');
-      return;
+        const collapsed = leagueHead.classList.toggle('collapsed');
+        leagueHead.setAttribute('aria-expanded', String(!collapsed));
+        const list = leagueHead.nextElementSibling;
+        if (list) list.hidden = collapsed;
+        return;
     }
   });
 }
@@ -1008,7 +1057,18 @@ function renderAll() {
   }
   const empty = el('sb-empty');
   if (empty) empty.hidden = true;
-  ev.innerHTML = renderLeagueGroups(list);
+  const visibleList = list.slice(0, visibleEventLimit);
+  ev.innerHTML = renderLeagueGroups(visibleList);
+  if (list.length > visibleList.length) {
+    ev.insertAdjacentHTML('beforeend', `
+      <div class="sb-events-load-more">
+        <p>Menampilkan ${fmt(visibleList.length)} dari ${fmt(list.length)} pertandingan</p>
+        <button type="button" data-load-more-events>
+          Muat ${fmt(Math.min(EVENTS_PAGE_SIZE, list.length - visibleList.length))} pertandingan lagi
+        </button>
+      </div>
+    `);
+  }
   renderSidebar(feed.events);
 }
 
@@ -1049,12 +1109,12 @@ function renderLiveCarousel() {
               <span class="sb-live-clock-sm" data-live-clock-id="${escapeHtml(e.id)}">${escapeHtml(getLiveClockDisplay(e))}</span>
             </div>
             <div class="sb-live-team-row">
-              <span>${escapeHtml(e.home?.name || 'Home')}</span>
-              <b>${escapeHtml(String(e.home?.score ?? 0))}</b>
+              <span>${escapeHtml(e.home?.name || 'TBA')}</span>
+              <b>${escapeHtml(scoreText(e.home?.score))}</b>
             </div>
             <div class="sb-live-team-row">
-              <span>${escapeHtml(e.away?.name || 'Away')}</span>
-              <b>${escapeHtml(String(e.away?.score ?? 0))}</b>
+              <span>${escapeHtml(e.away?.name || 'TBA')}</span>
+              <b>${escapeHtml(scoreText(e.away?.score))}</b>
             </div>
           </div>
           <div class="sb-live-quick-odds" aria-label="${escapeHtml(primaryMarket?.title || 'Odds live')}">
@@ -1067,6 +1127,10 @@ function renderLiveCarousel() {
       </div>
     `;
   }).join('');
+}
+
+function scoreText(score) {
+  return score === null || score === undefined || score === '' ? '—' : String(score);
 }
 
 function renderQuickOddBtn(e, m, s, label) {
@@ -1110,18 +1174,18 @@ function renderLeagueGroups(list) {
   }
   const sorted = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   let html = '';
-  for (const [league, events] of sorted) {
+  for (const [index, [league, events]] of sorted.entries()) {
     html += `<div class="sb-league-group">`;
     html += `
-      <div class="sb-league-head">
+      <button type="button" class="sb-league-head" aria-expanded="true" aria-controls="sb-league-list-${index}">
         <span class="sb-league-title">${escapeHtml(league)}</span>
-        <div class="sb-league-right">
+        <span class="sb-league-right">
           <span class="sb-league-pill">${events.length}</span>
           <span class="sb-league-toggle">▲</span>
-        </div>
-      </div>
+        </span>
+      </button>
     `;
-    html += `<div class="sb-match-list">`;
+    html += `<div class="sb-match-list" id="sb-league-list-${index}">`;
     for (const e of events) html += renderMatch(e);
     html += `</div></div>`;
   }
@@ -1153,48 +1217,6 @@ function findMarketSelection(market, aliases, fallbackIndex, allowPrefix = false
   }));
   if (hasKnownOutcome) return null;
   return selections[fallbackIndex] || null;
-}
-
-function primaryMarketColumns(event, period) {
-  const priority = { HANDICAP: 0, TOTALS: 1, '1X2': 2 };
-  const seenTypes = new Set();
-  return (event.markets || [])
-    .filter((market) => !market.suspended &&
-      String(market.period || 'FT').toUpperCase() === period &&
-      Array.isArray(market.selections) && market.selections.length)
-    .sort((a, b) => (priority[String(a.type || '').toUpperCase()] ?? 99) -
-      (priority[String(b.type || '').toUpperCase()] ?? 99))
-    .filter((market) => {
-      const type = String(market.type || '').toUpperCase();
-      if (seenTypes.has(type)) return false;
-      seenTypes.add(type);
-      return true;
-    })
-    .map((market) => {
-      const type = String(market.type || '').toUpperCase();
-      const names = { HANDICAP: 'Asian Handicap', TOTALS: 'Over / Under', '1X2': '1X2' };
-      return {
-        title: names[type] || market.label || market.type || 'Pasar',
-        market,
-        outcomes: market.selections.map((selection, index) => {
-          const labelText = `${selection.label || ''} ${selection.key || ''}`.trim().toLowerCase();
-          const tokens = labelText.split(/[^a-z0-9]+/).filter(Boolean);
-          let label = selection.label || selection.key || `Pilihan ${index + 1}`;
-          if (type === 'HANDICAP') {
-            label = tokens.includes('home') || tokens.includes('1') ? '1' :
-              tokens.includes('away') || tokens.includes('2') ? '2' : label;
-          } else if (type === 'TOTALS') {
-            label = tokens.includes('over') || tokens.includes('o') ? 'O' :
-              tokens.includes('under') || tokens.includes('u') ? 'U' : label;
-          } else if (type === '1X2') {
-            label = tokens.includes('home') || tokens.includes('1') ? '1' :
-              tokens.includes('draw') || tokens.includes('x') ? 'X' :
-                tokens.includes('away') || tokens.includes('2') ? '2' : label;
-          }
-          return [label, selection];
-        })
-      };
-    });
 }
 
 function renderOddCell(e, m, s, lineOverride) {
@@ -1302,17 +1324,17 @@ function renderMatch(e) {
       <!-- Teams Row -->
       <div class="sb-teams-row">
         <div class="sb-team-col ${isHomeFav ? 'is-fav' : ''}">
-          ${home.logo ? `<img class="sb-team-logo" src="${escapeHtml(home.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<span class="sb-team-name">${escapeHtml(home.name || 'Home')}</span>
+          ${home.logo ? `<img class="sb-team-logo" src="${escapeHtml(home.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<span class="sb-team-name">${escapeHtml(home.name || 'TBA')}</span>
         </div>
         <div class="sb-score-col">
           ${isLive 
-            ? `<span class="sb-match-live-score">${escapeHtml(String(home.score ?? 0))} - ${escapeHtml(String(away.score ?? 0))}</span>
+            ? `<span class="sb-match-live-score">${escapeHtml(scoreText(home.score))} - ${escapeHtml(scoreText(away.score))}</span>
                <span class="sb-match-live-clock" data-live-clock-id="${escapeHtml(e.id)}">${escapeHtml(getLiveClockDisplay(e))}</span>`
             : `<span class="sb-match-date">${formatKickoffDate(e.startTime)}</span>
                <span class="sb-match-kickoff">${timeLabel(e.startTime)}</span>`}
         </div>
         <div class="sb-team-col away ${isAwayFav ? 'is-fav' : ''}">
-          <span class="sb-team-name">${escapeHtml(away.name || 'Away')}</span>${away.logo ? `<img class="sb-team-logo" src="${escapeHtml(away.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}
+          <span class="sb-team-name">${escapeHtml(away.name || 'TBA')}</span>${away.logo ? `<img class="sb-team-logo" src="${escapeHtml(away.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}
         </div>
       </div>
 
@@ -1492,21 +1514,21 @@ function formatShortDate(iso) {
   if (!iso) return 'JADWAL';
   const d = new Date(iso);
   if (isNaN(d.getTime())) return 'JADWAL';
-  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+  return new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: '2-digit' }).format(d);
 }
 
 function formatKickoffDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
-  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+  return new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: '2-digit' }).format(d);
 }
 
 function timeLabel(start) {
   if (!start) return 'TBA';
   const d = new Date(start);
   if (isNaN(d.getTime())) return 'TBA';
-  return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  return new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' }).format(d);
 }
 
 // Sidebar Desktop
@@ -1536,13 +1558,21 @@ function renderSidebar(list) {
     let h = `<button type="button" class="sb-nav-item${currentSport === 'all' ? ' active' : ''}" data-sport="all">Semua</button>`;
     h += sports.map((s) => `<button type="button" class="sb-nav-item${currentSport === s ? ' active' : ''}" data-sport="${escapeHtml(s)}">${escapeHtml(displaySportName(s))}</button>`).join('');
     sportHost.innerHTML = h;
-    sportHost.querySelectorAll('.sb-nav-item').forEach((b) => b.addEventListener('click', () => { currentSport = b.getAttribute('data-sport'); renderAll(); }));
+  sportHost.querySelectorAll('.sb-nav-item').forEach((b) => b.addEventListener('click', () => {
+    currentSport = b.getAttribute('data-sport');
+    visibleEventLimit = EVENTS_PAGE_SIZE;
+    renderAll();
+  }));
   }
   if (leagueHost) {
     let h = `<button type="button" class="sb-nav-item${currentLeague === 'all' ? ' active' : ''}" data-league="all">Semua Liga</button>`;
     h += leagues.map((l) => `<button type="button" class="sb-nav-item${currentLeague === l ? ' active' : ''}" data-league="${escapeHtml(l)}">${favLeagues.has(l) ? '★ ' : ''}${escapeHtml(l)}</button>`).join('');
     leagueHost.innerHTML = h;
-    leagueHost.querySelectorAll('[data-league]').forEach((b) => b.addEventListener('click', () => { currentLeague = b.getAttribute('data-league'); renderAll(); }));
+    leagueHost.querySelectorAll('[data-league]').forEach((b) => b.addEventListener('click', () => {
+      currentLeague = b.getAttribute('data-league');
+      visibleEventLimit = EVENTS_PAGE_SIZE;
+      renderAll();
+    }));
   }
   const st = el('sidebar-status');
   if (st) st.innerHTML = feed.source?.pricedMarkets ? `${fmt(feed.source.pricedMarkets)} markets` : '—';
@@ -1599,7 +1629,7 @@ function handleOddClick(btn) {
     selectionLabel: selection.label,
     marketLabel: market.label || marketLabel(market.type),
     marketPeriod: market.period || 'FT',
-    marketLine: market.line || null,
+    marketLine: market.line ?? selection.line ?? null,
     eventName: `${event.home?.name || ''} vs ${event.away?.name || ''}`,
     odds,
     priceVersion
@@ -1610,7 +1640,7 @@ function handleOddClick(btn) {
   renderAll();
   showToast(`${selection.label} @ ${odds.toFixed(2)} ditambahkan`, 'success');
   // Auto-open betslip sheet on mobile when first selection is made
-  if (window.innerWidth <= 1024 && !slipSheetOpen) {
+  if (window.innerWidth <= BETSLIP_MOBILE_BREAKPOINT && !slipSheetOpen) {
     setTimeout(() => openSlipSheet(), 250);
   }
 }
@@ -1647,7 +1677,7 @@ function betslipBalance() {
 function renderBetslip() {
   const desktop = el('betslip-body');
   const mobileBody = el('sb-mobile-sheet'); // inside sb-slip-sheet-body
-  const isDesktop = window.innerWidth > 1024;
+  const isDesktop = window.innerWidth > BETSLIP_MOBILE_BREAKPOINT;
   
   // Only render to the appropriate target based on screen size to avoid double views
   const target = isDesktop ? desktop : mobileBody;
@@ -1729,7 +1759,7 @@ function slipLegHtml(s) {
     <div class="sb-slip-leg-main">
       <span class="sb-slip-event">${escapeHtml(s.eventName)}</span>
       <span class="sb-slip-pick">${escapeHtml(s.selectionLabel)} <b>@ ${Number(s.odds).toFixed(2)}</b></span>
-      <span class="sb-slip-market">${escapeHtml(s.marketLabel)}${s.marketPeriod === '1H' ? ' · HT' : ''}${s.marketLine ? ` (${escapeHtml(String(s.marketLine))})` : ''}</span>
+      <span class="sb-slip-market">${escapeHtml(s.marketLabel)}${s.marketPeriod === '1H' ? ' · HT' : ''}${s.marketLine !== null && s.marketLine !== undefined ? ` (${escapeHtml(String(s.marketLine))})` : ''}</span>
     </div>
     <button type="button" class="sb-slip-remove" data-remove="${escapeHtml(key)}" aria-label="Hapus pilihan">×</button>
   </div>`;
@@ -1941,7 +1971,7 @@ window.addEventListener('resize', () => {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
     // Close mobile sheet if resizing to desktop
-    if (window.innerWidth > 1024 && slipSheetOpen) {
+    if (window.innerWidth > BETSLIP_MOBILE_BREAKPOINT && slipSheetOpen) {
       closeSlipSheet();
     }
     // Re-render betslip in the correct container
