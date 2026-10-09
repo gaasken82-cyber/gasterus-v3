@@ -23,6 +23,10 @@ const FEED_DETAIL_URL = (id) => `/api/member/sportsbook/events/${encodeURICompon
 // ---------------------------------------------------------------------------
 let feed = { events: [], stale: false, degraded: false, source: {} };
 let selected = new Map(); // selectionKey -> leg payload (betslip)
+const eventDetails = new Map();
+const eventDetailRequests = new Map();
+const pendingEventDetails = new Set();
+const expandedEventMarkets = new Set();
 let currentSport = 'all';
 let currentLeague = 'all';
 let currentFilter = 'all'; // all | live | upcoming | fav
@@ -35,6 +39,7 @@ let lastStructureRevision = '';
 let bettingConfig = { minStake: 1000, maxStake: 50000000, maxLegs: 12, quoteRequired: true };
 let streamClosed = false;
 let quote = null; // last successful server quote
+let quoteGeneration = 0;
 let placing = false;
 let lastStake = 0; // fallback stake saat input tidak ada di DOM (mobile sheet tertutup)
 
@@ -432,6 +437,7 @@ function handleFrame(frame) {
 // darurat saat SSE putus — tidak ada lagi dua penulis yang saling menimpa (akar pola 222↔5).
 function onSnapshot(snapshot) {
   if (!snapshot || !Array.isArray(snapshot.events)) return;
+  const previousFeedRevision = String(feed.source?.feedRevision || '');
   const revision = snapshot.source?.feedRevision || '';
   feed = {
     events: snapshot.events,
@@ -439,13 +445,48 @@ function onSnapshot(snapshot) {
     degraded: Boolean(snapshot.degraded),
     source: snapshot.source || {}
   };
+  const detailRefreshIds = new Set();
+  if (revision && revision !== previousFeedRevision) {
+    const currentEventIds = new Set(feed.events.map(event => event.id));
+    for (const eventId of expandedEventMarkets) {
+      if (currentEventIds.has(eventId)) detailRefreshIds.add(eventId);
+      else {
+        expandedEventMarkets.delete(eventId);
+        eventDetails.delete(eventId);
+        pendingEventDetails.delete(eventId);
+      }
+    }
+    for (const selection of selected.values()) {
+      const summary = feed.events.find(event => event.id === selection.eventId);
+      if (summary && !summary.markets?.some(market => market.id === selection.marketId)) {
+        detailRefreshIds.add(selection.eventId);
+      }
+    }
+    for (const eventId of detailRefreshIds) {
+      eventDetails.delete(eventId);
+      pendingEventDetails.add(eventId);
+      const panel = el(`event-markets-${eventId}`);
+      if (panel && expandedEventMarkets.has(eventId)) panel.innerHTML = '<div class="sb-detail-markets-status">Memperbarui odds…</div>';
+    }
+    if (detailRefreshIds.size && [...selected.values()].some(selection => detailRefreshIds.has(selection.eventId))) {
+      quote = null;
+      quoteGeneration += 1;
+    }
+  }
   if (snapshot.betting) bettingConfig = { ...bettingConfig, ...snapshot.betting };
   syncLiveClocks(feed.events);
-  const oddsMovedInFeed = trackOddsMovement(feed.events);
-  const oddsMoved = syncSelectedOdds(feed.events);
-  pruneSelections(feed.events);
+  trackOddsMovement(feed.events);
+  const selectionEvents = eventsWithFreshDetails();
+  const oddsMoved = syncSelectedOdds(selectionEvents);
+  pruneSelections(selectionEvents);
+  const selectedDetailsPending = [...selected.values()].some(selection => pendingEventDetails.has(selection.eventId));
+  if (selectedDetailsPending) {
+    quote = null;
+    renderBetslip();
+  }
   if (oddsMoved) {
     quote = null; // harga berubah → quote lama tidak valid, minta ulang
+    quoteGeneration += 1;
     renderBetslip();
     if (el('sb-stake')) onStakeChange();
   }
@@ -465,6 +506,17 @@ function onSnapshot(snapshot) {
     }
   }
   renderStatusMeta();
+  for (const eventId of detailRefreshIds) void loadEventMarkets(eventId, { notify: false });
+}
+
+function eventsWithFreshDetails(events = feed.events) {
+  const revision = String(feed.source?.feedRevision || '');
+  return (events || []).map(event => {
+    const detail = eventDetails.get(event.id);
+    return detail && detail.revision === revision
+      ? { ...event, ...detail.event, markets: detail.event.markets }
+      : event;
+  });
 }
 
 function pruneSelections(events) {
@@ -477,9 +529,13 @@ function pruneSelections(events) {
   }
   let changed = false;
   for (const key of [...selected.keys()]) {
-    if (!liveKeys.has(key)) { selected.delete(key); changed = true; }
+    const selection = selected.get(key);
+    if (!liveKeys.has(key) && !pendingEventDetails.has(selection.eventId)) {
+      selected.delete(key);
+      changed = true;
+    }
   }
-  if (changed) { quote = null; renderBetslip(); }
+  if (changed) { quote = null; quoteGeneration += 1; renderBetslip(); }
 }
 
 // Bet engine: sinkron odds betslip dengan feed terbaru.
@@ -757,6 +813,7 @@ function setSlipTab(tab) {
     selected.clear();
     selected.set(firstKey, firstLeg);
     quote = null;
+    quoteGeneration += 1;
     showToast('Mode Single hanya mendukung 1 pilihan. Pilihan lain dihapus — gunakan tab Parlay untuk mix parlay.', 'warning');
   }
   // Update mobile sheet tabs
@@ -877,10 +934,14 @@ function bindEventHandlers() {
       handleOddClick(odd);
       return;
     }
-    const accBtn = e.target.closest('[data-toggle-accordion]');
-    if (accBtn) {
-      const eventId = accBtn.getAttribute('data-toggle-accordion');
-      toggleAccordion(eventId);
+    const marketButton = e.target.closest('[data-toggle-event-markets]');
+    if (marketButton) {
+      void toggleEventMarkets(marketButton.getAttribute('data-toggle-event-markets'));
+      return;
+    }
+    const retryMarketsButton = e.target.closest('[data-retry-event-markets]');
+    if (retryMarketsButton) {
+      void loadEventMarkets(retryMarketsButton.getAttribute('data-retry-event-markets'), { force: true });
       return;
     }
     const accRowHead = e.target.closest('.sb-accordion-header');
@@ -1084,7 +1145,7 @@ function findMarketSelection(market, aliases, fallbackIndex, allowPrefix = false
 }
 
 function renderOddCell(e, m, s, lineOverride) {
-  if (!m || !s || s.suspended) {
+  if (!m || m.suspended || !s || s.suspended) {
     return `<div class="sb-odd-cell disabled"><span class="sb-cell-odds">—</span></div>`;
   }
   const decOdds = Number(s.odds);
@@ -1206,7 +1267,10 @@ function renderMatch(e) {
     b1Ou && { title: 'B1 Atas/Bawah', market: b1Ou, outcomes: [['O', oOu1], ['U', uOu1]] },
     b11x2 && { title: 'B1 1X2', market: b11x2, outcomes: [['H', h1x2_1], ['D', d1x2_1], ['A', a1x2_1]] }
   ].filter(Boolean);
-  const extraMarkets = availableAccordionMarkets(e);
+  const eventDetail = eventDetails.get(e.id);
+  const detailIsCurrent = eventDetail?.revision === String(feed.source?.feedRevision || '');
+  const marketsPanelOpen = expandedEventMarkets.has(e.id);
+  const marketsCount = Number(e.availableMarketCount || 0);
 
   return `
     <article class="sb-match-card" data-evid="${escapeHtml(e.id)}">
@@ -1252,88 +1316,159 @@ function renderMatch(e) {
         ${!fullTimeMarkets.length && !firstHalfMarkets.length ? '<div class="sb-empty">Belum ada odds aktif untuk pertandingan ini.</div>' : ''}
       </div>
 
-      <!-- Extra Markets Accordion -->
-      ${extraMarkets.length ? `
-        <div class="sb-accordion-wrapper" id="acc-wrap-${escapeHtml(e.id)}" hidden>
-          <div class="sb-accordion-top-tab" data-toggle-accordion="${escapeHtml(e.id)}">
-            <span>Tampilkan Odds</span>
-            <span>▲</span>
-          </div>
-          <div class="sb-accordion-list">
-            ${renderAccordionMarketRows(e, extraMarkets)}
-          </div>
+      <div class="sb-detail-markets-wrapper">
+        <button type="button" class="sb-accordion-top-tab sb-detail-markets-toggle"
+          data-toggle-event-markets="${escapeHtml(e.id)}" data-market-count="${marketsCount}"
+          aria-expanded="${marketsPanelOpen ? 'true' : 'false'}">
+          ${marketsPanelOpen ? 'Tutup' : 'Semua odds'}${marketsCount ? ` · ${marketsCount}` : ''}
+        </button>
+        <div class="sb-detail-markets" id="event-markets-${escapeHtml(e.id)}"${marketsPanelOpen ? '' : ' hidden'}>
+          ${marketsPanelOpen
+            ? detailIsCurrent
+              ? renderAllEventMarkets(eventDetail.event)
+              : pendingEventDetails.has(e.id)
+                ? '<div class="sb-detail-markets-status">Memuat semua odds…</div>'
+                : '<div class="sb-detail-markets-status">Buka untuk memuat semua odds pertandingan.</div>'
+            : ''}
         </div>
-      ` : ''}
+      </div>
 
       <!-- Card Footer -->
       <div class="sb-card-footer">
         <span class="sb-pitch-icon">⚽ 🏟️</span>
-        ${extraMarkets.length ? `<button type="button" class="sb-more-pill" data-toggle-accordion="${escapeHtml(e.id)}"><span>${extraMarkets.length}</span> ●</button>` : ''}
       </div>
 
     </article>
   `;
 }
 
-const ACCORDION_MARKET_CATEGORIES = [
-    { title: 'Ganjil/Genap Babak Penuh', type: 'ODD_EVEN', period: 'FT' },
-    { title: 'Tebak Skor Babak Penuh', type: 'CORRECT_SCORE', period: 'FT' },
-    { title: 'Tebak Skor Babak 1', type: 'CORRECT_SCORE', period: '1H' },
-    { title: 'Total Gol', type: 'TOTALS', period: 'FT' },
-    { title: 'B1/BP', type: 'HT_FT', period: 'FT' },
-    { title: 'Gol Pertama Gol Terakhir', type: 'BTTS', period: 'FT' },
-    { title: 'Kesempatan Ganda', type: 'DOUBLE_CHANCE', period: 'FT' },
-    { title: 'Jumlah Tendangan Sudut - Handicap Babak Penuh', type: 'CORNERS_HDP', period: 'FT' },
-    { title: 'Jumlah Tendangan Sudut - Handicap Babak 1', type: 'CORNERS_HDP', period: '1H' },
-    { title: 'Jumlah Tendangan Sudut - Atas/Bawah Babak Penuh', type: 'CORNERS_OU', period: 'FT' },
-    { title: 'Jumlah Tendangan Sudut - Atas/Bawah Babak 1', type: 'CORNERS_OU', period: '1H' },
-    { title: 'Jumlah Tendangan Sudut - Ganjil/Genap Babak Penuh', type: 'CORNERS_OE', period: 'FT' },
-    { title: 'Jumlah Tendangan Sudut - 1X2 Babak Penuh', type: 'CORNERS_1X2', period: 'FT' },
-    { title: 'Jumlah Tendangan Sudut - 1X2 Babak 1', type: 'CORNERS_1X2', period: '1H' }
-];
-
-function availableAccordionMarkets(e) {
-  return ACCORDION_MARKET_CATEGORIES.flatMap(category => {
-    const market = (e.markets || []).find(item =>
-      String(item.type || '').toUpperCase() === category.type &&
-      String(item.period || 'FT').toUpperCase() === category.period
-    );
-    const hasActiveSelection = (market?.selections || []).some(selection => !selection.suspended && Number(selection.odds) > 1);
-    return market && !market.suspended && hasActiveSelection ? [{ ...category, market }] : [];
-  });
-}
-
-function renderAccordionMarketRows(e, markets = availableAccordionMarkets(e)) {
-  return markets.map(({ title, market }) => {
-    const selections = market?.selections || [];
-
-    return `
-      <div class="sb-accordion-row">
-        <div class="sb-accordion-header">
-          <span>${escapeHtml(title)}</span>
-          <span class="sb-accordion-arrow">▼</span>
-        </div>
-        <div class="sb-accordion-body" hidden>
-          <div class="sb-accordion-grid">
-            ${selections.length 
-              ? selections.map((s) => `
-                <div style="display:flex; flex-direction:column; gap:2px;">
-                  <span style="font-size:10px; color:#64748b; text-align:center;">${escapeHtml(s.label || s.key)}</span>
-                  ${renderOddCell(e, market, s)}
-                </div>
-              `).join('')
-              : `<div style="font-size:11px; color:#94a3b8; grid-column:1/-1; text-align:center; padding:6px;">Pasaran ditutup atau belum dibuka</div>`}
+function renderAllEventMarkets(event) {
+  const markets = (event.markets || []).filter(market => Array.isArray(market.selections) && market.selections.length);
+  if (!markets.length) return '<div class="sb-detail-markets-status">Belum ada pasar odds untuk pertandingan ini.</div>';
+  return `<div class="sb-detail-market-list">${markets.map(market => `
+    <section class="sb-detail-market">
+      <h4 class="sb-detail-market-heading">
+        <span>${escapeHtml(market.label || market.type || 'Pasar')}</span>
+        <span>${escapeHtml(market.period || 'FT')}${market.line !== null && market.line !== undefined ? ` · ${escapeHtml(String(market.line))}` : ''}</span>
+      </h4>
+      <div class="sb-accordion-grid">
+        ${market.selections.map(selection => `
+          <div class="sb-detail-market-selection">
+            <span>${escapeHtml(selection.label || selection.key || 'Pilihan')}</span>
+            ${renderOddCell(event, market, selection)}
           </div>
-        </div>
+        `).join('')}
       </div>
-    `;
-  }).join('');
+    </section>
+  `).join('')}</div>`;
 }
 
-function toggleAccordion(eventId) {
-  const wrap = el(`acc-wrap-${eventId}`);
-  if (!wrap) return;
-  wrap.hidden = !wrap.hidden;
+async function toggleEventMarkets(eventId) {
+  if (!eventId) return;
+  const panel = el(`event-markets-${eventId}`);
+  if (expandedEventMarkets.has(eventId)) {
+    expandedEventMarkets.delete(eventId);
+    if (panel) panel.hidden = true;
+    const button = panel?.closest('.sb-match-card')?.querySelector('[data-toggle-event-markets]');
+    if (button) {
+      button.setAttribute('aria-expanded', 'false');
+      button.textContent = `Semua odds${button.dataset.marketCount ? ` · ${button.dataset.marketCount}` : ''}`;
+    }
+    return;
+  }
+
+  expandedEventMarkets.add(eventId);
+  if (panel) {
+    panel.hidden = false;
+    const detail = eventDetails.get(eventId);
+    panel.innerHTML = detail?.revision === String(feed.source?.feedRevision || '')
+      ? renderAllEventMarkets(detail.event)
+      : '<div class="sb-detail-markets-status">Memuat semua odds…</div>';
+  }
+  const button = panel?.closest('.sb-match-card')?.querySelector('[data-toggle-event-markets]');
+  if (button) {
+    button.setAttribute('aria-expanded', 'true');
+    button.textContent = `Tutup${button.dataset.marketCount ? ` · ${button.dataset.marketCount}` : ''}`;
+  }
+  await loadEventMarkets(eventId);
+}
+
+async function loadEventMarkets(eventId, { force = false, notify = true } = {}) {
+  if (!eventId) return null;
+  const revision = String(feed.source?.feedRevision || '');
+  const cached = eventDetails.get(eventId);
+  if (!force && cached?.revision === revision) return cached.event;
+  const existingRequest = eventDetailRequests.get(eventId);
+  if (existingRequest) return existingRequest;
+
+  pendingEventDetails.add(eventId);
+  const panel = el(`event-markets-${eventId}`);
+  if (panel && expandedEventMarkets.has(eventId)) {
+    panel.hidden = false;
+    panel.innerHTML = '<div class="sb-detail-markets-status">Memuat semua odds…</div>';
+  }
+
+  const request = (async () => {
+    try {
+      const response = await api.get(FEED_DETAIL_URL(eventId));
+      const payload = response?.data || response;
+      const event = payload?.event;
+      if (!event || event.id !== eventId || !Array.isArray(event.markets)) {
+        throw new Error('Respons detail odds pertandingan tidak lengkap.');
+      }
+      const responseRevision = String(payload.source?.feedRevision || '');
+      if (!responseRevision || responseRevision !== String(feed.source?.feedRevision || '')) {
+        throw new Error('Versi feed berubah saat memuat odds. Coba lagi.');
+      }
+      eventDetails.set(eventId, { event, revision: responseRevision });
+      pendingEventDetails.delete(eventId);
+
+      const allEvents = eventsWithFreshDetails();
+      const oddsChanged = syncSelectedOdds(allEvents);
+      pruneSelections(allEvents);
+      if (oddsChanged) {
+        quote = null;
+        quoteGeneration += 1;
+      }
+      renderBetslip();
+      const currentPanel = el(`event-markets-${eventId}`);
+      if (currentPanel && expandedEventMarkets.has(eventId)) {
+        currentPanel.innerHTML = renderAllEventMarkets(event);
+      }
+      return event;
+    } catch (error) {
+      pendingEventDetails.delete(eventId);
+      eventDetails.delete(eventId);
+      const summary = feed.events.find(item => item.id === eventId);
+      let removed = false;
+      if (summary) {
+        const currentKeys = new Set(summary.markets.flatMap(market =>
+          market.selections.map(selection => selKey(summary.id, market.id, selection.key))
+        ));
+        for (const [key, selection] of selected) {
+          if (selection.eventId === eventId && !currentKeys.has(key)) {
+            selected.delete(key);
+            removed = true;
+          }
+        }
+        if (removed) {
+          quote = null;
+          quoteGeneration += 1;
+        }
+      }
+      renderBetslip();
+      const currentPanel = el(`event-markets-${eventId}`);
+      if (currentPanel && expandedEventMarkets.has(eventId)) {
+        currentPanel.innerHTML = `<div class="sb-detail-markets-status">${escapeHtml(error?.message || 'Gagal memuat odds pertandingan.')} <button type="button" class="sb-detail-markets-retry" data-retry-event-markets="${escapeHtml(eventId)}">Coba lagi</button></div>`;
+      }
+      if (notify || removed) showToast(error?.message || 'Gagal memuat odds pertandingan.', 'danger');
+      return null;
+    } finally {
+      eventDetailRequests.delete(eventId);
+    }
+  })();
+  eventDetailRequests.set(eventId, request);
+  return request;
 }
 
 function formatShortDate(iso) {
@@ -1393,6 +1528,7 @@ function handleOddClick(btn) {
   if (selected.has(key)) {
     selected.delete(key);
     quote = null;
+    quoteGeneration += 1;
     renderBetslip();
     renderAll();
     return;
@@ -1406,7 +1542,7 @@ function handleOddClick(btn) {
     showToast('Mode Single hanya mendukung 1 pilihan. Buka tab Parlay untuk mix parlay.', 'warning');
     return;
   }
-  const event = feed.events.find((e) => e.id === btn.getAttribute('data-evid'));
+  const event = eventsWithFreshDetails().find((e) => e.id === btn.getAttribute('data-evid'));
   const market = event?.markets?.find((m) => m.id === btn.getAttribute('data-mk'));
   const selection = market?.selections?.find((s) => s.key === btn.getAttribute('data-sk'));
   if (!event || !market || !selection || !priceVersion) {
@@ -1430,6 +1566,7 @@ function handleOddClick(btn) {
     priceVersion
   });
   quote = null;
+  quoteGeneration += 1;
   renderBetslip();
   renderAll();
   showToast(`${selection.label} @ ${odds.toFixed(2)} ditambahkan`, 'success');
@@ -1490,6 +1627,7 @@ function renderBetslip() {
   if (mode) mode.textContent = selected.size > 0 ? (betType() === 'SINGLE' ? 'Single' : `Parlay · ${selected.size} leg`) : '';
 
   const legs = [...selected.values()];
+  const detailsPending = legs.some(leg => pendingEventDetails.has(leg.eventId));
 
   if (!selected.size) {
     const emptyHtml = '<div class="sb-slip-empty">Pilih odds pada pertandingan untuk memasang taruhan.</div>';
@@ -1531,7 +1669,7 @@ function renderBetslip() {
       <div class="sb-slip-hint">Min ${formatRupiah(bettingConfig.minStake)} · Maks ${formatRupiah(bettingConfig.maxStake)}</div>
       ${overBalance ? `<div class="sb-slip-hint" style="color:#ef4444">Stake melebihi saldo. <a href="/deposit.html" style="color:#ef4444"><u>Deposit</u></a></div>` : ''}
     </div>
-    <button type="button" id="btn-place-bet" class="sb-btn sb-btn-place sb-btn-block"${(placing || overBalance) ? ' disabled' : ''}>${placing ? '⏳ Memproses…' : '⚽ Pasang Taruhan'}</button>
+    <button type="button" id="btn-place-bet" class="sb-btn sb-btn-place sb-btn-block"${(placing || overBalance || detailsPending) ? ' disabled' : ''}>${placing ? '⏳ Memproses…' : detailsPending ? '⏳ Memperbarui odds…' : '⚽ Pasang Taruhan'}</button>
     <button type="button" id="btn-clear-slip" class="sb-btn sb-btn-ghost sb-btn-block sb-btn-sm">Kosongkan betslip</button>`;
 
   // Render ONLY to the active target based on screen size to prevent double views
@@ -1565,8 +1703,10 @@ let stakeTimer;
 
 async function requestQuote() {
   if (quoteInFlight || !selected.size) return;
+  if ([...selected.values()].some(selection => pendingEventDetails.has(selection.eventId))) return;
   const stake = betslipStake();
   if (stake < bettingConfig.minStake || stake > bettingConfig.maxStake) return;
+  const requestGeneration = quoteGeneration;
   quoteInFlight = true;
   try {
     const payload = {
@@ -1583,13 +1723,19 @@ async function requestQuote() {
     };
     const res = await api.post('/member/sportsbook/quotes', payload);
     const q = res?.data || res;
+    if (requestGeneration !== quoteGeneration) return;
     quote = q;
     renderQuote(q);
   } catch (err) {
+    if (requestGeneration !== quoteGeneration) return;
     quote = null;
     showQuoteError(err?.message || 'Gagal membuat quote.');
   } finally {
     quoteInFlight = false;
+    if (requestGeneration !== quoteGeneration && selected.size &&
+      ![...selected.values()].some(selection => pendingEventDetails.has(selection.eventId))) {
+      void requestQuote();
+    }
   }
 }
 
@@ -1615,6 +1761,7 @@ function bindBetslipEvents(root) {
   root.querySelectorAll('[data-remove]').forEach((b) => b.addEventListener('click', () => {
     selected.delete(b.getAttribute('data-remove'));
     quote = null;
+    quoteGeneration += 1;
     renderBetslip();
     renderAll();
   }));
@@ -1627,7 +1774,7 @@ function bindBetslipEvents(root) {
   const place = el('btn-place-bet');
   if (place) place.addEventListener('click', placeBet);
   const clear = el('btn-clear-slip');
-  if (clear) clear.addEventListener('click', () => { selected.clear(); quote = null; renderBetslip(); renderAll(); });
+  if (clear) clear.addEventListener('click', () => { selected.clear(); quote = null; quoteGeneration += 1; renderBetslip(); renderAll(); });
 }
 
 function onStakeChange() {
@@ -1638,8 +1785,10 @@ function onStakeChange() {
   if (pot) pot.textContent = formatRupiah(Math.floor(stake * totalOdds()));
   const place = el('btn-place-bet');
   const over = stake > betslipBalance();
-  if (place && !placing) place.disabled = over;
+  const detailsPending = [...selected.values()].some(selection => pendingEventDetails.has(selection.eventId));
+  if (place && !placing) place.disabled = over || detailsPending;
   quote = null;
+  quoteGeneration += 1;
   const host = el('slip-quote');
   if (host) host.innerHTML = '';
   clearTimeout(stakeTimer);
@@ -1653,6 +1802,10 @@ async function placeBet() {
     return;
   }
   if (placing || !selected.size) return;
+  if ([...selected.values()].some(selection => pendingEventDetails.has(selection.eventId))) {
+    showToast('Odds sedang diperbarui. Tunggu sebelum memasang taruhan.', 'warning');
+    return;
+  }
   const stake = betslipStake() || lastStake || bettingConfig.minStake;
   if (stake < bettingConfig.minStake) { showToast(`Minimal taruhan ${formatRupiah(bettingConfig.minStake)}.`, 'warning'); return; }
   if (stake > bettingConfig.maxStake) { showToast(`Maksimal taruhan ${formatRupiah(bettingConfig.maxStake)}.`, 'warning'); return; }
@@ -1672,6 +1825,7 @@ async function placeBet() {
     const ticket = res?.data || res;
     selected.clear();
     quote = null;
+    quoteGeneration += 1;
     renderBetslip();
     renderAll();
     showToast(`Tiket ${ticket?.invoice || ''} berhasil dipasang!`, 'success');
@@ -1682,12 +1836,14 @@ async function placeBet() {
     if (code === 'SPORTSBOOK_ODDS_CHANGED' || code === 'SPORTSBOOK_ODDS_VERSION_CHANGED') {
       showToast('Odds telah berubah. Betslip diperbarui — tinjau kembali.', 'warning');
       quote = null;
+      quoteGeneration += 1;
       syncSelectedOdds(feed.events);
       renderBetslip();
       renderAll();
     } else if (code === 'SPORTSBOOK_QUOTE_EXPIRED' || code === 'SPORTSBOOK_QUOTE_INVALID') {
       showToast('Quote kedaluwarsa. Meminta harga terbaru…', 'warning');
       quote = null;
+      quoteGeneration += 1;
       renderBetslip();
       const stake = betslipStake() || lastStake || 0;
       if (selected.size && stake >= bettingConfig.minStake) requestQuote();

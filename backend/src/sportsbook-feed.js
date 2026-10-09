@@ -1037,7 +1037,8 @@ export async function sportsbookEventSnapshot(eventId) {
     detailLimited: false,
     source: {
       mode: feed.readOnlySource ? 'READ_ONLY_STALE_SOURCE' : 'LIVE',
-      fetchedAt: new Date(feed.fetchedAt).toISOString()
+      fetchedAt: new Date(feed.fetchedAt).toISOString(),
+      feedRevision: feed.revision || null
     }
   };
 }
