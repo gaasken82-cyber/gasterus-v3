@@ -1066,14 +1066,21 @@ function findMarket(e, type, period) {
 
 function findMarketSelection(market, aliases, fallbackIndex, allowPrefix = false) {
   const selections = Array.isArray(market?.selections) ? market.selections : [];
+  const knownAliases = ['home', '1', 'away', '2', 'draw', 'x', 'over', 'under'];
   const matches = (value) => {
     const normalized = String(value || '').trim().toLowerCase();
     return aliases.some(alias => normalized === alias || (allowPrefix && normalized.startsWith(`${alias} `)));
   };
-  return selections.find(selection => matches(selection.label))
-    || selections.find(selection => matches(selection.key))
-    || selections[fallbackIndex]
-    || null;
+  const selection = selections.find(item => matches(item.label) || matches(item.key));
+  if (selection) return selection;
+  const hasKnownOutcome = selections.some(item => [item.label, item.key].some(value => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return knownAliases.some(alias =>
+      normalized === alias || (['over', 'under'].includes(alias) && normalized.startsWith(`${alias} `))
+    );
+  }));
+  if (hasKnownOutcome) return null;
+  return selections[fallbackIndex] || null;
 }
 
 function renderOddCell(e, m, s, lineOverride) {

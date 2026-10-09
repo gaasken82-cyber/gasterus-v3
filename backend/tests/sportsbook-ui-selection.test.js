@@ -42,3 +42,14 @@ test('market selection safely returns null when market data is missing', () => {
   assert.equal(findMarketSelection(null, ['home', '1'], 0), null);
   assert.equal(findMarketSelection({ selections: [] }, ['home', '1'], 0), null);
 });
+
+test('market selection does not reuse a known outcome as a missing outcome', () => {
+  const selections = [
+    { key: 'home', label: 'Home' },
+    { key: 'away', label: 'Away' }
+  ];
+
+  assert.equal(findMarketSelection({ selections }, ['home', '1'], 0), selections[0]);
+  assert.equal(findMarketSelection({ selections }, ['draw', 'x'], 1), null);
+  assert.equal(findMarketSelection({ selections }, ['away', '2'], 2), selections[1]);
+});
