@@ -347,6 +347,10 @@ body.sb-page {
   padding: 6px 10px;
   background: #1e40af;
 }
+.sb-btn-filter.active {
+  background: #f59e0b;
+  color: #172554;
+}
 .sb-icon-arrows {
   font-size: 13px;
   font-weight: 800;
@@ -763,27 +767,25 @@ body.sb-page {
   display: block;
 }
 
-/* Inner Match Tabs (Pasaran & Bet Builder) */
-.sb-match-tabs {
+/* Match market summary */
+.sb-match-market-head {
   display: flex;
-  gap: 16px;
-  padding: 0 14px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
   border-bottom: 1px solid var(--sb-border-light);
-}
-.sb-mtab {
-  background: none;
-  border: none;
-  font-size: 12px;
-  font-weight: 600;
   color: #64748b;
-  padding: 6px 0;
-  cursor: pointer;
-  position: relative;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.35px;
+  text-transform: uppercase;
 }
-.sb-mtab.active {
-  color: #1d72b8;
+.sb-match-market-head span:first-child {
+  color: #0f172a;
+  font-size: 11px;
   font-weight: 800;
-  border-bottom: 2px solid #1d72b8;
 }
 
 /* ==========================================================================
@@ -793,6 +795,72 @@ body.sb-page {
   width: 100%;
   border-collapse: collapse;
   background: #ffffff;
+}
+.sb-market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 8px;
+  padding: 10px 12px;
+}
+.sb-market-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--sb-border-light);
+  border-radius: 7px;
+  background: #ffffff;
+}
+.sb-market-card-title {
+  padding: 7px 8px;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--sb-border-light);
+  color: #475569;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+.sb-market-outcomes {
+  display: grid;
+  grid-template-columns: repeat(var(--outcome-count), minmax(0, 1fr));
+  gap: 5px;
+  padding: 7px;
+}
+.sb-market-outcome {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+.sb-market-outcome-label {
+  overflow: hidden;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sb-market-outcome .sb-odd-cell {
+  width: 100%;
+  min-width: 0;
+}
+.sb-market-period {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 12px;
+  background: #eff6ff;
+  border-bottom: 1px solid #dbeafe;
+  color: #1e40af;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+.sb-no-primary-odds {
+  padding: 14px 12px;
+  color: #64748b;
+  font-size: 12px;
+  text-align: center;
 }
 
 /* Headers */
@@ -879,6 +947,13 @@ body.sb-page {
   background: #f8fafc;
   cursor: not-allowed;
   opacity: 0.6;
+}
+.sb-odd-cell.disabled .sb-cell-odds,
+.sb-odd-cell.locked .sb-cell-odds {
+  font-family: 'Inter', sans-serif;
+  font-size: 9px;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 /* Line / Spread in BLUE */
@@ -1020,6 +1095,22 @@ body.sb-page {
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid var(--sb-border-light);
+}
+.sb-market-help {
+  color: #64748b;
+  font-size: 10px;
+}
+.sb-live-market-label {
+  color: #475569;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+}
+.sb-live-no-odds {
+  padding: 6px;
+  color: #64748b;
+  font-size: 10px;
+  text-align: center;
 }
 .sb-pitch-icon {
   font-size: 15px;

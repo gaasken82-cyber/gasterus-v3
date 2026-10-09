@@ -20,3 +20,23 @@ test('detailed markets are refreshed by feed revision and stale odds cannot plac
   assert.match(frontend, /requestGeneration !== quoteGeneration/);
   assert.match(frontend, /pendingEventDetails\.has\(selection\.eventId\)\)\) \{\s*showToast\('Odds sedang diperbarui/);
 });
+
+test('event cards render only provider-backed primary markets and do not advertise inactive bet builder tabs', () => {
+  assert.match(frontend, /function primaryMarketColumns\(event, period\)[\s\S]*event\.markets[\s\S]*market\.selections\.map/);
+  assert.match(frontend, /const fullTimeMarkets = primaryMarketColumns\(e, 'FT'\)/);
+  assert.match(frontend, /const firstHalfMarkets = primaryMarketColumns\(e, '1H'\)/);
+  assert.match(frontend, /Odds utama belum tersedia dari provider/);
+  assert.doesNotMatch(frontend, /<button[^>]*>Bet Builder<\/button>/);
+});
+
+test('sports selector options are derived from sports that exist in the live feed', () => {
+  assert.match(frontend, /const sports = \[\.\.\.new Set\(list\.map\(\(e\) => e\.sport/);
+  assert.match(frontend, /dropdown\.innerHTML = options\.map/);
+  assert.doesNotMatch(frontend, /data-sport="Basketball"/);
+});
+
+test('sportsbook filters and mix-parlay shortcuts update the actual active betting mode', () => {
+  assert.match(frontend, /function setMatchFilter\(filter\)[\s\S]*aria-pressed[\s\S]*renderAll\(\)/);
+  assert.match(frontend, /setSlipTab\('parlay'\)/);
+  assert.match(frontend, /setMatchFilter\(currentFilter === 'fav' \? 'today' : 'fav'\)/);
+});

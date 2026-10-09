@@ -29,7 +29,7 @@ const pendingEventDetails = new Set();
 const expandedEventMarkets = new Set();
 let currentSport = 'all';
 let currentLeague = 'all';
-let currentFilter = 'all'; // all | live | upcoming | fav
+let currentFilter = 'all'; // all | live | today | early | fav
 let searchQuery = '';
 const FAV_KEY = 'gasterus_sb_fav_leagues';
 let favLeagues = new Set();
@@ -634,10 +634,7 @@ function setupFilterTabs() {
   const tabs = document.querySelectorAll('#sb-primary-tabs .sb-cat-tab');
   tabs.forEach((tab) => {
     tab.addEventListener('click', () => {
-      tabs.forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentFilter = tab.getAttribute('data-filter') || 'today';
-      renderAll();
+      setMatchFilter(tab.getAttribute('data-filter') || 'today');
     });
   });
 
@@ -648,9 +645,9 @@ function setupFilterTabs() {
   const btnFilter = el('btn-filter-toggle');
   if (btnFilter) {
     btnFilter.addEventListener('click', () => {
-      currentFilter = currentFilter === 'fav' ? 'today' : 'fav';
+      const nextFilter = currentFilter === 'fav' ? 'all' : 'fav';
+      setMatchFilter(nextFilter);
       showToast(currentFilter === 'fav' ? 'Menampilkan liga favorit' : 'Menampilkan semua liga', 'info');
-      renderAll();
     });
   }
 
@@ -659,6 +656,20 @@ function setupFilterTabs() {
   setupLeagueModal();
   setupBalanceToggle();
   setupBottomNav();
+}
+
+function setMatchFilter(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('#sb-primary-tabs .sb-cat-tab').forEach((tab) => {
+    tab.classList.toggle('active', tab.getAttribute('data-filter') === filter);
+  });
+  const favoriteButton = el('btn-filter-toggle');
+  if (favoriteButton) {
+    const active = filter === 'fav';
+    favoriteButton.classList.toggle('active', active);
+    favoriteButton.setAttribute('aria-pressed', String(active));
+  }
+  renderAll();
 }
 
 function setupBalanceToggle() {
@@ -677,9 +688,10 @@ function setupMixParlay() {
   const btn = el('btn-toggle-parlay');
   if (!btn) return;
   btn.addEventListener('click', () => {
-    btn.classList.toggle('active');
-    const isParlay = btn.classList.contains('active');
-    showToast(isParlay ? 'Mode Mix Parlay Aktif' : 'Mode Normal Aktif', 'info');
+    btn.classList.add('active');
+    setSlipTab('parlay');
+    if (window.innerWidth <= 1024 && selected.size) openSlipSheet();
+    showToast('Mode Mix Parlay Aktif', 'info');
   });
 }
 
@@ -698,15 +710,13 @@ function setupSportDropdown() {
     if (!trigger.contains(e.target)) menu.hidden = true;
   });
 
-  menu.querySelectorAll('.sb-sport-opt').forEach((opt) => {
-    opt.addEventListener('click', () => {
-      menu.querySelectorAll('.sb-sport-opt').forEach((o) => o.classList.remove('active'));
-      opt.classList.add('active');
-      currentSport = opt.getAttribute('data-sport') || 'all';
-      if (label) label.textContent = opt.textContent.replace(/^[^\w]+/, '').trim();
-      menu.hidden = true;
-      renderAll();
-    });
+  menu.addEventListener('click', (e) => {
+    const option = e.target.closest('.sb-sport-opt');
+    if (!option) return;
+    currentSport = option.getAttribute('data-sport') || 'all';
+    if (label) label.textContent = option.dataset.sportLabel || option.textContent.trim();
+    menu.hidden = true;
+    renderAll();
   });
 }
 
@@ -845,8 +855,7 @@ function setupBottomNav() {
   if (myMatchesBtn) {
     myMatchesBtn.addEventListener('click', () => {
       closeSlipSheet();
-      currentFilter = currentFilter === 'fav' ? 'today' : 'fav';
-      renderAll();
+      setMatchFilter(currentFilter === 'fav' ? 'today' : 'fav');
       showToast(currentFilter === 'fav' ? 'Menampilkan Pertandingan Saya' : 'Menampilkan Semua', 'info');
     });
   }
@@ -1022,9 +1031,9 @@ function renderLiveCarousel() {
   }
   section.hidden = false;
   carousel.innerHTML = liveList.slice(0, 6).map((e) => {
-    const hdp = findMarket(e, 'HANDICAP', 'FT');
-    const hSel = findMarketSelection(hdp, ['home', '1'], 0);
-    const aSel = findMarketSelection(hdp, ['away', '2'], 1);
+    const primaryMarket = primaryMarketColumns(e, 'FT')[0];
+    const quickSelections = (primaryMarket?.outcomes || [])
+      .filter(([, selection]) => !selection.suspended && Number(selection.odds) > 1);
     
     return `
       <div class="sb-live-card">
@@ -1047,10 +1056,11 @@ function renderLiveCarousel() {
               <b>${escapeHtml(String(e.away?.score ?? 0))}</b>
             </div>
           </div>
-          <div class="sb-live-quick-odds">
-            <div style="font-size:10px; font-weight:700; color:#475569; text-align:center;">BP Handicap</div>
-            ${renderQuickOddBtn(e, hdp, hSel, 'H')}
-            ${renderQuickOddBtn(e, hdp, aSel, 'A')}
+          <div class="sb-live-quick-odds" aria-label="${escapeHtml(primaryMarket?.title || 'Odds live')}">
+            ${primaryMarket && quickSelections.length
+              ? `<div class="sb-live-market-label">${escapeHtml(primaryMarket.title)}</div>
+                ${quickSelections.slice(0, 3).map(([label, selection]) => renderQuickOddBtn(e, primaryMarket.market, selection, label)).join('')}`
+              : '<div class="sb-live-no-odds">Odds belum tersedia</div>'}
           </div>
         </div>
       </div>
@@ -1059,7 +1069,7 @@ function renderLiveCarousel() {
 }
 
 function renderQuickOddBtn(e, m, s, label) {
-  if (!m || !s) return `<div class="sb-quick-odd-btn disabled"><span>${label}</span><span>—</span></div>`;
+  if (!m || !s) return '';
   const key = selKey(e.id, m.id, s.key);
   const line = s.line ?? m.line;
   const lineStr = line != null ? (Number(line) > 0 ? `+${Number(line).toFixed(2)}` : Number(line).toFixed(2)) : '';
@@ -1144,13 +1154,58 @@ function findMarketSelection(market, aliases, fallbackIndex, allowPrefix = false
   return selections[fallbackIndex] || null;
 }
 
+function primaryMarketColumns(event, period) {
+  const priority = { HANDICAP: 0, TOTALS: 1, '1X2': 2 };
+  const seenTypes = new Set();
+  return (event.markets || [])
+    .filter((market) => !market.suspended &&
+      String(market.period || 'FT').toUpperCase() === period &&
+      Array.isArray(market.selections) && market.selections.length)
+    .sort((a, b) => (priority[String(a.type || '').toUpperCase()] ?? 99) -
+      (priority[String(b.type || '').toUpperCase()] ?? 99))
+    .filter((market) => {
+      const type = String(market.type || '').toUpperCase();
+      if (seenTypes.has(type)) return false;
+      seenTypes.add(type);
+      return true;
+    })
+    .map((market) => {
+      const type = String(market.type || '').toUpperCase();
+      const names = { HANDICAP: 'Asian Handicap', TOTALS: 'Over / Under', '1X2': '1X2' };
+      return {
+        title: names[type] || market.label || market.type || 'Pasar',
+        market,
+        outcomes: market.selections.map((selection, index) => {
+          const labelText = `${selection.label || ''} ${selection.key || ''}`.trim().toLowerCase();
+          const tokens = labelText.split(/[^a-z0-9]+/).filter(Boolean);
+          let label = selection.label || selection.key || `Pilihan ${index + 1}`;
+          if (type === 'HANDICAP') {
+            label = tokens.includes('home') || tokens.includes('1') ? '1' :
+              tokens.includes('away') || tokens.includes('2') ? '2' : label;
+          } else if (type === 'TOTALS') {
+            label = tokens.includes('over') || tokens.includes('o') ? 'O' :
+              tokens.includes('under') || tokens.includes('u') ? 'U' : label;
+          } else if (type === '1X2') {
+            label = tokens.includes('home') || tokens.includes('1') ? '1' :
+              tokens.includes('draw') || tokens.includes('x') ? 'X' :
+                tokens.includes('away') || tokens.includes('2') ? '2' : label;
+          }
+          return [label, selection];
+        })
+      };
+    });
+}
+
 function renderOddCell(e, m, s, lineOverride) {
-  if (!m || m.suspended || !s || s.suspended) {
-    return `<div class="sb-odd-cell disabled"><span class="sb-cell-odds">—</span></div>`;
+  if (!m || !s) {
+    return `<div class="sb-odd-cell disabled"><span class="sb-cell-odds">Tidak tersedia</span></div>`;
+  }
+  if (m.suspended || s.suspended) {
+    return `<div class="sb-odd-cell disabled"><span class="sb-cell-odds">Ditangguhkan</span></div>`;
   }
   const decOdds = Number(s.odds);
   if (!Number.isFinite(decOdds) || decOdds <= 1) {
-    return `<div class="sb-odd-cell disabled"><span class="sb-cell-odds">—</span></div>`;
+    return `<div class="sb-odd-cell disabled"><span class="sb-cell-odds">Belum tersedia</span></div>`;
   }
   const key = selKey(e.id, m.id, s.key);
   const isChosen = selected.has(key);
@@ -1193,21 +1248,20 @@ function renderOddCell(e, m, s, lineOverride) {
 
 function renderMarketColumns(e, markets) {
   if (!markets.length) return '';
-  const columns = `repeat(${markets.length}, minmax(0, 1fr))`;
   return `
-    <div class="sb-mth-row" style="display:grid; grid-template-columns:${columns};">
-      ${markets.map(item => `<div class="sb-mth">${escapeHtml(item.title)}</div>`).join('')}
-    </div>
-    <div class="sb-matrix-row" style="grid-template-columns:${columns};">
+    <div class="sb-market-grid">
       ${markets.map(item => `
-        <div class="sb-mcol">
-          ${item.outcomes.map(([label, selection]) => `
-            <div class="sb-mrow-item">
-              <span class="sb-mletter">${escapeHtml(label)}</span>
+        <section class="sb-market-card">
+          <h3 class="sb-market-card-title">${escapeHtml(item.title)}</h3>
+          <div class="sb-market-outcomes" style="--outcome-count:${Math.max(1, item.outcomes.length)}">
+            ${item.outcomes.map(([label, selection]) => `
+              <div class="sb-market-outcome">
+                <span class="sb-market-outcome-label">${escapeHtml(label)}</span>
               ${renderOddCell(e, item.market, selection)}
-            </div>
-          `).join('')}
-        </div>
+              </div>
+            `).join('')}
+          </div>
+        </section>
       `).join('')}
     </div>
   `;
@@ -1217,60 +1271,18 @@ function renderMatch(e) {
   const isLive = Boolean(e.live) || String(e.status || '').toUpperCase() === 'LIVE';
   const home = e.home || {}, away = e.away || {};
 
-  // Markets for Asian 3-Column Table
   const bpHdp = findMarket(e, 'HANDICAP', 'FT');
-  const bpOu  = findMarket(e, 'TOTALS', 'FT');
-  const bp1x2 = findMarket(e, '1X2', 'FT');
-
-  const b1Hdp = findMarket(e, 'HANDICAP', '1H');
-  const b1Ou  = findMarket(e, 'TOTALS', '1H');
-  const b11x2 = findMarket(e, '1X2', '1H');
-
-  // Determine Favorite team (Red color): line < 0
   const hdpLine = Number(bpHdp?.line ?? 0);
   const isHomeFav = hdpLine < 0;
   const isAwayFav = hdpLine > 0;
-
-  // HDP Selections
-  const hHdp = findMarketSelection(bpHdp, ['home', '1'], 0);
-  const aHdp = findMarketSelection(bpHdp, ['away', '2'], 1);
-
-  // OU Selections
-  const oOu = findMarketSelection(bpOu, ['over'], 0, true);
-  const uOu = findMarketSelection(bpOu, ['under'], 1, true);
-
-  // 1X2 Selections
-  const h1x2 = findMarketSelection(bp1x2, ['home', '1'], 0);
-  const d1x2 = findMarketSelection(bp1x2, ['draw', 'x'], 1);
-  const a1x2 = findMarketSelection(bp1x2, ['away', '2'], 2);
-
-  // 1H HDP Selections
-  const hHdp1 = findMarketSelection(b1Hdp, ['home', '1'], 0);
-  const aHdp1 = findMarketSelection(b1Hdp, ['away', '2'], 1);
-
-  // 1H OU Selections
-  const oOu1 = findMarketSelection(b1Ou, ['over'], 0, true);
-  const uOu1 = findMarketSelection(b1Ou, ['under'], 1, true);
-
-  // 1H 1X2 Selections
-  const h1x2_1 = findMarketSelection(b11x2, ['home', '1'], 0);
-  const d1x2_1 = findMarketSelection(b11x2, ['draw', 'x'], 1);
-  const a1x2_1 = findMarketSelection(b11x2, ['away', '2'], 2);
-
-  const fullTimeMarkets = [
-    bpHdp && { title: 'BP Handicap', market: bpHdp, outcomes: [['H', hHdp], ['A', aHdp]] },
-    bpOu && { title: 'BP Atas/Bawah', market: bpOu, outcomes: [['O', oOu], ['U', uOu]] },
-    bp1x2 && { title: 'BP 1X2', market: bp1x2, outcomes: [['H', h1x2], ['D', d1x2], ['A', a1x2]] }
-  ].filter(Boolean);
-  const firstHalfMarkets = [
-    b1Hdp && { title: 'B1 Handicap', market: b1Hdp, outcomes: [['H', hHdp1], ['A', aHdp1]] },
-    b1Ou && { title: 'B1 Atas/Bawah', market: b1Ou, outcomes: [['O', oOu1], ['U', uOu1]] },
-    b11x2 && { title: 'B1 1X2', market: b11x2, outcomes: [['H', h1x2_1], ['D', d1x2_1], ['A', a1x2_1]] }
-  ].filter(Boolean);
+  const fullTimeMarkets = primaryMarketColumns(e, 'FT');
+  const firstHalfMarkets = primaryMarketColumns(e, '1H');
   const eventDetail = eventDetails.get(e.id);
   const detailIsCurrent = eventDetail?.revision === String(feed.source?.feedRevision || '');
   const marketsPanelOpen = expandedEventMarkets.has(e.id);
   const marketsCount = Number(e.availableMarketCount || 0);
+  const displayedMarketCount = fullTimeMarkets.length + firstHalfMarkets.length;
+  const hasMoreMarkets = marketsCount > displayedMarketCount;
 
   return `
     <article class="sb-match-card" data-evid="${escapeHtml(e.id)}">
@@ -1303,24 +1315,28 @@ function renderMatch(e) {
         </div>
       </div>
 
-      <!-- Pasaran / Bet Builder Tabs -->
-      <div class="sb-match-tabs">
-        <button type="button" class="sb-mtab active">Pasaran</button>
-        <button type="button" class="sb-mtab">Bet Builder</button>
+      <div class="sb-match-market-head">
+        <span>ODDS UTAMA</span>
+        <span>${marketsCount ? `${marketsCount} pasar tersedia` : 'Pasar dari provider'}</span>
       </div>
 
-      <!-- The 3-Column Odds Matrix Grid -->
       <div class="sb-matrix-table">
-        ${renderMarketColumns(e, fullTimeMarkets)}
-        ${renderMarketColumns(e, firstHalfMarkets)}
-        ${!fullTimeMarkets.length && !firstHalfMarkets.length ? '<div class="sb-empty">Belum ada odds aktif untuk pertandingan ini.</div>' : ''}
+        ${fullTimeMarkets.length
+          ? `<div class="sb-market-period"><span>FULL TIME</span></div>${renderMarketColumns(e, fullTimeMarkets)}`
+          : ''}
+        ${firstHalfMarkets.length
+          ? `<div class="sb-market-period"><span>1ST HALF</span></div>${renderMarketColumns(e, firstHalfMarkets)}`
+          : ''}
+        ${!fullTimeMarkets.length && !firstHalfMarkets.length
+          ? '<div class="sb-no-primary-odds">Odds utama belum tersedia dari provider untuk pertandingan ini.</div>'
+          : ''}
       </div>
 
-      <div class="sb-detail-markets-wrapper">
+      ${hasMoreMarkets ? `<div class="sb-detail-markets-wrapper">
         <button type="button" class="sb-accordion-top-tab sb-detail-markets-toggle"
           data-toggle-event-markets="${escapeHtml(e.id)}" data-market-count="${marketsCount}"
           aria-expanded="${marketsPanelOpen ? 'true' : 'false'}">
-          ${marketsPanelOpen ? 'Tutup' : 'Semua odds'}${marketsCount ? ` · ${marketsCount}` : ''}
+          ${marketsPanelOpen ? 'Tutup pasar' : 'Lihat semua pasar'}${marketsCount ? ` · ${marketsCount}` : ''}
         </button>
         <div class="sb-detail-markets" id="event-markets-${escapeHtml(e.id)}"${marketsPanelOpen ? '' : ' hidden'}>
           ${marketsPanelOpen
@@ -1331,11 +1347,11 @@ function renderMatch(e) {
                 : '<div class="sb-detail-markets-status">Buka untuk memuat semua odds pertandingan.</div>'
             : ''}
         </div>
-      </div>
+      </div>` : ''}
 
       <!-- Card Footer -->
       <div class="sb-card-footer">
-        <span class="sb-pitch-icon">⚽ 🏟️</span>
+        <span class="sb-market-help">Pilih odds untuk menambahkan pilihan ke betslip</span>
       </div>
 
     </article>
@@ -1372,7 +1388,7 @@ async function toggleEventMarkets(eventId) {
     const button = panel?.closest('.sb-match-card')?.querySelector('[data-toggle-event-markets]');
     if (button) {
       button.setAttribute('aria-expanded', 'false');
-      button.textContent = `Semua odds${button.dataset.marketCount ? ` · ${button.dataset.marketCount}` : ''}`;
+      button.textContent = `Lihat semua pasar${button.dataset.marketCount ? ` · ${button.dataset.marketCount}` : ''}`;
     }
     return;
   }
@@ -1388,7 +1404,7 @@ async function toggleEventMarkets(eventId) {
   const button = panel?.closest('.sb-match-card')?.querySelector('[data-toggle-event-markets]');
   if (button) {
     button.setAttribute('aria-expanded', 'true');
-    button.textContent = `Tutup${button.dataset.marketCount ? ` · ${button.dataset.marketCount}` : ''}`;
+    button.textContent = `Tutup pasar${button.dataset.marketCount ? ` · ${button.dataset.marketCount}` : ''}`;
   }
   await loadEventMarkets(eventId);
 }
@@ -1498,21 +1514,43 @@ function renderSidebar(list) {
   const leagueHost = el('league-nav');
   const sports = [...new Set(list.map((e) => e.sport || 'Football'))];
   const leagues = [...new Set(list.map((e) => e.league || 'Liga Internasional'))].sort((a, b) => a.localeCompare(b));
+  const dropdown = el('sb-sport-menu');
+  const sportLabel = el('current-sport-label');
+
+  if (!sports.includes(currentSport)) currentSport = 'all';
+  if (dropdown) {
+    const options = [{ value: 'all', label: 'Semua Olahraga' },
+      ...sports.map((sport) => ({ value: sport, label: displaySportName(sport) }))];
+    dropdown.innerHTML = options.map((option) => `
+      <button type="button" class="sb-sport-opt${currentSport === option.value ? ' active' : ''}"
+        data-sport="${escapeHtml(option.value)}" data-sport-label="${escapeHtml(option.label)}">
+        ${currentSport === option.value ? '✓ ' : ''}${escapeHtml(option.label)}
+      </button>
+    `).join('');
+    const activeSport = options.find((option) => option.value === currentSport);
+    if (sportLabel) sportLabel.textContent = activeSport?.label || 'Semua Olahraga';
+  }
   
   if (sportHost) {
     let h = `<button type="button" class="sb-nav-item${currentSport === 'all' ? ' active' : ''}" data-sport="all">Semua</button>`;
-    h += sports.map((s) => `<button type="button" class="sb-nav-item${currentSport === s ? ' active' : ''}" data-sport="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('');
+    h += sports.map((s) => `<button type="button" class="sb-nav-item${currentSport === s ? ' active' : ''}" data-sport="${escapeHtml(s)}">${escapeHtml(displaySportName(s))}</button>`).join('');
     sportHost.innerHTML = h;
     sportHost.querySelectorAll('.sb-nav-item').forEach((b) => b.addEventListener('click', () => { currentSport = b.getAttribute('data-sport'); renderAll(); }));
   }
   if (leagueHost) {
     let h = `<button type="button" class="sb-nav-item${currentLeague === 'all' ? ' active' : ''}" data-league="all">Semua Liga</button>`;
-    h += leagues.slice(0, 12).map((l) => `<button type="button" class="sb-nav-item${currentLeague === l ? ' active' : ''}" data-league="${escapeHtml(l)}">${favLeagues.has(l) ? '★ ' : ''}${escapeHtml(l)}</button>`).join('');
+    h += leagues.map((l) => `<button type="button" class="sb-nav-item${currentLeague === l ? ' active' : ''}" data-league="${escapeHtml(l)}">${favLeagues.has(l) ? '★ ' : ''}${escapeHtml(l)}</button>`).join('');
     leagueHost.innerHTML = h;
     leagueHost.querySelectorAll('[data-league]').forEach((b) => b.addEventListener('click', () => { currentLeague = b.getAttribute('data-league'); renderAll(); }));
   }
   const st = el('sidebar-status');
   if (st) st.innerHTML = feed.source?.pricedMarkets ? `${fmt(feed.source.pricedMarkets)} markets` : '—';
+}
+
+function displaySportName(sport) {
+  const labels = { Football: 'Sepak Bola', Soccer: 'Sepak Bola', Basketball: 'Bola Basket',
+    Tennis: 'Tenis', Badminton: 'Bulu Tangkis', Esports: 'E-Sports' };
+  return labels[sport] || sport;
 }
 
 // ---------------------------------------------------------------------------

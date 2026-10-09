@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/mobile.css">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="/css/pages/sportsbook-v3.css?v=20261009-all-markets">
+  <link rel="stylesheet" href="/css/pages/sportsbook-v3.css?v=20261009-sportsbook-grid">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
   <meta property="og:type" content="website">
@@ -90,14 +90,9 @@
   <div class="sb-subheader">
     <div class="sb-subheader-inner">
       <div class="sb-sport-selector" id="sb-sport-dropdown-trigger">
-        <span class="sb-breadcrumb">Olahraga › <strong id="current-sport-label">Sepak Bola</strong></span>
+        <span class="sb-breadcrumb">Olahraga › <strong id="current-sport-label">Semua Olahraga</strong></span>
         <span class="sb-chevron-down">▾</span>
         <div class="sb-sport-menu" id="sb-sport-menu" hidden>
-          <button type="button" class="sb-sport-opt active" data-sport="all">⚽ Sepak Bola</button>
-          <button type="button" class="sb-sport-opt" data-sport="Basketball">🏀 Bola Basket</button>
-          <button type="button" class="sb-sport-opt" data-sport="Tennis">🎾 Tenis</button>
-          <button type="button" class="sb-sport-opt" data-sport="Badminton">🏸 Bulu Tangkis</button>
-          <button type="button" class="sb-sport-opt" data-sport="Esports">🎮 E-Sports</button>
         </div>
       </div>
       <button type="button" class="sb-parlay-pill" id="btn-toggle-parlay">Mix Parlay</button>
@@ -128,8 +123,8 @@
       <button type="button" class="sb-btn-action sb-btn-league" id="btn-show-leagues">
         <span class="sb-icon-arrows">⇅</span> Tampilkan Liga
       </button>
-      <button type="button" class="sb-btn-action sb-btn-filter" id="btn-filter-toggle" aria-label="Filter">
-        <span>⧩</span>
+      <button type="button" class="sb-btn-action sb-btn-filter" id="btn-filter-toggle" aria-label="Tampilkan liga favorit" aria-pressed="false" title="Liga favorit">
+        <span aria-hidden="true">★</span>
       </button>
       <div class="sb-search-wrap">
         <input type="search" id="sb-search" placeholder="Cari tim / liga…" autocomplete="off" aria-label="Cari tim atau liga">
@@ -324,7 +319,7 @@
 
   <noscript><div class="sb-error">Javascript diperlukan untuk menampilkan sportsbook.</div></noscript>
 
-  <script type="module" src="/js/sportsbook.js?v=20261009-all-markets"></script>
+  <script type="module" src="/js/sportsbook.js?v=20261009-sportsbook-grid"></script>
 
   <script>
     (function () {
