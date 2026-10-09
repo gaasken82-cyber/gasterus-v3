@@ -77,6 +77,17 @@ test('match cards present fixtures and provider-backed markets as a responsive s
   assert.match(styles, /\.sb-match-card\s*\{[\s\S]*grid-template-columns: minmax\(176px, 0\.72fr\) minmax\(0, 1\.7fr\)/);
   assert.match(styles, /\.sb-market-grid\s*\{[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@media \(max-width: 860px\)[\s\S]*?\.sb-match-card\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
-  assert.match(page, /sportsbook-v3\.css\?v=20261009-pro-sportsbook/);
-  assert.match(page, /sportsbook\.js\?v=20261009-pro-sportsbook/);
+  assert.match(page, /sportsbook-v3\.css\?v=20261009-pro-market-browser/);
+  assert.match(page, /sportsbook\.js\?v=20261009-pro-market-browser/);
+});
+
+test('full market explorer exposes provider markets with working type, period, and search filters', () => {
+  const styles = readFileSync(new URL('../../frontend/css/pages/sportsbook-v3.css', import.meta.url), 'utf8');
+  assert.match(frontend, /function renderAllEventMarkets\(event\)[\s\S]*data-market-browser-search/);
+  assert.match(frontend, /data-market-browser-filter="\$\{escapeHtml\(value\)\}"/);
+  assert.match(frontend, /function applyMarketBrowserFilters\(panel\)[\s\S]*dataset\.marketType[\s\S]*dataset\.marketPeriod[\s\S]*market\.textContent\.toLowerCase\(\)\.includes\(query\)/);
+  assert.match(frontend, /ev\.addEventListener\('input', \(e\) =>/);
+  assert.match(styles, /\.sb-market-browser-toolbar/);
+  assert.match(styles, /\.sb-market-browser-chip\.active/);
+  assert.match(styles, /\.sb-detail-market\[hidden\]/);
 });

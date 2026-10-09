@@ -1261,6 +1261,83 @@ body.sb-page {
   background: #f8fafc;
   border-top: 1px solid var(--sb-border-light);
 }
+.sb-market-browser-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #dce4ee;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04);
+}
+.sb-market-browser-search {
+  display: grid;
+  gap: 4px;
+  color: #53647b;
+  font-size: 10px;
+  font-weight: 700;
+}
+.sb-market-browser-search input {
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid #d7e0eb;
+  border-radius: 5px;
+  color: #172033;
+  font: inherit;
+  font-size: 12px;
+}
+.sb-market-browser-search input:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+.sb-market-browser-filters {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 1px 1px 3px;
+  scrollbar-width: thin;
+}
+.sb-market-browser-chip {
+  flex: 0 0 auto;
+  min-height: 31px;
+  padding: 5px 10px;
+  border: 1px solid #d9e1eb;
+  border-radius: 5px;
+  background: #fff;
+  color: #53647b;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sb-market-browser-chip:hover {
+  border-color: #8aafea;
+  color: #174ea6;
+}
+.sb-market-browser-chip.active {
+  border-color: #245fbd;
+  background: #e9f0ff;
+  color: #174ea6;
+}
+.sb-market-browser-summary {
+  padding: 7px 12px 2px;
+  color: #718096;
+  font-size: 10px;
+  font-weight: 600;
+}
+.sb-detail-market[hidden],
+.sb-market-browser-empty[hidden] {
+  display: none !important;
+}
+.sb-market-browser-empty {
+  padding: 18px 12px;
+  color: #64748b;
+  font-size: 12px;
+  text-align: center;
+}
 .sb-detail-market-list {
   display: flex;
   flex-direction: column;
@@ -1297,6 +1374,14 @@ body.sb-page {
   color: #64748b;
   font-size: 12px;
   text-align: center;
+}
+@media (max-width: 480px) {
+  .sb-market-browser-toolbar {
+    padding: 8px;
+  }
+  .sb-market-browser-filters {
+    margin-right: -8px;
+  }
 }
 .sb-detail-markets-retry {
   margin-left: 6px;

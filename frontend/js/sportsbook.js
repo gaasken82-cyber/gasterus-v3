@@ -992,6 +992,18 @@ function bindEventHandlers() {
       void toggleEventMarkets(marketButton.getAttribute('data-toggle-event-markets'));
       return;
     }
+    const marketFilter = e.target.closest('[data-market-browser-filter]');
+    if (marketFilter) {
+      const panel = marketFilter.closest('.sb-detail-markets');
+      const dimension = marketFilter.dataset.marketBrowserDimension;
+      panel?.querySelectorAll(`[data-market-browser-dimension="${dimension}"]`).forEach(button => {
+        const active = button === marketFilter;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+      if (panel) applyMarketBrowserFilters(panel);
+      return;
+    }
     const retryMarketsButton = e.target.closest('[data-retry-event-markets]');
     if (retryMarketsButton) {
       void loadEventMarkets(retryMarketsButton.getAttribute('data-retry-event-markets'), { force: true });
@@ -1015,6 +1027,13 @@ function bindEventHandlers() {
         const list = leagueHead.nextElementSibling;
         if (list) list.hidden = collapsed;
         return;
+    }
+  });
+  ev.addEventListener('input', (e) => {
+    const search = e.target.closest('[data-market-browser-search]');
+    if (search) {
+      const panel = search.closest('.sb-detail-markets');
+      if (panel) applyMarketBrowserFilters(panel);
     }
   });
 }
@@ -1381,8 +1400,50 @@ function renderMatch(e) {
 function renderAllEventMarkets(event) {
   const markets = (event.markets || []).filter(market => Array.isArray(market.selections) && market.selections.length);
   if (!markets.length) return '<div class="sb-detail-markets-status">Belum ada pasar odds untuk pertandingan ini.</div>';
-  return `<div class="sb-detail-market-list">${markets.map(market => `
-    <section class="sb-detail-market">
+  const types = [...new Set(markets.map(market => String(market.type || 'OTHER').toUpperCase()))];
+  const periods = [...new Set(markets.map(market => String(market.period || 'FT').toUpperCase()))];
+  const typeLabels = {
+    '1X2': '1X2',
+    HANDICAP: 'Handicap',
+    TOTALS: 'Total Gol',
+    BTTS: 'Kedua Tim Cetak Gol',
+    DOUBLE_CHANCE: 'Double Chance',
+    DRAW_NO_BET: 'Draw No Bet',
+    TEAM_TOTAL: 'Total Tim',
+    ODD_EVEN: 'Over / Under',
+    HT_FT: 'Half Time / Full Time',
+    CORRECT_SCORE: 'Skor Tepat',
+    CORNERS: 'Tendangan Sudut',
+    CARDS: 'Kartu',
+    PLAYER_PROP: 'Pemain',
+    BET_BUILDER: 'Bet Builder',
+    OTHER: 'Lainnya'
+  };
+  const filters = (dimension, values, labelFor) => values.length < 2 ? '' : `
+    <div class="sb-market-browser-filters" role="group" aria-label="${dimension === 'type' ? 'Filter jenis pasar' : 'Filter periode'}">
+      <button type="button" class="sb-market-browser-chip active"
+        data-market-browser-filter="all" data-market-browser-dimension="${dimension}" aria-pressed="true">Semua</button>
+      ${values.map(value => `<button type="button" class="sb-market-browser-chip"
+        data-market-browser-filter="${escapeHtml(value)}" data-market-browser-dimension="${dimension}" aria-pressed="false">
+        ${escapeHtml(labelFor(value))}
+      </button>`).join('')}
+    </div>`;
+  const periodLabel = period => period === '1H' ? 'Babak 1' : period === '2H' ? 'Babak 2' : period === 'FT' ? 'Full Time' : period;
+  return `<div class="sb-market-browser">
+    <div class="sb-market-browser-toolbar">
+      <label class="sb-market-browser-search">
+        <span>Cari pasar</span>
+        <input type="search" data-market-browser-search placeholder="Contoh: Over 2.5, handicap…" autocomplete="off">
+      </label>
+      ${filters('type', types, type => typeLabels[type] || type.replaceAll('_', ' '))}
+      ${filters('period', periods, periodLabel)}
+    </div>
+    <div class="sb-market-browser-summary">${markets.length} pasar · ${markets.reduce((total, market) => total + market.selections.length, 0)} pilihan berharga dari feed</div>
+    <div class="sb-detail-market-list">${markets.map(market => `
+    <section class="sb-detail-market"
+      data-market-type="${escapeHtml(String(market.type || 'OTHER').toUpperCase())}"
+      data-market-period="${escapeHtml(String(market.period || 'FT').toUpperCase())}"
+      data-market-category="${escapeHtml(String(market.type || 'OTHER').toUpperCase())}">
       <h4 class="sb-detail-market-heading">
         <span>${escapeHtml(market.label || market.type || 'Pasar')}</span>
         <span>${escapeHtml(market.period || 'FT')}${market.line !== null && market.line !== undefined ? ` · ${escapeHtml(String(market.line))}` : ''}</span>
@@ -1396,7 +1457,25 @@ function renderAllEventMarkets(event) {
         `).join('')}
       </div>
     </section>
-  `).join('')}</div>`;
+  `).join('')}</div>
+  <div class="sb-market-browser-empty" hidden>Tidak ada pasar yang cocok dengan filter.</div>
+  </div>`;
+}
+
+function applyMarketBrowserFilters(panel) {
+  const type = panel.querySelector('[data-market-browser-dimension="type"].active')?.dataset.marketBrowserFilter || 'all';
+  const period = panel.querySelector('[data-market-browser-dimension="period"].active')?.dataset.marketBrowserFilter || 'all';
+  const query = panel.querySelector('[data-market-browser-search]')?.value.trim().toLowerCase() || '';
+  let visible = 0;
+  panel.querySelectorAll('.sb-detail-market').forEach(market => {
+    const matches = (type === 'all' || market.dataset.marketType === type) &&
+      (period === 'all' || market.dataset.marketPeriod === period) &&
+      (!query || market.textContent.toLowerCase().includes(query));
+    market.hidden = !matches;
+    if (matches) visible += 1;
+  });
+  const empty = panel.querySelector('.sb-market-browser-empty');
+  if (empty) empty.hidden = visible > 0;
 }
 
 async function toggleEventMarkets(eventId) {
