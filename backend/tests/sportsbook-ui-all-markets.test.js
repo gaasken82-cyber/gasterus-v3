@@ -63,6 +63,12 @@ test('betslip desktop and mobile breakpoints match the visible sidebar breakpoin
   assert.match(styles, /@media \(min-width: 861px\)[\s\S]*?\.sb-bottom-nav\s*\{\s*display: none/);
 });
 
+test('desktop betslip stays sticky while its content remains independently scrollable', () => {
+  const styles = readFileSync(new URL('../../frontend/css/pages/sportsbook-v3.css', import.meta.url), 'utf8');
+  assert.match(styles, /\.sb-betslip\s*\{[^}]*position: sticky;[^}]*max-height: calc\(100vh - \d+px\)/);
+  assert.match(styles, /\.sb-betslip-body\s*\{[^}]*min-height: 0;[^}]*overflow-y: auto/);
+});
+
 test('zero-valued market lines remain visible in the betslip', () => {
   assert.match(frontend, /marketLine: market\.line \?\? selection\.line \?\? null/);
   assert.match(frontend, /s\.marketLine !== null && s\.marketLine !== undefined/);
@@ -77,8 +83,19 @@ test('match cards present fixtures and provider-backed markets as a responsive s
   assert.match(styles, /\.sb-match-card\s*\{[\s\S]*grid-template-columns: minmax\(176px, 0\.72fr\) minmax\(0, 1\.7fr\)/);
   assert.match(styles, /\.sb-market-grid\s*\{[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@media \(max-width: 860px\)[\s\S]*?\.sb-match-card\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
-  assert.match(page, /sportsbook-v3\.css\?v=20261009-pro-market-browser/);
-  assert.match(page, /sportsbook\.js\?v=20261009-pro-market-browser/);
+  assert.match(page, /sportsbook-v3\.css\?v=20261010-sportsbook-premium/);
+  assert.match(page, /sportsbook\.js\?v=20261010-sportsbook-premium/);
+});
+
+test('sportsbook cashout action routes to the dedicated cashout page instead of a duplicate bets modal', () => {
+  assert.match(frontend, /window\.location\.href = '\/cashout\.html'/);
+  assert.doesNotMatch(frontend, /openUserBetsModal\('Fitur Bayar Sekarang \(Cashout\)'/);
+});
+
+test('match cards expose real sportsbook metadata including provider badges and live market summary', () => {
+  assert.match(frontend, /sb-match-meta-row/);
+  assert.match(frontend, /sb-provider-chip/);
+  assert.match(frontend, /market summary|pasar|provider/);
 });
 
 test('full market explorer exposes provider markets with working type, period, and search filters', () => {
@@ -90,4 +107,16 @@ test('full market explorer exposes provider markets with working type, period, a
   assert.match(styles, /\.sb-market-browser-toolbar/);
   assert.match(styles, /\.sb-market-browser-chip\.active/);
   assert.match(styles, /\.sb-detail-market\[hidden\]/);
+});
+
+test('market explorer reports the number of markets matching the active filters', () => {
+  assert.match(frontend, /data-market-browser-summary/);
+  assert.match(frontend, /function applyMarketBrowserFilters\(panel\)[\s\S]*summary\.textContent/);
+});
+
+test('odds movement indicators remain readable long enough to identify direction', () => {
+  const styles = readFileSync(new URL('../../frontend/css/pages/sportsbook-v3.css', import.meta.url), 'utf8');
+  assert.match(frontend, /scheduleOddsMovementCleanup\(key, 1800\)/);
+  assert.match(styles, /\.sb-odd-cell\.sb-odd-movement-up\s*\{\s*animation: sbOddFlashGreen 1800ms/);
+  assert.match(styles, /\.sb-odd-cell\.sb-odd-movement-down\s*\{\s*animation: sbOddFlashRed 1800ms/);
 });

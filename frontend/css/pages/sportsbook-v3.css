@@ -849,6 +849,56 @@ body.sb-page {
   font-weight: 800;
 }
 
+.sb-match-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px 0;
+}
+
+.sb-match-league {
+  color: #1e293b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.sb-provider-stack {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.sb-provider-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 7px;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.08);
+  color: #1d4ed8;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.sb-provider-chip-muted {
+  background: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.25);
+  color: #475569;
+}
+
+.sb-market-summary-text {
+  color: #475569;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
 /* ==========================================================================
    9. THE 3-COLUMN TABLE GRID (BP Handicap | BP Atas/Bawah | BP 1X2)
    ========================================================================== */
@@ -1104,11 +1154,11 @@ body.sb-page {
 }
 
 .sb-odd-cell.sb-odd-movement-up {
-  animation: sbOddFlashGreen 1000ms ease-out forwards;
+  animation: sbOddFlashGreen 1800ms ease-out forwards;
 }
 
 .sb-odd-cell.sb-odd-movement-down {
-  animation: sbOddFlashRed 1000ms ease-out forwards;
+  animation: sbOddFlashRed 1800ms ease-out forwards;
 }
 
 .sb-odd-cell.chosen.sb-odd-movement-up {
@@ -1126,7 +1176,7 @@ body.sb-page {
   margin-left: 2px;
   line-height: 1;
   vertical-align: middle;
-  animation: sbOddArrowFade 1000ms ease-out forwards;
+  animation: sbOddArrowFade 1800ms ease-out forwards;
 }
 
 .sb-odd-movement-arrow.up {
@@ -2443,6 +2493,12 @@ body.sb-page {
 
 .sb-betslip-body {
   min-height: 140px;
+}
+
+.sb-betslip-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 @media (max-width: 1120px) {

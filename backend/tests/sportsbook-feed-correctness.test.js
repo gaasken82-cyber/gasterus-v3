@@ -56,3 +56,9 @@ test('R6.9.0.22 member quote and ticket responses omit provider telemetry', () =
   assert.equal(quoteReturn.includes('feedRevisions,'), false);
   assert.equal(quoteReturn.includes('tradingControlVersions,'), false);
 });
+
+test('free-tier football-data provider is included in the sportsbook refresh descriptor list', () => {
+  assert.match(feed,/fetchFootballDataIo/);
+  assert.match(feed,/code: 'footballdata-io'/);
+  assert.match(feed,/config\.footballDataIoEnabled && Boolean\(config\.footballDataIoKey\)/);
+});

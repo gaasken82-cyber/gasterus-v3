@@ -115,7 +115,7 @@ function trackOddsMovement(events) {
               previousOddsMap.set(key, curOdds);
               anyMoved = true;
               updateOddsInDOM(key, direction, curOdds, sk);
-              scheduleOddsMovementCleanup(key, 1000);
+              scheduleOddsMovementCleanup(key, 1800);
             }
           } else {
             // New selection appearing after first load
@@ -903,7 +903,15 @@ function setupBottomNav() {
     myBetsBtn.addEventListener('click', () => { closeSlipSheet(); openUserBetsModal('Taruhan Saya'); });
   }
   if (cashoutBtn) {
-    cashoutBtn.addEventListener('click', () => { closeSlipSheet(); openUserBetsModal('Fitur Bayar Sekarang (Cashout)'); });
+    cashoutBtn.addEventListener('click', () => {
+      closeSlipSheet();
+      if (!auth.isLoggedIn()) {
+        showToast('Silakan login terlebih dahulu untuk mengakses Cash Out.', 'warning');
+        setTimeout(() => { window.location.href = '/index.html?msg=login_required'; }, 800);
+        return;
+      }
+      window.location.href = '/cashout.html';
+    });
   }
   if (closeBets && betsModal) {
     closeBets.addEventListener('click', () => { betsModal.hidden = true; });
@@ -1254,7 +1262,9 @@ function renderOddCell(e, m, s, lineOverride) {
   
   const lineVal = lineOverride != null ? lineOverride : (s.line ?? m.line);
   const lineFormatted = lineVal != null
-    ? (Number(lineVal) > 0 ? `+${Number(lineVal).toFixed(2)}` : Number(lineVal).toFixed(2)) 
+    ? (String(m.type || '').toUpperCase() === 'HANDICAP'
+        ? (Number(lineVal) > 0 ? `+${Number(lineVal).toFixed(2)}` : Number(lineVal).toFixed(2))
+        : Number(lineVal).toFixed(2))
     : '';
   const oddsText = formatDecimalOdds(decOdds);
 
@@ -1309,6 +1319,23 @@ function renderMarketColumns(e, markets) {
   `;
 }
 
+function eventProviderBadges(e) {
+  const providers = new Set();
+  const markets = Array.isArray(e?.markets) ? e.markets : [];
+
+  for (const market of markets) {
+    const source = market?.provider || market?.source || market?.bookmaker || market?.supplier || '';
+    if (source) providers.add(String(source).trim());
+  }
+
+  const list = [...providers].slice(0, 3);
+  if (!list.length) {
+    return '<span class="sb-provider-chip sb-provider-chip-muted">Feed</span>';
+  }
+
+  return list.map(value => `<span class="sb-provider-chip">${escapeHtml(value)}</span>`).join('');
+}
+
 function renderMatch(e) {
   const isLive = Boolean(e.live) || String(e.status || '').toUpperCase() === 'LIVE';
   const home = e.home || {}, away = e.away || {};
@@ -1325,6 +1352,8 @@ function renderMatch(e) {
   const marketsCount = Number(e.availableMarketCount || 0);
   const displayedMarketCount = fullTimeMarkets.length + firstHalfMarkets.length;
   const hasMoreMarkets = marketsCount > displayedMarketCount;
+  const providerSummary = eventProviderBadges(e);
+  const marketSummaryText = marketsCount ? `${marketsCount} pasar aktif` : 'Pasar live';
 
   return `
     <article class="sb-match-card" data-evid="${escapeHtml(e.id)}">
@@ -1334,6 +1363,10 @@ function renderMatch(e) {
             ? '<span class="sb-match-status is-live"><span></span> LANGSUNG</span>'
             : `<span class="sb-match-status">${formatKickoffDate(e.startTime)}</span>`}
         <button type="button" class="sb-banner-refresh" onclick="window.location.reload()" title="Muat ulang odds">↻</button>
+        </div>
+        <div class="sb-match-meta-row">
+          <span class="sb-match-league">${escapeHtml(e.league || 'Match')}</span>
+          <div class="sb-provider-stack">${providerSummary}</div>
         </div>
         <div class="sb-teams-row">
           <div class="sb-team-col ${isHomeFav ? 'is-fav' : ''}">
@@ -1356,7 +1389,7 @@ function renderMatch(e) {
 
       <div class="sb-match-market-head">
         <span>PASAR UTAMA</span>
-        <span>${marketsCount ? `${marketsCount} pasar` : 'Odds provider'}</span>
+        <span class="sb-market-summary-text">${marketSummaryText}</span>
       </div>
 
       <div class="sb-matrix-table">
@@ -1438,7 +1471,7 @@ function renderAllEventMarkets(event) {
       ${filters('type', types, type => typeLabels[type] || type.replaceAll('_', ' '))}
       ${filters('period', periods, periodLabel)}
     </div>
-    <div class="sb-market-browser-summary">${markets.length} pasar · ${markets.reduce((total, market) => total + market.selections.length, 0)} pilihan berharga dari feed</div>
+    <div class="sb-market-browser-summary" data-market-browser-summary>${markets.length} pasar · ${markets.reduce((total, market) => total + market.selections.length, 0)} pilihan berharga dari feed</div>
     <div class="sb-detail-market-list">${markets.map(market => `
     <section class="sb-detail-market"
       data-market-type="${escapeHtml(String(market.type || 'OTHER').toUpperCase())}"
@@ -1466,6 +1499,7 @@ function applyMarketBrowserFilters(panel) {
   const type = panel.querySelector('[data-market-browser-dimension="type"].active')?.dataset.marketBrowserFilter || 'all';
   const period = panel.querySelector('[data-market-browser-dimension="period"].active')?.dataset.marketBrowserFilter || 'all';
   const query = panel.querySelector('[data-market-browser-search]')?.value.trim().toLowerCase() || '';
+  const total = panel.querySelectorAll('.sb-detail-market').length;
   let visible = 0;
   panel.querySelectorAll('.sb-detail-market').forEach(market => {
     const matches = (type === 'all' || market.dataset.marketType === type) &&
@@ -1474,6 +1508,8 @@ function applyMarketBrowserFilters(panel) {
     market.hidden = !matches;
     if (matches) visible += 1;
   });
+  const summary = panel.querySelector('[data-market-browser-summary]');
+  if (summary) summary.textContent = `${visible} dari ${total} pasar ditampilkan`;
   const empty = panel.querySelector('.sb-market-browser-empty');
   if (empty) empty.hidden = visible > 0;
 }
