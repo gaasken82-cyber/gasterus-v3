@@ -15,7 +15,7 @@ export default defineRailway(() => {
     healthcheck: "/healthz",
     healthcheckTimeout: 300,
     replicas: { "sfo": 1 },
-    env: { ADMIN_PASSWORD: preserve(), ADMIN_PROXY_SECRET: preserve(), API_KEY_PEPPER: preserve(), API_SPORTS_ENABLED: preserve(), API_SPORTS_KEY: preserve(), APP_URL: preserve(), CORS_ORIGIN: preserve(), DATABASE_URL: preserve(), FRONTEND_RESET_URL: preserve(), JWT_SECRET: preserve(), MEMBER_PROXY_SECRET: preserve(), MFA_ENCRYPTION_KEY_BASE64: preserve(), MY_API_TOKEN: preserve(), NODE_ENV: preserve(), OPS_INTERNAL_SECRET: preserve(), REDIS_URL: preserve(), RESEND_API_KEY: preserve(), RESEND_FROM_EMAIL: preserve(), RUN_STARTUP_MIGRATIONS: preserve(), SESSION_HMAC_KEY: preserve(), SPORTMONKS_API_KEY: preserve() },
+        env: { ADMIN_PASSWORD: preserve(), ADMIN_PROXY_SECRET: preserve(), API_KEY_PEPPER: preserve(), API_SPORTS_ENABLED: preserve(), API_SPORTS_KEY: preserve(), APP_URL: preserve(), CORS_ORIGIN: preserve(), DATABASE_URL: preserve(), FOOTBALLDATA_IO_BASE_URL: preserve(), FOOTBALLDATA_IO_ENABLED: preserve(), FOOTBALLDATA_IO_KEY: preserve(), FOOTBALLDATA_IO_REFRESH_SECONDS: preserve(), FOOTBALLDATA_IO_UPCOMING_LIMIT: preserve(), FRONTEND_RESET_URL: preserve(), JWT_SECRET: preserve(), MEMBER_PROXY_SECRET: preserve(), MFA_ENCRYPTION_KEY_BASE64: preserve(), MY_API_TOKEN: preserve(), NODE_ENV: preserve(), OPS_INTERNAL_SECRET: preserve(), REDIS_URL: preserve(), RESEND_API_KEY: preserve(), RESEND_FROM_EMAIL: preserve(), RUN_STARTUP_MIGRATIONS: preserve(), SESSION_HMAC_KEY: preserve(), SPORTMONKS_API_KEY: preserve() },
   });
 
   return project("gasterus-v3", {

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { fetchSharpApi, fetchApiSports, fetchTheOddsApi, mergeProviderEvents, publicEvent, suspendStaleLiveMarkets } from './sportsbook-providers.js';
 import { fetchPublicMarketFeed } from './sportsbook-public-market.js';
+import { fetchFootballDataIo } from './sportsbook-footballdataio.js';
 import { advanceProviderLifecycle, publicProviderLifecycle, shouldProbeProvider, transitionProviderLifecycle } from './sportsbook-provider-lifecycle.js';
 import { recordSportsbookMarketTransitions, recordSportsbookProviderTransitions, sportsbookPricingExposureSnapshot } from './sportsbook-operations.js';
 import { applySportsbookRiskRepricing } from './sportsbook-risk-pricing.js';
@@ -533,7 +534,8 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
     { code: 'public-market', enabled: Boolean(config.publicMarketEnabled), fetcher: fetchPublicMarketFeed },
     { code: 'sharpapi', enabled: config.sharpApiEnabled && Boolean(config.sharpApiKey), fetcher: fetchSharpApi },
     { code: 'api-sports', enabled: config.apiSportsEnabled && Boolean(config.apiSportsKey), fetcher: fetchApiSports },
-    { code: 'the-odds-api', enabled: config.theOddsApiEnabled && Boolean(config.theOddsApiKey), fetcher: fetchTheOddsApi }
+    { code: 'the-odds-api', enabled: config.theOddsApiEnabled && Boolean(config.theOddsApiKey), fetcher: fetchTheOddsApi },
+    { code: 'footballdata-io', enabled: config.footballDataIoEnabled && Boolean(config.footballDataIoKey), fetcher: fetchFootballDataIo }
   ].filter(d => d.enabled);
   const settled = await Promise.all(descriptors.map(descriptor => {
     const lifecycle = previousLifecycle[descriptor.code];

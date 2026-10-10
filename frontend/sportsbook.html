@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sportsbook Sepakbola — GASTERUS</title>
+  <title>Sportsbook Taruhan — GASTERUS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/loader-3d.css?v=20260925-1">
-  <meta name="description" content="Sportsbook bola online Gasterus — odds live 1X2, handicap, over/under, double chance liga top. Taruhan realtime dengan quote server.">
+  <meta name="description" content="Sportsbook Gasterus dengan odds pertandingan dari provider, feed realtime, dan taruhan yang divalidasi server.">
 
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/base.css">
@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/mobile.css">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="/css/pages/sportsbook-v3.css?v=20261009-all-markets">
+  <link rel="stylesheet" href="/css/pages/sportsbook-v3.css?v=20261010-sportsbook-premium">
   <meta property="og:title" content="GASTERUS - Bandar Togel & Slot Terpercaya">
   <meta property="og:description" content="Platform Mobile Resmi Bandar Togel dan Slot Online Terpercaya.">
   <meta property="og:type" content="website">
@@ -90,14 +90,9 @@
   <div class="sb-subheader">
     <div class="sb-subheader-inner">
       <div class="sb-sport-selector" id="sb-sport-dropdown-trigger">
-        <span class="sb-breadcrumb">Olahraga › <strong id="current-sport-label">Sepak Bola</strong></span>
+        <span class="sb-breadcrumb">Olahraga › <strong id="current-sport-label">Semua Olahraga</strong></span>
         <span class="sb-chevron-down">▾</span>
         <div class="sb-sport-menu" id="sb-sport-menu" hidden>
-          <button type="button" class="sb-sport-opt active" data-sport="all">⚽ Sepak Bola</button>
-          <button type="button" class="sb-sport-opt" data-sport="Basketball">🏀 Bola Basket</button>
-          <button type="button" class="sb-sport-opt" data-sport="Tennis">🎾 Tenis</button>
-          <button type="button" class="sb-sport-opt" data-sport="Badminton">🏸 Bulu Tangkis</button>
-          <button type="button" class="sb-sport-opt" data-sport="Esports">🎮 E-Sports</button>
         </div>
       </div>
       <button type="button" class="sb-parlay-pill" id="btn-toggle-parlay">Mix Parlay</button>
@@ -128,8 +123,8 @@
       <button type="button" class="sb-btn-action sb-btn-league" id="btn-show-leagues">
         <span class="sb-icon-arrows">⇅</span> Tampilkan Liga
       </button>
-      <button type="button" class="sb-btn-action sb-btn-filter" id="btn-filter-toggle" aria-label="Filter">
-        <span>⧩</span>
+      <button type="button" class="sb-btn-action sb-btn-filter" id="btn-filter-toggle" aria-label="Tampilkan liga favorit" aria-pressed="false" title="Liga favorit">
+        <span aria-hidden="true">★</span>
       </button>
       <div class="sb-search-wrap">
         <input type="search" id="sb-search" placeholder="Cari tim / liga…" autocomplete="off" aria-label="Cari tim atau liga">
@@ -203,6 +198,18 @@
 
       <!-- CENTER: Matches & Featured Live -->
       <section class="sb-content">
+        <div class="sb-board-heading">
+          <div>
+            <span class="sb-board-eyebrow">SPORTSBOOK</span>
+            <h1>Pertandingan &amp; Odds</h1>
+          </div>
+          <span class="sb-board-timezone">Waktu pertandingan · WIB</span>
+        </div>
+        <div class="sb-feed-overview" id="sb-feed-overview" aria-live="polite">
+          <div><strong id="sb-feed-status">Menghubungkan feed</strong><span id="sb-feed-updated"></span></div>
+          <div><strong id="sb-feed-events-count">0</strong><span>Pertandingan</span></div>
+          <div><strong id="sb-feed-markets-count">0</strong><span>Pasar ber-odds</span></div>
+        </div>
         <div id="sb-stale-banner" class="sb-stale-banner" hidden></div>
         <div id="sb-error" class="sb-error" hidden></div>
 
@@ -291,7 +298,7 @@
       <svg class="sb-bnav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
       </svg>
-      <span class="sb-bnav-label">Fitur Bayar Sekarang</span>
+      <span class="sb-bnav-label">Cash Out</span>
     </button>
   </nav>
 
@@ -324,7 +331,7 @@
 
   <noscript><div class="sb-error">Javascript diperlukan untuk menampilkan sportsbook.</div></noscript>
 
-  <script type="module" src="/js/sportsbook.js?v=20261009-all-markets"></script>
+  <script type="module" src="/js/sportsbook.js?v=20261010-sportsbook-premium"></script>
 
   <script>
     (function () {
