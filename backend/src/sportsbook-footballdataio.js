@@ -9,7 +9,6 @@ import {
   status
 } from './sportsbook-providers.js';
 import { buildDerivedMarkets } from './sportsbook-public-market.js';
-import { setBoundedCacheEntry } from './bounded-cache.js';
 
 // Gasterus sportsbook provider adapter for footballdata.io.
 // Provides REAL market odds (footballdata.io returns bookmaker 1X2 prices plus
@@ -44,10 +43,7 @@ async function requestJson(url) {
     });
     if (!response.ok) throw new Error(`footballdata.io returned HTTP ${response.status}`);
     const text = await response.text();
-    const responseBytes = Buffer.byteLength(text, 'utf8');
-    if (responseBytes > config.sportsProviderCacheMaxEntryBytes) {
-      throw new Error(`footballdata.io response exceeds cache entry size limit (${responseBytes} bytes)`);
-    }
+    if (text.length > 12 * 1024 * 1024) throw new Error('footballdata.io response exceeds size limit');
     return JSON.parse(text);
   } finally {
     clearTimeout(timeout);
@@ -138,57 +134,16 @@ function buildEvent(match) {
   return event;
 }
 
-const cache = new Map();
-const CACHE_KEY = 'feed';
+let cache = { fetchedAt: 0, events: [], warnings: [] };
 let inFlight = null;
-let consecutiveFailures = 0;
-let retryAt = 0;
-let lastFailure = null;
-const INITIAL_BACKOFF_MS = 30_000;
-const MAX_BACKOFF_MS = 10 * 60_000;
-
-function cachedFeed() {
-  return cache.get(CACHE_KEY)?.value || { fetchedAt: 0, events: [], warnings: [] };
-}
-
-function failedRefresh(error) {
-  consecutiveFailures += 1;
-  const backoffMs = Math.min(INITIAL_BACKOFF_MS * (2 ** (consecutiveFailures - 1)), MAX_BACKOFF_MS);
-  retryAt = Date.now() + backoffMs;
-  lastFailure = error;
-}
 
 export async function fetchFootballDataIo() {
   if (!config.footballDataIoEnabled || !config.footballDataIoKey) {
     return { provider: PROVIDER, enabled: false, events: [] };
   }
-  const currentCache = cachedFeed();
-  const now = Date.now();
-  const ageMs = now - Number(currentCache.fetchedAt || 0);
-  if (currentCache.events.length && ageMs < config.footballDataIoRefreshSeconds * 1000) {
-    return { provider: PROVIDER, enabled: true, events: structuredClone(currentCache.events), errors: currentCache.warnings, stale: false, transportOk: true };
-  }
-  if (retryAt > now) {
-    const cacheIsStale = ageMs > config.footballDataIoRefreshSeconds * 1000 * 2;
-    if (currentCache.events.length) {
-      return {
-        provider: PROVIDER,
-        enabled: true,
-        events: structuredClone(currentCache.events),
-        errors: [`Refresh skipped during ${Math.ceil((retryAt - now) / 1000)}s backoff: ${lastFailure?.message || 'previous request failed'}`],
-        stale: cacheIsStale,
-        transportOk: !cacheIsStale,
-        cachedFallback: true
-      };
-    }
-    return {
-      provider: PROVIDER,
-      enabled: true,
-      events: [],
-      errors: [`Refresh skipped during ${Math.ceil((retryAt - now) / 1000)}s backoff: ${lastFailure?.message || 'previous request failed'}`],
-      stale: true,
-      transportOk: false
-    };
+  const ageMs = Date.now() - Number(cache.fetchedAt || 0);
+  if (cache.events.length && ageMs < config.footballDataIoRefreshSeconds * 1000) {
+    return { provider: PROVIDER, enabled: true, events: structuredClone(cache.events), errors: cache.warnings, stale: false, transportOk: true };
   }
   if (!inFlight) {
     inFlight = (async () => {
@@ -204,47 +159,20 @@ export async function fetchFootballDataIo() {
         }
       }
       if (!events.length) throw new Error(`footballdata.io returned no priced events (${warnings.join(' | ') || 'no matches'})`);
-      const refreshed = { fetchedAt: Date.now(), events, warnings: [...new Set(warnings)] };
-      setBoundedCacheEntry(cache, CACHE_KEY, refreshed, {
-        fetchedAt: refreshed.fetchedAt,
-        maxEntryBytes: config.sportsProviderCacheMaxEntryBytes,
-        maxTotalBytes: config.sportsProviderCacheMaxTotalBytes
-      });
-      consecutiveFailures = 0;
-      retryAt = 0;
-      lastFailure = null;
-      return refreshed;
-    })().catch(error => {
-      failedRefresh(error);
-      throw error;
-    }).finally(() => { inFlight = null; });
+      cache = { fetchedAt: Date.now(), events, warnings: [...new Set(warnings)] };
+      return cache;
+    })().finally(() => { inFlight = null; });
   }
   try {
     const loaded = await inFlight;
     return { provider: PROVIDER, enabled: true, events: structuredClone(loaded.events), errors: loaded.warnings, stale: false, transportOk: true };
   } catch (error) {
     const maxStaleMs = config.footballDataIoRefreshSeconds * 1000 * 2;
-    const latestCache = cachedFeed();
-    const latestAgeMs = Date.now() - Number(latestCache.fetchedAt || 0);
-    if (latestCache.events.length) {
-      const cacheIsStale = latestAgeMs > maxStaleMs;
-      return { provider: PROVIDER, enabled: true, events: structuredClone(latestCache.events), errors: [`Refresh failed; serving cached footballdata.io odds: ${error.message}`], stale: cacheIsStale, transportOk: !cacheIsStale, cachedFallback: true };
+    if (cache.events.length && ageMs <= maxStaleMs) {
+      return { provider: PROVIDER, enabled: true, events: structuredClone(cache.events), errors: [`Refresh failed; serving cached footballdata.io odds: ${error.message}`], stale: false, transportOk: true, cachedFallback: true };
     }
     return { provider: PROVIDER, enabled: true, events: [], errors: [error.message], stale: true, transportOk: false };
   }
 }
 
-export const __footballDataIo = {
-  buildEvent,
-  fetchMatches,
-  teamKey,
-  cache,
-  backoffState: () => ({ consecutiveFailures, retryAt, lastFailure }),
-  resetRuntimeState: () => {
-    cache.clear();
-    inFlight = null;
-    consecutiveFailures = 0;
-    retryAt = 0;
-    lastFailure = null;
-  }
-};
+export const __footballDataIo = { buildEvent, fetchMatches, teamKey };

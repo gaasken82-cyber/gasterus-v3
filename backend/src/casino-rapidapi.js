@@ -26,31 +26,6 @@ const DIAG_PATHS = new Set([...ALLOWED_PATHS]);
 const cache = new Map();
 const inFlight = new Map();
 const failureCache = new Map();
-const FAILURE_CACHE_MAX_ENTRIES = 100;
-
-function pruneFailureCache(now = Date.now(), addingKey = null) {
-  for (const [key, entry] of failureCache) {
-    if (entry.retryAt <= now) failureCache.delete(key);
-  }
-  while (failureCache.size >= FAILURE_CACHE_MAX_ENTRIES && addingKey && !failureCache.has(addingKey)) {
-    let oldestKey = null;
-    let oldestRetryAt = Number.POSITIVE_INFINITY;
-    for (const [key, entry] of failureCache) {
-      if (entry.retryAt < oldestRetryAt) {
-        oldestKey = key;
-        oldestRetryAt = entry.retryAt;
-      }
-    }
-    if (oldestKey === null) break;
-    failureCache.delete(oldestKey);
-  }
-}
-
-function recordFailure(cacheKey, entry, now) {
-  if (!cacheKey) return;
-  pruneFailureCache(now, cacheKey);
-  failureCache.set(cacheKey, entry);
-}
 
 function rapidApiKey() {
   return String(
@@ -146,7 +121,6 @@ async function rapidFetch(path, params = {}, options = {}) {
   const method = String(options.method || 'GET').toUpperCase();
   const cacheKey = method === 'GET' ? path + '?' + url.searchParams.toString() : null;
   const now = Date.now();
-  pruneFailureCache(now);
   const failed = cacheKey ? failureCache.get(cacheKey) : null;
   if (failed && now < failed.retryAt) {
     throw new AppError(502, 'Provider casino sibuk. Coba lagi nanti.', 'CASINO_UPSTREAM_COOLDOWN');
@@ -178,7 +152,7 @@ async function rapidFetch(path, params = {}, options = {}) {
         const upstreamStatus = Number(res.status) || 502;
         const upstreamMessage = clean(payload?.message || payload?.error || payload?.raw, 180) || ('upstream ' + upstreamStatus);
         logger.error('Casino RapidAPI upstream error', { path, status: upstreamStatus, message: upstreamMessage });
-        recordFailure(cacheKey, { message: upstreamMessage, retryAt: now + 60 * 1000 }, now);
+        if (cacheKey) failureCache.set(cacheKey, { message: upstreamMessage, retryAt: now + 60 * 1000 });
         if (upstreamStatus === 429) throw new AppError(429, 'Provider casino sibuk (batas request). Coba lagi nanti.', 'CASINO_RATE_LIMITED', { upstreamStatus });
         if (upstreamStatus >= 400 && upstreamStatus < 500) throw new AppError(upstreamStatus, 'Provider casino menolak permintaan (' + upstreamStatus + '): ' + upstreamMessage, 'CASINO_UPSTREAM_REJECTED', { upstreamStatus, upstreamMessage });
         throw new AppError(502, 'Provider casino gagal.', 'CASINO_UPSTREAM_ERROR');
@@ -194,10 +168,10 @@ async function rapidFetch(path, params = {}, options = {}) {
       return payload;
     } catch (error) {
       if (error instanceof AppError) {
-        recordFailure(cacheKey, { message: error.message, retryAt: now + 60 * 1000 }, now);
+        if (cacheKey) failureCache.set(cacheKey, { message: error.message, retryAt: now + 60 * 1000 });
         throw error;
       }
-      recordFailure(cacheKey, { message: 'fetch-failed', retryAt: now + 60 * 1000 }, now);
+      if (cacheKey) failureCache.set(cacheKey, { message: 'fetch-failed', retryAt: now + 60 * 1000 });
       logger.error('Casino RapidAPI request failed', { path });
       throw new AppError(502, 'Provider casino tidak dapat dihubungi.', 'CASINO_UPSTREAM_ERROR');
     } finally {
@@ -339,4 +313,3 @@ export async function casinoPassthrough(path, params = {}) {
   return rapidFetch(path, params);
 }
 
-export const __casinoRapidApi = { failureCache, pruneFailureCache };

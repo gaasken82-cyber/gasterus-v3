@@ -111,8 +111,6 @@ export const config = Object.freeze({
   feedWorkerEnabled: bool('FEED_WORKER_ENABLED', true),
   sportsFeedMaxEvents: int('SPORTS_FEED_MAX_EVENTS', 600, 20, 2000),
   sportsFeedMaxCacheBytes: int('SPORTS_FEED_MAX_CACHE_BYTES', 8_000_000, 262_144, 50_000_000),
-  sportsProviderCacheMaxEntryBytes: int('SPORTS_PROVIDER_CACHE_MAX_ENTRY_BYTES', 3_145_728, 1024, 100_000_000),
-  sportsProviderCacheMaxTotalBytes: int('SPORTS_PROVIDER_CACHE_MAX_TOTAL_BYTES', 41_943_040, 1024, 100_000_000),
 
   // Provider credentials are read only by core and may be mounted as Docker secrets.
   apiSportsKey,

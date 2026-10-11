@@ -1,7 +1,6 @@
 import crypto from 'node:crypto';
 import { config } from './config.js';
 import { logger } from './logger.js';
-import { setBoundedCacheEntry } from './bounded-cache.js';
 
 const MAX_PROVIDER_EVENTS = 1200;
 const MARKET_TYPES = Object.freeze({
@@ -204,10 +203,7 @@ async function requestJson(url, { headers = {}, label = 'sports provider' } = {}
     });
     if (!response.ok) throw new Error(`${label} returned HTTP ${response.status}`);
     const text = await response.text();
-    const responseBytes = Buffer.byteLength(text, 'utf8');
-    if (responseBytes > config.sportsProviderCacheMaxEntryBytes) {
-      throw new Error(`${label} response exceeds cache entry size limit (${responseBytes} bytes)`);
-    }
+    if (text.length > 12 * 1024 * 1024) throw new Error(`${label} response exceeds size limit`);
     return JSON.parse(text);
   } finally {
     clearTimeout(timeout);
@@ -221,18 +217,18 @@ async function cachedRequest(key, ttlMs, fetcher) {
   if (cached?.value !== undefined && now - cached.fetchedAt < ttlMs) return cached.value;
   if (cached?.inFlight) return cached.inFlight;
   const inFlight = Promise.resolve().then(fetcher).then(value => {
-    setBoundedCacheEntry(providerRequestCache, key, value, {
-      fetchedAt: Date.now(),
-      maxEntryBytes: config.sportsProviderCacheMaxEntryBytes,
-      maxTotalBytes: config.sportsProviderCacheMaxTotalBytes
-    });
+    if (providerRequestCache.size > 300) {
+      const oldest = [...providerRequestCache.entries()].sort((a, b) => (a[1]?.fetchedAt || 0) - (b[1]?.fetchedAt || 0));
+      for (const [k] of oldest.slice(0, 50)) providerRequestCache.delete(k);
+    }
+    providerRequestCache.set(key, { value, fetchedAt: Date.now(), inFlight: null });
     return value;
   }).catch(error => {
     if (cached?.value !== undefined) providerRequestCache.set(key, cached);
     else providerRequestCache.delete(key);
     throw error;
   });
-  providerRequestCache.set(key, { value: cached?.value, fetchedAt: cached?.fetchedAt || 0, sizeBytes: cached?.sizeBytes || 0, inFlight });
+  providerRequestCache.set(key, { value: cached?.value, fetchedAt: cached?.fetchedAt || 0, inFlight });
   return inFlight;
 }
 // ---------------------------------------------------------------------------
