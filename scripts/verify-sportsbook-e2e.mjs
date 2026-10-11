@@ -1,4 +1,7 @@
-const baseUrl = String(process.env.SPORTSBOOK_BASE_URL || 'http://127.0.0.1:8080').replace(/\/+$/, '');
+const railwayBaseUrl = process.env.RAILWAY_PUBLIC_DOMAIN
+  ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+  : '';
+const baseUrl = String(process.env.SPORTSBOOK_BASE_URL || railwayBaseUrl || 'http://127.0.0.1:8080').replace(/\/+$/, '');
 const requestTimeoutMs = 15000;
 const minimumDerivedMarkets = 25;
 

@@ -22,7 +22,8 @@ Object.assign(process.env, {
 
 const originalFetch = globalThis.fetch;
 const originalNow = Date.now;
-const { setBoundedCacheEntry } = await import('../src/bounded-cache.js');
+const { pruneExpiredCacheEntries, setBoundedCacheEntry } = await import('../src/bounded-cache.js');
+const { readBoundedResponseText } = await import('../src/bounded-response.js');
 const { fetchApiSports, __sportsbookProviders } = await import('../src/sportsbook-providers.js');
 const { fetchFootballDataIo, __footballDataIo } = await import('../src/sportsbook-footballdataio.js');
 const { casinoPassthrough, __casinoRapidApi } = await import('../src/casino-rapidapi.js');
@@ -44,6 +45,51 @@ test('bounded cache rejects oversized entries and evicts oldest entries to fit i
   );
 });
 
+test('bounded cache removes expired entries and enforces its entry-count limit', () => {
+  const cache = new Map();
+  const limits = { maxEntryBytes: 100, maxTotalBytes: 1000, maxEntries: 2 };
+  setBoundedCacheEntry(cache, 'expired', { data: 'a' }, { fetchedAt: 1, expiresAt: 10, ...limits });
+  pruneExpiredCacheEntries(cache, 10);
+  assert.equal(cache.has('expired'), false);
+
+  setBoundedCacheEntry(cache, 'oldest', { data: 'b' }, { fetchedAt: 20, ...limits });
+  setBoundedCacheEntry(cache, 'newest', { data: 'c' }, { fetchedAt: 30, ...limits });
+  setBoundedCacheEntry(cache, 'replacement', { data: 'd' }, { fetchedAt: 40, ...limits });
+  assert.equal(cache.size, 2);
+  assert.equal(cache.has('oldest'), false);
+  assert.equal(cache.has('newest'), true);
+  assert.equal(cache.has('replacement'), true);
+});
+
+test('bounded response reader rejects an oversized Content-Length without reading the body', async () => {
+  let bodyRead = false;
+  let bodyCancelled = false;
+  const response = {
+    headers: { get: () => '6' },
+    body: {
+      async cancel() { bodyCancelled = true; },
+      getReader() { bodyRead = true; throw new Error('body should not be read'); }
+    }
+  };
+  await assert.rejects(readBoundedResponseText(response, 'test provider', 5), /exceeds 5 bytes/);
+  assert.equal(bodyRead, false);
+  assert.equal(bodyCancelled, true);
+});
+
+test('bounded response reader cancels a streaming response that exceeds its byte limit', async () => {
+  let bodyCancelled = false;
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array([1, 2, 3]));
+      controller.enqueue(new Uint8Array([4, 5]));
+    },
+    cancel() { bodyCancelled = true; }
+  });
+  const response = new Response(body, { headers: { 'content-length': '4' } });
+  await assert.rejects(readBoundedResponseText(response, 'test provider', 4), /exceeds 4 bytes/);
+  assert.equal(bodyCancelled, true);
+});
+
 test('API-Sports does not cache responses above the configured per-entry limit', async () => {
   __sportsbookProviders.providerRequestCache.clear();
   const oversized = JSON.stringify({ response: [], padding: 'x'.repeat(3_145_728) });
@@ -54,16 +100,49 @@ test('API-Sports does not cache responses above the configured per-entry limit',
       return String(input).includes('/fixtures?live=all') ? oversized : '{"response":[]}';
     }
   });
-
   try {
     const result = await fetchApiSports();
     assert.equal(result.transportOk, false);
-    assert.ok(result.errors.some(error => error.includes('cache entry size limit')));
+    assert.ok(result.errors.some(error => error.includes('API-Sports response exceeds 3145728 bytes')));
     const entries = [...__sportsbookProviders.providerRequestCache.values()].filter(entry => entry.value !== undefined);
     assert.ok(entries.every(entry => entry.sizeBytes <= 3_145_728));
     assert.ok(entries.reduce((sum, entry) => sum + entry.sizeBytes, 0) <= 41_943_040);
   } finally {
     __sportsbookProviders.providerRequestCache.clear();
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('API-Sports cache prunes expired entries and remains capped at 300 entries', async () => {
+  __sportsbookProviders.providerRequestCache.clear();
+  const cache = __sportsbookProviders.providerRequestCache;
+  for (let index = 0; index < 300; index += 1) {
+    cache.set(`filler-${index}`, {
+      value: { response: [] },
+      fetchedAt: index + 1,
+      expiresAt: Number.MAX_SAFE_INTEGER,
+      sizeBytes: 15
+    });
+  }
+  cache.set('expired-test-entry', {
+    value: { response: [] },
+    fetchedAt: 1,
+    expiresAt: 1,
+    sizeBytes: 15
+  });
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    async text() { return '{"response":[]}'; }
+  });
+
+  try {
+    await fetchApiSports();
+    assert.ok(cache.size <= 300);
+    assert.equal(cache.has('expired-test-entry'), false);
+    assert.equal(cache.has('filler-0'), false, 'oldest entry should be evicted to make room');
+  } finally {
+    cache.clear();
     globalThis.fetch = originalFetch;
   }
 });

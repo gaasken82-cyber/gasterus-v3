@@ -1,7 +1,8 @@
 import crypto from 'node:crypto';
 import { config } from './config.js';
 import { logger } from './logger.js';
-import { setBoundedCacheEntry } from './bounded-cache.js';
+import { ensureBoundedCacheCapacity, pruneExpiredCacheEntries, setBoundedCacheEntry } from './bounded-cache.js';
+import { readBoundedResponseText } from './bounded-response.js';
 
 const MAX_PROVIDER_EVENTS = 1200;
 const MARKET_TYPES = Object.freeze({
@@ -203,11 +204,7 @@ async function requestJson(url, { headers = {}, label = 'sports provider' } = {}
       redirect: 'error'
     });
     if (!response.ok) throw new Error(`${label} returned HTTP ${response.status}`);
-    const text = await response.text();
-    const responseBytes = Buffer.byteLength(text, 'utf8');
-    if (responseBytes > config.sportsProviderCacheMaxEntryBytes) {
-      throw new Error(`${label} response exceeds cache entry size limit (${responseBytes} bytes)`);
-    }
+    const text = await readBoundedResponseText(response, label, config.sportsProviderCacheMaxEntryBytes);
     return JSON.parse(text);
   } finally {
     clearTimeout(timeout);
@@ -217,14 +214,21 @@ async function requestJson(url, { headers = {}, label = 'sports provider' } = {}
 const providerRequestCache = new Map();
 async function cachedRequest(key, ttlMs, fetcher) {
   const now = Date.now();
+  pruneExpiredCacheEntries(providerRequestCache, now);
   const cached = providerRequestCache.get(key);
-  if (cached?.value !== undefined && now - cached.fetchedAt < ttlMs) return cached.value;
+  if (cached?.value !== undefined) {
+    if (now - cached.fetchedAt < ttlMs) return cached.value;
+    providerRequestCache.delete(key);
+  }
   if (cached?.inFlight) return cached.inFlight;
+  ensureBoundedCacheCapacity(providerRequestCache, key, config.sportsProviderCacheMaxEntries);
   const inFlight = Promise.resolve().then(fetcher).then(value => {
     setBoundedCacheEntry(providerRequestCache, key, value, {
       fetchedAt: Date.now(),
+      expiresAt: Date.now() + ttlMs,
       maxEntryBytes: config.sportsProviderCacheMaxEntryBytes,
-      maxTotalBytes: config.sportsProviderCacheMaxTotalBytes
+      maxTotalBytes: config.sportsProviderCacheMaxTotalBytes,
+      maxEntries: config.sportsProviderCacheMaxEntries
     });
     return value;
   }).catch(error => {

@@ -9,6 +9,7 @@ import {
   status
 } from './sportsbook-providers.js';
 import { buildDerivedMarkets } from './sportsbook-public-market.js';
+import { readBoundedResponseText } from './bounded-response.js';
 import { setBoundedCacheEntry } from './bounded-cache.js';
 
 // Gasterus sportsbook provider adapter for footballdata.io.
@@ -43,11 +44,7 @@ async function requestJson(url) {
       redirect: 'error'
     });
     if (!response.ok) throw new Error(`footballdata.io returned HTTP ${response.status}`);
-    const text = await response.text();
-    const responseBytes = Buffer.byteLength(text, 'utf8');
-    if (responseBytes > config.sportsProviderCacheMaxEntryBytes) {
-      throw new Error(`footballdata.io response exceeds cache entry size limit (${responseBytes} bytes)`);
-    }
+    const text = await readBoundedResponseText(response, 'footballdata.io', config.sportsProviderCacheMaxEntryBytes);
     return JSON.parse(text);
   } finally {
     clearTimeout(timeout);
@@ -207,6 +204,7 @@ export async function fetchFootballDataIo() {
       const refreshed = { fetchedAt: Date.now(), events, warnings: [...new Set(warnings)] };
       setBoundedCacheEntry(cache, CACHE_KEY, refreshed, {
         fetchedAt: refreshed.fetchedAt,
+        expiresAt: refreshed.fetchedAt + config.footballDataIoRefreshSeconds * 1000,
         maxEntryBytes: config.sportsProviderCacheMaxEntryBytes,
         maxTotalBytes: config.sportsProviderCacheMaxTotalBytes
       });

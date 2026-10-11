@@ -122,7 +122,7 @@ export function validateAllHandicapOdds(events = []) {
 }
 
 const LIFECYCLE_GENERATION = 'r6917';
-const CACHE_KEY = 'sportsbook:aggregated-feed:v14';
+const CACHE_KEY = 'sportsbook:aggregated-feed:v15';
 const LIFECYCLE_KEY = 'sportsbook:provider-lifecycle:v6';
 const MARKET_LIFECYCLE_KEY = 'sportsbook:market-lifecycle:v6';
 const REFRESH_MS = config.sportsFeedRefreshSeconds * 1000;
