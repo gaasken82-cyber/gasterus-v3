@@ -82,6 +82,19 @@ test('sportsbook event list renders bounded pages and accessible league accordio
   assert.match(frontend, /leagueHead\.setAttribute\('aria-expanded', String\(!collapsed\)\)/);
 });
 
+test('sportsbook league labels include payload country and remain responsive on mobile', () => {
+  const styles = readFileSync(new URL('../../frontend/css/pages/sportsbook-v3.css', import.meta.url), 'utf8');
+  assert.match(frontend, /function formatLeagueLabel\(event, fallback = 'Match'\)/);
+  assert.match(frontend, /const country = String\(event\?\.country \|\| category \|\| ''\)\.trim\(\)/);
+  assert.match(frontend, /formatLeagueLabel\(e, 'Live Match'\)/);
+  assert.match(frontend, /sb-match-league">\$\{escapeHtml\(formatLeagueLabel\(e\)\)\}<\/span>/);
+  assert.match(frontend, /const lg = formatLeagueLabel\(e, 'Liga Internasional'\)/);
+  assert.match(styles, /\.sb-match-league\s*\{[^}]*min-width: 0;[^}]*flex: 1 1 auto;[^}]*overflow-wrap: anywhere/);
+  assert.match(styles, /\.sb-league-title\s*\{[^}]*min-width: 0;[^}]*overflow-wrap: anywhere/);
+  assert.match(styles, /\.sb-live-league-label\s*\{[^}]*min-width: 0;[^}]*overflow-wrap: anywhere/);
+  assert.match(styles, /@media \(max-width: 860px\)[\s\S]*?\.sb-match-card\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
+});
+
 test('betslip desktop and mobile breakpoints match the visible sidebar breakpoint', () => {
   const styles = readFileSync(new URL('../../frontend/css/pages/sportsbook-v3.css', import.meta.url), 'utf8');
   assert.match(frontend, /const BETSLIP_MOBILE_BREAKPOINT = 860/);
@@ -111,8 +124,8 @@ test('match cards present fixtures and provider-backed markets as a responsive s
   assert.match(styles, /\.sb-match-card\s*\{[\s\S]*grid-template-columns: minmax\(176px, 0\.72fr\) minmax\(0, 1\.7fr\)/);
   assert.match(styles, /\.sb-market-grid\s*\{[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@media \(max-width: 860px\)[\s\S]*?\.sb-match-card\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
-  assert.match(page, /sportsbook-v3\.css\?v=20261010-sportsbook-board-r4/);
-  assert.match(page, /sportsbook\.js\?v=20261010-sportsbook-board-r4/);
+  assert.match(page, /sportsbook-v3\.css\?v=20261011-league-country-r5/);
+  assert.match(page, /sportsbook\.js\?v=20261011-league-country-r5/);
 });
 
 test('sportsbook cashout action routes to the dedicated cashout page instead of a duplicate bets modal', () => {

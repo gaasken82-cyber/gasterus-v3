@@ -38,6 +38,35 @@ test('production sportsbook cannot enable model-generated events or derived mark
   assert.ok(result.stdout.split(/\r?\n/).includes('{"openFootball":false,"derivedMarkets":false}'));
 });
 
+test('staging and development can enable derived markets without changing the production guard', () => {
+  const script = `
+    const { config } = await import('./src/config.js');
+    console.log(JSON.stringify({ derivedMarkets: config.publicMarketDerivedMarketsEnabled }));
+  `;
+  const baseEnv = {
+    ...process.env,
+    DATABASE_URL: 'postgres://test:test@example.com/db',
+    REDIS_URL: 'redis://example.com:6379',
+    MEMBER_PROXY_SECRET: 'm'.repeat(48),
+    ADMIN_PROXY_SECRET: 'a'.repeat(48),
+    OPS_INTERNAL_SECRET: 'o'.repeat(48),
+    SESSION_HMAC_KEY: 's'.repeat(48),
+    API_KEY_PEPPER: 'p'.repeat(48),
+    MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
+    PUBLIC_MARKET_DERIVED_MARKETS_ENABLED: 'true'
+  };
+
+  for (const nodeEnv of ['staging', 'development']) {
+    const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+      cwd: new URL('..', import.meta.url),
+      encoding: 'utf8',
+      env: { ...baseEnv, NODE_ENV: nodeEnv }
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(result.stdout.split(/\r?\n/).includes('{"derivedMarkets":true}'), `${nodeEnv} should allow explicit opt-in`);
+  }
+});
+
 test('Sportmonks is hard-disabled and cannot be re-enabled by production environment variables', () => {
   assert.match(config, /sportmonksEnabled:\s*false/);
   assert.doesNotMatch(feed, /fetchSportmonks|code:\s*'sportmonks'/);

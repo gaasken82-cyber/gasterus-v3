@@ -1141,7 +1141,7 @@ function renderLiveCarousel() {
     return `
       <div class="sb-live-card">
         <div class="sb-live-card-head">
-          <span>⚽ ${escapeHtml(e.league || 'Live Match')}</span>
+          <span class="sb-live-league-label">⚽ ${escapeHtml(formatLeagueLabel(e, 'Live Match'))}</span>
           <span>↻</span>
         </div>
         <div class="sb-live-card-body">
@@ -1173,6 +1173,19 @@ function renderLiveCarousel() {
 
 function scoreText(score) {
   return score === null || score === undefined || score === '' ? '—' : String(score);
+}
+
+function formatLeagueLabel(event, fallback = 'Match') {
+  const league = String(event?.league || fallback).trim();
+  const category = typeof event?.category === 'string'
+    ? event.category
+    : event?.category?.name || event?.category?.label;
+  const country = String(event?.country || category || '').trim();
+  if (!country || !league) return (league || fallback).toLocaleUpperCase();
+  if (league.toLocaleLowerCase().startsWith(`${country.toLocaleLowerCase()} -`)) {
+    return league.toLocaleUpperCase();
+  }
+  return `${country} - ${league}`.toLocaleUpperCase();
 }
 
 function renderQuickOddBtn(e, m, s, label) {
@@ -1210,7 +1223,7 @@ function renderQuickOddBtn(e, m, s, label) {
 function renderLeagueGroups(list) {
   const groups = new Map();
   for (const e of list) {
-    const lg = e.league || 'Liga Internasional';
+    const lg = formatLeagueLabel(e, 'Liga Internasional');
     if (!groups.has(lg)) groups.set(lg, []);
     groups.get(lg).push(e);
   }
@@ -1403,7 +1416,7 @@ function renderMatch(e) {
         <button type="button" class="sb-banner-refresh" onclick="window.location.reload()" title="Muat ulang odds">↻</button>
         </div>
         <div class="sb-match-meta-row">
-          <span class="sb-match-league">${escapeHtml(e.league || 'Match')}</span>
+          <span class="sb-match-league">${escapeHtml(formatLeagueLabel(e))}</span>
           <div class="sb-provider-stack">${providerSummary}</div>
         </div>
         <div class="sb-teams-row">
