@@ -428,6 +428,11 @@ body.sb-page {
   font-size: 11px;
   font-weight: 700;
 }
+.sb-live-league-label {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+}
 .sb-live-card-body {
   padding: 10px;
   display: grid;
@@ -646,6 +651,9 @@ body.sb-page {
   outline-offset: 2px;
 }
 .sb-league-title {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
@@ -858,6 +866,9 @@ body.sb-page {
 }
 
 .sb-match-league {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
   color: #1e293b;
   font-size: 11px;
   font-weight: 800;
@@ -867,6 +878,7 @@ body.sb-page {
 
 .sb-provider-stack {
   display: flex;
+  flex: 0 0 auto;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 5px;
