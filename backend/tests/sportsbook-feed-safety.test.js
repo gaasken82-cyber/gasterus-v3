@@ -8,6 +8,37 @@ const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.u
 const worker = readFileSync(new URL('../src/worker.js', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../src/config.js', import.meta.url), 'utf8');
 
+test('sportsbook feed worker and background polling default to enabled in production', () => {
+  const script = `
+    const { config } = await import('./src/config.js');
+    console.log(JSON.stringify({
+      feedWorker: config.feedWorkerEnabled,
+      backgroundPoll: config.sportsSourceBackgroundPollEnabled
+    }));
+  `;
+  const env = {
+    ...process.env,
+    NODE_ENV: 'production',
+    DATABASE_URL: '******example.com/db',
+    REDIS_URL: 'redis://example.com:6379',
+    MEMBER_PROXY_SECRET: 'm'.repeat(48),
+    ADMIN_PROXY_SECRET: 'a'.repeat(48),
+    OPS_INTERNAL_SECRET: 'o'.repeat(48),
+    SESSION_HMAC_KEY: 's'.repeat(48),
+    API_KEY_PEPPER: 'p'.repeat(48),
+    MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64')
+  };
+  delete env.FEED_WORKER_ENABLED;
+  delete env.SPORTS_SOURCE_BACKGROUND_POLL_ENABLED;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    cwd: new URL('..', import.meta.url),
+    encoding: 'utf8',
+    env
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(result.stdout.split(/\r?\n/).includes('{"feedWorker":true,"backgroundPoll":true}'));
+});
+
 test('production keeps model-generated events and derived markets disabled by default', () => {
   const script = `
     const { config } = await import('./src/config.js');
@@ -156,6 +187,10 @@ test('Sportsbook feed is refreshed continuously by the isolated feed worker', ()
   assert.doesNotMatch(worker, /refreshSportsbookFeed/);
   assert.doesNotMatch(worker, /runTotoCollector/);
   assert.match(feedWorker, /refreshSportsbookFeed/);
+  const startupRefresh = feedWorker.indexOf('await refreshSportsFeedIfDue(state);');
+  const pollLoop = feedWorker.indexOf('while (!stopping)');
+  assert.ok(startupRefresh >= 0 && startupRefresh < pollLoop,
+    'feed worker must refresh sportsbook before entering the recurring TOTO polling loop');
   assert.match(feedWorker, /sportsSourceBackgroundPollEnabled/);
   assert.match(feedWorker, /sportsFeedRefreshSeconds \* 1000/);
   assert.match(feedWorker, /feed-worker-background-poll/);

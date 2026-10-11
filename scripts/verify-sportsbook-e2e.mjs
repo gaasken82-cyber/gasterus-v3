@@ -3,6 +3,7 @@ const railwayBaseUrl = process.env.RAILWAY_PUBLIC_DOMAIN
   : '';
 const baseUrl = String(process.env.SPORTSBOOK_BASE_URL || railwayBaseUrl || 'http://127.0.0.1:8080').replace(/\/+$/, '');
 const requestTimeoutMs = 15000;
+const minimumEvents = 12;
 const minimumDerivedMarkets = 25;
 
 async function getJson(path) {
@@ -49,7 +50,8 @@ async function main() {
 
   const snapshot = await getJson('/api/member/sportsbook/events');
   assert(Array.isArray(snapshot.events), 'events endpoint payload.data.events must be an array');
-  assert(snapshot.events.length > 0, 'events endpoint returned no sportsbook events');
+  assert(snapshot.events.length >= minimumEvents,
+    `events endpoint returned ${snapshot.events.length} events; expected at least ${minimumEvents}`);
 
   const labeledEvents = snapshot.events.filter(event => String(event.country || event.category || '').trim() && String(event.league || '').trim());
   assert(labeledEvents.length > 0, 'No event includes both a league and country/category in the API payload');
@@ -63,7 +65,8 @@ async function main() {
   const oneXtwoEvents = snapshot.events.filter(event =>
     (event.markets || []).some(market => market.type === '1X2' && market.period === 'FT')
   );
-  assert(oneXtwoEvents.length > 0, 'No event in the list snapshot includes a full-time 1X2 market');
+  assert(oneXtwoEvents.length >= minimumEvents,
+    `Only ${oneXtwoEvents.length} events include a full-time 1X2 market; expected at least ${minimumEvents}`);
 
   const inspected = [];
   for (const event of oneXtwoEvents.slice(0, 12)) {
@@ -82,40 +85,30 @@ async function main() {
       marketTypes,
       hasDerivedTypes
     });
-    if (markets.length >= minimumDerivedMarkets && hasDerivedTypes) {
-      console.log(JSON.stringify({
-        status: 'PASS',
-        baseUrl,
-        eventListCount: snapshot.events.length,
-        sourceMode: snapshot.source?.mode || null,
-        leagueLabel: labelSample,
-        derivedMarketEvent: {
-          id: fullEvent.id,
-          country: fullEvent.country || fullEvent.category || null,
-          league: fullEvent.league,
-          displayLeague: displayLeague(fullEvent),
-          marketCount: markets.length,
-          selectionCount: markets.reduce((count, market) => count + (market.selections || []).length, 0),
-          marketTypes,
-          sampleMarkets: markets.slice(0, 5).map(market => ({
-            type: market.type,
-            period: market.period,
-            line: market.line,
-            selections: (market.selections || []).slice(0, 3).map(selection => ({
-              label: selection.label,
-              odds: selection.odds
-            }))
-          }))
-        }
-      }, null, 2));
-      return;
-    }
   }
 
-  throw new Error(
-    `No event detail among ${inspected.length} inspected events had at least ${minimumDerivedMarkets} markets and required derived types. `
-    + `Inspected: ${JSON.stringify(inspected)}`
+  const invalidEvents = inspected.filter(event =>
+    event.marketCount < minimumDerivedMarkets || !event.hasDerivedTypes
   );
+  assert(invalidEvents.length === 0,
+    `Derived-market validation failed for ${invalidEvents.length}/${inspected.length} inspected events: ${JSON.stringify(invalidEvents)}`);
+  console.log(JSON.stringify({
+    status: 'PASS',
+    baseUrl,
+    eventListCount: snapshot.events.length,
+    inspectedEventCount: inspected.length,
+    sourceMode: snapshot.source?.mode || null,
+    leagueLabel: labelSample,
+    derivedMarketEvents: inspected.map(event => ({
+      id: event.id,
+      country: event.country,
+      league: event.league,
+      displayLeague: displayLeague(event),
+      marketCount: event.marketCount,
+      hasDerivedTypes: event.hasDerivedTypes,
+      marketTypes: event.marketTypes
+    }))
+  }, null, 2));
 }
 
 main().catch(error => {
