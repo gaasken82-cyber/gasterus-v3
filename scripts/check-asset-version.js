@@ -20,6 +20,7 @@ const pages = [
 const problems = [];
 let checkedJs = 0;
 let checkedCss = 0;
+const jsVersions = new Map();
 const cssVersions = new Map();
 
 for (const pagePath of pages) {
@@ -33,7 +34,13 @@ for (const pagePath of pages) {
     checkedJs += 1;
     const [pathname, ...queryParts] = src.split('?');
     const query = queryParts.length ? `?${queryParts.join('?')}` : '';
-    if (!/[?&]v=/.test(query)) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${src} tanpa ?v=`);
+    const version = query.match(/[?&]v=([^&]+)/)?.[1];
+    if (!version) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${src} tanpa ?v=`);
+    else {
+      const versions = jsVersions.get(pathname) || new Set();
+      versions.add(version);
+      jsVersions.set(pathname, versions);
+    }
     const assetRoot = pathname.startsWith('/') ? frontend : base;
     if (!existsSync(resolve(assetRoot, pathname.replace(/^\//, '')))) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${src} tidak ada`);
   }
@@ -57,6 +64,10 @@ for (const pagePath of pages) {
     const assetPath = resolve(base, pathname.replace(/^\//, ''));
     if (!existsSync(assetPath)) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${href} tidak ada`);
   }
+}
+
+for (const [asset, versions] of jsVersions) {
+  if (versions.size > 1) problems.push(`${asset} memakai versi cache berbeda: ${[...versions].join(', ')}`);
 }
 
 for (const [asset, versions] of cssVersions) {
