@@ -2011,8 +2011,7 @@ select.reg-input {
   color: #ffffff;
   margin-bottom: 6px;
 }
-.deposit-note-box ol {
-  pad.qris-white-card {
+.qris-white-card {
   background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
   border-radius: 16px;
   padding: 20px 16px;
@@ -2148,8 +2147,6 @@ select.reg-input {
 .btn-qris-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-case;
 }
 .btn-qris-submit:disabled {
   opacity: 0.6;
