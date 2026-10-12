@@ -20,6 +20,7 @@ const pages = [
 const problems = [];
 let checkedJs = 0;
 let checkedCss = 0;
+const cssVersions = new Map();
 
 for (const pagePath of pages) {
   const html = readFileSync(pagePath, 'utf8');
@@ -46,10 +47,20 @@ for (const pagePath of pages) {
     checkedCss += 1;
     const [pathname, ...queryParts] = href.split('?');
     const query = queryParts.length ? `?${queryParts.join('?')}` : '';
-    if (!/[?&]v=/.test(query)) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${href} tanpa ?v=`);
+    const version = query.match(/[?&]v=([^&]+)/)?.[1];
+    if (!version) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${href} tanpa ?v=`);
+    else {
+      const versions = cssVersions.get(pathname) || new Set();
+      versions.add(version);
+      cssVersions.set(pathname, versions);
+    }
     const assetPath = resolve(base, pathname.replace(/^\//, ''));
     if (!existsSync(assetPath)) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${href} tidak ada`);
   }
+}
+
+for (const [asset, versions] of cssVersions) {
+  if (versions.size > 1) problems.push(`${asset} memakai versi cache berbeda: ${[...versions].join(', ')}`);
 }
 
 if (problems.length) {
