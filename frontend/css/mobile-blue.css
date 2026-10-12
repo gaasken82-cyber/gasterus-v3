@@ -1362,20 +1362,6 @@ footer, .site-footer {
   gap: 4px;
 }
 
-.reg-input {
-  width: 100%;
-  background: #f8fafc;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 10px 14px;
-  color: #1e293b;
-  font-size: 13px;
-  font-family: 'Inter', system-ui, sans-serif;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-  box-sizing: border-box;
-}
-
 .reg-input::placeholder {
   color: #94a3b8;
   font-size: 12px;
@@ -1398,10 +1384,6 @@ footer, .site-footer {
 .reg-phone-wrap.is-valid {
   border-color: #10b981 !important;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14) !important;
-}
-
-.reg-input::placeholder {
-  color: #94a3b8;
 }
 
 select.reg-input {
@@ -1427,16 +1409,6 @@ select.reg-input {
   width: 100%;
 }
 
-.reg-phone-prefix {
-  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
-  color: #1e40af;
-  font-size: 13px;
-  font-weight: 800;
-  padding: 11px 12px;
-  border-right: 1px solid #93c5fd;
-  flex-shrink: 0;
-}
-
 .reg-phone-wrap input {
   flex: 1;
   border: none;
@@ -1456,13 +1428,6 @@ select.reg-input {
   border-color: #2563eb;
   transform: translateZ(6px);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.28), inset 0 2px 4px rgba(15,23,42,0.04), 0 8px 16px rgba(37,99,235,0.16);
-}
-
-.reg-captcha-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
 }
 
 .reg-captcha-row {
@@ -1530,11 +1495,6 @@ select.reg-input {
   line-height: 1.4;
 }
 
-.reg-checkbox a {
-  color: #38bdf8;
-  text-decoration: none;
-}
-
 .reg-checkbox input[type="checkbox"] {
   accent-color: #2563eb;
   width: 16px;
@@ -1592,18 +1552,6 @@ select.reg-input {
   font-size: 12.5px;
   color: #93c5fd;
   font-weight: 600;
-}
-.btn-refresh-balance {
-  background: linear-gradient(180deg, #059669 0%, #047857 100%);
-  color: #ffffff;
-  border: 1px solid #10b981;
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-size: 9px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: none;
-  letter-spacing: 0.3px;
 }
 .member-cat-row-1 {
   display: grid;
@@ -2148,10 +2096,6 @@ select.reg-input {
   opacity: 0.6;
   cursor: not-allowed;
 }
-.btn-qris-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
 
 /* Kotak riwayat deposit (konten diisi transaction.js) */
 .deposit-history-box {
@@ -2283,9 +2227,6 @@ select.reg-input {
   cursor: pointer;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 5px rgba(0, 0, 0, 0.5);
   flex-shrink: 0;
-}
-.menu-toggle:active {
-  transform: translateY(1px);
 }
 .nav-drawer-backdrop {
   position: fixed;
@@ -3391,11 +3332,6 @@ body.nav-open .nav-drawer,
   padding: 40px 20px;
 }
 
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
 .empty-state h3 {
   font-family: 'Outfit', sans-serif;
   font-size: 16px;
@@ -3522,30 +3458,8 @@ body.nav-open .nav-drawer,
   transition: all 0.15s ease;
 }
 
-.payment-method.active {
-  background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%);
-  border-color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
-}
-
 .payment-method:hover:not(.active) {
   border-color: #38bdf8;
-}
-
-.method-icon {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-}
-
-.method-name {
-  font-size: 10px;
-  font-weight: 600;
-  color: #94a3b8;
-}
-
-.payment-method.active .method-name {
-  color: #38bdf8;
 }
 
 .deposit-form-container {
@@ -3720,12 +3634,6 @@ body.nav-open .nav-drawer,
   transition: all 0.15s ease;
 }
 
-.preset-btn.active {
-  background: linear-gradient(180deg, #38bdf8 0%, #2563eb 100%);
-  border-color: #60a5fa;
-  color: #ffffff;
-}
-
 .preset-btn:hover:not(.active) {
   border-color: #38bdf8;
   color: #ffffff;
@@ -3754,21 +3662,11 @@ body.nav-open .nav-drawer,
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
 }
 
-.btn-submit:active {
-  transform: translateY(1px);
-}
-
 .btn-icon {
   font-size: 16px;
 }
 
 /* QRIS Card */
-.qris-card {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
 
 .qris-header {
   display: flex;
@@ -3779,14 +3677,6 @@ body.nav-open .nav-drawer,
   color: #ffffff;
 }
 
-.qris-logo {
-  width: 40px;
-  height: 40px;
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 4px;
-}
-
 .qris-title-wrap {
   flex: 1;
 }
@@ -3795,12 +3685,6 @@ body.nav-open .nav-drawer,
   font-family: 'Outfit', sans-serif;
   font-size: 16px;
   font-weight: 800;
-  margin: 0;
-}
-
-.qris-subtitle {
-  font-size: 11px;
-  opacity: 0.9;
   margin: 0;
 }
 
@@ -3835,21 +3719,6 @@ body.nav-open .nav-drawer,
 
 .feature-icon {
   font-size: 14px;
-}
-
-.feature-text {
-  font-size: 11px;
-  font-weight: 600;
-  color: #475569;
-}
-
-.qris-submit {
-  background: linear-gradient(180deg, #008800 0%, #006600 100%);
-  box-shadow: 0 4px 12px rgba(0, 136, 0, 0.4);
-}
-
-.qris-submit:hover {
-  box-shadow: 0 6px 20px rgba(0, 136, 0, 0.5);
 }
 
 /* History Section */
