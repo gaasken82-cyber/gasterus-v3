@@ -24,11 +24,17 @@ let checkedCss = 0;
 for (const pagePath of pages) {
   const html = readFileSync(pagePath, 'utf8');
   const page = pagePath.startsWith(`${frontend}/`) ? 'frontend' : 'admin/public';
-  for (const match of html.matchAll(/(?:src|href)="(\/js\/[A-Za-z0-9._-]+\.js)([^"]*)"/g)) {
+  const base = pagePath.startsWith(`${frontend}/`) ? frontend : admin;
+  for (const match of html.matchAll(/<script\b[^>]*>/gi)) {
+    const src = match[0].match(/\bsrc=["']([^"']+\.js(?:\?[^"']*)?)["']/i)?.[1];
+    if (!src || /^(?:https?:)?\/\//i.test(src) || /^(?:data:|blob:)/i.test(src)) continue;
+
     checkedJs += 1;
-    const [, file, rest] = match;
-    if (!/[?&]v=/.test(rest)) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${file} tanpa ?v=`);
-    if (!existsSync(resolve(frontend, file.replace(/^\//, '')))) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${file} tidak ada`);
+    const [pathname, ...queryParts] = src.split('?');
+    const query = queryParts.length ? `?${queryParts.join('?')}` : '';
+    if (!/[?&]v=/.test(query)) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${src} tanpa ?v=`);
+    const assetRoot = pathname.startsWith('/') ? frontend : base;
+    if (!existsSync(resolve(assetRoot, pathname.replace(/^\//, '')))) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${src} tidak ada`);
   }
 
   for (const match of html.matchAll(/<link\b[^>]*>/gi)) {
@@ -41,7 +47,6 @@ for (const pagePath of pages) {
     const [pathname, ...queryParts] = href.split('?');
     const query = queryParts.length ? `?${queryParts.join('?')}` : '';
     if (!/[?&]v=/.test(query)) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${href} tanpa ?v=`);
-    const base = pagePath.startsWith(`${frontend}/`) ? frontend : admin;
     const assetPath = resolve(base, pathname.replace(/^\//, ''));
     if (!existsSync(assetPath)) problems.push(`${page}/${pagePath.split('/').at(-1)}: ${href} tidak ada`);
   }
