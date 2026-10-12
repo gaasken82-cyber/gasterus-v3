@@ -82,14 +82,8 @@ function updateOddsInDOM(key, direction, curOdds, sk) {
 
     const oddsSpan = btn.querySelector('.sb-cell-odds');
     if (oddsSpan) {
-      oddsSpan.className = 'sb-cell-odds pos';
+      oddsSpan.className = `sb-cell-odds ${oddsColorClass(direction)}`;
       oddsSpan.innerHTML = `${escapeHtml(oddsText)}${arrowHtml}`;
-    } else {
-      const quickText = btn.querySelector('div[style*="font-size:11px"]');
-      if (quickText) {
-        quickText.style.cssText = 'font-size:11px; font-weight:800; color:#111827;';
-        quickText.innerHTML = `${escapeHtml(oddsText)}${arrowHtml}`;
-      }
     }
 
     btn.classList.remove('sb-odd-movement-up', 'sb-odd-movement-down');
@@ -153,6 +147,11 @@ function scheduleOddsMovementCleanup(key, delayMs = 1000) {
     const elements = document.querySelectorAll(`[data-sel="${key}"]`);
     elements.forEach(btn => {
       btn.classList.remove('sb-odd-movement-up', 'sb-odd-movement-down');
+      const oddsSpan = btn.querySelector('.sb-cell-odds');
+      if (oddsSpan) {
+        oddsSpan.classList.remove('odds-red', 'odds-blue');
+        oddsSpan.classList.add(oddsColorClass(null, btn.dataset.marketType));
+      }
       const arrows = btn.querySelectorAll('.sb-odd-movement-arrow');
       arrows.forEach(a => a.remove());
     });
@@ -679,19 +678,17 @@ function formatWibDateTime(stamp) {
       minute: '2-digit'
     }).format(date);
 }
-// ---------------------------------------------------------------------------
-// Asian Handicap & Indo Odds Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Indo Odds Calculation:
- * - If Decimal Odds >= 2.00: Indo odds = +(Decimal - 1.00) (Positive, BLACK)
- * - If Decimal Odds < 2.00: Indo odds = -1.00 / (Decimal - 1.00) (Negative, RED)
- * Returns { text: string, isNeg: boolean }
- */
 function formatDecimalOdds(value) {
   const odds = Number(value);
   return Number.isFinite(odds) && odds > 1 ? odds.toFixed(2) : '—';
+}
+
+function oddsColorClass(direction, marketType) {
+  if (direction === 'down') return 'odds-red';
+  if (direction === 'up') return 'odds-blue';
+  return ['HANDICAP', 'TOTALS', '1X2'].includes(String(marketType || '').toUpperCase())
+    ? 'odds-black'
+    : 'odds-blue';
 }
 
 // Timezone-aware "today" check (WIB = UTC+7).
@@ -1041,26 +1038,6 @@ async function openUserBetsModal(title) {
   }
 }
 
-function updateCategoryCounts() {
-  const counts = feed.counts || {};
-  const events = feed.events || [];
-  const liveCount = counts.live ?? events.filter(isLiveEvent).length;
-  const todayCount = counts.today ?? events.filter(isTodayEvent).length;
-  const earlyCount = counts.early ?? events.filter(isFutureEvent).length;
-
-  const cAll = el('count-all');
-  const cLive = el('count-live');
-  const cToday = el('count-today');
-  const cEarly = el('count-early');
-  const cOutright = el('count-outright');
-
-  if (cAll) cAll.textContent = String(counts.all ?? feed.pagination?.total ?? events.length);
-  if (cLive) cLive.textContent = String(liveCount);
-  if (cToday) cToday.textContent = String(todayCount);
-  if (cEarly) cEarly.textContent = String(earlyCount);
-  if (cOutright) cOutright.textContent = '0';
-}
-
 function setupSearch() {
   const input = el('sb-search');
   if (!input) return;
@@ -1170,7 +1147,6 @@ function visibleEvents() {
 
 function renderAll() {
   hideSkeleton();
-  updateCategoryCounts();
   renderLiveCarousel();
   renderPagination();
 
@@ -1302,6 +1278,7 @@ function renderQuickOddBtn(e, m, s, label) {
   let movementClass = '';
   let movementArrow = '';
   const move = oddsMovementMap.get(key);
+  const oddsClass = oddsColorClass(move?.direction, m.type);
   if (move && (Date.now() - move.timestamp) < 1100) {
     if (move.direction === 'up') {
       movementClass = ' sb-odd-movement-up';
@@ -1315,11 +1292,12 @@ function renderQuickOddBtn(e, m, s, label) {
   return `
     <button type="button" class="sb-quick-odd-btn sb-odd-cell${movementClass}"
       data-sel="${escapeHtml(key)}" data-evid="${escapeHtml(e.id)}" data-mk="${escapeHtml(m.id)}" data-sk="${escapeHtml(s.key)}" 
-      data-odds="${escapeHtml(String(s.odds))}" data-pv="${escapeHtml(s.priceVersion || '')}">
+      data-odds="${escapeHtml(String(s.odds))}" data-pv="${escapeHtml(s.priceVersion || '')}"
+      data-market-type="${escapeHtml(m.type || '')}">
       <span>${label}</span>
       <div style="text-align:right;">
         ${lineStr ? `<div style="font-size:9px; color:#0284c7; font-weight:700;">${lineStr}</div>` : ''}
-        <div style="font-size:11px; font-weight:800; color:#111827;">${formatDecimalOdds(s.odds)}${movementArrow}</div>
+        <span class="sb-cell-odds ${oddsClass}">${formatDecimalOdds(s.odds)}${movementArrow}</span>
       </div>
     </button>
   `;
@@ -1426,6 +1404,7 @@ function renderOddCell(e, m, s, lineOverride) {
   let movementClass = '';
   let movementArrow = '';
   const move = oddsMovementMap.get(key);
+  const oddsClass = oddsColorClass(move?.direction, m.type);
   if (move && (Date.now() - move.timestamp) < 1100) {
     if (move.direction === 'up') {
       movementClass = ' sb-odd-movement-up';
@@ -1444,10 +1423,11 @@ function renderOddCell(e, m, s, lineOverride) {
       data-sk="${escapeHtml(s.key)}" 
       data-odds="${decOdds}" 
       data-pv="${escapeHtml(s.priceVersion || '')}"
+      data-market-type="${escapeHtml(m.type || '')}"
       aria-pressed="${isChosen ? 'true' : 'false'}"
       title="${escapeHtml(s.label || s.key)} @ ${decOdds.toFixed(2)}">
       ${lineFormatted ? `<span class="sb-cell-line">${escapeHtml(lineFormatted)}</span>` : ''}
-      <span class="sb-cell-odds pos">${oddsText}${movementArrow}</span>
+      <span class="sb-cell-odds ${oddsClass}">${oddsText}${movementArrow}</span>
     </button>
   `;
 }

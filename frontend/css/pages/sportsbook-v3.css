@@ -298,19 +298,6 @@ body.sb-page {
   font-weight: 700;
   border-bottom: 3px solid #60a5fa;
 }
-.sb-tab-count {
-  background: #1e40af;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 7px;
-  border-radius: 10px;
-  font-family: 'JetBrains Mono', monospace;
-}
-.sb-tab-count.active-badge {
-  background: #2563eb;
-}
-
 /* ==========================================================================
    4. ACTION BAR (Tampilkan Liga, Filter, Search)
    ========================================================================== */
@@ -1158,37 +1145,44 @@ body.sb-page {
   line-height: 1.1;
 }
 
-/* Decimal odds use one consistent color across all markets. */
+/* Odds color reflects direction: falling red, rising blue, unchanged black. */
 .sb-cell-odds {
+  display: inline-block;
   font-size: 12px;
   font-weight: 800;
   font-family: 'JetBrains Mono', monospace;
   line-height: 1.1;
   margin-top: 2px;
 }
-.sb-cell-odds.pos {
+.sb-cell-odds.odds-red {
+  color: #dc2626;
+}
+.sb-cell-odds.odds-blue {
+  color: #2563eb;
+}
+.sb-cell-odds.odds-black {
   color: var(--sb-odd-black);
 }
 
 /* ==========================================================================
-   Visual Odds Movement Indicators (Up: Green Flash, Down: Red Flash)
+   Visual Odds Movement Indicators (Up: Blue Flash, Down: Red Flash)
    ========================================================================== */
 
-@keyframes sbOddFlashGreen {
+@keyframes sbOddFlashBlue {
   0% {
-    background-color: #00ff00; /* Bright lime */
-    border-color: #008000;   /* Darker green */
-    box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.45);
+    background-color: #dbeafe;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
   }
   40% {
-    background-color: #66ff66; /* Light green */
-    border-color: #00b300;   /* Medium green */
-    box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.3);
+    background-color: #eff6ff;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.22);
   }
   75% {
-    background-color: #99ff99; /* Softer green */
-    border-color: #33cc33;   /* Softer border */
-    box-shadow: 0 0 0 1px rgba(0, 255, 0, 0.15);
+    background-color: #f8fbff;
+    border-color: #bfdbfe;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12);
   }
   100% {
     background-color: #ffffff;
@@ -1199,19 +1193,19 @@ body.sb-page {
 
 @keyframes sbOddFlashRed {
   0% {
-    background-color: #ff0000; /* Bright red */
-    border-color: #800000;   /* Darker red */
-    box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.45);
+    background-color: #fee2e2;
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.35);
   }
   40% {
-    background-color: #ff6666; /* Light red */
-    border-color: #b30000;   /* Medium red */
-    box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.3);
+    background-color: #fef2f2;
+    border-color: #f87171;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.22);
   }
   75% {
-    background-color: #ff9999; /* Softer red */
-    border-color: #cc3333;   /* Softer border */
-    box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.15);
+    background-color: #fffafa;
+    border-color: #fecaca;
+    box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.12);
   }
   100% {
     background-color: #ffffff;
@@ -1236,7 +1230,7 @@ body.sb-page {
 }
 
 .sb-odd-cell.sb-odd-movement-up {
-  animation: sbOddFlashGreen 1800ms ease-out forwards;
+  animation: sbOddFlashBlue 1800ms ease-out forwards;
 }
 
 .sb-odd-cell.sb-odd-movement-down {
@@ -1262,7 +1256,7 @@ body.sb-page {
 }
 
 .sb-odd-movement-arrow.up {
-  color: #16a34a;
+  color: #2563eb;
 }
 
 .sb-odd-movement-arrow.down {
@@ -2259,17 +2253,6 @@ body.sb-page {
   border-bottom-color: #2563eb;
 }
 
-.sb-tab-count,
-.sb-tab-count.active-badge {
-  background: #edf2f8;
-  color: #475569;
-}
-
-.sb-cat-tab.active .sb-tab-count {
-  background: #e7efff;
-  color: #174ea6;
-}
-
 .sb-main {
   padding-top: 18px;
 }
@@ -2817,17 +2800,6 @@ body.sb-page {
 
 .sb-cat-tab.active {
   border-bottom-color: #218052;
-}
-
-.sb-tab-count,
-.sb-tab-count.active-badge {
-  background: #edf2ee;
-  color: #536359;
-}
-
-.sb-cat-tab.active .sb-tab-count {
-  background: #e4f1e7;
-  color: #176a46;
 }
 
 .sb-action-bar {
