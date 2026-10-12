@@ -20,6 +20,7 @@ const STREAM_URL = '/api/member/sportsbook/stream';
 const SNAPSHOT_URL = '/api/member/sportsbook/events';
 const FEED_DETAIL_URL = (id) => `/api/member/sportsbook/events/${encodeURIComponent(id)}`;
 const EVENTS_PAGE_SIZE = 30;
+const pageSize = EVENTS_PAGE_SIZE;
 const BETSLIP_MOBILE_BREAKPOINT = 860;
 
 // ---------------------------------------------------------------------------
@@ -38,6 +39,10 @@ let currentCountry = 'all';
 let currentFilter = 'all'; // all | live | today | early | fav
 let searchQuery = '';
 let visibleEventLimit = EVENTS_PAGE_SIZE;
+let currentOffset = 0;
+let lastPageEventCount = pageSize;
+let isLoadingMore = false;
+let feedViewGeneration = 0;
 const FAV_KEY = 'gasterus_sb_fav_leagues';
 let favLeagues = new Set();
 try { favLeagues = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch { favLeagues = new Set(); }
@@ -372,13 +377,14 @@ function startStream() {
 
 // REST bootstrap/fallback — papan tetap terisi walau SSE terblokir/dibuffer perantara.
 async function loadRestSnapshot({ append = false } = {}) {
+  const generation = feedViewGeneration;
   try {
     const headers = { Accept: 'application/json' };
     if (api.token) { headers.Authorization = `Bearer ${api.token}`; headers['x-session-token'] = api.token; }
     const params = new URLSearchParams({
       tab: currentFilter === 'fav' ? 'all' : currentFilter,
-      limit: String(EVENTS_PAGE_SIZE),
-      offset: String(append ? feed.pagination.offset + feed.pagination.limit : 0)
+      limit: String(pageSize),
+      offset: String(append ? currentOffset + pageSize : 0)
     });
     if (currentFilter === 'fav') params.set('leagues', [...favLeagues].join(','));
     if (currentCountry !== 'all') params.set('country', currentCountry);
@@ -387,10 +393,12 @@ async function loadRestSnapshot({ append = false } = {}) {
     const res = await fetch(`${SNAPSHOT_URL}?${params}`, { method: 'GET', credentials: 'include', headers });
     if (!res.ok) { console.warn('[GASTERUS] snapshot http', res.status); return false; }
     const json = await res.json();
+    if (generation !== feedViewGeneration) return false;
     const payload = json?.data || json || null;
     if (payload && Array.isArray(payload.events)) {
+      lastPageEventCount = payload.events.length;
       if (append) streamOffset = Math.max(0, feed.events.length);
-      onSnapshot(payload);
+      onSnapshot(payload, { append });
       return true;
     }
   } catch (e) { console.warn('[GASTERUS] snapshot bootstrap gagal', e); }
@@ -475,13 +483,14 @@ function handleFrame(frame) {
 // Re-render only when the feed revision actually changes (prevents flicker).
 // Satu sumber kebenaran: SSE adalah penulis utama feed. REST hanya bootstrap 1x +
 // darurat saat SSE putus — tidak ada lagi dua penulis yang saling menimpa (akar pola 222↔5).
-function onSnapshot(snapshot) {
+function onSnapshot(snapshot, { append = false } = {}) {
   if (!snapshot || !Array.isArray(snapshot.events)) return;
   const previousFeedRevision = String(feed.source?.feedRevision || '');
   const revision = snapshot.source?.feedRevision || '';
   const pageOffset = Number(snapshot.pagination?.offset || 0);
-  const events = pageOffset > 0
-    ? [...feed.events.slice(0, pageOffset), ...snapshot.events]
+  lastPageEventCount = snapshot.events.length;
+  const events = append || pageOffset > 0
+    ? [...feed.events.slice(0, pageOffset || feed.events.length), ...snapshot.events]
     : snapshot.events;
   feed = {
     events,
@@ -490,7 +499,10 @@ function onSnapshot(snapshot) {
     source: snapshot.source || {},
     leagues: Array.isArray(snapshot.leagues) ? snapshot.leagues : [],
     counts: snapshot.counts || {},
-    pagination: snapshot.pagination || { offset: 0, limit: EVENTS_PAGE_SIZE, total: snapshot.events.length, hasMore: false }
+    pagination: {
+      ...(snapshot.pagination || { offset: 0, limit: pageSize, total: snapshot.events.length, hasMore: false }),
+      hasMore: Boolean(snapshot.pagination?.hasMore) && snapshot.events.length >= pageSize
+    }
   };
   const detailRefreshIds = new Set();
   if (revision && revision !== previousFeedRevision) {
@@ -552,6 +564,7 @@ function onSnapshot(snapshot) {
       if (eventsEl) eventsEl.innerHTML = `<div class="sb-empty">Gagal menampilkan papan: ${escapeHtml(e?.message || String(e))} (build ${SB_BUILD})</div>`;
     }
   }
+  renderPagination();
   renderStatusMeta();
   for (const eventId of detailRefreshIds) void loadEventMarkets(eventId, { notify: false });
 }
@@ -755,8 +768,11 @@ function setMatchFilter(filter) {
 }
 
 function refreshFeedView() {
+  feedViewGeneration += 1;
   feed.events = [];
   feed.pagination = { offset: 0, limit: EVENTS_PAGE_SIZE, total: 0, hasMore: false };
+  currentOffset = 0;
+  lastPageEventCount = pageSize;
   streamOffset = 0;
   if (auth.isLoggedIn()) {
     streamAbortController?.abort();
@@ -1060,6 +1076,12 @@ function setupSearch() {
 }
 
 function bindEventHandlers() {
+  const pagination = el('sb-pagination');
+  if (pagination) {
+    pagination.addEventListener('click', (e) => {
+      if (e.target.closest('[data-load-more-events]')) void loadMoreEvents();
+    });
+  }
   const ev = el('sb-events');
   if (!ev) return;
   ev.addEventListener('click', (e) => {
@@ -1097,12 +1119,6 @@ function bindEventHandlers() {
     const retryMarketsButton = e.target.closest('[data-retry-event-markets]');
     if (retryMarketsButton) {
       void loadEventMarkets(retryMarketsButton.getAttribute('data-retry-event-markets'), { force: true });
-      return;
-    }
-    if (e.target.closest('[data-load-more-events]')) {
-      void loadRestSnapshot({ append: true }).then(loaded => {
-        if (loaded) restartStreamAtCurrentPage();
-      });
       return;
     }
     const accRowHead = e.target.closest('.sb-accordion-header');
@@ -1156,6 +1172,7 @@ function renderAll() {
   hideSkeleton();
   updateCategoryCounts();
   renderLiveCarousel();
+  renderPagination();
 
   const ev = el('sb-events');
   if (!ev) return;
@@ -1170,17 +1187,36 @@ function renderAll() {
   if (empty) empty.hidden = true;
   const visibleList = list;
   ev.innerHTML = renderLeagueGroups(visibleList);
-  if (feed.pagination?.hasMore) {
-    ev.insertAdjacentHTML('beforeend', `
-      <div class="sb-events-load-more">
-        <p>Menampilkan ${fmt(feed.events.length)} dari ${fmt(feed.pagination.total)} pertandingan</p>
-        <button type="button" data-load-more-events>
-          Muat ${fmt(Math.min(EVENTS_PAGE_SIZE, feed.pagination.total - feed.events.length))} pertandingan lagi
-        </button>
-      </div>
-    `);
-  }
   renderSidebar(feed.events);
+}
+
+function renderPagination() {
+  const pagination = el('sb-pagination');
+  const stats = el('sb-pagination-stats');
+  const button = pagination?.querySelector('[data-load-more-events]');
+  if (!pagination || !stats || !button) return;
+  const hasMore = Boolean(feed.pagination?.hasMore) && lastPageEventCount >= pageSize;
+  pagination.hidden = !hasMore;
+  pagination.setAttribute('aria-busy', String(isLoadingMore));
+  stats.textContent = `Menampilkan ${fmt(feed.events.length)} dari ${fmt(feed.pagination?.total ?? feed.events.length)} Pertandingan`;
+  button.disabled = isLoadingMore;
+  button.textContent = isLoadingMore ? 'Memuat Pertandingan…' : 'Muat Lebih Banyak Pertandingan';
+}
+
+async function loadMoreEvents() {
+  if (isLoadingMore || !feed.pagination?.hasMore || lastPageEventCount < pageSize) return;
+  isLoadingMore = true;
+  renderPagination();
+  try {
+    const loaded = await loadRestSnapshot({ append: true });
+    if (loaded) {
+      currentOffset += pageSize;
+      restartStreamAtCurrentPage();
+    }
+  } finally {
+    isLoadingMore = false;
+    renderPagination();
+  }
 }
 
 function setEmpty(msg) {
