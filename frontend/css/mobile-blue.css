@@ -1294,9 +1294,6 @@ footer, .site-footer {
 }
 
 .reg-section-title {
-  font-size: 15px;
-  font-weight: 800;
-  color: #ffffff;
   padding: 10px 14px 0;
   margin-top: 6px;
 }
@@ -1308,7 +1305,6 @@ footer, .site-footer {
 }
 
 .reg-input-col {
-  max-width: 240px;
   width: 100%;
 }
 
@@ -1337,8 +1333,6 @@ footer, .site-footer {
 .reg-label {
   flex-shrink: 0;
   width: 110px;
-  font-size: 11px;
-  font-weight: 700;
   line-height: 1.4;
   text-align: right;
   padding-top: 12px;
@@ -1390,16 +1384,11 @@ select.reg-input {
 }
 
 .reg-phone-wrap {
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   max-width: 240px;
   width: 100%;
 }
 
 .reg-phone-wrap input {
-  padding: 11px 14px;
-  font-size: 13px;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -1409,19 +1398,15 @@ select.reg-input {
 
 .reg-phone-wrap:focus-within {
   transform: translateZ(6px);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.28), inset 0 2px 4px rgba(15,23,42,0.04), 0 8px 16px rgba(37,99,235,0.16);
 }
 
 .reg-captcha-row {
-  gap: 8px;
   flex: 1;
 }
 
 .reg-captcha-img {
   min-width: 0;
-  flex: 0 1 auto;
   overflow: hidden;
-  padding: 4px 8px;
 }
 
 .reg-captcha-img img {
@@ -1432,12 +1417,7 @@ select.reg-input {
 }
 
 .reg-captcha-refresh {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
-  border-radius: 10px;
   font-size: 16px;
-  border: 1.5px solid #60a5fa;
   flex-shrink: 0;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
 }
@@ -1452,11 +1432,7 @@ select.reg-input {
 }
 
 .reg-checkbox {
-  gap: 8px;
-  font-size: 12px;
-  margin-bottom: 6px;
   padding: 0 14px;
-  line-height: 1.4;
 }
 
 .reg-checkbox input[type="checkbox"] {
@@ -1469,18 +1445,10 @@ select.reg-input {
 
 .btn-register-submit {
   display: block;
-  width: calc(100% - 28px);
-  margin: 16px 14px 20px;
-  background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: 0.6px;
   font-family: 'Outfit', sans-serif;
   border-top: 1px solid rgba(255, 255, 255, 0.5);
   /* 3D pressed slab */
-  box-shadow: 0 1px 0 rgba(255,255,255,0.5), 0 6px 2px -1px rgba(37,99,235,0.5), 0 14px 4px -6px rgba(37,99,235,0.6), 0 26px 8px -12px rgba(37,99,235,0.28);
   transform: translateY(-3px);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
 }
 .page-register .btn-register-submit:hover {
   transform: translateY(-5px);
@@ -2172,19 +2140,7 @@ select.reg-input {
 
 /* --- 21. Header Menu Toggle + Side Nav Drawer (Cindototo style) --- */
 .menu-toggle {
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid #334155;
-  border-radius: 6px;
-  color: #38bdf8;
-  font-size: 18px;
   line-height: 1;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 5px rgba(0, 0, 0, 0.5);
   flex-shrink: 0;
 }
 .nav-drawer-backdrop {
@@ -3201,7 +3157,6 @@ body.nav-open .nav-drawer,
 
 .history-card-header h3 {
   font-family: 'Outfit', sans-serif;
-  font-size: 14px;
   font-weight: 700;
   color: #ffffff;
   margin: 0;
@@ -3409,10 +3364,6 @@ body.nav-open .nav-drawer,
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 10px 4px;
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -3426,9 +3377,6 @@ body.nav-open .nav-drawer,
 }
 
 .info-card {
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  border-radius: 12px;
   margin-bottom: 16px;
   overflow: hidden;
 }
@@ -3437,9 +3385,6 @@ body.nav-open .nav-drawer,
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 16px;
-  background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%);
-  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
 }
 
 .info-icon {
@@ -3462,7 +3407,6 @@ body.nav-open .nav-drawer,
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -3488,17 +3432,11 @@ body.nav-open .nav-drawer,
 }
 
 .copy-btn {
-  padding: 4px 10px;
-  background: #1e3a5f;
-  border: 1px solid #38bdf8;
-  border-radius: 4px;
-  color: #38bdf8;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .copy-btn:hover {
-  background: #38bdf8;
   color: #ffffff;
 }
 
@@ -3574,20 +3512,11 @@ body.nav-open .nav-drawer,
 
 .preset-amounts {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 6px;
   margin-bottom: 16px;
 }
 
 .preset-btn {
-  padding: 8px 4px;
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 6px;
-  color: #94a3b8;
-  font-size: 11px;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .preset-btn:hover:not(.active) {
@@ -3598,10 +3527,8 @@ body.nav-open .nav-drawer,
 .btn-submit {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(180deg, #38bdf8 0%, #2563eb 100%);
   color: #ffffff;
   border: none;
-  border-radius: 10px;
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;
@@ -3609,7 +3536,6 @@ body.nav-open .nav-drawer,
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
   transition: all 0.15s ease;
 }
 
@@ -3628,8 +3554,6 @@ body.nav-open .nav-drawer,
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
-  background: linear-gradient(135deg, #008800 0%, #006600 100%);
   color: #ffffff;
 }
 
@@ -3639,14 +3563,9 @@ body.nav-open .nav-drawer,
 
 .qris-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 16px;
-  font-weight: 800;
 }
 
 .qris-badge {
-  padding: 4px 10px;
-  background: #22c55e;
-  font-size: 10px;
   animation: pulse 2s infinite;
 }
 
@@ -3658,16 +3577,11 @@ body.nav-open .nav-drawer,
 .qris-features {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  padding: 12px;
-  background: #f1f5f9;
-  border-bottom: 1px solid #e2e8f0;
 }
 
 .feature-item {
   display: flex;
   align-items: center;
-  gap: 4px;
 }
 
 .feature-icon {

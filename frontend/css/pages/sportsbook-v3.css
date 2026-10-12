@@ -42,17 +42,10 @@
 
 body.sb-page {
   min-height: 100dvh;
-  background-color: var(--sb-page-bg);
-  background-image:
-    linear-gradient(180deg, rgba(8,29,61,0.72) 0%, rgba(4,8,20,0.86) 100%),
-    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.25) 0%, transparent 55%),
-    url('/assets/bg-main.jpg');
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  color: var(--sb-text-dark);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 13px;
   line-height: 1.4;
   padding-bottom: 70px; /* space for fixed bottom nav */
@@ -66,13 +59,9 @@ body.sb-page {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--sb-navy-dark);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .sb-header-inner {
-  max-width: 1440px;
   margin: 0 auto;
-  padding: 8px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -182,7 +171,6 @@ body.sb-page {
 .sb-subheader-inner {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -192,7 +180,6 @@ body.sb-page {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #ffffff;
   cursor: pointer;
   font-size: 13px;
   user-select: none;
@@ -235,15 +222,10 @@ body.sb-page {
 }
 
 .sb-parlay-pill {
-  background: #ffffff;
-  color: var(--sb-navy-dark);
-  border: none;
-  border-radius: 20px;
   padding: 5px 16px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease;
 }
 .sb-parlay-pill.active {
@@ -256,8 +238,6 @@ body.sb-page {
    3. CATEGORY TABS (Langsung, Hari Ini, Pasar Awal, Outright)
    ========================================================================== */
 .sb-category-bar {
-  background: var(--sb-navy-dark);
-  border-bottom: 2px solid #1e3a8a;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -266,13 +246,10 @@ body.sb-page {
   max-width: 1440px;
   margin: 0 auto;
   display: flex;
-  gap: 4px;
-  padding: 0 10px;
 }
 .sb-cat-tab {
   background: none;
   border: none;
-  color: #93c5fd;
   font-size: 12px;
   font-weight: 600;
   padding: 10px 14px;
@@ -294,14 +271,11 @@ body.sb-page {
    4. ACTION BAR (Tampilkan Liga, Filter, Search)
    ========================================================================== */
 .sb-action-bar {
-  background: #ffffff;
   border-bottom: 1px solid var(--sb-border-light);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .sb-action-inner {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 8px 14px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -310,10 +284,7 @@ body.sb-page {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #2563eb;
-  color: #ffffff;
   border: none;
-  border-radius: 6px;
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 600;
@@ -340,14 +311,11 @@ body.sb-page {
 .sb-search-wrap input {
   width: 100%;
   padding: 6px 12px;
-  border-radius: 6px;
   border: 1px solid var(--sb-border-cell);
   font-size: 12px;
-  background: #f8fafc;
   outline: none;
 }
 .sb-search-wrap input:focus {
-  border-color: #2563eb;
   background: #ffffff;
 }
 .sb-rt-status {
@@ -464,9 +432,7 @@ body.sb-page {
    6. MAIN LAYOUT (Sidebar Desktop, Main Content, Desktop Betslip)
    ========================================================================== */
 .sb-main {
-  max-width: 1440px;
   margin: 0 auto;
-  padding: 10px 14px;
 }
 .sb-feed-overview {
   display: flex;
@@ -474,11 +440,6 @@ body.sb-page {
   justify-content: space-between;
   gap: 14px;
   margin: 0 0 12px;
-  padding: 10px 14px;
-  border: 1px solid rgba(191, 219, 254, 0.85);
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
 }
 .sb-feed-overview > div {
   display: flex;
@@ -492,7 +453,6 @@ body.sb-page {
   margin-right: auto;
 }
 .sb-feed-overview strong {
-  color: #0f172a;
   font-size: 12px;
   font-weight: 800;
 }
@@ -505,8 +465,6 @@ body.sb-page {
 }
 .sb-layout {
   display: grid;
-  grid-template-columns: 210px 1fr 300px;
-  gap: 16px;
   align-items: start;
 }
 
@@ -540,15 +498,11 @@ body.sb-page {
   background: #ffffff;
   border-radius: 8px;
   border: 1px solid var(--sb-border-light);
-  padding: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .sb-sidebar-title {
-  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--sb-text-muted);
   margin-bottom: 8px;
 }
 .sb-sidebar-sub {
@@ -566,16 +520,12 @@ body.sb-page {
   padding: 7px 10px;
   background: none;
   border: none;
-  border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--sb-text-dark);
   cursor: pointer;
   transition: all 0.12s ease;
 }
 .sb-nav-item.active {
-  background: #eff6ff;
-  color: #2563eb;
   font-weight: 700;
 }
 .sb-sidebar-group-title {
@@ -628,9 +578,6 @@ body.sb-page {
    ========================================================================== */
 .sb-league-head {
   width: 100%;
-  background: linear-gradient(90deg, #c3dbf7 0%, #dcebfc 100%);
-  border: 1px solid #b3d1f3;
-  border-radius: 6px 6px 0 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -649,11 +596,8 @@ body.sb-page {
   min-width: 0;
   flex: 1 1 auto;
   overflow-wrap: anywhere;
-  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #103b75;
 }
 .sb-league-right {
   display: flex;
@@ -661,8 +605,6 @@ body.sb-page {
   gap: 8px;
 }
 .sb-league-pill {
-  background: #1d72b8;
-  color: #ffffff;
   font-size: 10px;
   font-weight: 700;
   padding: 1px 7px;
@@ -683,22 +625,15 @@ body.sb-page {
    8. MATCH CARD — THE 3-COLUMN ASIAN MATRIX (CRITICAL MASTERPIECE)
    ========================================================================== */
 .sb-match-card {
-  border: 1px solid var(--sb-border-light);
   border-top: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   margin-bottom: 12px;
-  border-radius: 0 0 8px 8px;
-  overflow: hidden;
 }
 
 /* Slanted Banner: LANGSUNG + League + Refresh */
 .sb-card-banner {
-  background: #0f172a;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px;
-  height: 28px;
   overflow: hidden;
 }
 .sb-banner-left {
@@ -761,8 +696,6 @@ body.sb-page {
 .sb-banner-refresh {
   background: none;
   border: none;
-  color: #94a3b8;
-  font-size: 14px;
   cursor: pointer;
   line-height: 1;
 }
@@ -770,11 +703,8 @@ body.sb-page {
 
 /* Teams and Date/Score Row */
 .sb-teams-row {
-  display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 10px 14px 6px;
-  gap: 8px;
 }
 .sb-team-col {
   display: flex;
@@ -805,10 +735,8 @@ body.sb-page {
   display: block;
 }
 .sb-match-kickoff {
-  font-size: 13px;
   font-weight: 800;
   font-family: 'JetBrains Mono', monospace;
-  color: #0f172a;
 }
 .sb-match-live-score {
   font-size: 15px;
@@ -818,7 +746,6 @@ body.sb-page {
 }
 .sb-match-live-clock {
   font-weight: 700;
-  color: #ea580c;
   display: block;
 }
 
@@ -828,18 +755,12 @@ body.sb-page {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px 12px;
-  background: #f8fafc;
-  border-bottom: 1px solid var(--sb-border-light);
   color: #64748b;
-  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.35px;
   text-transform: uppercase;
 }
 .sb-match-market-head span:first-child {
-  color: #0f172a;
-  font-size: 11px;
   font-weight: 800;
 }
 
@@ -855,7 +776,6 @@ body.sb-page {
   min-width: 0;
   flex: 1 1 auto;
   overflow-wrap: anywhere;
-  color: #1e293b;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.3px;
@@ -875,9 +795,6 @@ body.sb-page {
   align-items: center;
   padding: 4px 7px;
   border: 1px solid rgba(37, 99, 235, 0.25);
-  border-radius: 999px;
-  background: rgba(59, 130, 246, 0.08);
-  color: #1d4ed8;
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.2px;
@@ -907,23 +824,15 @@ body.sb-page {
 }
 .sb-market-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: 8px;
-  padding: 10px 12px;
 }
 .sb-market-card {
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--sb-border-light);
-  border-radius: 7px;
   background: #ffffff;
 }
 .sb-market-card-title {
-  padding: 7px 8px;
-  background: #f8fafc;
   border-bottom: 1px solid var(--sb-border-light);
-  color: #475569;
-  font-size: 10px;
   font-weight: 800;
   text-align: center;
   text-transform: uppercase;
@@ -931,19 +840,14 @@ body.sb-page {
 .sb-market-outcomes {
   display: grid;
   grid-template-columns: repeat(var(--outcome-count), minmax(0, 1fr));
-  gap: 5px;
-  padding: 7px;
 }
 .sb-market-outcome {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 4px;
 }
 .sb-market-outcome-label {
   overflow: hidden;
-  color: #64748b;
-  font-size: 10px;
   font-weight: 800;
   text-align: center;
   text-overflow: ellipsis;
@@ -956,14 +860,8 @@ body.sb-page {
 .sb-market-period {
   display: flex;
   align-items: center;
-  min-height: 28px;
-  padding: 5px 12px;
-  background: #eff6ff;
   border-bottom: 1px solid #dbeafe;
-  color: #1e40af;
-  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.5px;
 }
 .sb-market-period-tabs {
   display: flex;
@@ -980,8 +878,6 @@ body.sb-page {
   padding: 5px 12px;
   border: 1px solid #dbe3ed;
   border-radius: 4px;
-  background: #f8fafc;
-  color: #475569;
   font: inherit;
   font-size: 11px;
   font-weight: 700;
@@ -1055,17 +951,13 @@ body.sb-page {
 /* The Odds Box (Interactive Cell) */
 .sb-odd-cell {
   flex: 1;
-  min-height: 42px;
-  background: #ffffff;
   border: 1px solid var(--sb-border-cell);
-  border-radius: 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 3px 4px;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition: all 0.12s ease;
   user-select: none;
 }
@@ -1088,9 +980,7 @@ body.sb-page {
 
 /* Line / Spread in BLUE */
 .sb-cell-line {
-  font-size: 11px;
   font-weight: 700;
-  color: var(--sb-odd-blue);
   font-family: 'JetBrains Mono', monospace;
   line-height: 1.1;
 }
@@ -1098,7 +988,6 @@ body.sb-page {
 /* Odds color reflects direction: falling red, rising blue, unchanged black. */
 .sb-cell-odds {
   display: inline-block;
-  font-size: 12px;
   font-weight: 800;
   font-family: 'JetBrains Mono', monospace;
   line-height: 1.1;
@@ -1226,12 +1115,9 @@ body.sb-page {
 
 /* Card Footer (Soccer Field Icon + More Markets Badge) */
 .sb-card-footer {
-  background: #f8fafc;
-  padding: 6px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid var(--sb-border-light);
 }
 .sb-events-load-more {
   display: grid;
@@ -1537,7 +1423,6 @@ body.sb-page {
   right: 0;
   z-index: 999;
   height: 58px;
-  background: var(--sb-navy-dark);
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
@@ -1614,7 +1499,6 @@ body.sb-page {
    ========================================================================== */
 .sb-betslip {
   background: #ffffff;
-  border-radius: 8px;
   border: 1px solid var(--sb-border-light);
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -1623,17 +1507,14 @@ body.sb-page {
 }
 /* Desktop betslip tabs (Single / Mix Parlay) */
 .sb-betslip-tabs {
-  background: var(--sb-navy-header);
   display: flex;
   align-items: center;
   padding: 0 8px;
   gap: 2px;
-  min-height: 40px;
 }
 .sb-bs-tab {
   background: none;
   border: none;
-  color: #93c5fd;
   font-size: 12px;
   font-weight: 700;
   padding: 8px 12px;
@@ -1649,7 +1530,6 @@ body.sb-page {
 .sb-betslip-mode {
   margin-left: auto;
   font-size: 10px;
-  color: #facc15;
   font-weight: 600;
   padding-right: 4px;
 }
@@ -1670,9 +1550,7 @@ body.sb-page {
   margin-bottom: 12px;
 }
 .sb-slip-leg {
-  background: #f8fafc;
   border: 1px solid var(--sb-border-light);
-  border-radius: 6px;
   padding: 8px 10px;
   display: flex;
   justify-content: space-between;
@@ -1687,7 +1565,6 @@ body.sb-page {
 }
 .sb-slip-pick {
   font-size: 12px;
-  color: #2563eb;
   font-weight: 700;
   margin-top: 2px;
   display: block;
@@ -1711,8 +1588,6 @@ body.sb-page {
 .sb-slip-remove:hover { color: #ef4444; }
 
 .sb-slip-summary {
-  background: #f8fafc;
-  border-radius: 6px;
   padding: 10px;
   margin-bottom: 12px;
   display: flex;
@@ -1768,10 +1643,8 @@ body.sb-page {
 }
 .sb-btn-place {
   width: 100%;
-  background: #16a34a;
   color: #ffffff;
   border: none;
-  border-radius: 6px;
   padding: 10px;
   font-size: 13px;
   font-weight: 800;
@@ -1803,7 +1676,6 @@ body.sb-page {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.55);
-  z-index: 1000;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
 }
@@ -1819,7 +1691,6 @@ body.sb-page {
   background: #0f172a;
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
-  z-index: 1001;
   display: flex;
   flex-direction: column;
   transform: translateY(110%);
@@ -1872,9 +1743,7 @@ body.sb-page {
   white-space: nowrap;
 }
 .sb-slip-tab.active {
-  background: #2563eb;
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(37,99,235,0.4);
 }
 .sb-slip-tab svg { flex-shrink: 0; }
 
@@ -2167,12 +2036,9 @@ body.sb-page {
 /* Sportsbook board layout */
 body.sb-page {
   background: #f3f5f8;
-  background-image: none;
-  color: #172033;
 }
 
 .sb-header {
-  background: #101d33;
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -2189,56 +2055,43 @@ body.sb-page {
 }
 
 .sb-board-eyebrow {
-  color: #2563eb;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: 1px;
 }
 
 .sb-board-heading h1 {
   margin: 2px 0 0;
-  color: #172033;
-  font-size: 21px;
   font-weight: 800;
-  letter-spacing: -0.5px;
 }
 
 .sb-board-timezone {
   padding-bottom: 2px;
-  color: #64748b;
   font-size: 10px;
   white-space: nowrap;
 }
 
 .sb-feed-overview {
   border-color: #e0e6ee;
-  box-shadow: 0 1px 2px rgba(16, 29, 51, 0.04);
 }
 
 .sb-sidebar {
   position: sticky;
-  top: 72px;
 }
 
 .sb-league-group {
-  margin-bottom: 12px;
   overflow: hidden;
   border: 1px solid #dce2ea;
-  border-radius: 7px;
   background: #fff;
 }
 
 .sb-league-head {
-  min-height: 39px;
   padding: 8px 12px;
-  background: #eaf0f7;
   border: 0;
   border-bottom: 1px solid #dce2ea;
   border-radius: 0;
 }
 
 .sb-league-title {
-  color: #23354f;
   font-size: 11px;
   letter-spacing: 0.35px;
 }
@@ -2295,8 +2148,6 @@ body.sb-page {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #e34848;
-  box-shadow: 0 0 0 3px #fde8e8;
 }
 
 .sb-banner-refresh {
@@ -2361,13 +2212,11 @@ body.sb-page {
   grid-row: 1;
   min-height: 31px;
   padding: 7px 10px;
-  background: #fff;
   border-bottom: 1px solid #e8edf3;
   font-size: 9px;
 }
 
 .sb-match-market-head span:first-child {
-  color: #68778d;
   font-size: 9px;
   letter-spacing: 0.5px;
 }
@@ -2397,8 +2246,6 @@ body.sb-page {
 .sb-market-card-title {
   min-height: 27px;
   padding: 6px 4px;
-  background: #f7f9fc;
-  color: #53647b;
   font-size: 8px;
   letter-spacing: 0.2px;
 }
@@ -2413,24 +2260,19 @@ body.sb-page {
 }
 
 .sb-market-outcome-label {
-  color: #79879a;
   font-size: 9px;
 }
 
 .sb-odd-cell {
   min-height: 36px;
-  border-color: #e0e6ee;
   border-radius: 4px;
-  background: #f8fafc;
 }
 
 .sb-cell-line {
-  color: #2563eb;
   font-size: 9px;
 }
 
 .sb-cell-odds {
-  color: #1e293b;
   font-size: 11px;
 }
 
@@ -2441,8 +2283,6 @@ body.sb-page {
 
 .sb-detail-markets-toggle {
   min-height: 31px;
-  background: #f7f9fc;
-  color: #31557f;
   font-size: 10px;
 }
 
@@ -2461,7 +2301,6 @@ body.sb-page {
 
 .sb-betslip {
   position: sticky;
-  top: 72px;
   max-height: calc(100vh - 86px);
 }
 
