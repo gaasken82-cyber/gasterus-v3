@@ -78,7 +78,7 @@ body.sb-page {
   justify-content: space-between;
   position: relative;
 }
-.sb-logo-center { display: flex; align-items: center; pointer-events: none; position: static; transform: none; margin-right: auto; margin-left: 2px; order: -1; }
+.sb-logo-center { display: flex; align-items: center; pointer-events: none; position: static; transform: none; margin-right: auto; margin-left: 2px; }
 .sb-logo-img {
   height: 30px;
   width: auto;
@@ -198,7 +198,6 @@ body.sb-page {
   user-select: none;
 }
 .sb-breadcrumb strong {
-  color: #ffffff;
   font-weight: 700;
 }
 .sb-chevron-down {
@@ -305,7 +304,6 @@ body.sb-page {
   padding: 8px 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
 }
 .sb-btn-action {
@@ -633,7 +631,6 @@ body.sb-page {
   background: linear-gradient(90deg, #c3dbf7 0%, #dcebfc 100%);
   border: 1px solid #b3d1f3;
   border-radius: 6px 6px 0 0;
-  padding: 8px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -686,7 +683,6 @@ body.sb-page {
    8. MATCH CARD — THE 3-COLUMN ASIAN MATRIX (CRITICAL MASTERPIECE)
    ========================================================================== */
 .sb-match-card {
-  background: #ffffff;
   border: 1px solid var(--sb-border-light);
   border-top: none;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
@@ -821,7 +817,6 @@ body.sb-page {
   color: #dc2626;
 }
 .sb-match-live-clock {
-  font-size: 10px;
   font-weight: 700;
   color: #ea580c;
   display: block;
@@ -1660,7 +1655,6 @@ body.sb-page {
 }
 .sb-betslip-body {
   padding: 12px;
-  overflow-y: auto;
   flex: 1;
 }
 .sb-slip-empty {
@@ -1762,7 +1756,6 @@ body.sb-page {
 .sb-quick-btn {
   background: #ffffff;
   border: 1px solid var(--sb-border-cell);
-  border-radius: 4px;
   padding: 4px;
   font-size: 10px;
   font-weight: 700;

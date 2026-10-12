@@ -1294,7 +1294,6 @@ footer, .site-footer {
 }
 
 .reg-section-title {
-  font-family: 'Outfit', sans-serif;
   font-size: 15px;
   font-weight: 800;
   color: #ffffff;
@@ -1309,9 +1308,6 @@ footer, .site-footer {
 }
 
 .reg-input-col {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   max-width: 240px;
   width: 100%;
 }
@@ -1343,7 +1339,6 @@ footer, .site-footer {
   width: 110px;
   font-size: 11px;
   font-weight: 700;
-  color: #94a3b8;
   line-height: 1.4;
   text-align: right;
   padding-top: 12px;
@@ -1363,14 +1358,11 @@ footer, .site-footer {
 }
 
 .reg-input::placeholder {
-  color: #94a3b8;
   font-size: 12px;
 }
 
 .reg-input:focus {
-  border-color: #2563eb;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 /* Validation state — class-based (menang atas :focus, sinkron dgn centang) */
@@ -1398,26 +1390,17 @@ select.reg-input {
 }
 
 .reg-phone-wrap {
-  display: flex;
-  align-items: center;
-  background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  overflow: hidden;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   max-width: 240px;
   width: 100%;
 }
 
 .reg-phone-wrap input {
-  flex: 1;
-  border: none;
-  background: transparent;
   padding: 11px 14px;
-  color: #1e293b;
   font-size: 13px;
   font-family: 'Inter', system-ui, sans-serif;
-  outline: none;
 }
 
 .reg-phone-wrap input::placeholder {
@@ -1425,27 +1408,18 @@ select.reg-input {
 }
 
 .reg-phone-wrap:focus-within {
-  border-color: #2563eb;
   transform: translateZ(6px);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.28), inset 0 2px 4px rgba(15,23,42,0.04), 0 8px 16px rgba(37,99,235,0.16);
 }
 
 .reg-captcha-row {
-  display: flex;
-  align-items: center;
   gap: 8px;
   flex: 1;
 }
 
 .reg-captcha-img {
-  background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
   min-width: 0;
   flex: 0 1 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
   padding: 4px 8px;
 }
@@ -1462,21 +1436,14 @@ select.reg-input {
   height: 40px;
   background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
   border-radius: 10px;
-  color: #ffffff;
   font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border: 1.5px solid #60a5fa;
-  cursor: pointer;
   flex-shrink: 0;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
-  transition: all 0.15s ease;
 }
 .reg-captcha-refresh:hover {
   background: linear-gradient(180deg, #60a5fa 0%, #2563eb 50%, #1d4ed8 100%);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 4px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
 }
 .reg-captcha-refresh:active {
   background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%);
@@ -1485,11 +1452,8 @@ select.reg-input {
 }
 
 .reg-checkbox {
-  display: flex;
-  align-items: flex-start;
   gap: 8px;
   font-size: 12px;
-  color: #cbd5e1;
   margin-bottom: 6px;
   padding: 0 14px;
   line-height: 1.4;
@@ -1507,15 +1471,10 @@ select.reg-input {
   display: block;
   width: calc(100% - 28px);
   margin: 16px 14px 20px;
-  height: 50px;
   background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
-  color: #ffffff;
-  border: none;
-  border-radius: 10px;
   font-size: 18px;
   font-weight: 900;
   letter-spacing: 0.6px;
-  cursor: pointer;
   font-family: 'Outfit', sans-serif;
   border-top: 1px solid rgba(255, 255, 255, 0.5);
   /* 3D pressed slab */
@@ -3534,8 +3493,6 @@ body.nav-open .nav-drawer,
   border: 1px solid #38bdf8;
   border-radius: 4px;
   color: #38bdf8;
-  font-size: 10px;
-  font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -3629,7 +3586,6 @@ body.nav-open .nav-drawer,
   border-radius: 6px;
   color: #94a3b8;
   font-size: 11px;
-  font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -3685,15 +3641,12 @@ body.nav-open .nav-drawer,
   font-family: 'Outfit', sans-serif;
   font-size: 16px;
   font-weight: 800;
-  margin: 0;
 }
 
 .qris-badge {
   padding: 4px 10px;
   background: #22c55e;
-  border-radius: 999px;
   font-size: 10px;
-  font-weight: 800;
   animation: pulse 2s infinite;
 }
 
