@@ -47,8 +47,8 @@ test('member event list and event detail both preserve all available markets',()
 
 test('FINAL mobile frontend bootstraps REST snapshot and reconnects SSE with bounded backoff',()=>{
   const js=readFileSync(new URL('../../frontend/js/sportsbook.js',import.meta.url),'utf8');
-  assert.match(js,/async function loadRestSnapshot\(\)/);
-  assert.match(js,/if \(payload && Array\.isArray\(payload\.events\)\) \{\s*onSnapshot\(payload\);/);
+  assert.match(js,/async function loadRestSnapshot\(\{ append = false \} = \{\}\)/);
+  assert.match(js,/if \(payload && Array\.isArray\(payload\.events\)\) \{\s*lastPageEventCount = payload\.events\.length;\s*if \(append\) streamOffset = Math\.max\(0, feed\.events\.length\);\s*onSnapshot\(payload, \{ append \}\);/);
   assert.doesNotMatch(js,/Array\.isArray\(payload\.events\) && payload\.events\.length/);
   // SSE adalah satu-satunya penulis realtime; REST hanya bootstrap 1x + darurat saat
   // SSE putus. TIDAK ada lagi polling berkala yang menimpa snapshot SSE (akar pola
@@ -57,5 +57,5 @@ test('FINAL mobile frontend bootstraps REST snapshot and reconnects SSE with bou
   assert.doesNotMatch(js,/setInterval\(\(\) => \{ if \(!streamClosed\) loadRestSnapshot\(\)/);
   assert.match(js,/await loadRestSnapshot\(\);/);
   assert.match(js,/backoff = Math\.min\(backoff \* 1\.6, 15000\)/);
-  assert.match(js,/connectStream\(\)/);
+  assert.match(js,/connectStream\(generation\)/);
 });

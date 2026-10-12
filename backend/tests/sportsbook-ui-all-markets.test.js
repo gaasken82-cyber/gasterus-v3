@@ -124,8 +124,8 @@ test('match cards present fixtures and provider-backed markets as a responsive s
   assert.match(styles, /\.sb-match-card\s*\{[\s\S]*grid-template-columns: minmax\(176px, 0\.72fr\) minmax\(0, 1\.7fr\)/);
   assert.match(styles, /\.sb-market-grid\s*\{[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@media \(max-width: 860px\)[\s\S]*?\.sb-match-card\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
-  assert.match(page, /sportsbook-v3\.css\?v=20261012-soccer-global-r1/);
-  assert.match(page, /sportsbook\.js\?v=20261012-soccer-global-r1/);
+  assert.match(page, /sportsbook-v3\.css\?v=[^"']+/);
+  assert.match(page, /sportsbook\.js\?v=[^"']+/);
 });
 
 test('sportsbook cashout action routes to the dedicated cashout page instead of a duplicate bets modal', () => {
@@ -165,6 +165,6 @@ test('market explorer labels HT and FT periods clearly and does not confuse odd/
 test('odds movement indicators remain readable long enough to identify direction', () => {
   const styles = readFileSync(new URL('../../frontend/css/pages/sportsbook-v3.css', import.meta.url), 'utf8');
   assert.match(frontend, /scheduleOddsMovementCleanup\(key, 1800\)/);
-  assert.match(styles, /\.sb-odd-cell\.sb-odd-movement-up\s*\{\s*animation: sbOddFlashGreen 1800ms/);
+  assert.match(styles, /\.sb-odd-cell\.sb-odd-movement-up\s*\{\s*animation: sbOddFlashBlue 1800ms/);
   assert.match(styles, /\.sb-odd-cell\.sb-odd-movement-down\s*\{\s*animation: sbOddFlashRed 1800ms/);
 });

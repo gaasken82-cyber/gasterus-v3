@@ -19,6 +19,7 @@ function runFeedProbe() {
   const script = `
     const { __sportsbookFeed } = await import('./src/sportsbook-feed.js');
     const now = Date.now();
+    const wibDayStart = Math.floor((now + 7 * 60 * 60 * 1000) / 86400000) * 86400000 - 7 * 60 * 60 * 1000;
     const event = (id, sport, league, startTime, live = false) => ({
       id, sport, country: 'England', league,
       startTime: new Date(startTime).toISOString(),
@@ -26,7 +27,7 @@ function runFeedProbe() {
     });
     const fixtures = [
       event('live', 'Football', 'Premier League', now - 900000, true),
-      event('today', 'Football', 'Championship', now + 3600000),
+      event('today', 'Football', 'Championship', wibDayStart + 12 * 60 * 60 * 1000),
       event('early', 'Soccer', 'League One', now + 3 * 86400000),
       event('other-sport', 'Basketball', 'NBA', now + 3600000)
     ];
