@@ -179,10 +179,6 @@ body.sb-page {
 /* ==========================================================================
    2. SUB-HEADER (Sport Selector & Mix Parlay Pill)
    ========================================================================== */
-.sb-subheader {
-  background: var(--sb-navy-header);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
 .sb-subheader-inner {
   max-width: 1440px;
   margin: 0 auto;
@@ -200,9 +196,6 @@ body.sb-page {
   cursor: pointer;
   font-size: 13px;
   user-select: none;
-}
-.sb-breadcrumb {
-  color: #e2e8f0;
 }
 .sb-breadcrumb strong {
   color: #ffffff;
@@ -372,10 +365,6 @@ body.sb-page {
   border-radius: 50%;
   background: #94a3b8;
 }
-.sb-rt-dot.on {
-  background: #16a34a;
-  box-shadow: 0 0 6px #16a34a;
-}
 
 /* ==========================================================================
    5. FEATURED LIVE CAROUSEL ("Pantau Pertandingan Live")
@@ -524,17 +513,11 @@ body.sb-page {
 }
 
 @media (max-width: 1120px) {
-  .sb-layout {
-    grid-template-columns: 1fr 280px;
-  }
   .sb-sidebar {
     display: none;
   }
 }
 @media (max-width: 860px) {
-  .sb-layout {
-    grid-template-columns: 1fr;
-  }
   @media (max-width: 480px) {
     .sb-feed-overview {
       gap: 8px;
@@ -551,9 +534,6 @@ body.sb-page {
       overflow: hidden;
       text-overflow: ellipsis;
     }
-  }
-  .sb-betslip {
-    display: none;
   }
 }
 
@@ -594,10 +574,6 @@ body.sb-page {
   color: var(--sb-text-dark);
   cursor: pointer;
   transition: all 0.12s ease;
-}
-.sb-nav-item:hover {
-  background: #f1f5f9;
-  color: #2563eb;
 }
 .sb-nav-item.active {
   background: #eff6ff;
@@ -652,9 +628,6 @@ body.sb-page {
 /* ==========================================================================
    7. LEAGUE GROUP BANNER (Collapsible, Blue Gradient)
    ========================================================================== */
-.sb-league-group {
-  margin-bottom: 16px;
-}
 .sb-league-head {
   width: 100%;
   background: linear-gradient(90deg, #c3dbf7 0%, #dcebfc 100%);
@@ -816,9 +789,6 @@ body.sb-page {
   color: var(--sb-text-dark);
   min-width: 0;
 }
-.sb-team-col.is-fav {
-  color: var(--sb-fav-red); /* Favorite team highlighted in RED */
-}
 .sb-team-col.away {
   justify-content: flex-end;
   text-align: right;
@@ -832,10 +802,6 @@ body.sb-page {
 .sb-team-name {
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.sb-score-col {
-  text-align: center;
-  min-width: 90px;
 }
 .sb-match-date {
   font-size: 10px;
@@ -1026,12 +992,6 @@ body.sb-page {
   font-weight: 700;
   cursor: pointer;
 }
-.sb-market-period-tab:hover,
-.sb-market-period-tab.active {
-  border-color: #2563eb;
-  background: #eff6ff;
-  color: #1d4ed8;
-}
 .sb-market-period-tab:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
@@ -1117,11 +1077,6 @@ body.sb-page {
 .sb-odd-cell:hover {
   background: var(--sb-cell-hover);
   border-color: #93c5fd;
-}
-.sb-odd-cell.chosen {
-  background: var(--sb-cell-selected);
-  border-color: #0284c7;
-  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
 }
 .sb-odd-cell.disabled, .sb-odd-cell.locked {
   background: #f8fafc;
@@ -1813,7 +1768,6 @@ body.sb-page {
   font-weight: 700;
   cursor: pointer;
 }
-.sb-quick-btn:hover { background: #eff6ff; border-color: #2563eb; }
 .sb-slip-hint {
   font-size: 10px;
   color: #64748b;
@@ -1832,7 +1786,6 @@ body.sb-page {
   box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
   transition: background 0.15s ease;
 }
-.sb-btn-place:hover:not(:disabled) { background: #15803d; }
 .sb-btn-place:disabled { opacity: 0.6; cursor: not-allowed; }
 .sb-btn-ghost {
   width: 100%;
@@ -2072,7 +2025,6 @@ body.sb-page {
 .sb-card-banner { isolation: isolate; }
 .sb-slip-overlay { z-index: 1001; }
 .sb-slip-sheet { z-index: 1002; }
-.sb-league-modal-backdrop, .sb-modal-backdrop { z-index: 1100; }
 
 @keyframes sbFadeIn { from { opacity:0 } to { opacity:1 } }
 
@@ -2231,35 +2183,8 @@ body.sb-page {
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
-.sb-subheader {
-  background: #172945;
-}
-
-.sb-category-bar {
-  background: #fff;
-  border-bottom: 1px solid #dce2ea;
-}
-
-.sb-cat-tab {
-  color: #64748b;
-}
-
-.sb-cat-tab:hover,
-.sb-cat-tab.active {
-  color: #174ea6;
-}
-
-.sb-cat-tab.active {
-  border-bottom-color: #2563eb;
-}
-
 .sb-main {
   padding-top: 18px;
-}
-
-.sb-layout {
-  grid-template-columns: 196px minmax(0, 1fr) 292px;
-  gap: 14px;
 }
 
 .sb-board-heading {
@@ -2297,13 +2222,6 @@ body.sb-page {
   box-shadow: 0 1px 2px rgba(16, 29, 51, 0.04);
 }
 
-.sb-sidebar,
-.sb-betslip {
-  border-color: #e0e6ee;
-  border-radius: 7px;
-  box-shadow: 0 1px 3px rgba(16, 29, 51, 0.05);
-}
-
 .sb-sidebar {
   position: sticky;
   top: 72px;
@@ -2330,11 +2248,6 @@ body.sb-page {
   color: #23354f;
   font-size: 11px;
   letter-spacing: 0.35px;
-}
-
-.sb-league-pill {
-  background: #d9e5f5;
-  color: #31557f;
 }
 
 .sb-match-card {
@@ -2488,11 +2401,6 @@ body.sb-page {
   padding: 6px 8px 9px;
 }
 
-.sb-market-card {
-  border-color: #e3e8ef;
-  border-radius: 5px;
-}
-
 .sb-market-card-title {
   min-height: 27px;
   padding: 6px 4px;
@@ -2521,17 +2429,6 @@ body.sb-page {
   border-color: #e0e6ee;
   border-radius: 4px;
   background: #f8fafc;
-}
-
-.sb-odd-cell:hover:not(.disabled):not(.locked) {
-  border-color: #80a9ef;
-  background: #eef4ff;
-}
-
-.sb-odd-cell.chosen {
-  border-color: #2563eb;
-  background: #e7efff;
-  box-shadow: inset 0 0 0 1px #2563eb;
 }
 
 .sb-cell-line {
@@ -2576,10 +2473,6 @@ body.sb-page {
 }
 
 .sb-betslip-body {
-  min-height: 140px;
-}
-
-.sb-betslip-body {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -2592,17 +2485,9 @@ body.sb-page {
 }
 
 @media (max-width: 860px) {
-  .sb-main {
-    padding: 12px 10px 20px;
-  }
 
   .sb-board-heading h1 {
     font-size: 18px;
-  }
-
-  .sb-layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
   }
 
   .sb-match-card {
