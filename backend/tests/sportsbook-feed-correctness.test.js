@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 const feed = readFileSync(new URL('../src/sportsbook-feed.js', import.meta.url),'utf8');
 const source = readFileSync(new URL('../src/sportsbook-public-market.js', import.meta.url),'utf8');
 const betting = readFileSync(new URL('../src/sportsbook-betting.js', import.meta.url),'utf8');
+const e2e = readFileSync(new URL('../../scripts/verify-sportsbook-e2e.mjs', import.meta.url),'utf8');
 
 test('R6.9.0.22 feed closes finished and kickoff-pending markets before bettable counting', () => {
   assert.match(feed,/function eventBettingOpen\(event, now = Date\.now\(\)\)/);
@@ -73,4 +74,11 @@ test('member requests do not wait on a competing feed refresh beyond the proxy b
   assert.match(feed,/const REFRESH_LOCK_WAIT_MS = 5000/);
   assert.match(feed,/SPORTS_REFRESH_IN_PROGRESS/);
   assert.equal(feed.match(/if \(error\?\.code === 'SPORTS_REFRESH_IN_PROGRESS'\) throw error/g)?.length, 2);
+});
+
+test('E2E enforces expanded event volume and core market coverage without requiring derived markets per event', () => {
+  assert.match(e2e,/const minimumEvents = 25/);
+  assert.match(e2e,/const requiredCoreMarketTypes = \['1X2', 'HANDICAP', 'TOTALS'\]/);
+  assert.match(e2e,/const marketPeriodCoverage/);
+  assert.doesNotMatch(e2e,/minimumDerivedMarkets|hasDerivedTypes/);
 });

@@ -17,7 +17,7 @@ import { priceVersionChangeCount } from './sportsbook-live-observability.js';
 import { applySportsbookTradingControls, listActiveSportsbookTradingControls, resolveSportsbookTradingPolicy } from './sportsbook-trading-controls.js';
 import { eventSettlementAuthority, settlementAuthoritySummary } from './sportsbook-settlement-authority.js';
 import { enrichTeamArtwork } from './sportsbook-team-artwork.js';
-import { compactMemberMarkets, projectMemberMarkets } from './sportsbook-member-projection.js';
+import { projectMemberMarkets } from './sportsbook-member-projection.js';
 
 const MIN_1X2_OVERROUND = 1.00;
 const MAX_1X2_OVERROUND = 1.25;
@@ -162,35 +162,46 @@ function clean(value) {
 }
 
 const CLOSED_EVENT_STATUSES = new Set(['FINISHED', 'CANCELLED', 'CANCELED', 'ABANDONED', 'POSTPONED', 'VOID']);
-const REQUIRED_DERIVED_TYPES = ['BTTS', 'DOUBLE_CHANCE', 'DRAW_NO_BET', 'CORRECT_SCORE'];
+const TOP_LEAGUE_PATTERNS = [
+  /\bpremier league\b/i, /\bepl\b/i, /\bla liga\b/i, /\bserie a\b/i,
+  /\bbundesliga\b/i, /\bligue 1\b/i, /\bchampions league\b/i, /\beuropa league\b/i,
+  /\beredivisie\b/i, /\bprimeira liga\b/i, /\bmajor league soccer\b/i, /\bmls\b/i,
+  /\bnba\b/i, /\bwnba\b/i, /\bnhl\b/i, /\bnfl\b/i, /\bmlb\b/i,
+  /\batp\b/i, /\bwta\b/i, /\bus open\b/i, /\bwimbledon\b/i,
+  /\broland garros\b/i, /\baustralian open\b/i
+];
 const MAX_FEED_EVENTS = config.sportsFeedMaxEvents;
 const MAX_CACHE_BYTES = config.sportsFeedMaxCacheBytes;
 let lastCacheLimitWarningAt = 0;
-
-function hasDerivedMarketCoverage(event) {
-  const markets = event?.markets || [];
-  if (!config.publicMarketDerivedMarketsEnabled || markets.length < 25) return false;
-  const types = new Set(markets.map(market => market.type));
-  return REQUIRED_DERIVED_TYPES.every(type => types.has(type));
-}
 
 function boundedEvents(events = []) {
   if (!Array.isArray(events)) return [];
   const now = Date.now();
   return events
+    .filter(event => {
+      const status = clean(event?.status).toUpperCase();
+      const kickoff = Date.parse(event?.startTime || '');
+      const live = Boolean(event?.live) || ['LIVE', 'IN_PLAY', 'IN-PLAY'].includes(status);
+      if (CLOSED_EVENT_STATUSES.has(status)) {
+        return Number.isFinite(kickoff)
+          && now - kickoff <= config.sportsbookFinishedEventRetentionSeconds * 1000;
+      }
+      if (!live && Number.isFinite(kickoff) && kickoff < now - config.sportsbookPrematchCloseGraceSeconds * 1000) return false;
+      return memberVisibleEvent(event, now);
+    })
     .map((event, index) => ({ event, index }))
     .sort((a, b) => {
-      const aVisible = memberVisibleEvent(a.event, now);
-      const bVisible = memberVisibleEvent(b.event, now);
-      const aCovered = aVisible && hasDerivedMarketCoverage(a.event);
-      const bCovered = bVisible && hasDerivedMarketCoverage(b.event);
-      if (aCovered !== bCovered) return Number(bCovered) - Number(aCovered);
-      if (aVisible !== bVisible) return Number(bVisible) - Number(aVisible);
       const aLive = Boolean(a.event?.live);
       const bLive = Boolean(b.event?.live);
       if (aLive !== bLive) return Number(bLive) - Number(aLive);
       const aStart = Date.parse(a.event?.startTime || '') || Number.MAX_SAFE_INTEGER;
       const bStart = Date.parse(b.event?.startTime || '') || Number.MAX_SAFE_INTEGER;
+      const aToday = aStart >= now && aStart < now + 86400000;
+      const bToday = bStart >= now && bStart < now + 86400000;
+      if (aToday !== bToday) return Number(bToday) - Number(aToday);
+      const aTop = TOP_LEAGUE_PATTERNS.some(pattern => pattern.test(`${a.event?.country || ''} ${a.event?.league || ''}`));
+      const bTop = TOP_LEAGUE_PATTERNS.some(pattern => pattern.test(`${b.event?.country || ''} ${b.event?.league || ''}`));
+      if (aTop !== bTop) return Number(bTop) - Number(aTop);
       return aStart - bStart || a.index - b.index;
     })
     .slice(0, MAX_FEED_EVENTS)
@@ -980,7 +991,7 @@ function memberEventShape(item, markets) {
 }
 function memberPublicEvent(event) {
   const item = publicEvent(event);
-  return memberEventShape(item, compactMemberMarkets(item.markets || []));
+  return memberEventShape(item, item.markets || []);
 }
 function memberPublicEventDetail(event) {
   const item = publicEvent(event);
@@ -995,12 +1006,7 @@ export async function sportsbookSnapshot(filters = {}, { memberView = true } = {
   if (memberView) {
     sourceEvents = sourceEvents
       .filter(event => memberVisibleEvent(event, now))
-      .sort((a, b) => {
-        const aCovered = hasDerivedMarketCoverage(a);
-        const bCovered = hasDerivedMarketCoverage(b);
-        if (aCovered !== bCovered) return Number(bCovered) - Number(aCovered);
-        return Date.parse(a.startTime || '') - Date.parse(b.startTime || '');
-      })
+      .sort((a, b) => Date.parse(a.startTime || '') - Date.parse(b.startTime || ''))
       .slice(0, Number(config.sportsbookMemberMaxEvents || 250));
   }
   const projected = memberView ? sourceEvents.map(memberPublicEvent) : sourceEvents.map(publicEvent);
@@ -1226,4 +1232,4 @@ export async function sportsbookSelectionSnapshot({ eventId, marketId, selection
   };
 }
 
-export const __sportsbookFeed = { filterEvents, normalizedSport, pricedMarketCount, bettableMarketCount, providerHasPricedMarkets, stampPriceVersions, stableFeedRevision, assertSelectionFresh, advanceProviderLifecycle, eventBettingOpen, enforceEventBettingWindow, memberVisibleEvent, hasDerivedMarketCoverage, boundedEvents, cacheWithinLimit, eventSettlementAuthority, settlementAuthoritySummary, compactMemberMarkets, memberPublicEvent, memberPublicEventDetail };
+export const __sportsbookFeed = { filterEvents, normalizedSport, pricedMarketCount, bettableMarketCount, providerHasPricedMarkets, stampPriceVersions, stableFeedRevision, assertSelectionFresh, advanceProviderLifecycle, eventBettingOpen, enforceEventBettingWindow, memberVisibleEvent, boundedEvents, cacheWithinLimit, eventSettlementAuthority, settlementAuthoritySummary, memberPublicEvent, memberPublicEventDetail };

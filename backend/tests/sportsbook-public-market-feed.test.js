@@ -57,6 +57,71 @@ test('derived public fixture retains complete FT coverage and at least 25 safe m
   assert.ok(event.markets.length >= 25, `validated markets=${event.markets.length}`);
 });
 
+test('provider aggregation caps stored events at the 500-event Railway memory budget', () => {
+  const events = Array.from({ length: 1300 }, (_, index) => ({
+    id: `event-${index}`,
+    sport: 'Football',
+    league: `League ${index % 20}`,
+    country: `Country ${index % 10}`,
+    startTime: new Date(Date.now() + 2 * 3600000 + index * 60_000).toISOString(),
+    status: 'SCHEDULED',
+    providerStatus: 'SCHEDULED',
+    live: false,
+    clock: null,
+    home: { name: `Home ${index}`, score: null, logo: null },
+    away: { name: `Away ${index}`, score: null, logo: null },
+    periodScores: {},
+    markets: [],
+    _sources: ['api-sports'],
+    _settlementReadySources: ['api-sports'],
+    _refs: {},
+    markets: index === 0 ? Array.from({ length: 180 }, (_, marketIndex) => ({
+      id: `market-${marketIndex}`,
+      key: `market-${marketIndex}`,
+      type: 'OTHER',
+      label: `Market ${marketIndex}`,
+      period: 'FT',
+      line: null,
+      suspended: false,
+      selections: [{ key: `selection-${marketIndex}`, label: 'Selection', odds: 1.9, suspended: false }]
+    })) : []
+  }));
+
+  const merged = __sportsbookProviders.mergeProviderEvents([
+    { provider: 'api-sports', enabled: true, events }
+  ]);
+  assert.equal(merged.length, 500);
+  assert.equal(merged.find(event => event.home.name === 'Home 0').markets.length, 180, 'the event cap does not prune market arrays');
+});
+
+test('provider aggregation does not merge matching teams across distinct leagues', () => {
+  const base = {
+    sport: 'Football',
+    country: 'England',
+    startTime: '2026-10-12T18:00:00.000Z',
+    status: 'SCHEDULED',
+    providerStatus: 'SCHEDULED',
+    live: false,
+    clock: null,
+    home: { name: 'Same FC', score: null, logo: null },
+    away: { name: 'Other FC', score: null, logo: null },
+    periodScores: {},
+    markets: [],
+    _sources: ['api-sports'],
+    _settlementReadySources: ['api-sports'],
+    _refs: {}
+  };
+  const merged = __sportsbookProviders.mergeProviderEvents([{
+    provider: 'api-sports',
+    enabled: true,
+    events: [
+      { ...base, id: 'league-one', league: 'League One' },
+      { ...base, id: 'league-cup', league: 'League Cup' }
+    ]
+  }]);
+  assert.deepEqual(merged.map(event => event.league), ['League One', 'League Cup']);
+});
+
 test('public extra-league fixture columns normalize team names and market-average odds', () => {
   const event = normalizeFootballDataFixture({
     Country: 'Brazil',

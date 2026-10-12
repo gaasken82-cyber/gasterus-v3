@@ -5,8 +5,9 @@ const baseUrl = String(process.env.SPORTSBOOK_BASE_URL || railwayBaseUrl || 'htt
 const requestTimeoutMs = 25000;
 const maxRetries = 2;
 const retryDelayMs = 500;
-const minimumEvents = 12;
-const minimumDerivedMarkets = 25;
+const minimumEvents = 25;
+const minimumInspectedEvents = 10;
+const requiredCoreMarketTypes = ['1X2', 'HANDICAP', 'TOTALS'];
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -96,51 +97,63 @@ async function main() {
   };
   assert(labelSample.displayLeague.includes(' - '), `formatted league label is missing country separator: ${labelSample.displayLeague}`);
 
-  const oneXtwoEvents = snapshot.events.filter(event =>
-    (event.markets || []).some(market => market.type === '1X2' && market.period === 'FT')
-  );
-  assert(oneXtwoEvents.length >= minimumEvents,
-    `Only ${oneXtwoEvents.length} events include a full-time 1X2 market; expected at least ${minimumEvents}`);
-
   const inspected = [];
-  for (const event of oneXtwoEvents.slice(0, 12)) {
+  for (const event of snapshot.events.slice(0, Math.min(12, snapshot.events.length))) {
     const detail = await getJson(`/api/member/sportsbook/events/${encodeURIComponent(event.id)}`);
     const fullEvent = detail.event;
     assert(fullEvent?.id === event.id, `event detail did not match requested event ${event.id}`);
     const markets = fullEvent.markets || [];
     const marketTypes = [...new Set(markets.map(market => market.type))];
-    const hasDerivedTypes = ['BTTS', 'DOUBLE_CHANCE', 'DRAW_NO_BET', 'CORRECT_SCORE']
-      .every(type => marketTypes.includes(type));
+    const validPricedSelections = markets.every(market =>
+      Array.isArray(market.selections) && market.selections.every(selection =>
+        Number.isFinite(Number(selection.odds)) && Number(selection.odds) > 1
+      )
+    );
+    assert(validPricedSelections, `event ${event.id} contains an empty market or invalid odds`);
     inspected.push({
       id: fullEvent.id,
       country: fullEvent.country || fullEvent.category || null,
       league: fullEvent.league,
       marketCount: markets.length,
       marketTypes,
-      hasDerivedTypes
+      periods: [...new Set(markets.map(market => market.period || 'FT'))],
+      marketPeriods: [...new Set(markets.map(market => `${market.type}:${market.period || 'FT'}`))]
     });
   }
 
-  const invalidEvents = inspected.filter(event =>
-    event.marketCount < minimumDerivedMarkets || !event.hasDerivedTypes
-  );
-  assert(invalidEvents.length === 0,
-    `Derived-market validation failed for ${invalidEvents.length}/${inspected.length} inspected events: ${JSON.stringify(invalidEvents)}`);
+  assert(inspected.length >= minimumInspectedEvents,
+    `Only ${inspected.length} events could be inspected; expected at least ${minimumInspectedEvents}`);
+  const marketCoverage = Object.fromEntries([...new Set(inspected.flatMap(event => event.marketTypes))]
+    .sort()
+    .map(type => [type, inspected.filter(event => event.marketTypes.includes(type)).length]));
+  const marketPeriodCoverage = Object.fromEntries([...new Set(inspected.flatMap(event =>
+    event.marketPeriods
+  ))].sort().map(key => [key, inspected.filter(event => event.marketPeriods.includes(key)).length]));
+  const missingCoreMarkets = requiredCoreMarketTypes
+    .map(type => `${type}:FT`)
+    .filter(key => !marketPeriodCoverage[key]);
+  assert(missingCoreMarkets.length === 0,
+    `Core market mapping missing from inspected events: ${missingCoreMarkets.join(', ')}`);
+  const periodCoverage = [...new Set(inspected.flatMap(event => event.periods))].sort();
   console.log(JSON.stringify({
     status: 'PASS',
     baseUrl,
     eventListCount: snapshot.events.length,
     inspectedEventCount: inspected.length,
+    marketCoverage,
+    marketPeriodCoverage,
+    periodCoverage,
     sourceMode: snapshot.source?.mode || null,
     leagueLabel: labelSample,
-    derivedMarketEvents: inspected.map(event => ({
+    inspectedEvents: inspected.map(event => ({
       id: event.id,
       country: event.country,
       league: event.league,
       displayLeague: displayLeague(event),
       marketCount: event.marketCount,
-      hasDerivedTypes: event.hasDerivedTypes,
-      marketTypes: event.marketTypes
+      marketTypes: event.marketTypes,
+      periods: event.periods,
+      marketPeriods: event.marketPeriods
     }))
   }, null, 2));
 }

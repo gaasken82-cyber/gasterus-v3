@@ -4,7 +4,10 @@ import { logger } from './logger.js';
 import { ensureBoundedCacheCapacity, pruneExpiredCacheEntries, setBoundedCacheEntry } from './bounded-cache.js';
 import { readBoundedResponseText } from './bounded-response.js';
 
-const MAX_PROVIDER_EVENTS = 1200;
+const MAX_PROVIDER_EVENTS = 500;
+const MAX_ODDS_API_DETAIL_CACHE_ENTRIES = 100;
+const ODDS_API_DETAIL_CACHE_TTL_MULTIPLIER = 2;
+const ODDS_API_DETAIL_FETCH_CONCURRENCY = 4;
 const MARKET_TYPES = Object.freeze({
   h2h: '1X2',
   moneyline: '1X2',
@@ -59,6 +62,22 @@ function slug(value) {
 }
 function teamKey(value) {
   return slug(value).replace(/\b(fc|cf|sc|afc|club|the)\b/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
+function leagueKey(value) {
+  const key = slug(value);
+  const aliases = {
+    epl: 'premier-league',
+    'english-premier-league': 'premier-league',
+    laliga: 'la-liga',
+    'spanish-la-liga': 'la-liga',
+    'italian-serie-a': 'serie-a',
+    'german-bundesliga': 'bundesliga',
+    'french-ligue-1': 'ligue-1',
+    'ligue-one': 'ligue-1',
+    ucl: 'champions-league',
+    'uefa-champions-league': 'champions-league'
+  };
+  return aliases[key] || key;
 }
 function iso(value) {
   const timestamp = Date.parse(value ?? '');
@@ -458,7 +477,6 @@ function normalizeSharpApiRows(rows = []) {
       });
     }).filter(Boolean);
     event._refs.sharpapiSportsbook = chosenBook;
-    event.markets = event.markets.slice(0, 160);
     if (event.markets.length) events.push(event);
   }
   return events.slice(0, MAX_PROVIDER_EVENTS);
@@ -577,6 +595,60 @@ function allocateOddsApiEventMarkets(sports) {
   return allocations;
 }
 
+const TOP_LEAGUE_TOKENS = [
+  'premier league', 'epl', 'la liga', 'serie a', 'bundesliga', 'ligue 1',
+  'champions league', 'europa league', 'eredivisie', 'primeira liga',
+  'major league soccer', ' mls', 'nba', 'wnba', 'nhl', 'nfl', 'mlb',
+  'atp', 'wta', 'us open', 'wimbledon', 'roland garros', 'australian open'
+];
+
+function isLiveOddsApiEvent(event, now = Date.now()) {
+  if (event?.completed) return false;
+  const kickoff = Date.parse(event?.commence_time || '');
+  return Number.isFinite(kickoff) && kickoff <= now && now - kickoff <= 8 * 60 * 60 * 1000;
+}
+
+function isTopOddsApiEvent(sportKey, event) {
+  const label = String(event?.sport_title || sportKey).toLowerCase();
+  return TOP_LEAGUE_TOKENS.some(token => label.includes(token));
+}
+
+function selectOddsApiEnrichmentEvents(sportKey, events, limit, now = Date.now()) {
+  return events
+    .filter(event => event?.id && !event.completed
+      && (isLiveOddsApiEvent(event, now) || isTopOddsApiEvent(sportKey, event))
+      && Number.isFinite(Date.parse(event.commence_time || ''))
+      && Date.parse(event.commence_time) >= now - 8 * 60 * 60 * 1000
+      && Date.parse(event.commence_time) <= now + 30 * 86400000)
+    .sort((a, b) => {
+      const aLive = isLiveOddsApiEvent(a, now), bLive = isLiveOddsApiEvent(b, now);
+      if (aLive !== bLive) return Number(bLive) - Number(aLive);
+      const aTop = isTopOddsApiEvent(sportKey, a), bTop = isTopOddsApiEvent(sportKey, b);
+      if (aTop !== bTop) return Number(bTop) - Number(aTop);
+      return (Date.parse(a.commence_time || '') || Number.MAX_SAFE_INTEGER)
+        - (Date.parse(b.commence_time || '') || Number.MAX_SAFE_INTEGER);
+    })
+    .slice(0, limit);
+}
+
+function pruneOddsApiEventDetailCache(now, ttlMs) {
+  for (const [key, entry] of oddsApiEventDetailCache) {
+    const kickoff = Date.parse(entry?.commenceTime || '');
+    if (!entry || !Number.isFinite(Number(entry.fetchedAt))
+      || now - entry.fetchedAt >= ttlMs
+      || entry.completed
+      || (Number.isFinite(kickoff) && kickoff < now - 8 * 60 * 60 * 1000)) {
+      oddsApiEventDetailCache.delete(key);
+    }
+  }
+  if (oddsApiEventDetailCache.size <= MAX_ODDS_API_DETAIL_CACHE_ENTRIES) return;
+  const oldestFirst = [...oddsApiEventDetailCache.entries()]
+    .sort((a, b) => a[1].fetchedAt - b[1].fetchedAt);
+  for (const [key] of oldestFirst.slice(0, oddsApiEventDetailCache.size - MAX_ODDS_API_DETAIL_CACHE_ENTRIES)) {
+    oddsApiEventDetailCache.delete(key);
+  }
+}
+
 function mergeOddsApiBookmakers(base = [], extra = []) {
   const byBook = new Map();
   for (const bookmaker of [...base, ...extra]) {
@@ -594,42 +666,52 @@ function mergeOddsApiBookmakers(base = [], extra = []) {
   return [...byBook.values()];
 }
 
-async function fetchOddsApiEventMarkets(sportKey, rawEvents, maxEvents = config.theOddsApiEventMaxEventsPerSport) {
+async function fetchOddsApiEventMarkets(sportKey, rawEvents, maxEvents = config.theOddsApiEventMaxEventsPerSport, errors = []) {
   const markets = commaList(config.theOddsApiEventMarkets);
   if (!config.theOddsApiEventMarketsEnabled || !markets.length || !rawEvents.length || !maxEvents) return rawEvents;
   const eventLimit = Math.max(0, Math.min(Number(maxEvents) || 0, config.theOddsApiEventMaxEventsPerSport));
   const refreshMs = config.theOddsApiEventRefreshSeconds * 1000;
-  const selected = rawEvents
-    .filter(event => event?.id && !event.completed)
-    .sort((a, b) => Date.parse(a.commence_time || '') - Date.parse(b.commence_time || ''))
-    .slice(0, eventLimit);
+  const now = Date.now();
+  pruneOddsApiEventDetailCache(now, refreshMs * ODDS_API_DETAIL_CACHE_TTL_MULTIPLIER);
+  const selected = selectOddsApiEnrichmentEvents(sportKey, rawEvents, eventLimit, now);
   const extras = new Map();
-  await Promise.all(selected.map(async event => {
-    const cacheKey = `${sportKey}:${event.id}:${markets.join(',')}:${config.theOddsApiRegions}:${config.theOddsApiBookmakers || ''}`;
-    const cached = oddsApiEventDetailCache.get(cacheKey);
-    if (cached && Date.now() - cached.fetchedAt < refreshMs) {
-      extras.set(event.id, cached.payload);
-      return;
-    }
-    try {
-      const url = new URL(`${config.theOddsApiBaseUrl.replace(/\/$/, '')}/sports/${encodeURIComponent(sportKey)}/events/${encodeURIComponent(event.id)}/odds`);
-      url.searchParams.set('apiKey', config.theOddsApiKey);
-      url.searchParams.set('regions', config.theOddsApiRegions);
-      url.searchParams.set('markets', markets.join(','));
-      url.searchParams.set('oddsFormat', 'decimal');
-      url.searchParams.set('dateFormat', 'iso');
-      if (config.theOddsApiBookmakers) url.searchParams.set('bookmakers', config.theOddsApiBookmakers);
-      const payload = await requestJson(url, { label: 'The Odds API event markets' });
-      if (payload && typeof payload === 'object') {
-        if (oddsApiEventDetailCache.size > 300) {
-          const oldest = [...oddsApiEventDetailCache.entries()].sort((a, b) => (a[1]?.fetchedAt || 0) - (b[1]?.fetchedAt || 0));
-          for (const [k] of oldest.slice(0, 50)) oddsApiEventDetailCache.delete(k);
-        }
-        oddsApiEventDetailCache.set(cacheKey, { fetchedAt: Date.now(), payload });
-        extras.set(event.id, payload);
+  let nextIndex = 0;
+  const fetchEventMarkets = async () => {
+    while (nextIndex < selected.length) {
+      const event = selected[nextIndex++];
+      const cacheKey = `${sportKey}:${event.id}:${markets.join(',')}:${config.theOddsApiRegions}:${config.theOddsApiBookmakers || ''}`;
+      const cached = oddsApiEventDetailCache.get(cacheKey);
+      if (cached && Date.now() - cached.fetchedAt < refreshMs) {
+        extras.set(event.id, cached.payload);
+        continue;
       }
-    } catch {}
-  }));
+      try {
+        const url = new URL(`${config.theOddsApiBaseUrl.replace(/\/$/, '')}/sports/${encodeURIComponent(sportKey)}/events/${encodeURIComponent(event.id)}/odds`);
+        url.searchParams.set('apiKey', config.theOddsApiKey);
+        url.searchParams.set('regions', config.theOddsApiRegions);
+        url.searchParams.set('markets', markets.join(','));
+        url.searchParams.set('oddsFormat', 'decimal');
+        url.searchParams.set('dateFormat', 'iso');
+        if (config.theOddsApiBookmakers) url.searchParams.set('bookmakers', config.theOddsApiBookmakers);
+        const payload = await requestJson(url, { label: 'The Odds API event markets' });
+        if (payload && typeof payload === 'object') {
+          oddsApiEventDetailCache.set(cacheKey, {
+            fetchedAt: Date.now(),
+            commenceTime: event.commence_time || null,
+            completed: Boolean(event.completed),
+            payload
+          });
+          pruneOddsApiEventDetailCache(Date.now(), refreshMs * ODDS_API_DETAIL_CACHE_TTL_MULTIPLIER);
+          extras.set(event.id, payload);
+        }
+      } catch (error) {
+        const failure = String(error?.message || '').match(/HTTP \d{3}/)?.[0] || 'network request failed';
+        errors.push(`The Odds API event-market enrichment failed for ${event.id}: ${failure}`);
+      }
+    }
+  };
+  const concurrency = Math.min(ODDS_API_DETAIL_FETCH_CONCURRENCY, selected.length);
+  await Promise.all(Array.from({ length: concurrency }, () => fetchEventMarkets()));
   return rawEvents.map(event => {
     const extra = extras.get(event.id);
     if (!extra) return event;
@@ -678,6 +760,7 @@ export async function fetchTheOddsApi() {
   if (!config.theOddsApiEnabled || !config.theOddsApiKey) return { provider: 'the-odds-api', enabled: false, events: [] };
   const sports = commaList(config.theOddsApiSportKeys);
   const eventMarketAllocations = allocateOddsApiEventMarkets(sports);
+  const eventMarketErrors = [];
   const settled = await Promise.allSettled(sports.map(async sportKey => {
     const url = new URL(`${config.theOddsApiBaseUrl.replace(/\/$/, '')}/sports/${encodeURIComponent(sportKey)}/odds`);
     url.searchParams.set('apiKey', config.theOddsApiKey);
@@ -689,11 +772,14 @@ export async function fetchTheOddsApi() {
     const cacheKey = `the-odds-api:${sportKey}:${config.theOddsApiRegions}:${config.theOddsApiMarkets}:${config.theOddsApiBookmakers || ''}`;
     const payload = await cachedRequest(cacheKey, config.theOddsApiRefreshSeconds * 1000, () => requestJson(url, { label: 'The Odds API' }));
     const rawEvents = Array.isArray(payload) ? payload : [];
-    const enriched = await fetchOddsApiEventMarkets(sportKey, rawEvents, eventMarketAllocations.get(sportKey) || 0);
+    const enriched = await fetchOddsApiEventMarkets(sportKey, rawEvents, eventMarketAllocations.get(sportKey) || 0, eventMarketErrors);
     return enriched.map(normalizeOddsApiEvent);
   }));
   const events = settled.flatMap(result => result.status === 'fulfilled' ? result.value : []).slice(0, Math.min(MAX_PROVIDER_EVENTS, Math.max(0, Number(config.theOddsApiMaxTotalEvents) || MAX_PROVIDER_EVENTS)));
-  const errors = settled.filter(result => result.status === 'rejected').map(result => clean(result.reason?.message || 'request failed'));
+  const errors = [
+    ...settled.filter(result => result.status === 'rejected').map(result => clean(result.reason?.message || 'request failed')),
+    ...eventMarketErrors
+  ];
   return { provider: 'the-odds-api', enabled: true, events, errors };
 }
 
@@ -1172,6 +1258,8 @@ function kickoffDistance(a, b) {
 }
 function sameFixture(a, b) {
   if (a.sport !== b.sport) return false;
+  if (a.country && b.country && slug(a.country) !== slug(b.country)) return false;
+  if (a.league && b.league && leagueKey(a.league) !== leagueKey(b.league)) return false;
   const direct = teamKey(a.home.name) === teamKey(b.home.name) && teamKey(a.away.name) === teamKey(b.away.name);
   return direct && (kickoffDistance(a.startTime, b.startTime) <= 3 * 60 * 60 * 1000 || !a.startTime || !b.startTime);
 }
@@ -1312,13 +1400,39 @@ function applySettlementSafety(event) {
 }
 export function mergeProviderEvents(providerResults, options = {}) {
   const events = [];
-  const ordered = providerResults.flatMap(result => result.events || []).sort((a, b) => Date.parse(a.startTime || '') - Date.parse(b.startTime || ''));
+  const fixturesByTeams = new Map();
+  const now = Date.now();
+  const eventPriority = event => {
+    const status = String(event?.status || '').toUpperCase();
+    const kickoff = Date.parse(event?.startTime || '');
+    const live = Boolean(event?.live) || ['LIVE', 'IN_PLAY', 'IN-PLAY'].includes(status);
+    const inNextDay = Number.isFinite(kickoff) && kickoff >= now && kickoff < now + 86400000;
+    const topLeague = TOP_LEAGUE_TOKENS.some(token => `${event?.country || ''} ${event?.league || ''}`.toLowerCase().includes(token));
+    if (live) return 0;
+    if (inNextDay) return 1;
+    if (topLeague) return 2;
+    if (status === 'FINISHED' || status === 'CANCELLED' || status === 'POSTPONED') return 4;
+    return 3;
+  };
+  const ordered = providerResults.flatMap(result => result.events || []).sort((a, b) =>
+    eventPriority(a) - eventPriority(b)
+      || (Date.parse(a.startTime || '') || Number.MAX_SAFE_INTEGER)
+        - (Date.parse(b.startTime || '') || Number.MAX_SAFE_INTEGER)
+  );
   for (const candidate of ordered) {
-    const existing = events.find(event => sameFixture(event, candidate));
+    const fixtureKey = `${candidate.sport}|${teamKey(candidate.home.name)}|${teamKey(candidate.away.name)}`;
+    const candidates = fixturesByTeams.get(fixtureKey) || [];
+    const existing = candidates.find(event => sameFixture(event, candidate));
     if (existing) mergeEvent(existing, candidate);
-    else events.push(structuredClone(candidate));
+    else {
+      if (events.length >= MAX_PROVIDER_EVENTS) continue;
+      const event = structuredClone(candidate);
+      events.push(event);
+      candidates.push(event);
+      fixturesByTeams.set(fixtureKey, candidates);
+    }
   }
-  return events.slice(0, MAX_PROVIDER_EVENTS).map(event => applySettlementSafety(applyManualFtSettlementFallback(event, options)));
+  return events.map(event => applySettlementSafety(applyManualFtSettlementFallback(event, options)));
 }
 export function publicEvent(event) {
   return {
@@ -1389,7 +1503,12 @@ export const __sportsbookProviders = {
   apiSportsQuotaFloorSeconds,
   suspendStaleLiveMarkets,
   providerRequestCache,
-  allocateOddsApiEventMarkets
+  allocateOddsApiEventMarkets,
+  isLiveOddsApiEvent,
+  isTopOddsApiEvent,
+  selectOddsApiEnrichmentEvents,
+  pruneOddsApiEventDetailCache,
+  oddsApiEventDetailCache
 };
 
 // Builder helpers shared by provider adapters (e.g. sportsbook-footballdataio.js)

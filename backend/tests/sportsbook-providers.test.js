@@ -72,11 +72,12 @@ test('The Odds API fetches extra markets by event ID and reuses the existing det
   const originalFetch = globalThis.fetch;
   const calls = [];
   const eventId = 'existing-event-detail-cache-2027';
+  const commenceTime = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
   const event = {
     id: eventId,
     sport_key: 'soccer_epl',
     sport_title: 'Premier League',
-    commence_time: '2027-08-06T12:00:00Z',
+    commence_time: commenceTime,
     home_team: 'Arsenal',
     away_team: 'Chelsea',
     bookmakers: [{ key: 'list-book', title: 'List Book', markets: [
@@ -121,6 +122,38 @@ test('The Odds API event-detail request budget is globally capped and shared fai
   assert.equal(values.reduce((sum, value) => sum + value, 0), 8);
   assert.ok(values.every(value => value <= 5));
   assert.ok(Math.max(...values) - Math.min(...values) <= 1);
+});
+
+test('The Odds API enrichment selects only live or upcoming top-league fixtures', () => {
+  const now = Date.now();
+  const make = (id, { sport = 'soccer_epl', hours = 2, completed = false, title = 'Premier League' } = {}) => ({
+    id,
+    sport_key: sport,
+    sport_title: title,
+    commence_time: new Date(now + hours * 3600000).toISOString(),
+    completed
+  });
+  const selected = __sportsbookProviders.selectOddsApiEnrichmentEvents('soccer_epl', [
+    make('top-today'),
+    make('live-minor', { sport: 'soccer_lower_division', title: 'Regional League', hours: -1 }),
+    make('minor-upcoming', { sport: 'soccer_lower_division', title: 'Regional League' }),
+    make('old-top', { hours: -12 }),
+    make('completed-top', { completed: true })
+  ], 10, now);
+  assert.deepEqual(selected.map(event => event.id), ['live-minor', 'top-today']);
+});
+
+test('The Odds API detail cache removes expired and completed event payloads', () => {
+  const now = Date.now();
+  const cache = __sportsbookProviders.oddsApiEventDetailCache;
+  cache.clear();
+  cache.set('fresh', { fetchedAt: now - 1000, commenceTime: new Date(now + 3600000).toISOString(), completed: false, payload: {} });
+  cache.set('expired-ttl', { fetchedAt: now - 120000, commenceTime: new Date(now + 3600000).toISOString(), completed: false, payload: {} });
+  cache.set('finished', { fetchedAt: now - 1000, commenceTime: new Date(now + 3600000).toISOString(), completed: true, payload: {} });
+  cache.set('old-event', { fetchedAt: now - 1000, commenceTime: new Date(now - 9 * 3600000).toISOString(), completed: false, payload: {} });
+  __sportsbookProviders.pruneOddsApiEventDetailCache(now, 60000);
+  assert.deepEqual([...cache.keys()], ['fresh']);
+  cache.clear();
 });
 
 test('The Odds API fetches at most eight event-detail markets across three sports with five fixture events each', async () => {

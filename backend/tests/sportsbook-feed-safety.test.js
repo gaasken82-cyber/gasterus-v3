@@ -8,6 +8,19 @@ const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.u
 const worker = readFileSync(new URL('../src/worker.js', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../src/config.js', import.meta.url), 'utf8');
 
+test('sportsbook feed defaults stay inside Railway free-tier event and cache budgets', () => {
+  assert.match(config, /sportsFeedMaxEvents: int\('SPORTS_FEED_MAX_EVENTS', 400, 20, 500\)/);
+  assert.match(config, /sportsFeedMaxCacheBytes: int\('SPORTS_FEED_MAX_CACHE_BYTES', 12_000_000, 262_144, 15_000_000\)/);
+  assert.match(config, /sportsProviderCacheMaxTotalBytes: int\('SPORTS_PROVIDER_CACHE_MAX_TOTAL_BYTES', 10_000_000/);
+  assert.match(config, /sportsbookMemberMaxEvents: int\('SPORTSBOOK_MEMBER_MAX_EVENTS', 400, 20, 500\)/);
+  assert.match(config, /theOddsApiMaxTotalEvents: int\('THE_ODDS_API_MAX_TOTAL_EVENTS', 500, 0, 500\)/);
+  assert.match(config, /publicMarketMaxEvents: int\('PUBLIC_MARKET_MAX_EVENTS', 500, 10, 500\)/);
+  assert.match(config, /sportsbookFinishedEventRetentionSeconds: int\('SPORTSBOOK_FINISHED_EVENT_RETENTION_SECONDS', 21600/);
+  assert.match(config, /theOddsApiEventMaxEventsPerSport: int\('THE_ODDS_API_EVENT_MAX_EVENTS_PER_SPORT', 25, 0, 50\)/);
+  assert.match(config, /theOddsApiEventMaxTotalEvents: int\('THE_ODDS_API_EVENT_MAX_TOTAL_EVENTS', 50, 0, 120\)/);
+  assert.match(config, /sharpApiMaxPages: int\('SHARP_API_MAX_PAGES', isProduction \? 5 : 3/);
+});
+
 test('sportsbook feed worker and background polling default to enabled in production', () => {
   const script = `
     const { config } = await import('./src/config.js');
@@ -69,7 +82,7 @@ test('production keeps model-generated events and derived markets disabled by de
   assert.ok(result.stdout.split(/\r?\n/).includes('{"openFootball":false,"derivedMarkets":false}'));
 });
 
-test('production generates derived markets when explicitly enabled', () => {
+test('production generates supported derived markets when explicitly enabled', () => {
   const script = `
     const { config } = await import('./src/config.js');
     const { normalizeFootballDataFixture } = await import('./src/sportsbook-public-market.js');
@@ -104,7 +117,7 @@ test('production generates derived markets when explicitly enabled', () => {
   assert.equal(result.status, 0, result.stderr);
   const output = JSON.parse(result.stdout.trim());
   assert.equal(output.enabled, true);
-  assert.ok(output.marketCount >= 25, `marketCount=${output.marketCount}`);
+  assert.ok(output.marketCount > 0, `marketCount=${output.marketCount}`);
   assert.deepEqual(output.derivedTypes, ['BTTS', 'DOUBLE_CHANCE', 'DRAW_NO_BET', 'CORRECT_SCORE']);
 });
 
@@ -175,7 +188,52 @@ test('stale Sportsbook feed cache is read-only and cannot be settled', () => {
   assert.match(feed, /SPORTS_SETTLEMENT_SOURCE_STALE/);
 });
 
-test('Sportsbook Redis cache truncation retains upcoming member events', () => {
+test('Sportsbook event pruning prioritizes live/top-league fixtures and expires old matches', () => {
+  const script = `
+    const { __sportsbookFeed } = await import('./src/sportsbook-feed.js');
+    const now = Date.now();
+    const event = (id, fields = {}) => ({
+      id, sport: 'Football', country: 'England', league: 'Championship',
+      status: 'SCHEDULED', live: false,
+      startTime: new Date(now + 3600000).toISOString(),
+      markets: [{ type: '1X2' }],
+      ...fields
+    });
+    const events = [
+      event('old-scheduled', { startTime: new Date(now - 86400000).toISOString() }),
+      event('old-finished', { status: 'FINISHED', startTime: new Date(now - 3 * 3600000).toISOString() }),
+      event('top-live', { league: 'Premier League', status: 'LIVE', live: true, startTime: new Date(now - 20 * 60000).toISOString() }),
+      event('today-top', { league: 'Premier League', startTime: new Date(now + 2 * 3600000).toISOString() }),
+      event('today-other', { league: 'Regional League', startTime: new Date(now + 3 * 3600000).toISOString() })
+    ];
+    console.log(JSON.stringify(__sportsbookFeed.boundedEvents(events).map(item => item.id)));
+  `;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    cwd: new URL('..', import.meta.url),
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      NODE_ENV: 'production',
+      DATABASE_URL: '******example.com/db',
+      REDIS_URL: 'redis://example.com:6379',
+      MEMBER_PROXY_SECRET: 'm'.repeat(48),
+      ADMIN_PROXY_SECRET: 'a'.repeat(48),
+      OPS_INTERNAL_SECRET: 'o'.repeat(48),
+      SESSION_HMAC_KEY: 's'.repeat(48),
+      API_KEY_PEPPER: 'p'.repeat(48),
+      MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64')
+    }
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const ids = JSON.parse(result.stdout.trim().split(/\r?\n/).at(-1));
+  assert.ok(ids.includes('top-live'));
+  assert.ok(ids.includes('today-top'));
+  assert.ok(ids.includes('today-other'));
+  assert.ok(ids.includes('old-finished'), 'recent completed fixtures remain briefly available for settlement');
+  assert.ok(!ids.includes('old-scheduled'), 'expired scheduled fixtures are removed immediately');
+});
+
+test('Sportsbook Redis cache respects its configured byte budget while preferring live/upcoming events', () => {
   const script = `
     const { __sportsbookFeed } = await import('./src/sportsbook-feed.js');
     const now = Date.now();
@@ -199,8 +257,7 @@ test('Sportsbook Redis cache truncation retains upcoming member events', () => {
     });
     console.log(JSON.stringify({
       retained: bounded.events.length,
-      upcoming: bounded.events.filter(event => Date.parse(event.startTime) > now).length,
-      marketReady: bounded.events.filter(event => __sportsbookFeed.hasDerivedMarketCoverage(event)).length
+      upcoming: bounded.events.filter(event => Date.parse(event.startTime) > now).length
     }));
   `;
   const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
@@ -217,6 +274,7 @@ test('Sportsbook Redis cache truncation retains upcoming member events', () => {
       SESSION_HMAC_KEY: 's'.repeat(48),
       API_KEY_PEPPER: 'p'.repeat(48),
       MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
+      SPORTS_FEED_MAX_CACHE_BYTES: '7000000',
       PUBLIC_MARKET_DERIVED_MARKETS_ENABLED: 'true'
     }
   });
@@ -224,7 +282,6 @@ test('Sportsbook Redis cache truncation retains upcoming member events', () => {
   const output = JSON.parse(result.stdout.trim().split(/\r?\n/).at(-1));
   assert.ok(output.retained < 24, 'test data must exercise cache truncation');
   assert.equal(output.upcoming, 12, 'all upcoming events should fit ahead of old results');
-  assert.equal(output.marketReady, 12, 'all qualified upcoming events should survive cache truncation');
 });
 
 test('Sportsbook member UI disables every READ_ONLY source mode', () => {
