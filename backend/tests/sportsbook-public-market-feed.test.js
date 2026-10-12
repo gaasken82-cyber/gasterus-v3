@@ -12,6 +12,7 @@ const { parseCsv, normalizeFootballDataFixture, normalizeOpenFootballFixture, __
 const { parseOpenFootballText, buildOpenFootballModelAnchor, __openFootball } = await import('../src/sportsbook-openfootball.js');
 const { __sportsbookProviders } = await import('../src/sportsbook-providers.js');
 const { eventSettlementAuthority } = await import('../src/sportsbook-settlement-authority.js');
+const { validateAllHandicapOdds } = await import('../src/sportsbook-feed.js');
 const { evaluateSportsbookLeg } = await import('../src/sportsbook-result-evaluator.js');
 
 const fixtureRow = {
@@ -40,6 +41,20 @@ test('R6.9.0.15 public fixture creates real anchor markets plus broad Gasterus-d
   for(const type of ['1X2','HANDICAP','TOTALS','BTTS','DOUBLE_CHANCE','DRAW_NO_BET','TEAM_TOTAL','HT_FT','ODD_EVEN','CORRECT_SCORE']) assert.ok(types.has(type),type);
   assert.ok(event.markets.length >= 25, `markets=${event.markets.length}`);
   assert.ok(event.markets.flatMap(m=>m.selections).every(s=>Number.isFinite(s.odds)&&s.odds>1));
+});
+
+test('derived public fixture retains complete FT coverage and at least 25 safe markets after validation', () => {
+  const fixture = normalizeFootballDataFixture(fixtureRow, { updatedAt: '2026-08-17T12:00:00Z' });
+  const [event] = __sportsbookProviders.mergeProviderEvents([
+    { provider: 'public-market', enabled: true, events: [fixture] }
+  ]);
+  assert.ok(event);
+  validateAllHandicapOdds([event]);
+  const marketTypes = new Set(event.markets.map(market => market.type));
+  for (const type of ['BTTS', 'DOUBLE_CHANCE', 'DRAW_NO_BET', 'CORRECT_SCORE']) {
+    assert.ok(marketTypes.has(type), `${type} should survive price validation`);
+  }
+  assert.ok(event.markets.length >= 25, `validated markets=${event.markets.length}`);
 });
 
 test('public extra-league fixture columns normalize team names and market-average odds', () => {

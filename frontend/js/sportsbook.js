@@ -372,7 +372,7 @@ async function loadRestSnapshot() {
     if (!res.ok) { console.warn('[GASTERUS] snapshot http', res.status); return false; }
     const json = await res.json();
     const payload = json?.data || json || null;
-    if (payload && Array.isArray(payload.events) && payload.events.length) {
+    if (payload && Array.isArray(payload.events)) {
       onSnapshot(payload);
       return true;
     }

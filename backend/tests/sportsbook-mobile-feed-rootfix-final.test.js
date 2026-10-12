@@ -48,6 +48,8 @@ test('FINAL mobile sportsbook list is compact while event detail remains full',(
 test('FINAL mobile frontend bootstraps REST snapshot and reconnects SSE with bounded backoff',()=>{
   const js=readFileSync(new URL('../../frontend/js/sportsbook.js',import.meta.url),'utf8');
   assert.match(js,/async function loadRestSnapshot\(\)/);
+  assert.match(js,/if \(payload && Array\.isArray\(payload\.events\)\) \{\s*onSnapshot\(payload\);/);
+  assert.doesNotMatch(js,/Array\.isArray\(payload\.events\) && payload\.events\.length/);
   // SSE adalah satu-satunya penulis realtime; REST hanya bootstrap 1x + darurat saat
   // SSE putus. TIDAK ada lagi polling berkala yang menimpa snapshot SSE (akar pola
   // 222↔5 di halaman member). Kontrak anti-hang yang berlaku: reconnect SSE dengan

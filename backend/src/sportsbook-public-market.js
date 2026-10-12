@@ -300,6 +300,28 @@ function buildDerivedMarkets(eventId, anchor, updatedAt) {
   }
 
   const halfProbs = outcomeProbs(half);
+  let halfBttsYes = 0, halfOdd = 0;
+  for (const score of half) {
+    if (score.h > 0 && score.a > 0) halfBttsYes += score.p;
+    if ((score.h + score.a) % 2 === 1) halfOdd += score.p;
+  }
+  const [halfBttsY, halfBttsN] = twoWayBook(halfBttsYes, 1 - halfBttsYes, margin);
+  output.push(market(eventId, 'BTTS', '1H', null, 'Both Teams To Score - 1st Half', [
+    { label: 'Yes', odds: halfBttsY }, { label: 'No', odds: halfBttsN }
+  ], updatedAt, { book: 'gasterus-model' }));
+  output.push(market(eventId, 'DOUBLE_CHANCE', '1H', null, 'Double Chance - 1st Half', [
+    { label: '1X', odds: bookOddsFromProbability(halfProbs.home + halfProbs.draw, margin) },
+    { label: '12', odds: bookOddsFromProbability(halfProbs.home + halfProbs.away, margin) },
+    { label: 'X2', odds: bookOddsFromProbability(halfProbs.draw + halfProbs.away, margin) }
+  ], updatedAt, { book: 'gasterus-model' }));
+  output.push(market(eventId, 'DRAW_NO_BET', '1H', null, 'Draw No Bet - 1st Half', [
+    { label: 'Home', odds: pushAdjustedOdds(halfProbs.home, halfProbs.draw, margin) },
+    { label: 'Away', odds: pushAdjustedOdds(halfProbs.away, halfProbs.draw, margin) }
+  ], updatedAt, { book: 'gasterus-model' }));
+  const [halfOddOdds, halfEvenOdds] = twoWayBook(halfOdd, 1 - halfOdd, margin);
+  output.push(market(eventId, 'ODD_EVEN', '1H', null, 'Odd / Even - 1st Half', [
+    { label: 'Odd', odds: halfOddOdds }, { label: 'Even', odds: halfEvenOdds }
+  ], updatedAt, { book: 'gasterus-model' }));
   const secondHalf = scoreGrid(lambdaHome * 0.54, lambdaAway * 0.54, 7);
   const htft = new Map();
   const resultSide = (h, a) => h > a ? 'Home' : h < a ? 'Away' : 'Draw';

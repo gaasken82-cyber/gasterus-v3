@@ -169,10 +169,62 @@ test('Sportmonks is hard-disabled and cannot be re-enabled by production environ
 });
 
 test('stale Sportsbook feed cache is read-only and cannot be settled', () => {
-  assert.match(feed, /sportsbook:aggregated-feed:v15/);
+  assert.match(feed, /sportsbook:aggregated-feed:v16/);
   assert.match(feed, /READ_ONLY_STALE_SOURCE/);
   assert.match(feed, /feed\.readOnlySource \|\| feed\.snapshotFallback/);
   assert.match(feed, /SPORTS_SETTLEMENT_SOURCE_STALE/);
+});
+
+test('Sportsbook Redis cache truncation retains upcoming member events', () => {
+  const script = `
+    const { __sportsbookFeed } = await import('./src/sportsbook-feed.js');
+    const now = Date.now();
+    const events = Array.from({ length: 24 }, (_, index) => ({
+      id: String(index),
+      status: 'SCHEDULED',
+      live: false,
+      startTime: new Date(now + (index < 12 ? 3600000 * (index + 1) : -86400000 * (index - 11))).toISOString(),
+      markets: index < 12
+        ? Array.from({ length: 25 }, (_, marketIndex) => ({
+            type: ['BTTS', 'DOUBLE_CHANCE', 'DRAW_NO_BET', 'CORRECT_SCORE'][marketIndex] || 'TOTALS'
+          }))
+        : [],
+      padding: 'x'.repeat(500000)
+    }));
+    const bounded = __sportsbookFeed.cacheWithinLimit({
+      events,
+      providers: [],
+      fetchedAt: now,
+      lifecycleGeneration: 'r6917'
+    });
+    console.log(JSON.stringify({
+      retained: bounded.events.length,
+      upcoming: bounded.events.filter(event => Date.parse(event.startTime) > now).length,
+      marketReady: bounded.events.filter(event => __sportsbookFeed.hasDerivedMarketCoverage(event)).length
+    }));
+  `;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    cwd: new URL('..', import.meta.url),
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      NODE_ENV: 'production',
+      DATABASE_URL: '******example.com/db',
+      REDIS_URL: 'redis://example.com:6379',
+      MEMBER_PROXY_SECRET: 'm'.repeat(48),
+      ADMIN_PROXY_SECRET: 'a'.repeat(48),
+      OPS_INTERNAL_SECRET: 'o'.repeat(48),
+      SESSION_HMAC_KEY: 's'.repeat(48),
+      API_KEY_PEPPER: 'p'.repeat(48),
+      MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
+      PUBLIC_MARKET_DERIVED_MARKETS_ENABLED: 'true'
+    }
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const output = JSON.parse(result.stdout.trim().split(/\r?\n/).at(-1));
+  assert.ok(output.retained < 24, 'test data must exercise cache truncation');
+  assert.equal(output.upcoming, 12, 'all upcoming events should fit ahead of old results');
+  assert.equal(output.marketReady, 12, 'all qualified upcoming events should survive cache truncation');
 });
 
 test('Sportsbook member UI disables every READ_ONLY source mode', () => {

@@ -122,7 +122,7 @@ export function validateAllHandicapOdds(events = []) {
 }
 
 const LIFECYCLE_GENERATION = 'r6917';
-const CACHE_KEY = 'sportsbook:aggregated-feed:v15';
+const CACHE_KEY = 'sportsbook:aggregated-feed:v16';
 const LIFECYCLE_KEY = 'sportsbook:provider-lifecycle:v6';
 const MARKET_LIFECYCLE_KEY = 'sportsbook:market-lifecycle:v6';
 const REFRESH_MS = config.sportsFeedRefreshSeconds * 1000;
@@ -161,19 +161,39 @@ function clean(value) {
 }
 
 const CLOSED_EVENT_STATUSES = new Set(['FINISHED', 'CANCELLED', 'CANCELED', 'ABANDONED', 'POSTPONED', 'VOID']);
+const REQUIRED_DERIVED_TYPES = ['BTTS', 'DOUBLE_CHANCE', 'DRAW_NO_BET', 'CORRECT_SCORE'];
 const MAX_FEED_EVENTS = config.sportsFeedMaxEvents;
 const MAX_CACHE_BYTES = config.sportsFeedMaxCacheBytes;
 let lastCacheLimitWarningAt = 0;
 
+function hasDerivedMarketCoverage(event) {
+  const markets = event?.markets || [];
+  if (!config.publicMarketDerivedMarketsEnabled || markets.length < 25) return false;
+  const types = new Set(markets.map(market => market.type));
+  return REQUIRED_DERIVED_TYPES.every(type => types.has(type));
+}
+
 function boundedEvents(events = []) {
-  if (!Array.isArray(events) || events.length <= MAX_FEED_EVENTS) return Array.isArray(events) ? events : [];
-  return [...events]
+  if (!Array.isArray(events)) return [];
+  const now = Date.now();
+  return events
+    .map((event, index) => ({ event, index }))
     .sort((a, b) => {
-      const liveDelta = Number(Boolean(b?.live)) - Number(Boolean(a?.live));
-      if (liveDelta) return liveDelta;
-      return (Date.parse(a?.startTime || '') || Number.MAX_SAFE_INTEGER) - (Date.parse(b?.startTime || '') || Number.MAX_SAFE_INTEGER);
+      const aVisible = memberVisibleEvent(a.event, now);
+      const bVisible = memberVisibleEvent(b.event, now);
+      const aCovered = aVisible && hasDerivedMarketCoverage(a.event);
+      const bCovered = bVisible && hasDerivedMarketCoverage(b.event);
+      if (aCovered !== bCovered) return Number(bCovered) - Number(aCovered);
+      if (aVisible !== bVisible) return Number(bVisible) - Number(aVisible);
+      const aLive = Boolean(a.event?.live);
+      const bLive = Boolean(b.event?.live);
+      if (aLive !== bLive) return Number(bLive) - Number(aLive);
+      const aStart = Date.parse(a.event?.startTime || '') || Number.MAX_SAFE_INTEGER;
+      const bStart = Date.parse(b.event?.startTime || '') || Number.MAX_SAFE_INTEGER;
+      return aStart - bStart || a.index - b.index;
     })
-    .slice(0, MAX_FEED_EVENTS);
+    .slice(0, MAX_FEED_EVENTS)
+    .map(({ event }) => event);
 }
 
 function cacheWithinLimit(value) {
@@ -900,7 +920,6 @@ export async function refreshSportsbookFeedFromPoll({ reason = 'background-poll'
 
 async function currentFeed({ force = false } = {}) {
   const now = Date.now();
-  if (!force && memory.events.length && memory.expiresAt > now) return memory;
   if (!force) {
     const cached = await readRedisCache();
     if (cached?.events?.length && Number(cached.fetchedAt || 0) >= Number(memory.fetchedAt || 0)) memory = cached;
@@ -973,7 +992,12 @@ export async function sportsbookSnapshot(filters = {}, { memberView = true } = {
   if (memberView) {
     sourceEvents = sourceEvents
       .filter(event => memberVisibleEvent(event, now))
-      .sort((a, b) => Date.parse(a.startTime || '') - Date.parse(b.startTime || ''))
+      .sort((a, b) => {
+        const aCovered = hasDerivedMarketCoverage(a);
+        const bCovered = hasDerivedMarketCoverage(b);
+        if (aCovered !== bCovered) return Number(bCovered) - Number(aCovered);
+        return Date.parse(a.startTime || '') - Date.parse(b.startTime || '');
+      })
       .slice(0, Number(config.sportsbookMemberMaxEvents || 250));
   }
   const projected = memberView ? sourceEvents.map(memberPublicEvent) : sourceEvents.map(publicEvent);
@@ -981,7 +1005,7 @@ export async function sportsbookSnapshot(filters = {}, { memberView = true } = {
   const healthyCount = feed.providers.filter(provider => provider.enabled && provider.healthy).length;
   const visiblePricedMarkets = pricedMarketCount(events);
   const visibleBettableMarkets = bettableMarketCount(events);
-  const memberHealthy = !stale && !feed.readOnlySource && Number(feed.bettableMarkets || 0) > 0;
+  const memberHealthy = !stale && !feed.readOnlySource && visibleBettableMarkets > 0;
   return {
     events,
     stale,
@@ -1199,4 +1223,4 @@ export async function sportsbookSelectionSnapshot({ eventId, marketId, selection
   };
 }
 
-export const __sportsbookFeed = { filterEvents, normalizedSport, pricedMarketCount, bettableMarketCount, providerHasPricedMarkets, stampPriceVersions, stableFeedRevision, assertSelectionFresh, advanceProviderLifecycle, eventBettingOpen, enforceEventBettingWindow, memberVisibleEvent, eventSettlementAuthority, settlementAuthoritySummary, compactMemberMarkets, memberPublicEvent, memberPublicEventDetail };
+export const __sportsbookFeed = { filterEvents, normalizedSport, pricedMarketCount, bettableMarketCount, providerHasPricedMarkets, stampPriceVersions, stableFeedRevision, assertSelectionFresh, advanceProviderLifecycle, eventBettingOpen, enforceEventBettingWindow, memberVisibleEvent, hasDerivedMarketCoverage, boundedEvents, cacheWithinLimit, eventSettlementAuthority, settlementAuthoritySummary, compactMemberMarkets, memberPublicEvent, memberPublicEventDetail };

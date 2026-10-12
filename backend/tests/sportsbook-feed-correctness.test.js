@@ -26,6 +26,12 @@ test('R6.9.0.22 member catalog removes closed results and has bounded horizon', 
   assert.match(feed,/\.filter\(event => memberVisibleEvent\(event, now\)\)/);
 });
 
+test('member source status cannot be ONLINE when the projected response has no bettable markets', () => {
+  assert.match(feed, /const visibleBettableMarkets = bettableMarketCount\(events\)/);
+  assert.match(feed, /const memberHealthy = !stale && !feed\.readOnlySource && visibleBettableMarkets > 0/);
+  assert.match(feed, /status: feed\.readOnlySource \? .* : memberHealthy \? 'ONLINE' : 'DEGRADED'/);
+});
+
 test('R6.9.0.22 optional legacy detail source is gated and member errors stay provider-neutral', () => {
   assert.match(feed,/bridgeEvent\(/);
   assert.match(feed,/SPORTS_MARKET_TEMPORARILY_UNAVAILABLE/);
