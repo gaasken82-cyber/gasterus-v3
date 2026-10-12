@@ -100,17 +100,6 @@ body.enterprise-r6820 h1.sbototo-brand-host .sbototo-brand-logo{height:48px!impo
   --adm-radius:18px;--adm-shadow:0 18px 48px rgba(20,4,9,.30);
   --adm-crimson:#dc285b;--adm-burgundy:#70142c;--adm-rose:#ff6f91;--adm-cyan:#6ee7ec;--adm-violet:#b58cff;
 }
-body.enterprise-r6820{
-  font-family:Inter,"Manrope","Plus Jakarta Sans","Segoe UI Variable","Segoe UI",Roboto,Arial,sans-serif!important;
-  background-color:var(--adm-bg)!important;
-  background-image:
-    linear-gradient(180deg,rgba(15,9,11,.48),rgba(18,10,13,.60) 40%,rgba(13,10,11,.70) 100%),
-    radial-gradient(circle at 16% 12%,rgba(220,40,91,.16),transparent 32%),
-    radial-gradient(circle at 86% 20%,rgba(110,231,236,.06),transparent 28%),
-    url("assets/site-background-r6820-crimson.webp")!important;
-  background-size:cover,cover,cover,cover!important;background-position:center,center,center,center top!important;background-attachment:fixed,fixed,fixed,fixed!important;
-  color:var(--adm-text)!important;
-}
 body.enterprise-r6820 .sidebar{
   background:linear-gradient(180deg,rgba(21,12,15,.97),rgba(13,10,11,.96))!important;
   border-right-color:rgba(255,101,138,.13)!important;backdrop-filter:blur(20px)!important;box-shadow:12px 0 34px rgba(13,3,6,.20)!important;
