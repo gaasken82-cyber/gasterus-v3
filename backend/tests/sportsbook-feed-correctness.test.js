@@ -68,3 +68,9 @@ test('free-tier football-data provider is included in the sportsbook refresh des
   assert.match(feed,/code: 'footballdata-io'/);
   assert.match(feed,/config\.footballDataIoEnabled && Boolean\(config\.footballDataIoKey\)/);
 });
+
+test('member requests do not wait on a competing feed refresh beyond the proxy budget', () => {
+  assert.match(feed,/const REFRESH_LOCK_WAIT_MS = 5000/);
+  assert.match(feed,/SPORTS_REFRESH_IN_PROGRESS/);
+  assert.equal(feed.match(/if \(error\?\.code === 'SPORTS_REFRESH_IN_PROGRESS'\) throw error/g)?.length, 2);
+});

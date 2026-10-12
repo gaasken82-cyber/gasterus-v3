@@ -2,31 +2,65 @@ const railwayBaseUrl = process.env.RAILWAY_PUBLIC_DOMAIN
   ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
   : '';
 const baseUrl = String(process.env.SPORTSBOOK_BASE_URL || railwayBaseUrl || 'http://127.0.0.1:8080').replace(/\/+$/, '');
-const requestTimeoutMs = 15000;
+const requestTimeoutMs = 25000;
+const maxRetries = 2;
+const retryDelayMs = 500;
 const minimumEvents = 12;
 const minimumDerivedMarkets = 25;
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+function isTransientNetworkError(error) {
+  if (error?.name === 'TimeoutError' || error?.name === 'AbortError' || error instanceof TypeError) return true;
+  const transientCodes = new Set([
+    'ECONNRESET',
+    'ECONNREFUSED',
+    'EAI_AGAIN',
+    'ENETUNREACH',
+    'EHOSTUNREACH',
+    'ETIMEDOUT',
+    'UND_ERR_CONNECT_TIMEOUT',
+    'UND_ERR_SOCKET'
+  ]);
+  for (let cause = error; cause; cause = cause.cause) {
+    if (transientCodes.has(cause.code)) return true;
+  }
+  return false;
+}
+
 async function getJson(path) {
   const url = new URL(path, `${baseUrl}/`);
-  let response;
-  try {
-    response = await fetch(url, {
-      headers: { accept: 'application/json' },
-      signal: AbortSignal.timeout(requestTimeoutMs)
-    });
-  } catch (error) {
-    throw new Error(`Unable to reach ${url}: ${error.message}`);
+  for (let attempt = 0; ; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(url, {
+        headers: { accept: 'application/json' },
+        signal: AbortSignal.timeout(requestTimeoutMs)
+      });
+    } catch (error) {
+      if (attempt < maxRetries && isTransientNetworkError(error)) {
+        console.warn(`Transient network error for ${path}; retry ${attempt + 1}/${maxRetries} in ${retryDelayMs * (attempt + 1)}ms: ${error.message}`);
+        await sleep(retryDelayMs * (attempt + 1));
+        continue;
+      }
+      throw new Error(`Unable to reach ${url}: ${error.message}`);
+    }
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      const code = payload?.error?.code || 'HTTP_ERROR';
+      const message = payload?.error?.message || response.statusText;
+      if (attempt < maxRetries && [502, 503, 504].includes(response.status)) {
+        console.warn(`Transient HTTP ${response.status} (${code}) for ${path}; retry ${attempt + 1}/${maxRetries} in ${retryDelayMs * (attempt + 1)}ms`);
+        await sleep(retryDelayMs * (attempt + 1));
+        continue;
+      }
+      throw new Error(`GET ${path} returned ${response.status} (${code}): ${message}`);
+    }
+    if (!payload || typeof payload !== 'object' || !('data' in payload)) {
+      throw new Error(`GET ${path} returned an unexpected JSON envelope`);
+    }
+    return payload.data;
   }
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) {
-    const code = payload?.error?.code || 'HTTP_ERROR';
-    const message = payload?.error?.message || response.statusText;
-    throw new Error(`GET ${path} returned ${response.status} (${code}): ${message}`);
-  }
-  if (!payload || typeof payload !== 'object' || !('data' in payload)) {
-    throw new Error(`GET ${path} returned an unexpected JSON envelope`);
-  }
-  return payload.data;
 }
 
 function displayLeague(event) {

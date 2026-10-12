@@ -132,7 +132,8 @@ const STALE_MS = config.sportsFeedStaleSeconds * 1000;
 // sure at most one provider fan-out runs across the whole deployment at any time.
 const REFRESH_LOCK_KEY = 'sportsbook:feed-refresh-lock:v1';
 const REFRESH_LOCK_TTL_MS = Math.max(180000, REFRESH_MS);
-const REFRESH_LOCK_WAIT_MS = REFRESH_LOCK_TTL_MS;
+// Keep request-triggered refresh contention well below the 30s proxy timeout.
+const REFRESH_LOCK_WAIT_MS = 5000;
 const REFRESH_LOCK_RENEW_MS = 60000;
 const REFRESH_LOCK_POLL_MS = 400;
 
@@ -831,7 +832,7 @@ async function performWithRefreshLock(reason) {
         memory = cached;
         return memory;
       }
-      throw new AppError(503, 'Sportsbook feed sedang direfresh oleh proses lain.', 'SPORTS_REFRESH_IN_PROGRESS');
+      throw new AppError(503, 'Sportsbook feed sedang direfresh oleh proses lain; silakan coba kembali.', 'SPORTS_REFRESH_IN_PROGRESS');
     }
   }
   const renewal = setInterval(() => {
@@ -897,6 +898,7 @@ export async function refreshSportsbookFeed({ reason = 'scheduled' } = {}) {
     });
     return refreshed;
   } catch (error) {
+    if (error?.code === 'SPORTS_REFRESH_IN_PROGRESS') throw error;
     const stale = await markCachedFeedReadOnly(error, { reason });
     if (stale) return stale;
     throw error;
@@ -927,6 +929,7 @@ async function currentFeed({ force = false } = {}) {
   }
   if (!inFlight) {
     inFlight = refreshSportsbookFeed({ reason: force ? 'forced-request' : 'request-expired-cache' }).catch(async error => {
+      if (error?.code === 'SPORTS_REFRESH_IN_PROGRESS') throw error;
       const stale = await markCachedFeedReadOnly(error, { reason: 'request-refresh-failed' });
       if (stale && now - stale.fetchedAt <= STALE_MS) return stale;
       throw error;
