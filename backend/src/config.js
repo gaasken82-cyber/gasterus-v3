@@ -112,14 +112,14 @@ export const config = Object.freeze({
   sportsFeedMaxEvents: int('SPORTS_FEED_MAX_EVENTS', 400, 20, 500),
   sportsFeedMaxCacheBytes: int('SPORTS_FEED_MAX_CACHE_BYTES', 12_000_000, 262_144, 15_000_000),
   sportsProviderCacheMaxEntries: int('SPORTS_PROVIDER_CACHE_MAX_ENTRIES', 120, 1, 10000),
-  sportsProviderCacheMaxEntryBytes: int('SPORTS_PROVIDER_CACHE_MAX_ENTRY_BYTES', 4_194_304, 1024, 100_000_000),
+  sportsProviderCacheMaxEntryBytes: int('SPORTS_PROVIDER_CACHE_MAX_ENTRY_BYTES', 3_145_728, 1024, 100_000_000),
   sportsProviderCacheMaxTotalBytes: int('SPORTS_PROVIDER_CACHE_MAX_TOTAL_BYTES', 10_000_000, 1024, 100_000_000),
 
   // Provider credentials are read only by core and may be mounted as Docker secrets.
   apiSportsKey,
   apiSportsBaseUrl: text('API_SPORTS_BASE_URL', 'https://v3.football.api-sports.io'),
   apiSportsEnabled: pricedProviderEnabled('API_SPORTS_ENABLED', apiSportsKey),
-  apiSportsDaysAhead: int('API_SPORTS_DAYS_AHEAD', 3, 0, 14),
+  apiSportsDaysAhead: int('API_SPORTS_DAYS_AHEAD', 14, 0, 14),
   apiSportsOddsPages: int('API_SPORTS_ODDS_PAGES', 2, 1, 20),
   apiSportsLiveRefreshSeconds: int('API_SPORTS_LIVE_REFRESH_SECONDS', 30, 15, 300),
   apiSportsPrematchRefreshSeconds: int('API_SPORTS_PREMATCH_REFRESH_SECONDS', 300, 60, 1800),
@@ -151,14 +151,14 @@ export const config = Object.freeze({
   theOddsApiEventMarketsEnabled: bool('THE_ODDS_API_EVENT_MARKETS_ENABLED', isProduction && Boolean(theOddsApiKey)),
   theOddsApiEventMarkets: text('THE_ODDS_API_EVENT_MARKETS', 'h2h_3_way_h1,spreads_h1,totals_h1,btts,btts_h1,double_chance,double_chance_h1,halftime_fulltime'),
   theOddsApiEventMaxEventsPerSport: int('THE_ODDS_API_EVENT_MAX_EVENTS_PER_SPORT', 25, 0, 50),
-  theOddsApiEventMaxTotalEvents: int('THE_ODDS_API_EVENT_MAX_TOTAL_EVENTS', 50, 0, 120),
+  theOddsApiEventMaxTotalEvents: int('THE_ODDS_API_EVENT_MAX_TOTAL_EVENTS', 120, 0, 120),
   // Keep the configured provider catalog intact; the feed-level event and Redis byte
   // limits remain the final resource guards for the consolidated snapshot.
   theOddsApiMaxTotalEvents: int('THE_ODDS_API_MAX_TOTAL_EVENTS', 500, 0, 500),
   theOddsApiRefreshSeconds: int('THE_ODDS_API_REFRESH_SECONDS', 300, 60, 1800),
   theOddsApiEventRefreshSeconds: int('THE_ODDS_API_EVENT_REFRESH_SECONDS', 300, 60, 1800),
   theOddsApiBookmakers: text('THE_ODDS_API_BOOKMAKERS'),
-  theOddsApiSportKeys: text('THE_ODDS_API_SPORT_KEYS', 'soccer_epl,soccer_spain_la_liga,soccer_italy_serie_a,soccer_germany_bundesliga,soccer_france_ligue_one,soccer_uefa_champs_league,basketball_nba,tennis_atp_us_open,tennis_wta_us_open'),
+  theOddsApiSportKeys: text('THE_ODDS_API_SPORT_KEYS', 'soccer_australia_aleague,soccer_austria_bundesliga,soccer_belgium_first_div,soccer_brazil_campeonato,soccer_china_superleague,soccer_conmebol_libertadores,soccer_conmebol_sudamericana,soccer_denmark_superliga,soccer_efl_champ,soccer_england_league1,soccer_england_league2,soccer_fa_cup,soccer_france_ligue_one,soccer_france_ligue_two,soccer_germany_bundesliga,soccer_germany_bundesliga2,soccer_germany_liga3,soccer_greece_super_league,soccer_italy_serie_a,soccer_italy_serie_b,soccer_japan_j_league,soccer_korea_kleague1,soccer_mexico_ligamx,soccer_netherlands_eredivisie,soccer_netherlands_eerste_divisie,soccer_norway_eliteserien,soccer_poland_ekstraklasa,soccer_portugal_primeira_liga,soccer_spain_la_liga,soccer_spain_segunda_division,soccer_sweden_allsvenskan,soccer_switzerland_superleague,soccer_turkey_super_league,soccer_usa_mls,soccer_uefa_champs_league,soccer_uefa_europa_league,soccer_uefa_europa_conference_league'),
   theSportsDbKey,
   theSportsDbBaseUrl: text('THESPORTSDB_BASE_URL', 'https://www.thesportsdb.com/api'),
   theSportsDbEnabled: bool('THESPORTSDB_ENABLED', false),
@@ -167,7 +167,7 @@ export const config = Object.freeze({
   footballDataIoBaseUrl: text('FOOTBALLDATA_IO_BASE_URL', 'https://footballdata.io/api/v1'),
   footballDataIoEnabled: pricedProviderEnabled('FOOTBALLDATA_IO_ENABLED', footballDataIoKey),
   footballDataIoRefreshSeconds: int('FOOTBALLDATA_IO_REFRESH_SECONDS', 300, 60, 1800),
-  footballDataIoUpcomingLimit: int('FOOTBALLDATA_IO_UPCOMING_LIMIT', 200, 10, 1000),
+  footballDataIoUpcomingLimit: int('FOOTBALLDATA_IO_UPCOMING_LIMIT', 500, 10, 1000),
   // Disabled: this credential currently returns HTTP 401, and this source does not
   // provide bettable markets for our feed. Do not re-enable from environment variables.
   sportmonksBaseUrl: text('SPORTMONKS_BASE_URL', 'https://api.sportmonks.com/v3'),

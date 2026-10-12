@@ -25,7 +25,7 @@ const BETSLIP_MOBILE_BREAKPOINT = 860;
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
-let feed = { events: [], stale: false, degraded: false, source: {} };
+let feed = { events: [], stale: false, degraded: false, source: {}, leagues: [], counts: {}, pagination: { offset: 0, limit: EVENTS_PAGE_SIZE, total: 0, hasMore: false } };
 let selected = new Map(); // selectionKey -> leg payload (betslip)
 const eventDetails = new Map();
 const eventDetailRequests = new Map();
@@ -34,6 +34,7 @@ const expandedEventMarkets = new Set();
 const selectedEventPeriods = new Map();
 let currentSport = 'all';
 let currentLeague = 'all';
+let currentCountry = 'all';
 let currentFilter = 'all'; // all | live | today | early | fav
 let searchQuery = '';
 let visibleEventLimit = EVENTS_PAGE_SIZE;
@@ -44,6 +45,9 @@ let lastRenderRevision = '';
 let lastStructureRevision = '';
 let bettingConfig = { minStake: 1000, maxStake: 50000000, maxLegs: 12, maxSystemCombinations: 120, quoteRequired: true, types: ['SINGLE', 'PARLAY', 'SYSTEM'] };
 let streamClosed = false;
+let streamGeneration = 0;
+let streamAbortController = null;
+let streamOffset = 0;
 let quote = null; // last successful server quote
 let quoteGeneration = 0;
 let placing = false;
@@ -353,6 +357,9 @@ window.__SB_BUILD = SB_BUILD;
 console.info(`[GASTERUS] sportsbook build ${SB_BUILD}`);
 
 function startStream() {
+  streamAbortController?.abort();
+  const generation = ++streamGeneration;
+  streamOffset = 0;
   streamClosed = false;
   setStatus('connecting');
   loadRestSnapshot(); // REST bootstrap 1x — render papan data seketika; SSE mengambil alih realtime.
@@ -360,19 +367,29 @@ function startStream() {
   // hanya mengulang snapshot yang sama (beban request + render sia-sia, dan sempat jadi
   // akar pola 222↔5). Cadangan tetap ada: bootstrap 1x di atas + loadRestSnapshot()
   // di catch SSE (baris ~415) saat stream benar-benar putus.
-  connectStream();
+  connectStream(generation);
 }
 
 // REST bootstrap/fallback — papan tetap terisi walau SSE terblokir/dibuffer perantara.
-async function loadRestSnapshot() {
+async function loadRestSnapshot({ append = false } = {}) {
   try {
     const headers = { Accept: 'application/json' };
     if (api.token) { headers.Authorization = `Bearer ${api.token}`; headers['x-session-token'] = api.token; }
-    const res = await fetch(SNAPSHOT_URL, { method: 'GET', credentials: 'include', headers });
+    const params = new URLSearchParams({
+      tab: currentFilter === 'fav' ? 'all' : currentFilter,
+      limit: String(EVENTS_PAGE_SIZE),
+      offset: String(append ? feed.pagination.offset + feed.pagination.limit : 0)
+    });
+    if (currentFilter === 'fav') params.set('leagues', [...favLeagues].join(','));
+    if (currentCountry !== 'all') params.set('country', currentCountry);
+    if (currentLeague !== 'all') params.set('league', currentLeague);
+    if (searchQuery) params.set('q', searchQuery);
+    const res = await fetch(`${SNAPSHOT_URL}?${params}`, { method: 'GET', credentials: 'include', headers });
     if (!res.ok) { console.warn('[GASTERUS] snapshot http', res.status); return false; }
     const json = await res.json();
     const payload = json?.data || json || null;
     if (payload && Array.isArray(payload.events)) {
+      if (append) streamOffset = Math.max(0, feed.events.length);
       onSnapshot(payload);
       return true;
     }
@@ -380,13 +397,28 @@ async function loadRestSnapshot() {
   return false;
 }
 
-async function connectStream() {
+function streamUrl() {
+  const params = new URLSearchParams({
+    tab: currentFilter === 'fav' ? 'all' : currentFilter,
+    limit: String(EVENTS_PAGE_SIZE),
+    offset: String(streamOffset)
+  });
+  if (currentFilter === 'fav') params.set('leagues', [...favLeagues].join(','));
+  if (currentCountry !== 'all') params.set('country', currentCountry);
+  if (currentLeague !== 'all') params.set('league', currentLeague);
+  if (searchQuery) params.set('q', searchQuery);
+  return `${STREAM_URL}?${params}`;
+}
+
+async function connectStream(generation = streamGeneration) {
   let backoff = 1500;
-  while (!streamClosed) {
+  while (!streamClosed && generation === streamGeneration) {
     try {
       const headers = { Accept: 'text/event-stream', 'x-session-token': api.token || '' };
       if (api.token) headers.Authorization = `Bearer ${api.token}`;
-      const res = await fetch(STREAM_URL, { method: 'GET', credentials: 'include', headers });
+      const controller = new AbortController();
+      streamAbortController = controller;
+      const res = await fetch(streamUrl(), { method: 'GET', credentials: 'include', headers, signal: controller.signal });
       if (res.status === 401) {
         window.location.href = '/index.html?msg=session_expired';
         return;
@@ -396,7 +428,7 @@ async function connectStream() {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = '';
-      while (!streamClosed) {
+      while (!streamClosed && generation === streamGeneration) {
         const chunk = await reader.read();
         if (chunk.done) break;
         buf += decoder.decode(chunk.value ?? new Uint8Array(0), { stream: true });
@@ -409,12 +441,14 @@ async function connectStream() {
         }
       }
       reader.release?.();
-      if (streamClosed) return;
+      if (streamClosed || generation !== streamGeneration) return;
     } catch (e) {
+      if (streamClosed || generation !== streamGeneration) return;
       // transport error — refresh data via REST fallback lalu reconnect dengan backoff
       await loadRestSnapshot();
     }
-    if (streamClosed) return;
+    if (streamClosed || generation !== streamGeneration) return;
+    streamAbortController = null;
     setStatus('connecting');
     await new Promise((resolve) => setTimeout(resolve, backoff));
     backoff = Math.min(backoff * 1.6, 15000);
@@ -445,11 +479,18 @@ function onSnapshot(snapshot) {
   if (!snapshot || !Array.isArray(snapshot.events)) return;
   const previousFeedRevision = String(feed.source?.feedRevision || '');
   const revision = snapshot.source?.feedRevision || '';
+  const pageOffset = Number(snapshot.pagination?.offset || 0);
+  const events = pageOffset > 0
+    ? [...feed.events.slice(0, pageOffset), ...snapshot.events]
+    : snapshot.events;
   feed = {
-    events: snapshot.events,
+    events,
     stale: Boolean(snapshot.stale),
     degraded: Boolean(snapshot.degraded),
-    source: snapshot.source || {}
+    source: snapshot.source || {},
+    leagues: Array.isArray(snapshot.leagues) ? snapshot.leagues : [],
+    counts: snapshot.counts || {},
+    pagination: snapshot.pagination || { offset: 0, limit: EVENTS_PAGE_SIZE, total: snapshot.events.length, hasMore: false }
   };
   const detailRefreshIds = new Set();
   if (revision && revision !== previousFeedRevision) {
@@ -542,6 +583,7 @@ function pruneSelections(events) {
   let changed = false;
   for (const key of [...selected.keys()]) {
     const selection = selected.get(key);
+    if (!(events || []).some(event => event.id === selection.eventId)) continue;
     if (!liveKeys.has(key) && !pendingEventDetails.has(selection.eventId)) {
       selected.delete(key);
       changed = true;
@@ -589,7 +631,7 @@ function renderStatusMeta() {
           ? 'Feed aktif'
           : 'Menunggu odds';
   }
-  if (eventCount) eventCount.textContent = fmt(feed.events.length);
+  if (eventCount) eventCount.textContent = fmt(feed.pagination?.total ?? feed.events.length);
   if (marketCount) marketCount.textContent = fmt(feed.source?.bettableMarkets ?? feed.source?.pricedMarkets ?? 0);
   if (feedUpdated) {
     const stamp = feed.source?.fetchedAt || feed.source?.capturedAt;
@@ -709,7 +751,31 @@ function setMatchFilter(filter) {
     favoriteButton.classList.toggle('active', active);
     favoriteButton.setAttribute('aria-pressed', String(active));
   }
-  renderAll();
+  refreshFeedView();
+}
+
+function refreshFeedView() {
+  feed.events = [];
+  feed.pagination = { offset: 0, limit: EVENTS_PAGE_SIZE, total: 0, hasMore: false };
+  streamOffset = 0;
+  if (auth.isLoggedIn()) {
+    streamAbortController?.abort();
+    const generation = ++streamGeneration;
+    streamClosed = false;
+    setStatus('connecting');
+    void loadRestSnapshot();
+    void connectStream(generation);
+  } else {
+    void loadRestSnapshot();
+  }
+}
+
+function restartStreamAtCurrentPage() {
+  if (!auth.isLoggedIn()) return;
+  streamAbortController?.abort();
+  const generation = ++streamGeneration;
+  streamClosed = false;
+  void connectStream(generation);
 }
 
 function setupBalanceToggle() {
@@ -960,10 +1026,11 @@ async function openUserBetsModal(title) {
 }
 
 function updateCategoryCounts() {
+  const counts = feed.counts || {};
   const events = feed.events || [];
-  const liveCount = events.filter(isLiveEvent).length;
-  const todayCount = events.filter(isTodayEvent).length;
-  const earlyCount = events.filter(isFutureEvent).length;
+  const liveCount = counts.live ?? events.filter(isLiveEvent).length;
+  const todayCount = counts.today ?? events.filter(isTodayEvent).length;
+  const earlyCount = counts.early ?? events.filter(isFutureEvent).length;
 
   const cAll = el('count-all');
   const cLive = el('count-live');
@@ -971,7 +1038,7 @@ function updateCategoryCounts() {
   const cEarly = el('count-early');
   const cOutright = el('count-outright');
 
-  if (cAll) cAll.textContent = String(events.length);
+  if (cAll) cAll.textContent = String(counts.all ?? feed.pagination?.total ?? events.length);
   if (cLive) cLive.textContent = String(liveCount);
   if (cToday) cToday.textContent = String(todayCount);
   if (cEarly) cEarly.textContent = String(earlyCount);
@@ -987,7 +1054,7 @@ function setupSearch() {
     t = setTimeout(() => {
       searchQuery = input.value.trim().toLowerCase();
       visibleEventLimit = EVENTS_PAGE_SIZE;
-      renderAll();
+      refreshFeedView();
     }, 200);
   });
 }
@@ -1033,8 +1100,9 @@ function bindEventHandlers() {
       return;
     }
     if (e.target.closest('[data-load-more-events]')) {
-      visibleEventLimit += EVENTS_PAGE_SIZE;
-      renderAll();
+      void loadRestSnapshot({ append: true }).then(loaded => {
+        if (loaded) restartStreamAtCurrentPage();
+      });
       return;
     }
     const accRowHead = e.target.closest('.sb-accordion-header');
@@ -1068,6 +1136,7 @@ function visibleEvents() {
   let list = feed.events;
   if (currentSport !== 'all') list = list.filter((e) => String(e.sport || '').toLowerCase() === String(currentSport).toLowerCase());
   if (currentLeague !== 'all') list = list.filter((e) => String(e.league || '') === currentLeague);
+  if (currentCountry !== 'all') list = list.filter((e) => String(e.country || '') === currentCountry);
   
   if (currentFilter === 'live') list = list.filter((e) => isLiveEvent(e));
   else if (currentFilter === 'today') list = list.filter((e) => isTodayEvent(e) || isLiveEvent(e));
@@ -1099,14 +1168,14 @@ function renderAll() {
   }
   const empty = el('sb-empty');
   if (empty) empty.hidden = true;
-  const visibleList = list.slice(0, visibleEventLimit);
+  const visibleList = list;
   ev.innerHTML = renderLeagueGroups(visibleList);
-  if (list.length > visibleList.length) {
+  if (feed.pagination?.hasMore) {
     ev.insertAdjacentHTML('beforeend', `
       <div class="sb-events-load-more">
-        <p>Menampilkan ${fmt(visibleList.length)} dari ${fmt(list.length)} pertandingan</p>
+        <p>Menampilkan ${fmt(feed.events.length)} dari ${fmt(feed.pagination.total)} pertandingan</p>
         <button type="button" data-load-more-events>
-          Muat ${fmt(Math.min(EVENTS_PAGE_SIZE, list.length - visibleList.length))} pertandingan lagi
+          Muat ${fmt(Math.min(EVENTS_PAGE_SIZE, feed.pagination.total - feed.events.length))} pertandingan lagi
         </button>
       </div>
     `);
@@ -1705,8 +1774,17 @@ function timeLabel(start) {
 function renderSidebar(list) {
   const sportHost = el('sport-nav');
   const leagueHost = el('league-nav');
-  const sports = [...new Set(list.map((e) => e.sport || 'Football'))];
-  const leagues = [...new Set(list.map((e) => e.league || 'Liga Internasional'))].sort((a, b) => a.localeCompare(b));
+  const sports = [...new Set((list || []).map((e) => e.sport || 'Football'))];
+  const leagues = feed.leagues?.length
+    ? feed.leagues
+    : [...new Set((list || []).map(e => `${e.country || 'Internasional'}|${e.league || 'Liga Internasional'}`))]
+      .map(key => {
+        const [country, league] = key.split('|');
+        return { country, league, count: 0, liveCount: 0 };
+      });
+  const isTopLeague = item => /premier league|epl|la liga|serie a|bundesliga|ligue 1|champions league|europa league|conference league|eredivisie|primeira liga|major league soccer|\bmls\b/i.test(`${item.country} ${item.league}`);
+  const topLeagues = leagues.filter(isTopLeague);
+  const countries = [...new Set(leagues.map(item => item.country))].sort((a, b) => a.localeCompare(b));
   const dropdown = el('sb-sport-menu');
   const sportLabel = el('current-sport-label');
 
@@ -1735,13 +1813,53 @@ function renderSidebar(list) {
   }));
   }
   if (leagueHost) {
-    let h = `<button type="button" class="sb-nav-item${currentLeague === 'all' ? ' active' : ''}" data-league="all">Semua Liga</button>`;
-    h += leagues.map((l) => `<button type="button" class="sb-nav-item${currentLeague === l ? ' active' : ''}" data-league="${escapeHtml(l)}">${favLeagues.has(l) ? '★ ' : ''}${escapeHtml(l)}</button>`).join('');
+    let h = `<button type="button" class="sb-nav-item${currentLeague === 'all' && currentCountry === 'all' ? ' active' : ''}" data-reset-league>Semua Liga</button>`;
+    if (topLeagues.length) {
+      h += '<div class="sb-sidebar-group-title">Top Leagues</div>';
+      h += topLeagues.map(item => `
+        <button type="button" class="sb-nav-item sb-league-nav-item${currentLeague === item.league && currentCountry === item.country ? ' active' : ''}" data-league="${escapeHtml(item.league)}" data-country="${escapeHtml(item.country)}">
+          <span>${favLeagues.has(item.league) ? '★ ' : ''}${escapeHtml(item.league)}</span>
+          <span class="sb-nav-count">${item.liveCount ? `<i>${fmt(item.liveCount)}</i>` : fmt(item.count)}</span>
+        </button>
+      `).join('');
+    }
+    h += '<div class="sb-sidebar-group-title">Negara · A–Z</div>';
+    h += countries.map(country => {
+      const countryLeagues = leagues.filter(item => item.country === country);
+      const liveCount = countryLeagues.reduce((sum, item) => sum + item.liveCount, 0);
+      const totalCount = countryLeagues.reduce((sum, item) => sum + item.count, 0);
+      return `
+        <div class="sb-country-group">
+          <button type="button" class="sb-nav-item sb-country-nav-item${currentCountry === country && currentLeague === 'all' ? ' active' : ''}" data-country-filter="${escapeHtml(country)}">
+            <span>${escapeHtml(country)}</span><span class="sb-nav-count">${liveCount ? `<i>${fmt(liveCount)}</i>` : fmt(totalCount)}</span>
+          </button>
+          ${countryLeagues.map(item => `
+            <button type="button" class="sb-nav-item sb-league-nav-item${currentLeague === item.league && currentCountry === country ? ' active' : ''}" data-league="${escapeHtml(item.league)}" data-country="${escapeHtml(country)}">
+              <span>${favLeagues.has(item.league) ? '★ ' : ''}${escapeHtml(item.league)}</span>
+              <span class="sb-nav-count">${item.liveCount ? `<i>${fmt(item.liveCount)}</i>` : fmt(item.count)}</span>
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }).join('');
     leagueHost.innerHTML = h;
-    leagueHost.querySelectorAll('[data-league]').forEach((b) => b.addEventListener('click', () => {
-      currentLeague = b.getAttribute('data-league');
+    leagueHost.querySelector('[data-reset-league]')?.addEventListener('click', () => {
+      currentLeague = 'all';
+      currentCountry = 'all';
       visibleEventLimit = EVENTS_PAGE_SIZE;
-      renderAll();
+      refreshFeedView();
+    });
+    leagueHost.querySelectorAll('[data-country-filter]').forEach(button => button.addEventListener('click', () => {
+      currentCountry = button.getAttribute('data-country-filter') || 'all';
+      currentLeague = 'all';
+      visibleEventLimit = EVENTS_PAGE_SIZE;
+      refreshFeedView();
+    }));
+    leagueHost.querySelectorAll('[data-league]').forEach(button => button.addEventListener('click', () => {
+      currentLeague = button.getAttribute('data-league') || 'all';
+      currentCountry = button.getAttribute('data-country') || 'all';
+      visibleEventLimit = EVENTS_PAGE_SIZE;
+      refreshFeedView();
     }));
   }
   const st = el('sidebar-status');

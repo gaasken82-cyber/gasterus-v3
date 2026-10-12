@@ -165,19 +165,41 @@ const CLOSED_EVENT_STATUSES = new Set(['FINISHED', 'CANCELLED', 'CANCELED', 'ABA
 const TOP_LEAGUE_PATTERNS = [
   /\bpremier league\b/i, /\bepl\b/i, /\bla liga\b/i, /\bserie a\b/i,
   /\bbundesliga\b/i, /\bligue 1\b/i, /\bchampions league\b/i, /\beuropa league\b/i,
-  /\beredivisie\b/i, /\bprimeira liga\b/i, /\bmajor league soccer\b/i, /\bmls\b/i,
-  /\bnba\b/i, /\bwnba\b/i, /\bnhl\b/i, /\bnfl\b/i, /\bmlb\b/i,
-  /\batp\b/i, /\bwta\b/i, /\bus open\b/i, /\bwimbledon\b/i,
-  /\broland garros\b/i, /\baustralian open\b/i
+  /\bconference league\b/i, /\beredivisie\b/i, /\bprimeira liga\b/i,
+  /\bmajor league soccer\b/i, /\bmls\b/i, /\bchampionship\b/i
 ];
 const MAX_FEED_EVENTS = config.sportsFeedMaxEvents;
 const MAX_CACHE_BYTES = config.sportsFeedMaxCacheBytes;
 let lastCacheLimitWarningAt = 0;
+const WIB_DAY_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Jakarta',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+});
+const SUMMARY_MARKET_TYPES = new Set(['1X2', 'HANDICAP', 'TOTALS']);
+const DEFAULT_SNAPSHOT_PAGE_SIZE = 30;
+const MAX_SNAPSHOT_PAGE_SIZE = 100;
+
+function isSoccerEvent(event) {
+  const sport = clean(event?.sport).toLowerCase();
+  return sport === 'football' || sport === 'soccer' || sport === 'association football';
+}
+
+function eventBucket(event, now = Date.now()) {
+  if (event?.live || ['LIVE', 'IN_PLAY', 'IN-PLAY'].includes(clean(event?.status).toUpperCase())) return 'live';
+  const kickoff = Date.parse(event?.startTime || '');
+  if (!Number.isFinite(kickoff)) return 'early';
+  return WIB_DAY_FORMATTER.format(new Date(kickoff)) === WIB_DAY_FORMATTER.format(new Date(now))
+    ? 'today'
+    : kickoff > now ? 'early' : '';
+}
 
 function boundedEvents(events = []) {
   if (!Array.isArray(events)) return [];
   const now = Date.now();
   return events
+    .filter(isSoccerEvent)
     .filter(event => {
       const status = clean(event?.status).toUpperCase();
       const kickoff = Date.parse(event?.startTime || '');
@@ -957,16 +979,46 @@ function normalizedSport(value) {
   if (/baseball/.test(raw)) return 'Baseball';
   return raw ? 'Football' : '';
 }
-function filterEvents(events, { sport, live, q, league } = {}) {
+function filterEvents(events, { sport, live, q, league, country, tab, leagues } = {}) {
   const requestedSport = normalizedSport(sport);
   const query = clean(q).toLowerCase();
   const requestedLeague = clean(league).toLowerCase();
+  const requestedCountry = clean(country).toLowerCase();
+  const requestedTab = clean(tab).toLowerCase();
+  const requestedLeagues = leagues === null || leagues === undefined
+    ? null
+    : new Set(String(leagues).split(',').map(value => clean(value).toLowerCase()).filter(Boolean));
   return events.filter(event => {
+    if (!isSoccerEvent(event)) return false;
     if (requestedSport && event.sport !== requestedSport) return false;
     if (String(live).toLowerCase() === 'true' && !event.live) return false;
-    if (requestedLeague && !event.league.toLowerCase().includes(requestedLeague)) return false;
+    if (requestedLeague && clean(event.league).toLowerCase() !== requestedLeague) return false;
+    if (requestedLeagues && (!requestedLeagues.size || !requestedLeagues.has(clean(event.league).toLowerCase()))) return false;
+    if (requestedCountry && clean(event.country).toLowerCase() !== requestedCountry) return false;
+    if (requestedTab && requestedTab !== 'all' && requestedTab !== 'fav') {
+      const bucket = eventBucket(event);
+      if (bucket !== requestedTab && !(requestedTab === 'today' && bucket === 'live')) return false;
+    }
     if (query && !`${event.league} ${event.home.name} ${event.away.name}`.toLowerCase().includes(query)) return false;
     return true;
+  });
+}
+
+function leagueFacets(events = []) {
+  const leagues = new Map();
+  for (const event of events) {
+    const country = clean(event.country) || 'Internasional';
+    const league = clean(event.league) || 'Liga Internasional';
+    const key = `${country}|${league}`;
+    const entry = leagues.get(key) || { country, league, count: 0, liveCount: 0 };
+    entry.count += 1;
+    if (eventBucket(event) === 'live') entry.liveCount += 1;
+    leagues.set(key, entry);
+  }
+  return [...leagues.values()].sort((a, b) => {
+    const aTop = TOP_LEAGUE_PATTERNS.some(pattern => pattern.test(`${a.country} ${a.league}`));
+    const bTop = TOP_LEAGUE_PATTERNS.some(pattern => pattern.test(`${b.country} ${b.league}`));
+    return Number(bTop) - Number(aTop) || a.country.localeCompare(b.country) || a.league.localeCompare(b.league);
   });
 }
 
@@ -991,32 +1043,67 @@ function memberEventShape(item, markets) {
 }
 function memberPublicEvent(event) {
   const item = publicEvent(event);
-  return memberEventShape(item, item.markets || []);
+  const markets = (item.markets || []).filter(market =>
+    SUMMARY_MARKET_TYPES.has(String(market.type || '').toUpperCase())
+    && String(market.period || 'FT').toUpperCase() === 'FT'
+  );
+  return memberEventShape(item, markets);
 }
 function memberPublicEventDetail(event) {
   const item = publicEvent(event);
   return memberEventShape(item, item.markets || []);
 }
+
+function paginateEvents(events = [], { offset, limit } = {}) {
+  const pageSize = Math.min(MAX_SNAPSHOT_PAGE_SIZE, Math.max(1, Number(limit) || DEFAULT_SNAPSHOT_PAGE_SIZE));
+  const start = Math.max(0, Math.min(events.length, Math.floor(Number(offset) || 0)));
+  const page = events.slice(start, start + pageSize);
+  return {
+    events: page,
+    pagination: {
+      offset: start,
+      limit: pageSize,
+      total: events.length,
+      hasMore: start + page.length < events.length
+    }
+  };
+}
+
 export async function sportsbookSnapshot(filters = {}, { memberView = true } = {}) {
   const feed = await currentFeed();
   const now = Date.now();
   const stale = Boolean(feed.readOnlySource || feed.snapshotFallback || !feed.fetchedAt || now - Number(feed.fetchedAt) > STALE_MS);
   const controls = await listActiveSportsbookTradingControls();
-  let sourceEvents = filterEvents(feed.events, filters);
+  const soccerEvents = (feed.events || []).filter(isSoccerEvent).filter(event => memberVisibleEvent(event, now));
+  const facets = leagueFacets(soccerEvents);
+  const counts = {
+    all: soccerEvents.length,
+    live: soccerEvents.filter(event => eventBucket(event, now) === 'live').length,
+    today: soccerEvents.filter(event => eventBucket(event, now) === 'today' || eventBucket(event, now) === 'live').length,
+    early: soccerEvents.filter(event => eventBucket(event, now) === 'early').length
+  };
+  let sourceEvents = filterEvents(soccerEvents, filters);
   if (memberView) {
     sourceEvents = sourceEvents
-      .filter(event => memberVisibleEvent(event, now))
-      .sort((a, b) => Date.parse(a.startTime || '') - Date.parse(b.startTime || ''))
-      .slice(0, Number(config.sportsbookMemberMaxEvents || 250));
+      .sort((a, b) => {
+        const aStart = Date.parse(a.startTime || '') || Number.POSITIVE_INFINITY;
+        const bStart = Date.parse(b.startTime || '') || Number.POSITIVE_INFINITY;
+        return aStart - bStart || String(a.id).localeCompare(String(b.id));
+      })
+      .slice(0, Number(config.sportsbookMemberMaxEvents || MAX_FEED_EVENTS));
   }
+  const page = paginateEvents(sourceEvents, filters);
+  sourceEvents = page.events;
   const projected = memberView ? sourceEvents.map(memberPublicEvent) : sourceEvents.map(publicEvent);
   const events = applySportsbookTradingControls(projected, controls);
-  const healthyCount = feed.providers.filter(provider => provider.enabled && provider.healthy).length;
   const visiblePricedMarkets = pricedMarketCount(events);
   const visibleBettableMarkets = bettableMarketCount(events);
-  const memberHealthy = !stale && !feed.readOnlySource && visibleBettableMarkets > 0;
+  const memberHealthy = !stale && !feed.readOnlySource && Number(feed.bettableMarkets || 0) > 0;
   return {
     events,
+    leagues: facets,
+    counts,
+    pagination: page.pagination,
     stale,
     degraded: !memberHealthy,
     source: {
@@ -1232,4 +1319,4 @@ export async function sportsbookSelectionSnapshot({ eventId, marketId, selection
   };
 }
 
-export const __sportsbookFeed = { filterEvents, normalizedSport, pricedMarketCount, bettableMarketCount, providerHasPricedMarkets, stampPriceVersions, stableFeedRevision, assertSelectionFresh, advanceProviderLifecycle, eventBettingOpen, enforceEventBettingWindow, memberVisibleEvent, boundedEvents, cacheWithinLimit, eventSettlementAuthority, settlementAuthoritySummary, memberPublicEvent, memberPublicEventDetail };
+export const __sportsbookFeed = { filterEvents, leagueFacets, paginateEvents, isSoccerEvent, eventBucket, normalizedSport, pricedMarketCount, bettableMarketCount, providerHasPricedMarkets, stampPriceVersions, stableFeedRevision, assertSelectionFresh, advanceProviderLifecycle, eventBettingOpen, enforceEventBettingWindow, memberVisibleEvent, boundedEvents, cacheWithinLimit, eventSettlementAuthority, settlementAuthoritySummary, memberPublicEvent, memberPublicEventDetail };

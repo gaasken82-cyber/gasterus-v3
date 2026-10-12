@@ -17,8 +17,15 @@ test('sportsbook feed defaults stay inside Railway free-tier event and cache bud
   assert.match(config, /publicMarketMaxEvents: int\('PUBLIC_MARKET_MAX_EVENTS', 500, 10, 500\)/);
   assert.match(config, /sportsbookFinishedEventRetentionSeconds: int\('SPORTSBOOK_FINISHED_EVENT_RETENTION_SECONDS', 21600/);
   assert.match(config, /theOddsApiEventMaxEventsPerSport: int\('THE_ODDS_API_EVENT_MAX_EVENTS_PER_SPORT', 25, 0, 50\)/);
-  assert.match(config, /theOddsApiEventMaxTotalEvents: int\('THE_ODDS_API_EVENT_MAX_TOTAL_EVENTS', 50, 0, 120\)/);
+  assert.match(config, /theOddsApiEventMaxTotalEvents: int\('THE_ODDS_API_EVENT_MAX_TOTAL_EVENTS', 120, 0, 120\)/);
   assert.match(config, /sharpApiMaxPages: int\('SHARP_API_MAX_PAGES', isProduction \? 5 : 3/);
+});
+
+test('The Odds API default catalog contains soccer leagues only', () => {
+  const match = config.match(/theOddsApiSportKeys: text\('THE_ODDS_API_SPORT_KEYS', '([^']+)'/);
+  assert.ok(match, 'soccer sport-key catalog should be configured');
+  assert.ok(match[1].split(',').length >= 30, 'global catalog should cover many soccer competitions');
+  assert.ok(match[1].split(',').every(key => key.startsWith('soccer_')));
 });
 
 test('sportsbook feed worker and background polling default to enabled in production', () => {
@@ -239,6 +246,7 @@ test('Sportsbook Redis cache respects its configured byte budget while preferrin
     const now = Date.now();
     const events = Array.from({ length: 24 }, (_, index) => ({
       id: String(index),
+      sport: 'Football',
       status: 'SCHEDULED',
       live: false,
       startTime: new Date(now + (index < 12 ? 3600000 * (index + 1) : -86400000 * (index - 11))).toISOString(),

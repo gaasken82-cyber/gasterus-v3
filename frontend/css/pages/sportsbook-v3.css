@@ -617,6 +617,44 @@ body.sb-page {
   color: #2563eb;
   font-weight: 700;
 }
+.sb-sidebar-group-title {
+  margin: 10px 6px 4px;
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.sb-country-group {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 3px;
+}
+.sb-country-nav-item,
+.sb-league-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.sb-league-nav-item {
+  margin-left: 8px;
+  width: calc(100% - 8px);
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: #475569;
+  font-size: 10px;
+}
+.sb-nav-count {
+  flex: 0 0 auto;
+  color: #94a3b8;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+}
+.sb-nav-count i {
+  color: #dc2626;
+  font-style: normal;
+  font-weight: 800;
+}
 .sb-sidebar-status {
   font-size: 10px;
   color: var(--sb-text-dim);
@@ -2898,6 +2936,9 @@ body.sb-page {
 .sb-sidebar {
   top: 70px;
   padding: 10px;
+  max-height: calc(100vh - 86px);
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .sb-sidebar-title {
