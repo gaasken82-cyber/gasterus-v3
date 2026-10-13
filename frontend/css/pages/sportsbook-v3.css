@@ -1864,7 +1864,15 @@ body.sb-page {
   align-items: flex-start;
   gap: 8px;
 }
-.sb-parlay-info::before { content: '⚡'; flex-shrink: 0; }
+.sb-parlay-info::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m13 2-9 12h7l-1 8 10-13h-7z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m13 2-9 12h7l-1 8 10-13h-7z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
 
 /* Single bet mode: stake per leg */
 .sb-single-mode-label {

@@ -798,7 +798,7 @@ function setupBalanceToggle() {
   let vis = true;
   toggle.addEventListener('click', () => {
     vis = !vis;
-    toggle.textContent = vis ? '👁' : '🙈';
+    toggle.innerHTML = `<svg class="ui-icon" aria-hidden="true"><use href="/assets/icons/ui-icons.svg#${vis ? 'eye' : 'eye-off'}"></use></svg>`;
     bal.textContent = vis ? formatRupiah(betslipBalance()).replace('Rp', '').trim() : '******';
   });
 }
@@ -1222,7 +1222,7 @@ function renderLiveCarousel() {
     return `
       <div class="sb-live-card">
         <div class="sb-live-card-head">
-          <span class="sb-live-league-label">⚽ ${escapeHtml(formatLeagueLabel(e, 'Live Match'))}</span>
+          <span class="sb-live-league-label"><svg class="ui-icon" aria-hidden="true"><use href="/assets/icons/ui-icons.svg#soccer"></use></svg> ${escapeHtml(formatLeagueLabel(e, 'Live Match'))}</span>
           <span>↻</span>
         </div>
         <div class="sb-live-card-body">
@@ -2065,6 +2065,7 @@ function renderBetslip() {
       </select>
     </label>` : '';
   const betButtonLabel = placing ? 'Memproses…' : detailsPending ? 'Memperbarui odds…' : !ready ? (isSystemMode ? 'Pilih minimal 3 pertandingan' : isParlay ? 'Pilih minimal 2 pertandingan' : 'Pilih 1 pertandingan') : 'Pasang Taruhan';
+  const betButtonIcon = placing || detailsPending ? '<svg class="ui-icon" aria-hidden="true"><use href="/assets/icons/ui-icons.svg#clock"></use></svg> ' : '';
 
   const html = `
     ${isSystemMode ? systemInfo : isParlay ? parlayInfo : singleInfo}
@@ -2091,6 +2092,7 @@ function renderBetslip() {
       ${overMaxStake ? `<div class="sb-slip-hint" style="color:#b84639">Total stake melewati batas taruhan.</div>` : ''}
     </div>
     <button type="button" id="btn-place-bet" class="sb-btn sb-btn-place sb-btn-block"${(placing || overBalance || overMaxStake || detailsPending || !ready) ? ' disabled' : ''}>${betButtonLabel}</button>
+  <button type="button" id="btn-place-bet" class="sb-btn sb-btn-place sb-btn-block"${(placing || overBalance || overMaxStake || detailsPending || !ready) ? ' disabled' : ''}>${betButtonIcon}${betButtonLabel}</button>
     <button type="button" id="btn-clear-slip" class="sb-btn sb-btn-ghost sb-btn-block sb-btn-sm">Kosongkan betslip</button>`;
 
   // Render ONLY to the active target based on screen size to prevent double views
@@ -2296,7 +2298,7 @@ async function placeBet() {
   } finally {
     placing = false;
     const b = el('btn-place-bet');
-    if (b) { b.disabled = false; b.textContent = '⚽ Pasang Taruhan'; }
+    if (b) { b.disabled = false; b.textContent = 'Pasang Taruhan'; }
   }
 }
 
