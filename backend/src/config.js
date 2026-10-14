@@ -17,6 +17,7 @@ const theOddsApiKey = optionalSecret('THE_ODDS_API_KEY');
 const sharpApiKey = optionalSecret('SHARP_API_KEY');
 const theSportsDbKey = optionalSecret('THESPORTSDB_API_KEY');
 const footballDataIoKey = optionalSecret('FOOTBALLDATA_IO_KEY');
+const sportmonksKey = optionalSecret('SPORTMONKS_API_KEY');
 const rapidApiKey = optionalSecret('RAPIDAPI_CASINO_KEY') || optionalSecret('RAPIDAPI_KEY');
 const betnexApiKey = optionalSecret('BETNEX_API_KEY');
 const betnexCallbackKey = optionalSecret('BETNEX_CALLBACK_KEY') || betnexApiKey;
@@ -168,17 +169,16 @@ export const config = Object.freeze({
   footballDataIoEnabled: pricedProviderEnabled('FOOTBALLDATA_IO_ENABLED', footballDataIoKey),
   footballDataIoRefreshSeconds: int('FOOTBALLDATA_IO_REFRESH_SECONDS', 300, 60, 1800),
   footballDataIoUpcomingLimit: int('FOOTBALLDATA_IO_UPCOMING_LIMIT', 500, 10, 1000),
-  // Disabled: this credential currently returns HTTP 401, and this source does not
-  // provide bettable markets for our feed. Do not re-enable from environment variables.
+  // Sportmonks is the sole sportsbook fixture and odds provider.
   sportmonksBaseUrl: text('SPORTMONKS_BASE_URL', 'https://api.sportmonks.com/v3'),
-  sportmonksEnabled: false,
-  sportmonksDaysAhead: int('SPORTMONKS_DAYS_AHEAD', 2, 0, 7),
+  sportmonksKey,
+  sportmonksEnabled: bool('SPORTMONKS_ENABLED', isProduction && Boolean(sportmonksKey)),
+  sportmonksDaysAhead: int('SPORTMONKS_DAYS_AHEAD', isProduction ? 14 : 7, 0, 14),
   sportmonksRefreshSeconds: int('SPORTMONKS_REFRESH_SECONDS', 300, 60, 1800),
   sportmonksOddsRefreshSeconds: int('SPORTMONKS_ODDS_REFRESH_SECONDS', 180, 30, 1800),
-  // Cap diturunkan 40->20: Sportmonks include=odds ~1.5MB/fixture. 40 events =
-  // ~60MB payload mentah per siklus di heap feed-worker 256MB. 20 events tetap
-  // cukup untuk 2 hari matchday, dan env override tetap bisa naikkan lagi.
-  sportmonksMaxTotalEvents: int('SPORTMONKS_MAX_TOTAL_EVENTS', 20, 0, 250),
+  sportmonksMaxTotalEvents: int('SPORTMONKS_MAX_TOTAL_EVENTS', 250, 0, 500),
+  sportmonksPageSize: int('SPORTMONKS_PAGE_SIZE', 50, 1, 100),
+  sportmonksRequestDelayMs: int('SPORTMONKS_REQUEST_DELAY_MS', 0, 0, 60000),
   sportmonksMaxParallel: int('SPORTMONKS_MAX_PARALLEL', 6, 1, 12),
   sportsSourceRegistryEnabled: bool('SPORTS_SOURCE_REGISTRY_ENABLED', true),
   sportsSourceEvictUnhealthyHours: int('SPORTS_SOURCE_EVICT_UNHEALTHY_HOURS', 2, 1, 720),

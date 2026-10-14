@@ -33,8 +33,9 @@ test('member source status reflects the overall feed even when the current page 
   assert.match(feed, /status: feed\.readOnlySource \? .* : memberHealthy \? 'ONLINE' : 'DEGRADED'/);
 });
 
-test('R6.9.0.22 optional legacy detail source is gated and member errors stay provider-neutral', () => {
-  assert.match(feed,/bridgeEvent\(/);
+test('Sportsbook feed is sourced exclusively from Sportmonks and member errors stay provider-neutral', () => {
+  assert.match(feed,/fetchSportmonks/);
+  assert.doesNotMatch(feed,/fetchFootballDataIo|fetchPublicMarketFeed|fetchSharpApi|fetchApiSports|fetchTheOddsApi|suppliedSnapshotResult/);
   assert.match(feed,/SPORTS_MARKET_TEMPORARILY_UNAVAILABLE/);
   assert.doesNotMatch(feed,/throw new AppError\(409, 'Provider odds sedang degraded\/recovery/);
 });
@@ -64,10 +65,9 @@ test('R6.9.0.22 member quote and ticket responses omit provider telemetry', () =
   assert.equal(quoteReturn.includes('tradingControlVersions,'), false);
 });
 
-test('free-tier football-data provider is included in the sportsbook refresh descriptor list', () => {
-  assert.match(feed,/fetchFootballDataIo/);
-  assert.match(feed,/code: 'footballdata-io'/);
-  assert.match(feed,/config\.footballDataIoEnabled && Boolean\(config\.footballDataIoKey\)/);
+test('Sportmonks is the only sportsbook refresh descriptor', () => {
+  assert.match(feed,/code: 'sportmonks', enabled: true, fetcher: fetchSportmonks/);
+  assert.doesNotMatch(feed,/code: '(?:public-market|sharpapi|api-sports|the-odds-api|footballdata-io)'/);
 });
 
 test('member requests do not wait on a competing feed refresh beyond the proxy budget', () => {
