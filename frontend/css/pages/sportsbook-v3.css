@@ -1636,6 +1636,8 @@ body.sb-page {
   font-weight: 700;
   cursor: pointer;
 }
+.sb-quick-max { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
+.sb-quick-clear { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
 .sb-slip-hint {
   font-size: 10px;
   color: #64748b;
@@ -2076,6 +2078,45 @@ body.sb-page {
   padding-bottom: 2px;
   font-size: 10px;
   white-space: nowrap;
+}
+
+.sb-board-heading-right {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+}
+
+.sb-odds-format-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.sb-odds-format-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.sb-odds-format-select {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border: 1px solid var(--sb-border-cell, #d7e1d8);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #17231d;
+  cursor: pointer;
+}
+
+.sb-odds-format-select:hover { border-color: #94a3b8; }
+
+@media (max-width: 480px) {
+  .sb-board-heading { flex-direction: column; align-items: flex-start; }
+  .sb-board-heading-right { width: 100%; justify-content: space-between; }
 }
 
 .sb-feed-overview {
