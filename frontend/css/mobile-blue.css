@@ -632,7 +632,7 @@ body {
   width: 46px;
   height: 100%;
   background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
-  color: #071120;
+  color: #2563eb;
   border-right: 1px solid #cbd5e1;
   display: flex;
   align-items: center;
@@ -2234,12 +2234,29 @@ body.nav-open .nav-drawer,
   display: inline-block;
   width: 1em;
   height: 1em;
+  max-width: 32px;
+  max-height: 32px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
   vertical-align: -0.15em;
+}
+.inp-icon > .ui-icon {
+  width: 18px;
+  height: 18px;
+  color: #2563eb;
+}
+.trust-icon > .ui-icon {
+  width: 16px;
+  height: 16px;
+  color: #38bdf8;
+}
+.feature-icon > svg {
+  display: block;
+  max-width: 32px;
+  max-height: 32px;
 }
 .ui-status-icon {
   display: flex;
