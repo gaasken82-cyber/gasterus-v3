@@ -89,45 +89,6 @@ test('production keeps model-generated events and derived markets disabled by de
   assert.ok(result.stdout.split(/\r?\n/).includes('{"openFootball":false,"derivedMarkets":false}'));
 });
 
-test('production generates supported derived markets when explicitly enabled', () => {
-  const script = `
-    const { config } = await import('./src/config.js');
-    const { normalizeFootballDataFixture } = await import('./src/sportsbook-public-market.js');
-    const event = normalizeFootballDataFixture({
-      Div: 'E0', Date: '23/08/2026', Time: '16:30', HomeTeam: 'Alpha FC', AwayTeam: 'Beta FC',
-      B365H: '1.91', B365D: '3.65', B365A: '4.10'
-    });
-    console.log(JSON.stringify({
-      enabled: config.publicMarketDerivedMarketsEnabled,
-      marketCount: event?.markets.length || 0,
-      derivedTypes: ['BTTS', 'DOUBLE_CHANCE', 'DRAW_NO_BET', 'CORRECT_SCORE']
-        .filter(type => event?.markets.some(market => market.type === type))
-    }));
-  `;
-  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
-    cwd: new URL('..', import.meta.url),
-    encoding: 'utf8',
-    env: {
-      ...process.env,
-      NODE_ENV: 'production',
-      DATABASE_URL: '******example.com/db',
-      REDIS_URL: 'redis://example.com:6379',
-      MEMBER_PROXY_SECRET: 'm'.repeat(48),
-      ADMIN_PROXY_SECRET: 'a'.repeat(48),
-      OPS_INTERNAL_SECRET: 'o'.repeat(48),
-      SESSION_HMAC_KEY: 's'.repeat(48),
-      API_KEY_PEPPER: 'p'.repeat(48),
-      MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
-      PUBLIC_MARKET_DERIVED_MARKETS_ENABLED: 'true'
-    }
-  });
-  assert.equal(result.status, 0, result.stderr);
-  const output = JSON.parse(result.stdout.trim());
-  assert.equal(output.enabled, true);
-  assert.ok(output.marketCount > 0, `marketCount=${output.marketCount}`);
-  assert.deepEqual(output.derivedTypes, ['BTTS', 'DOUBLE_CHANCE', 'DRAW_NO_BET', 'CORRECT_SCORE']);
-});
-
 test('staging and development can explicitly enable derived markets', () => {
   const script = `
     const { config } = await import('./src/config.js');

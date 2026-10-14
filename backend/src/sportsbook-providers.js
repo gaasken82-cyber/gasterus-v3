@@ -1525,9 +1525,8 @@ export const __sportsbookProviders = {
   oddsApiEventDetailCache
 };
 
-// Builder helpers shared by provider adapters (e.g. sportsbook-footballdataio.js)
-// so every provider emits the exact normalized event/market/selection shape that
-// mergeProviderEvents consumes.
+// Builder helpers shared by provider adapters so every provider emits the exact
+// normalized event/market/selection shape that mergeProviderEvents consumes.
 export {
   normalizedEvent,
   normalizedMarket,

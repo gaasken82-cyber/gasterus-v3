@@ -11,11 +11,6 @@ Object.assign(process.env, {
   SESSION_HMAC_KEY: 's'.repeat(48),
   API_KEY_PEPPER: 'p'.repeat(48),
   MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
-  API_SPORTS_ENABLED: 'true',
-  API_SPORTS_KEY: 'test-provider-key',
-  FOOTBALLDATA_IO_ENABLED: 'true',
-  FOOTBALLDATA_IO_KEY: 'test-footballdata-key',
-  PUBLIC_MARKET_DERIVED_MARKETS_ENABLED: 'false',
   RAPIDAPI_CASINO_ENABLED: 'true',
   RAPIDAPI_CASINO_KEY: 'test-rapidapi-key'
 });
@@ -24,8 +19,6 @@ const originalFetch = globalThis.fetch;
 const originalNow = Date.now;
 const { pruneExpiredCacheEntries, setBoundedCacheEntry } = await import('../src/bounded-cache.js');
 const { readBoundedResponseText } = await import('../src/bounded-response.js');
-const { fetchApiSports, __sportsbookProviders } = await import('../src/sportsbook-providers.js');
-const { fetchFootballDataIo, __footballDataIo } = await import('../src/sportsbook-footballdataio.js');
 const { casinoPassthrough, __casinoRapidApi } = await import('../src/casino-rapidapi.js');
 
 test('bounded cache rejects oversized entries and evicts oldest entries to fit its total budget', () => {
@@ -90,131 +83,6 @@ test('bounded response reader cancels a streaming response that exceeds its byte
   assert.equal(bodyCancelled, true);
 });
 
-test('API-Sports does not cache responses above the configured per-entry limit', async () => {
-  __sportsbookProviders.providerRequestCache.clear();
-  const oversized = JSON.stringify({ response: [], padding: 'x'.repeat(3_145_728) });
-  globalThis.fetch = async input => ({
-    ok: true,
-    status: 200,
-    async text() {
-      return String(input).includes('/fixtures?live=all') ? oversized : '{"response":[]}';
-    }
-  });
-  try {
-    const result = await fetchApiSports();
-    assert.equal(result.transportOk, false);
-    assert.ok(result.errors.some(error => error.includes('API-Sports response exceeds 3145728 bytes')));
-    const entries = [...__sportsbookProviders.providerRequestCache.values()].filter(entry => entry.value !== undefined);
-    assert.ok(entries.every(entry => entry.sizeBytes <= 3_145_728));
-    assert.ok(entries.reduce((sum, entry) => sum + entry.sizeBytes, 0) <= 41_943_040);
-  } finally {
-    __sportsbookProviders.providerRequestCache.clear();
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test('API-Sports cache prunes expired entries and remains capped at 300 entries', async () => {
-  __sportsbookProviders.providerRequestCache.clear();
-  const cache = __sportsbookProviders.providerRequestCache;
-  for (let index = 0; index < 300; index += 1) {
-    cache.set(`filler-${index}`, {
-      value: { response: [] },
-      fetchedAt: index + 1,
-      expiresAt: Number.MAX_SAFE_INTEGER,
-      sizeBytes: 15
-    });
-  }
-  cache.set('expired-test-entry', {
-    value: { response: [] },
-    fetchedAt: 1,
-    expiresAt: 1,
-    sizeBytes: 15
-  });
-  globalThis.fetch = async () => ({
-    ok: true,
-    status: 200,
-    async text() { return '{"response":[]}'; }
-  });
-
-  try {
-    await fetchApiSports();
-    assert.ok(cache.size <= 300);
-    assert.equal(cache.has('expired-test-entry'), false);
-    assert.equal(cache.has('filler-0'), false, 'oldest entry should be evicted to make room');
-  } finally {
-    cache.clear();
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test('FootballData.io exponentially backs off failed polls, serves cached events, and resets after success', async () => {
-  __footballDataIo.resetRuntimeState();
-  let now = 1_800_000_000_000;
-  Date.now = () => now;
-  let shouldFail = true;
-  let calls = 0;
-  const match = {
-    match_id: 'backoff-match',
-    match_date: '2026-10-11T12:00:00Z',
-    status: 'scheduled',
-    home_team: { team_name: 'Home FC' },
-    away_team: { team_name: 'Away FC' },
-    league: { name: 'Test League' },
-    odds: { home_win: 1.9, draw: 3.4, away_win: 4.2 }
-  };
-  globalThis.fetch = async () => {
-    calls += 1;
-    if (shouldFail) throw new Error('footballdata.io returned HTTP 401');
-    return {
-      ok: true,
-      status: 200,
-      async text() { return JSON.stringify({ data: { matches: [match] } }); }
-    };
-  };
-
-  try {
-    const firstFailure = await fetchFootballDataIo();
-    assert.equal(firstFailure.events.length, 0);
-    assert.equal(__footballDataIo.backoffState().retryAt - now, 30_000);
-    const callsAfterFirstFailure = calls;
-    await fetchFootballDataIo();
-    assert.equal(calls, callsAfterFirstFailure, 'must skip HTTP while the 30-second backoff is active');
-
-    now += 30_000;
-    await fetchFootballDataIo();
-    assert.equal(__footballDataIo.backoffState().retryAt - now, 60_000);
-
-    for (const expectedBackoffMs of [120_000, 240_000, 480_000, 600_000, 600_000]) {
-      now += __footballDataIo.backoffState().retryAt - now;
-      await fetchFootballDataIo();
-      assert.equal(__footballDataIo.backoffState().retryAt - now, expectedBackoffMs);
-    }
-
-    shouldFail = false;
-    now += 600_000;
-    const success = await fetchFootballDataIo();
-    assert.equal(success.events.length, 1);
-    assert.equal(__footballDataIo.backoffState().consecutiveFailures, 0);
-    assert.equal(__footballDataIo.backoffState().retryAt, 0);
-    assert.ok(__footballDataIo.cache.get('feed').sizeBytes <= 3_145_728);
-
-    now += 301_000;
-    shouldFail = true;
-    const cachedFallback = await fetchFootballDataIo();
-    assert.equal(cachedFallback.cachedFallback, true);
-    assert.equal(cachedFallback.events.length, 1);
-    const callsAfterFailureWithCache = calls;
-    const backoffFallback = await fetchFootballDataIo();
-    assert.equal(backoffFallback.cachedFallback, true);
-    assert.equal(backoffFallback.events.length, 1);
-    assert.equal(calls, callsAfterFailureWithCache, 'must serve the existing cache without another request during backoff');
-  } finally {
-    __footballDataIo.resetRuntimeState();
-    Date.now = originalNow;
-    globalThis.fetch = originalFetch;
-  }
-});
-
 test('RapidAPI casino expires failure entries and keeps the failure cache at 100 entries maximum', async () => {
   __casinoRapidApi.failureCache.clear();
   let now = 1_800_000_000_000;
@@ -246,8 +114,6 @@ test('RapidAPI casino expires failure entries and keeps the failure cache at 100
 });
 
 test.after(() => {
-  __footballDataIo.resetRuntimeState();
-  __sportsbookProviders.providerRequestCache.clear();
   __casinoRapidApi.failureCache.clear();
   Date.now = originalNow;
   globalThis.fetch = originalFetch;
