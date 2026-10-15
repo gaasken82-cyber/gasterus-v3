@@ -16,7 +16,6 @@ const apiSportsKey = optionalSecret('API_SPORTS_KEY');
 const theOddsApiKey = optionalSecret('THE_ODDS_API_KEY');
 const sharpApiKey = optionalSecret('SHARP_API_KEY');
 const theSportsDbKey = optionalSecret('THESPORTSDB_API_KEY');
-const footballDataIoKey = optionalSecret('FOOTBALLDATA_IO_KEY');
 const sportmonksKey = optionalSecret('SPORTMONKS_API_KEY');
 const rapidApiKey = optionalSecret('RAPIDAPI_CASINO_KEY') || optionalSecret('RAPIDAPI_KEY');
 const betnexApiKey = optionalSecret('BETNEX_API_KEY');
@@ -164,30 +163,15 @@ export const config = Object.freeze({
   theSportsDbBaseUrl: text('THESPORTSDB_BASE_URL', 'https://www.thesportsdb.com/api'),
   theSportsDbEnabled: bool('THESPORTSDB_ENABLED', false),
   theSportsDbLeagueIds: text('THESPORTSDB_LEAGUE_IDS', '4328,4335,4332,4331,4334,4387'),
-  footballDataIoKey: optionalSecret('FOOTBALLDATA_IO_KEY'),
-  footballDataIoBaseUrl: text('FOOTBALLDATA_IO_BASE_URL', 'https://footballdata.io/api/v1'),
-  footballDataIoEnabled: pricedProviderEnabled('FOOTBALLDATA_IO_ENABLED', footballDataIoKey),
-  footballDataIoRefreshSeconds: int('FOOTBALLDATA_IO_REFRESH_SECONDS', 300, 60, 1800),
-  footballDataIoUpcomingLimit: int('FOOTBALLDATA_IO_UPCOMING_LIMIT', 500, 10, 1000),
+  // Sportmonks is the sole sportsbook fixture and odds provider.
   sportmonksBaseUrl: text('SPORTMONKS_BASE_URL', 'https://api.sportmonks.com/v3'),
   sportmonksKey,
-  sportmonksEnabled: pricedProviderEnabled('SPORTMONKS_ENABLED', sportmonksKey) && Boolean(sportmonksKey),
+  sportmonksEnabled: bool('SPORTMONKS_ENABLED', isProduction && Boolean(sportmonksKey)),
   sportmonksDaysAhead: int('SPORTMONKS_DAYS_AHEAD', 2, 0, 7),
   sportmonksRefreshSeconds: int('SPORTMONKS_REFRESH_SECONDS', 300, 60, 1800),
   sportmonksOddsRefreshSeconds: int('SPORTMONKS_ODDS_REFRESH_SECONDS', 180, 30, 1800),
-  // Sportmonks include=odds is large; keep its retained fixture cap fixed to avoid
-  // an environment override multiplying raw payload memory in the feed worker.
   sportmonksMaxTotalEvents: int('SPORTMONKS_MAX_TOTAL_EVENTS', 20, 0, 20),
-  sportmonksMaxParallel: int('SPORTMONKS_MAX_PARALLEL', 6, 1, 12),
-  sportsSourceRegistryEnabled: bool('SPORTS_SOURCE_REGISTRY_ENABLED', true),
-  sportsSourceEvictUnhealthyHours: int('SPORTS_SOURCE_EVICT_UNHEALTHY_HOURS', 2, 1, 720),
-  // Safe floor: promotion is always gated by isConfigEnabled(), so the registry
-  // can never fabricate a healthy source — MIN_ACTIVE only prevents over-eviction.
-  sportsSourceMinActive: int('SPORTS_SOURCE_MIN_ACTIVE', 2, 1, 12),
-  sportsSourceRecycleCooldownHours: int('SPORTS_SOURCE_RECYCLE_COOLDOWN_HOURS', 24, 1, 720),
-  // Provider fan-out budget: do not fetch every enabled provider at once.
-  // 0 keeps the legacy unlimited-parallel behaviour.
-  sportsSourceMaxParallel: int('SPORTS_SOURCE_MAX_PARALLEL', 3, 0, 20),
+  sportmonksRequestDelayMs: int('SPORTMONKS_REQUEST_DELAY_MS', 0, 0, 60000),
   sportsbookArtworkEnabled: bool('SPORTSBOOK_ARTWORK_ENABLED', false),
   sportsbookArtworkBaseUrl: text('SPORTSBOOK_ARTWORK_BASE_URL', 'https://www.thesportsdb.com/api/v1/json'),
   // TheSportsDB publishes 123 as its current free V1 API key. Artwork is metadata-only and

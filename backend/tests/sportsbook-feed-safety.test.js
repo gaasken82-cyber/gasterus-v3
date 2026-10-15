@@ -4,10 +4,10 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 const feed = readFileSync(new URL('../src/sportsbook-feed.js', import.meta.url), 'utf8');
+const providers = readFileSync(new URL('../src/sportsbook-providers.js', import.meta.url), 'utf8');
 const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.url), 'utf8');
 const worker = readFileSync(new URL('../src/worker.js', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../src/config.js', import.meta.url), 'utf8');
-const providers = readFileSync(new URL('../src/sportsbook-providers.js', import.meta.url), 'utf8');
 
 test('sportsbook feed defaults stay inside Railway free-tier event and cache budgets', () => {
   assert.match(config, /sportsFeedMaxEvents: int\('SPORTS_FEED_MAX_EVENTS', 500, 20, 500\)/);
@@ -20,7 +20,6 @@ test('sportsbook feed defaults stay inside Railway free-tier event and cache bud
   assert.match(config, /theOddsApiEventMaxEventsPerSport: int\('THE_ODDS_API_EVENT_MAX_EVENTS_PER_SPORT', 25, 0, 50\)/);
   assert.match(config, /theOddsApiEventMaxTotalEvents: int\('THE_ODDS_API_EVENT_MAX_TOTAL_EVENTS', 120, 0, 120\)/);
   assert.match(config, /sharpApiMaxPages: int\('SHARP_API_MAX_PAGES', isProduction \? 5 : 3/);
-  assert.match(config, /sportsbookLiveAcceptanceDelayMs: int\('SPORTSBOOK_LIVE_ACCEPTANCE_DELAY_MS', 3000, 3000, 10000\)/);
 });
 
 test('The Odds API default catalog contains soccer leagues only', () => {
@@ -91,45 +90,6 @@ test('production keeps model-generated events and derived markets disabled by de
   assert.ok(result.stdout.split(/\r?\n/).includes('{"openFootball":false,"derivedMarkets":false}'));
 });
 
-test('production generates supported derived markets when explicitly enabled', () => {
-  const script = `
-    const { config } = await import('./src/config.js');
-    const { normalizeFootballDataFixture } = await import('./src/sportsbook-public-market.js');
-    const event = normalizeFootballDataFixture({
-      Div: 'E0', Date: '23/08/2026', Time: '16:30', HomeTeam: 'Alpha FC', AwayTeam: 'Beta FC',
-      B365H: '1.91', B365D: '3.65', B365A: '4.10'
-    });
-    console.log(JSON.stringify({
-      enabled: config.publicMarketDerivedMarketsEnabled,
-      marketCount: event?.markets.length || 0,
-      derivedTypes: ['BTTS', 'DOUBLE_CHANCE', 'DRAW_NO_BET', 'CORRECT_SCORE']
-        .filter(type => event?.markets.some(market => market.type === type))
-    }));
-  `;
-  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
-    cwd: new URL('..', import.meta.url),
-    encoding: 'utf8',
-    env: {
-      ...process.env,
-      NODE_ENV: 'production',
-      DATABASE_URL: '******example.com/db',
-      REDIS_URL: 'redis://example.com:6379',
-      MEMBER_PROXY_SECRET: 'm'.repeat(48),
-      ADMIN_PROXY_SECRET: 'a'.repeat(48),
-      OPS_INTERNAL_SECRET: 'o'.repeat(48),
-      SESSION_HMAC_KEY: 's'.repeat(48),
-      API_KEY_PEPPER: 'p'.repeat(48),
-      MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
-      PUBLIC_MARKET_DERIVED_MARKETS_ENABLED: 'true'
-    }
-  });
-  assert.equal(result.status, 0, result.stderr);
-  const output = JSON.parse(result.stdout.trim());
-  assert.equal(output.enabled, true);
-  assert.ok(output.marketCount > 0, `marketCount=${output.marketCount}`);
-  assert.deepEqual(output.derivedTypes, ['BTTS', 'DOUBLE_CHANCE', 'DRAW_NO_BET', 'CORRECT_SCORE']);
-});
-
 test('staging and development can explicitly enable derived markets', () => {
   const script = `
     const { config } = await import('./src/config.js');
@@ -159,14 +119,18 @@ test('staging and development can explicitly enable derived markets', () => {
   }
 });
 
-test('Sportmonks is opt-in and only enabled when explicitly configured with a key', () => {
-  assert.match(config, /sportmonksEnabled:\s*pricedProviderEnabled\('SPORTMONKS_ENABLED', sportmonksKey\)\s*&&\s*Boolean\(sportmonksKey\)/);
-  assert.match(feed, /fetchSportmonks/);
-  assert.match(feed, /code: 'sportmonks'/);
-
+test('production sportsbook only uses Sportmonks and honors its production key and event horizon', () => {
   const script = `
     const { config } = await import('./src/config.js');
-    console.log(JSON.stringify({ enabled: config.sportmonksEnabled, key: Boolean(config.sportmonksKey) }));
+    const { __sportsbookFeed } = await import('./src/sportsbook-feed.js');
+    console.log(JSON.stringify({
+      provider: __sportsbookFeed.enabledProviders(),
+      enabled: config.sportmonksEnabled,
+      keyConfigured: config.sportmonksKey === 'configured-sportmonks-key',
+      daysAhead: config.sportmonksDaysAhead,
+      maxEvents: config.sportmonksMaxTotalEvents,
+      liveAcceptanceDelay: config.sportsbookLiveAcceptanceDelayMs
+    }));
   `;
   const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
     cwd: new URL('..', import.meta.url),
@@ -182,33 +146,18 @@ test('Sportmonks is opt-in and only enabled when explicitly configured with a ke
       SESSION_HMAC_KEY: 's'.repeat(48),
       API_KEY_PEPPER: 'p'.repeat(48),
       MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
+      API_SPORTS_ENABLED: 'true',
+      API_SPORTS_KEY: 'unused-api-sports-key',
+      FOOTBALLDATA_IO_ENABLED: 'true',
+      FOOTBALLDATA_IO_KEY: 'unused-football-data-key',
+      SPORTMONKS_DAYS_AHEAD: '7',
+      SPORTMONKS_MAX_TOTAL_EVENTS: '20',
       SPORTMONKS_ENABLED: 'true',
-      SPORTMONKS_API_KEY: ''
+      SPORTMONKS_API_KEY: 'configured-sportmonks-key'
     }
   });
   assert.equal(result.status, 0, result.stderr);
-  assert.ok(result.stdout.split(/\r?\n/).includes('{"enabled":false,"key":false}'));
-
-  const configured = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
-    cwd: new URL('..', import.meta.url),
-    encoding: 'utf8',
-    env: {
-      ...process.env,
-      NODE_ENV: 'production',
-      DATABASE_URL: '******example.com/db',
-      REDIS_URL: 'redis://example.com:6379',
-      MEMBER_PROXY_SECRET: 'm'.repeat(48),
-      ADMIN_PROXY_SECRET: 'a'.repeat(48),
-      OPS_INTERNAL_SECRET: 'o'.repeat(48),
-      SESSION_HMAC_KEY: 's'.repeat(48),
-      API_KEY_PEPPER: 'p'.repeat(48),
-      MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
-      SPORTMONKS_ENABLED: 'true',
-      SPORTMONKS_API_KEY: 'configured-key'
-    }
-  });
-  assert.equal(configured.status, 0, configured.stderr);
-  assert.ok(configured.stdout.split(/\r?\n/).includes('{"enabled":true,"key":true}'));
+  assert.ok(result.stdout.split(/\r?\n/).includes('{"provider":[{"name":"Sportmonks","code":"sportmonks","enabled":true}],"enabled":true,"keyConfigured":true,"daysAhead":7,"maxEvents":20,"liveAcceptanceDelay":3000}'));
 });
 
 test('Sportmonks responses, page sizes, and retained caches stay bounded', () => {
@@ -219,7 +168,7 @@ test('Sportmonks responses, page sizes, and retained caches stay bounded', () =>
 });
 
 test('stale Sportsbook feed cache is read-only and cannot be settled', () => {
-  assert.match(feed, /sportsbook:aggregated-feed:v16/);
+  assert.match(feed, /sportsbook:aggregated-feed:v17/);
   assert.match(feed, /READ_ONLY_STALE_SOURCE/);
   assert.match(feed, /feed\.readOnlySource \|\| feed\.snapshotFallback/);
   assert.match(feed, /SPORTS_SETTLEMENT_SOURCE_STALE/);
@@ -291,7 +240,7 @@ test('Sportsbook Redis cache respects its configured byte budget while preferrin
       events,
       providers: [],
       fetchedAt: now,
-      lifecycleGeneration: 'r6917'
+      lifecycleGeneration: 'sportmonks-only-v1'
     });
     console.log(JSON.stringify({
       retained: bounded.events.length,

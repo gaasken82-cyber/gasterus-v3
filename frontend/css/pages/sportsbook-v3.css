@@ -737,6 +737,25 @@ body.sb-page {
 }
 .sb-banner-refresh:hover { color: #ffffff; }
 
+.sb-fav-match-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  font-size: 15px;
+  color: #cbd5e1;
+  padding: 0 2px;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+.sb-fav-match-btn:hover { color: #facc15; transform: scale(1.15); }
+.sb-fav-match-btn.is-fav { color: #facc15; }
+.sb-search-mark {
+  background: #fde68a;
+  color: #78350f;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
 /* Teams and Date/Score Row */
 .sb-teams-row {
   grid-template-columns: 1fr auto 1fr;
@@ -1681,6 +1700,8 @@ body.sb-page {
   font-weight: 700;
   cursor: pointer;
 }
+.sb-quick-max { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
+.sb-quick-clear { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
 .sb-slip-hint {
   font-size: 10px;
   color: #64748b;
@@ -1909,7 +1930,15 @@ body.sb-page {
   align-items: flex-start;
   gap: 8px;
 }
-.sb-parlay-info::before { content: '⚡'; flex-shrink: 0; }
+.sb-parlay-info::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m13 2-9 12h7l-1 8 10-13h-7z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m13 2-9 12h7l-1 8 10-13h-7z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
 
 /* Single bet mode: stake per leg */
 .sb-single-mode-label {
@@ -2113,6 +2142,45 @@ body.sb-page {
   padding-bottom: 2px;
   font-size: 10px;
   white-space: nowrap;
+}
+
+.sb-board-heading-right {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+}
+
+.sb-odds-format-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.sb-odds-format-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.sb-odds-format-select {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border: 1px solid var(--sb-border-cell, #d7e1d8);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #17231d;
+  cursor: pointer;
+}
+
+.sb-odds-format-select:hover { border-color: #94a3b8; }
+
+@media (max-width: 480px) {
+  .sb-board-heading { flex-direction: column; align-items: flex-start; }
+  .sb-board-heading-right { width: 100%; justify-content: space-between; }
 }
 
 .sb-feed-overview {

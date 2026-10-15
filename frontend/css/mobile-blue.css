@@ -632,7 +632,7 @@ body {
   width: 46px;
   height: 100%;
   background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
-  color: #071120;
+  color: #2563eb;
   border-right: 1px solid #cbd5e1;
   display: flex;
   align-items: center;
@@ -2230,9 +2230,126 @@ body.nav-open .nav-drawer,
 .nav-drawer-link:active {
   transform: translateY(1px);
 }
+.ui-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  max-width: 32px;
+  max-height: 32px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -0.15em;
+}
+.inp-icon > .ui-icon {
+  width: 18px;
+  height: 18px;
+  color: #2563eb;
+}
+.trust-icon > .ui-icon {
+  width: 16px;
+  height: 16px;
+  color: #38bdf8;
+}
+.feature-icon > svg {
+  display: block;
+  max-width: 32px;
+  max-height: 32px;
+}
+.ui-status-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+.member-cat-card > .ui-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+.provider-card > .ui-icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+}
 .nav-drawer-ico {
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  font-size: 0;
   line-height: 1;
+  color: #94a3b8;
+  background-color: currentColor;
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6h16M4 12h16M4 18h16'/%3E%3C/svg%3E");
+  -webkit-mask: var(--nav-drawer-icon) center / contain no-repeat;
+  mask: var(--nav-drawer-icon) center / contain no-repeat;
+}
+
+.nav-drawer-link[href$="index.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href$="member.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='7' width='18' height='14' rx='2'/%3E%3Cpath d='M8 7V5a4 4 0 0 1 8 0v2M8 14h.01M16 14h.01M12 14h.01'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href$="market-play.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Ccircle cx='12' cy='12' r='5'/%3E%3Ccircle cx='12' cy='12' r='1'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href^="/casino.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='3'/%3E%3Cpath d='M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href$="sportsbook.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='m8 4 4 4 5-1 3 4-3 5-5 1-4-4 1-5-4-4M8 13l4-5m1 9 4-5'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href$="number-history.html"] .nav-drawer-ico,
+.nav-drawer-link[href$="bet-history.html"] .nav-drawer-ico,
+.nav-drawer-link[href$="gaming-history.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href$="notifications.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href$="wallet-ledger.html"] .nav-drawer-ico,
+.nav-drawer-link[href$="deposit.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='15' rx='2'/%3E%3Cpath d='M3 9h18M7 15h3'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href$="cashout.html"] .nav-drawer-ico,
+.nav-drawer-link[href$="withdraw.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12m0 0 5-5m-5 5-5-5M5 19h14'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href$="support.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3m.1 4h.01'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href$="promotion.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 12v10H4V12M2 7h20v5H2zM12 22V7m0 0H7.5a2.5 2.5 0 1 1 2.5-2.5C10 6 12 7 12 7Zm0 0h4.5A2.5 2.5 0 1 0 14 4.5C14 6 12 7 12 7Z'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href$="referral.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m6-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6-3a4 4 0 0 1 0 8m2 3h2v-2a4 4 0 0 0-3-3.9'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-link[href$="rules.html"] .nav-drawer-ico,
+.nav-drawer-link[href$="terms.html"] .nav-drawer-ico,
+.nav-drawer-link[href$="privacy.html"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h9l5 5v13H6zM14 3v6h6M9 13h8m-8 4h8'/%3E%3C/svg%3E");
+}
+
+.nav-drawer-links > .nav-drawer-link[href="#"] .nav-drawer-ico {
+  --nav-drawer-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 8v8m-4-4h8'/%3E%3C/svg%3E");
 }
 
 /* --- 22. Marquee Ticker (Cindototo style) --- */
@@ -2450,10 +2567,19 @@ body.nav-open .nav-drawer,
   gap: 6px;
 }
 .footer-social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
   color: #cbd5e1;
   text-decoration: none;
-  font-size: 13px;
+  font-size: 0;
   opacity: 0.85;
+}
+.footer-social .ui-icon {
+  width: 16px;
+  height: 16px;
 }
 .footer-social a:hover {
   opacity: 1;
