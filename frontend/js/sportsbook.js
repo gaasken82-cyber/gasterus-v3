@@ -46,6 +46,16 @@ let feedViewGeneration = 0;
 const FAV_KEY = 'gasterus_sb_fav_leagues';
 let favLeagues = new Set();
 try { favLeagues = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch { favLeagues = new Set(); }
+// Favorite individual matches (by event id) — persisted. Distinct from favorite leagues.
+const FAV_MATCH_KEY = 'gasterus_sb_fav_matches';
+let favMatches = new Set();
+try { favMatches = new Set(JSON.parse(localStorage.getItem(FAV_MATCH_KEY) || '[]')); } catch { favMatches = new Set(); }
+function toggleFavMatch(eventId) {
+  const id = String(eventId || '');
+  if (!id) return;
+  if (favMatches.has(id)) favMatches.delete(id); else favMatches.add(id);
+  try { localStorage.setItem(FAV_MATCH_KEY, JSON.stringify([...favMatches])); } catch { /* ignore */ }
+}
 let lastRenderRevision = '';
 let lastStructureRevision = '';
 let bettingConfig = { minStake: 1000, maxStake: 50000000, maxLegs: 12, maxSystemCombinations: 120, quoteRequired: true, types: ['SINGLE', 'PARLAY', 'SYSTEM'] };
@@ -97,6 +107,21 @@ function formatOddsAny(value) {
     }
     default:
       return formatDecimalOdds(dec);
+  }
+}
+
+// Wrap active search-query matches in <mark>. Input is HTML-escaped first so a
+// crafted query can never inject markup (XSS-safe highlight).
+function highlightMatch(text) {
+  const safe = escapeHtml(text == null ? '' : String(text));
+  const q = String(searchQuery || '').trim();
+  if (!q) return safe;
+  const escapedQ = escapeHtml(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (!escapedQ) return safe;
+  try {
+    return safe.replace(new RegExp(`(${escapedQ})`, 'gi'), '<mark class="sb-search-mark">$1</mark>');
+  } catch {
+    return safe;
   }
 }
 
@@ -1129,6 +1154,18 @@ function bindEventHandlers() {
       softRefreshFeed();
       return;
     }
+    const favMatchBtn = e.target.closest('[data-fav-match]');
+    if (favMatchBtn) {
+      const id = favMatchBtn.getAttribute('data-fav-match');
+      toggleFavMatch(id);
+      const nowFav = favMatches.has(String(id));
+      favMatchBtn.classList.toggle('is-fav', nowFav);
+      favMatchBtn.setAttribute('aria-pressed', String(nowFav));
+      favMatchBtn.textContent = nowFav ? '★' : '☆';
+      favMatchBtn.title = nowFav ? 'Hapus dari favorit' : 'Tambahkan ke favorit';
+      showToast(nowFav ? 'Ditambahkan ke Pertandingan Favorit.' : 'Dihapus dari favorit.', 'info');
+      return;
+    }
     const marketButton = e.target.closest('[data-toggle-event-markets]');
     if (marketButton) {
       void toggleEventMarkets(marketButton.getAttribute('data-toggle-event-markets'));
@@ -1187,7 +1224,7 @@ function visibleEvents() {
   if (currentFilter === 'live') list = list.filter((e) => isLiveEvent(e));
   else if (currentFilter === 'today') list = list.filter((e) => isTodayEvent(e) || isLiveEvent(e));
   else if (currentFilter === 'early') list = list.filter((e) => isFutureEvent(e));
-  else if (currentFilter === 'fav') list = list.filter((e) => favLeagues.has(String(e.league || 'Liga Internasional')));
+  else if (currentFilter === 'fav') list = list.filter((e) => favLeagues.has(String(e.league || 'Liga Internasional')) || favMatches.has(String(e.id)));
   
   if (searchQuery) {
     list = list.filter((e) =>
@@ -1554,6 +1591,8 @@ function renderMatch(e) {
   const marketsCount = Math.max(Number(e.availableMarketCount || 0), e.markets?.length || 0);
   const providerSummary = eventProviderBadges(e);
   const marketSummaryText = marketsCount ? `${marketsCount} pasar aktif` : 'Pasar live';
+  const isMatchFav = favMatches.has(String(e.id));
+  const favBtn = `<button type="button" class="sb-fav-match-btn${isMatchFav ? ' is-fav' : ''}" data-fav-match="${escapeHtml(e.id)}" aria-pressed="${isMatchFav ? 'true' : 'false'}" title="${isMatchFav ? 'Hapus dari favorit' : 'Tambahkan ke favorit'}">${isMatchFav ? '★' : '☆'}</button>`;
 
   return `
     <article class="sb-match-card" data-evid="${escapeHtml(e.id)}">
@@ -1563,6 +1602,7 @@ function renderMatch(e) {
             ? '<span class="sb-match-status is-live"><span></span> LANGSUNG</span>'
             : `<span class="sb-match-status">${formatKickoffDate(e.startTime)}</span>`}
         <button type="button" class="sb-banner-refresh" data-refresh-feed title="Segarkan odds">↻</button>
+        ${favBtn}
         </div>
         <div class="sb-match-meta-row">
           <span class="sb-match-league">${escapeHtml(formatLeagueLabel(e))}</span>
@@ -1571,12 +1611,12 @@ function renderMatch(e) {
         <div class="sb-teams-row">
           <div class="sb-team-col ${isHomeFav ? 'is-fav' : ''}">
             ${home.logo ? `<img class="sb-team-logo" src="${escapeHtml(home.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}
-            <span class="sb-team-name">${escapeHtml(home.name || 'TBA')}</span>
+            <span class="sb-team-name">${highlightMatch(home.name || 'TBA')}</span>
             ${isLive ? `<span class="sb-team-score">${escapeHtml(scoreText(home.score))}</span>` : ''}
           </div>
           <div class="sb-team-col away ${isAwayFav ? 'is-fav' : ''}">
             ${away.logo ? `<img class="sb-team-logo" src="${escapeHtml(away.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}
-            <span class="sb-team-name">${escapeHtml(away.name || 'TBA')}</span>
+            <span class="sb-team-name">${highlightMatch(away.name || 'TBA')}</span>
             ${isLive ? `<span class="sb-team-score">${escapeHtml(scoreText(away.score))}</span>` : ''}
           </div>
         </div>

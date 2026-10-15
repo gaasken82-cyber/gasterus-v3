@@ -701,6 +701,25 @@ body.sb-page {
 }
 .sb-banner-refresh:hover { color: #ffffff; }
 
+.sb-fav-match-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  font-size: 15px;
+  color: #cbd5e1;
+  padding: 0 2px;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+.sb-fav-match-btn:hover { color: #facc15; transform: scale(1.15); }
+.sb-fav-match-btn.is-fav { color: #facc15; }
+.sb-search-mark {
+  background: #fde68a;
+  color: #78350f;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
 /* Teams and Date/Score Row */
 .sb-teams-row {
   grid-template-columns: 1fr auto 1fr;
