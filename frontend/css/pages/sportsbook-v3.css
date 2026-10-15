@@ -318,6 +318,42 @@ body.sb-page {
 .sb-search-wrap input:focus {
   background: #ffffff;
 }
+.sb-odds-format {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  color: var(--sb-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.sb-odds-format select {
+  min-height: 30px;
+  padding: 3px 22px 3px 8px;
+  border: 1px solid var(--sb-border-cell);
+  border-radius: 3px;
+  background: #fff;
+  color: var(--sb-text-dark);
+  font: inherit;
+}
+.sb-odds-policy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--sb-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  margin: 8px 0;
+}
+.sb-odds-policy select {
+  min-height: 34px;
+  padding: 5px 8px;
+  border: 1px solid var(--sb-border-cell);
+  border-radius: 3px;
+  background: #fff;
+  color: var(--sb-text-dark);
+  font: inherit;
+}
 .sb-rt-status {
   display: inline-flex;
   align-items: center;
@@ -978,14 +1014,20 @@ body.sb-page {
   overflow-wrap: anywhere;
 }
 
-/* Line / Spread in BLUE */
+/* Asian handicap and total lines use the same sign-aware color convention as Asian odds. */
 .sb-cell-line {
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
   line-height: 1.1;
 }
+.sb-cell-line.kei-negative {
+  color: #dc2626;
+}
+.sb-cell-line.kei-positive {
+  color: #0284c7;
+}
 
-/* Odds color reflects direction: falling red, rising blue, unchanged black. */
+/* Asian negative odds are red; rising odds flash green and falling odds flash red. */
 .sb-cell-odds {
   display: inline-block;
   font-weight: 800;
@@ -999,29 +1041,32 @@ body.sb-page {
 .sb-cell-odds.odds-blue {
   color: #2563eb;
 }
+.sb-cell-odds.odds-green {
+  color: #16a34a;
+}
 .sb-cell-odds.odds-black {
   color: var(--sb-odd-black);
 }
 
 /* ==========================================================================
-   Visual Odds Movement Indicators (Up: Blue Flash, Down: Red Flash)
+   Visual Odds Movement Indicators (Up: Green Flash, Down: Red Flash)
    ========================================================================== */
 
-@keyframes sbOddFlashBlue {
+@keyframes sbOddFlashGreen {
   0% {
-    background-color: #dbeafe;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
+    background-color: #dcfce7;
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.35);
   }
   40% {
-    background-color: #eff6ff;
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.22);
+    background-color: #f0fdf4;
+    border-color: #4ade80;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.22);
   }
   75% {
-    background-color: #f8fbff;
-    border-color: #bfdbfe;
-    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12);
+    background-color: #f7fef9;
+    border-color: #bbf7d0;
+    box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.12);
   }
   100% {
     background-color: #ffffff;
@@ -1069,7 +1114,7 @@ body.sb-page {
 }
 
 .sb-odd-cell.sb-odd-movement-up {
-  animation: sbOddFlashBlue 1800ms ease-out forwards;
+  animation: sbOddFlashGreen 1800ms ease-out forwards;
 }
 
 .sb-odd-cell.sb-odd-movement-down {
@@ -1095,7 +1140,7 @@ body.sb-page {
 }
 
 .sb-odd-movement-arrow.up {
-  color: #2563eb;
+  color: #16a34a;
 }
 
 .sb-odd-movement-arrow.down {

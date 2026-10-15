@@ -213,7 +213,7 @@ function normalizedEvent({ provider, providerId, sport, league, country = '', st
   };
 }
 
-async function requestJson(url, { headers = {}, label = 'sports provider' } = {}) {
+async function requestJson(url, { headers = {}, label = 'sports provider', maxBytes = config.sportsProviderCacheMaxEntryBytes } = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.sportsFeedRequestTimeoutMs);
   try {
@@ -223,7 +223,7 @@ async function requestJson(url, { headers = {}, label = 'sports provider' } = {}
       redirect: 'error'
     });
     if (!response.ok) throw new Error(`${label} returned HTTP ${response.status}`);
-    const text = await readBoundedResponseText(response, label, config.sportsProviderCacheMaxEntryBytes);
+    const text = await readBoundedResponseText(response, label, maxBytes);
     return JSON.parse(text);
   } finally {
     clearTimeout(timeout);
@@ -929,12 +929,11 @@ function sportmonksMarket(event, rows) {
   });
 }
 
-// Cache untuk data Sportmonks dengan TTL 2 menit
+// Keep provider payloads bounded; odds and fixture caches expire independently.
 const sportmonksCache = new Map();
-const SPORTMONKS_CACHE_TTL = 2 * 60 * 1000; // 2 menit
 
 // Fetch semua halaman data dari Sportmonks dengan pagination
-async function fetchAllPages(base, endpoint, params, maxPages = 10) {
+async function fetchAllPages(base, endpoint, params, maxPages = 4) {
   const allData = [];
   let page = 1;
   let hasMore = true;
@@ -943,25 +942,22 @@ async function fetchAllPages(base, endpoint, params, maxPages = 10) {
     const url = new URL(`${base}${endpoint}`);
     url.searchParams.set('api_token', config.sportmonksKey);
     url.searchParams.set('page', String(page));
-    url.searchParams.set('per_page', '50');
+    url.searchParams.set('per_page', '5');
     for (const [key, value] of Object.entries(params)) {
       url.searchParams.set(key, value);
     }
     
-    try {
-      const payload = await requestJson(url, { label: `Sportmonks page ${page}` });
-      const data = payload?.data || [];
-      if (data.length === 0) {
-        hasMore = false;
-      } else {
-        allData.push(...data);
-        // Cek apakah masih ada halaman berikutnya
-        hasMore = data.length >= 50 && payload?.pagination?.has_more;
-        page++;
-      }
-    } catch (error) {
-      logger.warn(`Sportmonks pagination error page ${page}: ${error.message}`);
+    const payload = await requestJson(url, {
+      label: `Sportmonks page ${page}`,
+      maxBytes: config.sportsFeedMaxCacheBytes
+    });
+    const data = payload?.data || [];
+    if (data.length === 0) {
       hasMore = false;
+    } else {
+      allData.push(...data);
+      hasMore = data.length >= 5 && payload?.pagination?.has_more;
+      page++;
     }
   }
   
@@ -976,11 +972,12 @@ export async function fetchSportmonks() {
   
   const base = config.sportmonksBaseUrl.replace(/\/$/, '');
   const now = Date.now();
+  const cacheTtl = Math.max(config.sportmonksRefreshSeconds, config.sportmonksOddsRefreshSeconds) * 1000;
   const cacheKey = `sportmonks:all-events:${utcDate(0)}`;
-  
-  // Cek cache terlebih dahulu (TTL 2 menit)
+
+  // Reuse the bounded provider snapshot until its configured refresh interval elapses.
   const cached = sportmonksCache.get(cacheKey);
-  if (cached && now - cached.fetchedAt < SPORTMONKS_CACHE_TTL) {
+  if (cached && now - cached.fetchedAt < cacheTtl) {
     logger.info('Sportmonks: returning cached data', { age: Math.round((now - cached.fetchedAt) / 1000) + 's' });
     return { provider: 'sportmonks', enabled: true, events: cached.events, errors: [] };
   }
@@ -992,14 +989,16 @@ export async function fetchSportmonks() {
   const errors = [];
   const allFixtures = [];
   const seen = new Set();
+  const maxEvents = config.sportmonksMaxTotalEvents;
   
   // Fetch fixtures untuk setiap tanggal dengan pagination
   for (const date of dates) {
+    if (allFixtures.length >= maxEvents) break;
     try {
       // Gunakan include untuk mendapatkan semua data dalam satu request
       const fixtures = await fetchAllPages(base, `/football/fixtures/date/${date}`, {
         include: 'state;participants;league.country;odds;scores'
-      });
+      }, Math.max(1, Math.min(2, Math.ceil((maxEvents - allFixtures.length) / 5))));
       
       for (const fixture of fixtures) {
         const id = String(fixture?.id ?? '');
@@ -1010,7 +1009,8 @@ export async function fetchSportmonks() {
         if (state !== 'SCHEDULED' && state !== 'LIVE') continue;
         if (fixture.has_odds === false) continue;
         
-        allFixtures.push(fixture);
+        if (allFixtures.length < maxEvents) allFixtures.push(fixture);
+        if (allFixtures.length >= maxEvents) break;
       }
     } catch (error) {
       errors.push(`Date ${date}: ${error.message}`);
@@ -1018,7 +1018,6 @@ export async function fetchSportmonks() {
   }
   
   // Filter dan urutkan fixtures
-  const maxEvents = Math.max(0, Number(config.sportmonksMaxTotalEvents) || 0);
   const selected = allFixtures
     .filter(f => {
       const start = Number(f.starting_at_timestamp) * 1000 || Date.parse(f.starting_at || '') || 0;
@@ -1048,9 +1047,9 @@ export async function fetchSportmonks() {
   sportmonksCache.set(cacheKey, { fetchedAt: now, events });
   
   // Bounded cache: hapus entri lama jika terlalu banyak
-  if (sportmonksCache.size > 10) {
+  if (sportmonksCache.size > 1) {
     const oldest = [...sportmonksCache.entries()].sort((a, b) => a[1].fetchedAt - b[1].fetchedAt);
-    for (const [key] of oldest.slice(0, sportmonksCache.size - 5)) {
+    for (const [key] of oldest.slice(0, sportmonksCache.size - 1)) {
       sportmonksCache.delete(key);
     }
   }

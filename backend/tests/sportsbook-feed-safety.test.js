@@ -7,18 +7,20 @@ const feed = readFileSync(new URL('../src/sportsbook-feed.js', import.meta.url),
 const ui = readFileSync(new URL('../../frontend/js/sportsbook.js', import.meta.url), 'utf8');
 const worker = readFileSync(new URL('../src/worker.js', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../src/config.js', import.meta.url), 'utf8');
+const providers = readFileSync(new URL('../src/sportsbook-providers.js', import.meta.url), 'utf8');
 
 test('sportsbook feed defaults stay inside Railway free-tier event and cache budgets', () => {
-  assert.match(config, /sportsFeedMaxEvents: int\('SPORTS_FEED_MAX_EVENTS', 400, 20, 500\)/);
+  assert.match(config, /sportsFeedMaxEvents: int\('SPORTS_FEED_MAX_EVENTS', 500, 20, 500\)/);
   assert.match(config, /sportsFeedMaxCacheBytes: int\('SPORTS_FEED_MAX_CACHE_BYTES', 12_000_000, 262_144, 15_000_000\)/);
   assert.match(config, /sportsProviderCacheMaxTotalBytes: int\('SPORTS_PROVIDER_CACHE_MAX_TOTAL_BYTES', 10_000_000/);
-  assert.match(config, /sportsbookMemberMaxEvents: int\('SPORTSBOOK_MEMBER_MAX_EVENTS', 400, 20, 500\)/);
+  assert.match(config, /sportsbookMemberMaxEvents: int\('SPORTSBOOK_MEMBER_MAX_EVENTS', 500, 20, 500\)/);
   assert.match(config, /theOddsApiMaxTotalEvents: int\('THE_ODDS_API_MAX_TOTAL_EVENTS', 500, 0, 500\)/);
   assert.match(config, /publicMarketMaxEvents: int\('PUBLIC_MARKET_MAX_EVENTS', 500, 10, 500\)/);
   assert.match(config, /sportsbookFinishedEventRetentionSeconds: int\('SPORTSBOOK_FINISHED_EVENT_RETENTION_SECONDS', 21600/);
   assert.match(config, /theOddsApiEventMaxEventsPerSport: int\('THE_ODDS_API_EVENT_MAX_EVENTS_PER_SPORT', 25, 0, 50\)/);
   assert.match(config, /theOddsApiEventMaxTotalEvents: int\('THE_ODDS_API_EVENT_MAX_TOTAL_EVENTS', 120, 0, 120\)/);
   assert.match(config, /sharpApiMaxPages: int\('SHARP_API_MAX_PAGES', isProduction \? 5 : 3/);
+  assert.match(config, /sportsbookLiveAcceptanceDelayMs: int\('SPORTSBOOK_LIVE_ACCEPTANCE_DELAY_MS', 3000, 3000, 10000\)/);
 });
 
 test('The Odds API default catalog contains soccer leagues only', () => {
@@ -157,14 +159,14 @@ test('staging and development can explicitly enable derived markets', () => {
   }
 });
 
-test('Sportmonks is hard-disabled and cannot be re-enabled by production environment variables', () => {
-  assert.match(config, /sportmonksEnabled:\s*false/);
-  assert.doesNotMatch(feed, /fetchSportmonks|code:\s*'sportmonks'/);
+test('Sportmonks is opt-in and only enabled when explicitly configured with a key', () => {
+  assert.match(config, /sportmonksEnabled:\s*pricedProviderEnabled\('SPORTMONKS_ENABLED', sportmonksKey\)\s*&&\s*Boolean\(sportmonksKey\)/);
+  assert.match(feed, /fetchSportmonks/);
+  assert.match(feed, /code: 'sportmonks'/);
 
   const script = `
-    const { fetchSportmonks } = await import('./src/sportsbook-providers.js');
-    const result = await fetchSportmonks();
-    console.log(JSON.stringify(result));
+    const { config } = await import('./src/config.js');
+    console.log(JSON.stringify({ enabled: config.sportmonksEnabled, key: Boolean(config.sportmonksKey) }));
   `;
   const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
     cwd: new URL('..', import.meta.url),
@@ -181,11 +183,39 @@ test('Sportmonks is hard-disabled and cannot be re-enabled by production environ
       API_KEY_PEPPER: 'p'.repeat(48),
       MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
       SPORTMONKS_ENABLED: 'true',
-      SPORTMONKS_API_KEY: 'configured-but-disabled'
+      SPORTMONKS_API_KEY: ''
     }
   });
   assert.equal(result.status, 0, result.stderr);
-  assert.ok(result.stdout.split(/\r?\n/).includes('{"provider":"sportmonks","enabled":false,"events":[]}'));
+  assert.ok(result.stdout.split(/\r?\n/).includes('{"enabled":false,"key":false}'));
+
+  const configured = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    cwd: new URL('..', import.meta.url),
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      NODE_ENV: 'production',
+      DATABASE_URL: '******example.com/db',
+      REDIS_URL: 'redis://example.com:6379',
+      MEMBER_PROXY_SECRET: 'm'.repeat(48),
+      ADMIN_PROXY_SECRET: 'a'.repeat(48),
+      OPS_INTERNAL_SECRET: 'o'.repeat(48),
+      SESSION_HMAC_KEY: 's'.repeat(48),
+      API_KEY_PEPPER: 'p'.repeat(48),
+      MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
+      SPORTMONKS_ENABLED: 'true',
+      SPORTMONKS_API_KEY: 'configured-key'
+    }
+  });
+  assert.equal(configured.status, 0, configured.stderr);
+  assert.ok(configured.stdout.split(/\r?\n/).includes('{"enabled":true,"key":true}'));
+});
+
+test('Sportmonks responses, page sizes, and retained caches stay bounded', () => {
+  assert.match(config, /sportmonksMaxTotalEvents: int\('SPORTMONKS_MAX_TOTAL_EVENTS', 20, 0, 20\)/);
+  assert.match(providers, /maxBytes: config\.sportsFeedMaxCacheBytes/);
+  assert.match(providers, /url\.searchParams\.set\('per_page', '5'\)/);
+  assert.match(providers, /if \(sportmonksCache\.size > 1\)/);
 });
 
 test('stale Sportsbook feed cache is read-only and cannot be settled', () => {
