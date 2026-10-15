@@ -93,7 +93,7 @@ export function combineSportsbookProviderResults(providerResults, {
 export async function buildSportsbookRenderSnapshot({
   fetchSportmonks,
   fetchApiSports,
-  maxEvents = 300,
+  maxEvents = 500,
   maxPages = 120,
   priorityLeagues = [],
   teamKey,

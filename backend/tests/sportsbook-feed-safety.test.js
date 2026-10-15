@@ -23,9 +23,10 @@ test('sportsbook feed defaults stay inside Railway free-tier event and cache bud
 });
 
 test('Sportmonks feed increases event coverage with a bounded page budget and configurable league priority', () => {
-  assert.match(config, /sportmonksMaxTotalEvents: boundedInt\('SPORTMONKS_MAX_TOTAL_EVENTS', 50, 0, 50\)/);
+  assert.match(config, /sportmonksDaysAhead: int\('SPORTMONKS_DAYS_AHEAD', 7, 0, 7\)/);
+  assert.match(config, /sportmonksMaxTotalEvents: boundedInt\('SPORTMONKS_MAX_TOTAL_EVENTS', 500, 0, 500\)/);
   assert.match(config, /sportmonksPriorityLeagues: text\('SPORTMONKS_PRIORITY_LEAGUES'/);
-  assert.match(config, /sportsbookRenderMaxEvents: int\('SPORTSBOOK_RENDER_MAX_EVENTS', 300, 1, 500\)/);
+  assert.match(config, /sportsbookRenderMaxEvents: int\('SPORTSBOOK_RENDER_MAX_EVENTS', 500, 1, 500\)/);
   assert.match(config, /sportsbookRenderMaxPages: int\('SPORTSBOOK_RENDER_MAX_PAGES', 120, 12, 120\)/);
   assert.match(providers, /SPORTMONKS_MAX_PAGES_PER_REFRESH = 12/);
   assert.match(providers, /SPORTMONKS_CANDIDATE_MULTIPLIER = 1\.2/);
@@ -170,12 +171,12 @@ test('production sportsbook only uses Sportmonks and honors its production key a
   assert.ok(result.stdout.split(/\r?\n/).includes('{"provider":[{"name":"Sportmonks","code":"sportmonks","enabled":true}],"enabled":true,"keyConfigured":true,"daysAhead":7,"maxEvents":50,"liveAcceptanceDelay":3000}'));
 });
 
-test('legacy Sportmonks event limits are capped at the new memory-safe maximum', () => {
+test('Sportmonks event cap accepts 500 and falls back safely above its bound', () => {
   const script = `
     const { config } = await import('./src/config.js');
     console.log(JSON.stringify({ maxEvents: config.sportmonksMaxTotalEvents }));
   `;
-  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+  const runWithLimit = value => spawnSync(process.execPath, ['--input-type=module', '-e', script], {
     cwd: new URL('..', import.meta.url),
     encoding: 'utf8',
     env: {
@@ -189,12 +190,18 @@ test('legacy Sportmonks event limits are capped at the new memory-safe maximum',
       SESSION_HMAC_KEY: 's'.repeat(48),
       API_KEY_PEPPER: 'p'.repeat(48),
       MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
-      SPORTMONKS_MAX_TOTAL_EVENTS: '250'
+      SPORTMONKS_MAX_TOTAL_EVENTS: value
     }
   });
+
+  const result = runWithLimit('500');
   assert.equal(result.status, 0, result.stderr);
-  assert.ok(result.stdout.split(/\r?\n/).includes('{"maxEvents":50}'));
-  assert.match(result.stderr, /SPORTMONKS_MAX_TOTAL_EVENTS is outside the supported range; using 50/);
+  assert.ok(result.stdout.split(/\r?\n/).includes('{"maxEvents":500}'));
+
+  const outOfRange = runWithLimit('501');
+  assert.equal(outOfRange.status, 0, outOfRange.stderr);
+  assert.ok(outOfRange.stdout.split(/\r?\n/).includes('{"maxEvents":500}'));
+  assert.match(outOfRange.stderr, /SPORTMONKS_MAX_TOTAL_EVENTS is outside the supported range; using 500/);
 });
 
 test('Sportmonks responses, page sizes, and retained caches stay bounded', () => {
@@ -287,7 +294,7 @@ test('Sportmonks prioritizes configured top leagues while normalizing paginated 
   assert.deepEqual(output.pageSizes, ['5']);
 });
 
-test('Render worker fetches a 300-event snapshot without raising Railway provider defaults', () => {
+test('Render worker fetches 500 events with a bounded Sportmonks provider cap', () => {
   const script = `
     const originalFetch = globalThis.fetch;
     const calls = [];
@@ -327,7 +334,7 @@ test('Render worker fetches a 300-event snapshot without raising Railway provide
       });
       const workerPages = calls.length;
       calls.length = 0;
-      const highCapacity = await fetchSportmonks({ maxEvents: 500, maxPages: 120 });
+      const highCapacity = await fetchSportmonks({ maxEvents: 500, maxPages: 119 });
       console.log(JSON.stringify({
         workerEvents: result.events.length,
         workerPages,
@@ -356,18 +363,18 @@ test('Render worker fetches a 300-event snapshot without raising Railway provide
       SPORTMONKS_ENABLED: 'true',
       SPORTMONKS_API_KEY: 'configured-sportmonks-key',
       SPORTMONKS_DAYS_AHEAD: '0',
-      SPORTMONKS_MAX_TOTAL_EVENTS: '50',
-      SPORTSBOOK_RENDER_MAX_EVENTS: '300',
+      SPORTMONKS_MAX_TOTAL_EVENTS: '500',
+      SPORTSBOOK_RENDER_MAX_EVENTS: '500',
       SPORTMONKS_REQUEST_DELAY_MS: '0'
     }
   });
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(JSON.parse(result.stdout.trim().split(/\r?\n/).at(-1)), {
-    workerEvents: 300,
-    workerPages: 72,
+    workerEvents: 500,
+    workerPages: 120,
     highCapacityEvents: 500,
-    highCapacityPages: 120,
-    railwayDefaultEvents: 50
+    highCapacityPages: 119,
+    railwayDefaultEvents: 500
   });
 });
 
