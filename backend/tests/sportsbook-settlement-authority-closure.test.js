@@ -54,10 +54,10 @@ test('R6.9.0.11 fresh FT market starts ACTIVE instead of inheriting an obsolete 
   assert.equal(result.stats.reopening, 0);
 });
 
-test('Sportmonks-only feed cache is generation-isolated from the previous production lifecycle', () => {
+test('sportsbook feed cache is generation-isolated from the previous production lifecycle', () => {
   const feed = readFileSync(new URL('../src/sportsbook-feed.js', import.meta.url), 'utf8');
 
-  assert.match(feed, /LIFECYCLE_GENERATION\s*=\s*'sportmonks-only-v1'/);
+  assert.match(feed, /LIFECYCLE_GENERATION\s*=\s*'render-ingest-multisource-v2'/);
   assert.match(feed, /sportsbook:aggregated-feed:v17/);
   assert.match(feed, /sportsbook:provider-lifecycle:v6/);
   assert.match(feed, /sportsbook:market-lifecycle:v6/);

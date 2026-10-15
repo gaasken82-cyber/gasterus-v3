@@ -40,6 +40,11 @@ export const config = Object.freeze({
   sessionHmacKey: requiredSecret('SESSION_HMAC_KEY', 32),
   apiKeyPepper: requiredSecret('API_KEY_PEPPER', 32),
   mfaEncryptionKeyBase64: requiredSecret('MFA_ENCRYPTION_KEY_BASE64', 40),
+  sportsbookIngestHmacSecret: optionalSecret('SPORTSBOOK_INGEST_HMAC_SECRET'),
+  sportsbookIngestMaxPayloadBytes: int('SPORTSBOOK_INGEST_MAX_PAYLOAD_BYTES', 6_291_456, 65_536, 8_388_608),
+  sportsbookIngestMaxAgeSeconds: int('SPORTSBOOK_INGEST_MAX_AGE_SECONDS', 180, 30, 600),
+  sportsbookRenderMaxEvents: int('SPORTSBOOK_RENDER_MAX_EVENTS', 300, 1, 500),
+  sportsbookRenderMaxPages: int('SPORTSBOOK_RENDER_MAX_PAGES', 120, 12, 120),
   memberSessionTtl: int('MEMBER_SESSION_TTL_SECONDS', 43200, 900, 604800),
   ownerSessionTtl: int('OWNER_SESSION_TTL_SECONDS', 900, 900, 86400), // R6.94: 15-minute admin session (idle refresh)
   highValueThreshold: int('HIGH_VALUE_APPROVAL_THRESHOLD', 1000000, 10000, 200000000),
@@ -170,8 +175,9 @@ export const config = Object.freeze({
   sportmonksDaysAhead: int('SPORTMONKS_DAYS_AHEAD', 2, 0, 7),
   sportmonksRefreshSeconds: int('SPORTMONKS_REFRESH_SECONDS', 300, 60, 1800),
   sportmonksOddsRefreshSeconds: int('SPORTMONKS_ODDS_REFRESH_SECONDS', 180, 30, 1800),
-  // Cap legacy Railway overrides to protect the feed worker's memory budget.
-  sportmonksMaxTotalEvents: boundedInt('SPORTMONKS_MAX_TOTAL_EVENTS', 20, 0, 20),
+  sportmonksPriorityLeagues: text('SPORTMONKS_PRIORITY_LEAGUES', 'Premier League,La Liga,Serie A,Bundesliga,Ligue 1,UEFA Champions League,UEFA Europa League,UEFA Europa Conference League,Eredivisie,Primeira Liga,Major League Soccer'),
+  // Cap per-provider normalized events independently from the larger aggregated feed.
+  sportmonksMaxTotalEvents: boundedInt('SPORTMONKS_MAX_TOTAL_EVENTS', 50, 0, 50),
   sportmonksRequestDelayMs: int('SPORTMONKS_REQUEST_DELAY_MS', 0, 0, 60000),
   sportsbookArtworkEnabled: bool('SPORTSBOOK_ARTWORK_ENABLED', false),
   sportsbookArtworkBaseUrl: text('SPORTSBOOK_ARTWORK_BASE_URL', 'https://www.thesportsdb.com/api/v1/json'),

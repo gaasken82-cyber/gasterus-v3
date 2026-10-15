@@ -4,6 +4,7 @@ import { AppError } from './errors.js';
 import { redis } from './redis.js';
 import { logger } from './logger.js';
 import { fetchSportmonks, mergeProviderEvents, publicEvent, suspendStaleLiveMarkets } from './sportsbook-providers.js';
+import { resolveSportsbookProviderResults } from './sportsbook-feed-source.js';
 import { advanceProviderLifecycle, publicProviderLifecycle, shouldProbeProvider, transitionProviderLifecycle } from './sportsbook-provider-lifecycle.js';
 import { recordSportsbookMarketTransitions, recordSportsbookProviderTransitions, sportsbookPricingExposureSnapshot } from './sportsbook-operations.js';
 import { applySportsbookRiskRepricing } from './sportsbook-risk-pricing.js';
@@ -116,7 +117,7 @@ export function validateAllHandicapOdds(events = []) {
   return events;
 }
 
-const LIFECYCLE_GENERATION = 'sportmonks-only-v1';
+const LIFECYCLE_GENERATION = 'render-ingest-multisource-v2';
 const CACHE_KEY = 'sportsbook:aggregated-feed:v17';
 const LIFECYCLE_KEY = 'sportsbook:provider-lifecycle:v6';
 const MARKET_LIFECYCLE_KEY = 'sportsbook:market-lifecycle:v6';
@@ -132,7 +133,7 @@ const REFRESH_LOCK_WAIT_MS = 5000;
 const REFRESH_LOCK_RENEW_MS = 60000;
 const REFRESH_LOCK_POLL_MS = 400;
 
-let memory = { lifecycleGeneration: LIFECYCLE_GENERATION, events: [], providers: [], providerLifecycle: {}, marketLifecycleStats: { active: 0, suspended: 0, reopening: 0, closed: 0 }, revision: null, fetchedAt: 0, expiresAt: 0, error: null };
+let memory = { lifecycleGeneration: LIFECYCLE_GENERATION, events: [], providers: [], providerLifecycle: {}, marketLifecycleStats: { active: 0, suspended: 0, reopening: 0, closed: 0 }, revision: null, renderSnapshotRevision: null, fetchedAt: 0, expiresAt: 0, error: null };
 let marketLifecycleMemory = {};
 let inFlight = null;
 // Guard in-process untuk background poll. `inFlight` di atas hanya dipakai
@@ -215,6 +216,9 @@ function boundedEvents(events = []) {
 
 function cacheWithinLimit(value) {
   const bounded = { ...value, events: boundedEvents(value?.events) };
+  if (!bounded.events.length) {
+    throw new AppError(503, 'Tidak ada event sportsbook yang muat dalam batas ukuran cache.', 'SPORTS_FEED_CACHE_LIMIT');
+  }
   const byteLength = candidate => Buffer.byteLength(JSON.stringify(candidate), 'utf8');
   if (byteLength(bounded) <= MAX_CACHE_BYTES) return bounded;
 
@@ -235,6 +239,20 @@ function cacheWithinLimit(value) {
   }
 
   const now = Date.now();
+  if (!bestCount) {
+    if (now - lastCacheLimitWarningAt >= 60000) {
+      logger.error('Sportsbook Redis cache cannot fit any event within the byte limit', {
+        originalEvents: bounded.events.length,
+        maxBytes: MAX_CACHE_BYTES
+      });
+      lastCacheLimitWarningAt = now;
+    }
+    throw new AppError(
+      503,
+      'Tidak ada event sportsbook yang muat dalam batas ukuran cache.',
+      'SPORTS_FEED_CACHE_LIMIT'
+    );
+  }
   if (now - lastCacheLimitWarningAt >= 60000) {
     logger.warn('Sportsbook Redis cache event list reduced to fit byte limit', {
       originalEvents: bounded.events.length,
@@ -401,14 +419,15 @@ async function readRedisCache() {
     return null;
   }
 }
-async function writeRedisCache(value) {
-  if (!redis.isOpen) return;
+async function writeRedisCache(value, { alreadyBounded = false } = {}) {
+  const bounded = alreadyBounded ? value : cacheWithinLimit(value);
+  if (!redis.isOpen) return bounded;
   try {
-    const bounded = cacheWithinLimit(value);
     await redis.set(CACHE_KEY, JSON.stringify(bounded), { EX: Math.max(config.sportsFeedStaleSeconds * 2, 300) });
   } catch (error) {
     logger.warn('Sportsbook Redis cache write failed', { error: error.message });
   }
+  return bounded;
 }
 async function readProviderLifecycle() {
   if (memory.lifecycleGeneration === LIFECYCLE_GENERATION && memory.providerLifecycle && Object.keys(memory.providerLifecycle).length) return memory.providerLifecycle;
@@ -500,31 +519,45 @@ function applyProviderLifecycleResult(result, lifecycle) {
   return { ...result, events };
 }
 async function performRefresh({ reason = 'scheduled' } = {}) {
-  const configured = enabledProviders();
-  if (!configured.some(provider => provider.enabled)) {
-    throw new AppError(503, 'Sportmonks belum dikonfigurasi pada core service.', 'SPORTS_PROVIDERS_NOT_CONFIGURED');
-  }
   const previousLifecycle = await readProviderLifecycle();
-  const descriptors = [
-    { code: 'sportmonks', enabled: true, fetcher: fetchSportmonks }
-  ].filter(d => d.enabled);
-  const settled = await Promise.all(descriptors.map(descriptor => {
-    const lifecycle = previousLifecycle[descriptor.code];
-    if (descriptor.enabled && lifecycle?.state === 'OPEN_CIRCUIT' && !shouldProbeProvider(lifecycle)) {
-      return Promise.resolve({
-        result: {
-          provider: descriptor.code,
-          enabled: true,
-          events: [],
-          errors: ['Provider circuit breaker cooldown active.'],
-          transportOk: false,
-          skipped: true
-        },
-        elapsedMs: 0
-      });
+  const { renderSnapshot, settled } = await resolveSportsbookProviderResults(redis, {
+    logger,
+    fetchLocalProviders: async () => {
+      const configured = enabledProviders();
+      if (!configured.some(provider => provider.enabled)) {
+        throw new AppError(503, 'Tidak ada snapshot Render valid atau provider sportsbook lokal terkonfigurasi.', 'SPORTS_PROVIDERS_NOT_CONFIGURED');
+      }
+      const descriptors = [
+        { code: 'sportmonks', enabled: true, fetcher: fetchSportmonks }
+      ].filter(d => d.enabled);
+      return Promise.all(descriptors.map(descriptor => {
+        const lifecycle = previousLifecycle[descriptor.code];
+        if (descriptor.enabled && lifecycle?.state === 'OPEN_CIRCUIT' && !shouldProbeProvider(lifecycle)) {
+          return Promise.resolve({
+            result: {
+              provider: descriptor.code,
+              enabled: true,
+              events: [],
+              errors: ['Provider circuit breaker cooldown active.'],
+              transportOk: false,
+              skipped: true
+            },
+            elapsedMs: 0
+          });
+        }
+        return timed(descriptor.code, descriptor.fetcher);
+      }));
     }
-    return timed(descriptor.code, descriptor.fetcher);
-  }));
+  });
+  if (renderSnapshot) {
+    logger.info('Using verified Render sportsbook snapshot', {
+      revision: renderSnapshot.revision,
+      generatedAt: renderSnapshot.generatedAt,
+      receivedAt: renderSnapshot.receivedAt,
+      providers: renderSnapshot.providerResults.map(result => result.provider),
+      events: renderSnapshot.providerResults.reduce((count, result) => count + result.events.length, 0)
+    });
+  }
 
   let results = settled.map(item => item.result);
   const rawProviderStatus = settled.map(item => providerSummary(item.result, item.elapsedMs));
@@ -587,7 +620,7 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
   // Validasi odds handicap untuk mencegah odds tidak normal (misal: 1.068 vs 9.196)
   events = validateAllHandicapOdds(events);
   const snapshotFallback = false;
-  const snapshotCapturedAt = null;
+  const snapshotCapturedAt = renderSnapshot?.generatedAt || null;
   await writeProviderLifecycle(nextLifecycle);
   if (!events.length) {
     await recordSportsbookProviderTransitions(transitions, { reason, pricedMarkets: 0, bettableMarkets: 0 });
@@ -613,13 +646,14 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
   const readOnlySource = Boolean(snapshotFallback || mergedBettableMarkets < 1);
   const revision = stableFeedRevision(events, nextLifecycle);
   const priceChanges = priceVersionChangeCount(memory.events || [], events);
-  memory = {
+  let nextFeed = {
     lifecycleGeneration: LIFECYCLE_GENERATION,
     events,
     providers: providerStatus,
     providerLifecycle: nextLifecycle,
     marketLifecycleStats: marketLifecycle.stats,
     revision,
+    renderSnapshotRevision: renderSnapshot?.revision || null,
     fetchedAt,
     expiresAt: fetchedAt + REFRESH_MS,
     error: snapshotFallback
@@ -638,16 +672,58 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
     lastPriceChanges: priceChanges,
     lastMarketLifecycleTransitionCount: marketLifecycle.transitions.length
   };
-  await writeRedisCache(memory);
-  await recordSportsbookProviderTransitions(transitions, { reason, feedRevision: revision, pricedMarkets: mergedPricedMarkets, bettableMarkets: mergedBettableMarkets });
-  await recordSportsbookMarketTransitions(marketLifecycle.transitions, { reason, feedRevision: revision, pricedMarkets: mergedPricedMarkets, bettableMarkets: mergedBettableMarkets });
+  nextFeed = cacheWithinLimit(nextFeed);
+  nextFeed.pricedMarkets = pricedMarketCount(nextFeed.events);
+  nextFeed.bettableMarkets = bettableMarketCount(nextFeed.events);
+  const retainedSources = new Set(nextFeed.events.flatMap(event => event._sources || []));
+  nextFeed.primaryPricingProvider = pricingProviders.find(provider => retainedSources.has(provider.code))?.code || null;
+  nextFeed.readOnlySource = Boolean(snapshotFallback || nextFeed.bettableMarkets < 1);
+  nextFeed.revision = stableFeedRevision(nextFeed.events, nextLifecycle);
+  if (nextFeed.readOnlySource && !nextFeed.error) {
+    nextFeed.error = nextFeed.pricedMarkets > 0
+      ? { code: 'SPORTS_PRICED_READ_ONLY', message: 'Priced odds tersedia, tetapi provider belum melewati settlement/recovery gate untuk menerima taruhan.' }
+      : { code: 'SPORTS_SOURCE_STALE', message: 'Live priced source belum tersedia; sportsbook tetap read-only.' };
+  }
+  nextFeed = cacheWithinLimit(nextFeed);
+  nextFeed.pricedMarkets = pricedMarketCount(nextFeed.events);
+  nextFeed.bettableMarkets = bettableMarketCount(nextFeed.events);
+  nextFeed.readOnlySource = Boolean(snapshotFallback || nextFeed.bettableMarkets < 1);
+  const finalSources = new Set(nextFeed.events.flatMap(event => event._sources || []));
+  nextFeed.primaryPricingProvider = pricingProviders.find(provider => finalSources.has(provider.code))?.code || null;
+  nextFeed.revision = stableFeedRevision(nextFeed.events, nextLifecycle);
+  if (nextFeed.readOnlySource && !nextFeed.error) {
+    nextFeed.error = nextFeed.pricedMarkets > 0
+      ? { code: 'SPORTS_PRICED_READ_ONLY', message: 'Priced odds tersedia, tetapi provider belum melewati settlement/recovery gate untuk menerima taruhan.' }
+      : { code: 'SPORTS_SOURCE_STALE', message: 'Live priced source belum tersedia; sportsbook tetap read-only.' };
+  }
+  nextFeed = cacheWithinLimit(nextFeed);
+  if (!nextFeed.events.length) {
+    throw new AppError(503, 'Cache sportsbook tidak dapat menyimpan event aktif.', 'SPORTS_FEED_CACHE_LIMIT');
+  }
+  nextFeed.pricedMarkets = pricedMarketCount(nextFeed.events);
+  nextFeed.bettableMarkets = bettableMarketCount(nextFeed.events);
+  nextFeed.revision = stableFeedRevision(nextFeed.events, nextLifecycle);
+  await writeRedisCache(nextFeed, { alreadyBounded: true });
+  memory = nextFeed;
+  await recordSportsbookProviderTransitions(transitions, {
+    reason,
+    feedRevision: nextFeed.revision,
+    pricedMarkets: nextFeed.pricedMarkets,
+    bettableMarkets: nextFeed.bettableMarkets
+  });
+  await recordSportsbookMarketTransitions(marketLifecycle.transitions, {
+    reason,
+    feedRevision: nextFeed.revision,
+    pricedMarkets: nextFeed.pricedMarkets,
+    bettableMarkets: nextFeed.bettableMarkets
+  });
   if (marketLifecycle.transitions.length) {
     logger.info('Sportsbook market lifecycle transitions', {
-      reason, feedRevision: revision, count: marketLifecycle.transitions.length,
+      reason, feedRevision: nextFeed.revision, count: marketLifecycle.transitions.length,
       actions: marketLifecycle.transitions.reduce((acc, item) => { acc[item.action] = (acc[item.action] || 0) + 1; return acc; }, {})
     });
   }
-  return memory;
+  return nextFeed;
 }
 function suspendedEvents(events = []) {
   return events.map(event => ({
@@ -688,7 +764,7 @@ async function markCachedFeedReadOnly(error, { reason = 'refresh-failed' } = {})
     bettableMarkets: 0,
     error: { code: error?.code || 'SPORTS_REFRESH_FAILED', message: error?.message || 'Sportsbook live source refresh failed.' }
   };
-  await writeRedisCache(memory);
+  memory = await writeRedisCache(memory);
   await recordSportsbookMarketTransitions(marketLifecycle.transitions, { reason, feedRevision: revision, pricedMarkets: memory.pricedMarkets, bettableMarkets: 0 });
   if (marketLifecycle.transitions.length) {
     logger.warn('Sportsbook market lifecycle transitions', {
@@ -1094,9 +1170,10 @@ export async function sportsbookSettlementSnapshot() {
 
 export function sportsbookSourceStatus() {
   const enabledCount = enabledProviders().filter(provider => provider.enabled).length;
+  const renderIngestionConfigured = config.sportsbookIngestHmacSecret.length >= 32;
   const healthyCount = memory.providers.filter(provider => provider.enabled && provider.bettingAllowed).length;
   return {
-    configured: enabledCount > 0,
+    configured: enabledCount > 0 || renderIngestionConfigured,
     healthy: healthyCount > 0 && !memory.readOnlySource && !memory.snapshotFallback,
     cachedEvents: memory.events.length,
     fetchedAt: memory.fetchedAt ? new Date(memory.fetchedAt).toISOString() : null,

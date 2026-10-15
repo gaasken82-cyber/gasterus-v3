@@ -34,6 +34,13 @@ const liveFixture = {
   goals: { home: 1, away: 0 },
   score: { halftime: { home: 1, away: 0 }, fulltime: { home: null, away: null } }
 };
+const prematchFixture = {
+  fixture: { id: 999002, date: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(), status: { short: 'NS', long: 'Not Started' }, venue: { name: 'Test Arena' } },
+  league: { id: 2, name: 'Test Prematch League', country: 'England', logo: null },
+  teams: { home: { id: 3, name: 'Gamma FC', logo: null }, away: { id: 4, name: 'Delta FC', logo: null } },
+  goals: { home: null, away: null },
+  score: { halftime: { home: null, away: null }, fulltime: { home: null, away: null } }
+};
 const liveOddsPayload = {
   response: [{
     fixture: { id: 999001 },
@@ -42,12 +49,22 @@ const liveOddsPayload = {
     ] }] }]
   }]
 };
+const prematchOddsPayload = {
+  response: [{
+    fixture: { id: 999002 },
+    bookmakers: [{ id: 2, name: 'Test Book', bets: [{ id: 1, name: 'Match Winner', values: [
+      { value: 'Gamma FC', odd: 2.1 }, { value: 'Draw', odd: 3.3 }, { value: 'Delta FC', odd: 3.4 }
+    ] }] }]
+  }]
+};
 globalThis.fetch = async url => {
   const target = String(url);
   calls.push(target);
   let body = apiAccessError ? { errors: { access: 'private upstream message' }, response: [] } : { response: [] };
   if (!apiAccessError && target.includes('/fixtures?live=all')) body = { response: [liveFixture] };
+  else if (!apiAccessError && target.includes('/fixtures?from=')) body = { response: [prematchFixture] };
   else if (!apiAccessError && target.includes('/odds/live')) body = liveOddsPayload;
+  else if (!apiAccessError && target.includes('/odds?')) body = prematchOddsPayload;
   return {
     ok: true,
     status: 200,
@@ -136,6 +153,28 @@ test('live price stamp ages with the real odds/live fetch time and the fail-clos
   const guarded = __sportsbookProviders.suspendStaleLiveMarkets([aged], Date.now());
   assert.equal(guarded[0].markets[0].suspended, true, 'stale live market suspended fail-closed');
   assert.ok(guarded[0].markets[0].selections.every(selection => selection.suspended), 'every stale selection suspended with its market');
+});
+
+test('prematch API-Sports market timestamps follow quota-cached odds fetch time, not snapshot time', async () => {
+  __sportsbookProviders.providerRequestCache.clear();
+  calls.length = 0;
+  const first = await fetchApiSports();
+  const prematch = first.events.find(event => !event.live);
+  assert.ok(prematch, 'prematch fixture normalized');
+  const market = prematch.markets[0];
+  assert.ok(market, 'prematch odds normalized');
+  const oddsPageEntries = [...__sportsbookProviders.providerRequestCache.entries()]
+    .filter(([key]) => key.startsWith('api-sports:odds:') && key !== 'api-sports:odds/live:[]')
+    .map(([, entry]) => entry);
+  assert.ok(oddsPageEntries.length, 'pre-match odds pages cached');
+  assert.equal(Date.parse(market.updatedAt), Math.max(...oddsPageEntries.map(entry => entry.fetchedAt)));
+
+  for (const entry of oddsPageEntries) entry.fetchedAt -= 1800000;
+  const cached = await fetchApiSports();
+  const aged = cached.events.find(event => !event.live);
+  assert.equal(Date.parse(aged.markets[0].updatedAt), Math.max(...oddsPageEntries.map(entry => entry.fetchedAt)));
+  assert.ok(Date.now() - Date.parse(aged.markets[0].updatedAt) > 900000, 're-normalizing cached data does not refresh its odds age');
+  assert.equal(calls.filter(url => url.includes('/odds?')).length, 2, 'quota cache prevents another request for stale odds');
 });
 
 test.after(() => { globalThis.fetch = originalFetch; });

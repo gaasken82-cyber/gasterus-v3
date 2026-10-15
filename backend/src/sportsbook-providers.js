@@ -784,16 +784,29 @@ export async function fetchTheOddsApi() {
 }
 
 // --- Sportmonks (v3 football) ---
-// The supplied Sportmonks plan does not expose the standalone /football/odds/*
-// endpoints (HTTP 404) and the `markets` filter is ignored on fixture includes, so
-// prematch prices are collected per fixture via `include=odds;scores` (~1.5 MB
-// each, every market/bookmaker). Payloads are parsed and normalized once, cached
-// as ready events, and the global event cap bounds both resident memory and the
-// number of outbound odds requests per refresh cycle.
+// Fixture includes contain full odds payloads, so keep pages small and cap the
+// total page count while retaining only the best normalized events in memory.
 let sportmonksNextRequestAt = 0;
+const SPORTMONKS_PAGE_SIZE = 5;
+const SPORTMONKS_MAX_PAGES_PER_REFRESH = 12;
+const SPORTMONKS_MAX_PAGES_PER_WORKER_REFRESH = 120;
+const SPORTMONKS_CANDIDATE_MULTIPLIER = 1.2;
 const SPORTMONKS_LIVE_STATES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE', 'INT', 'INPLAY']);
 const SPORTMONKS_FINISHED_STATES = new Set(['FT', 'AET', 'PEN', 'FINISHED', 'ENDED']);
 const SPORTMONKS_SUSPENDED_STATES = new Set(['CANCL', 'POSTP', 'SUSP', 'SU', 'ABAND', 'DELAYED', 'CANCELED', 'CANCELLED', 'POSTPONED', 'SUSPENDED', 'ABANDONED']);
+const DEFAULT_SPORTMONKS_PRIORITY_LEAGUES = [
+  'premier league',
+  'la liga',
+  'serie a',
+  'bundesliga',
+  'ligue 1',
+  'uefa champions league',
+  'uefa europa league',
+  'uefa europa conference league',
+  'eredivisie',
+  'primeira liga',
+  'major league soccer'
+];
 function sportmonksState(raw) {
   const short = clean(raw?.short_name || raw?.name || raw?.state || '', 40).toUpperCase();
   if (SPORTMONKS_LIVE_STATES.has(short) || /HALF|LIVE/.test(short)) return 'LIVE';
@@ -947,9 +960,8 @@ async function waitForSportmonksRequestSlot() {
   if (scheduledAt > now) await new Promise(resolve => setTimeout(resolve, scheduledAt - now));
 }
 
-// Fetch semua halaman data dari Sportmonks dengan pagination
-async function fetchAllPages(base, endpoint, params, maxPages = 4) {
-  const allData = [];
+// Read one small page at a time so raw odds payloads are not retained across pages.
+async function fetchAllPages(base, endpoint, params, maxPages = 4, onPage = () => {}) {
   let page = 1;
   let hasMore = true;
   
@@ -957,7 +969,7 @@ async function fetchAllPages(base, endpoint, params, maxPages = 4) {
     const url = new URL(`${base}${endpoint}`);
     url.searchParams.set('api_token', config.sportmonksKey);
     url.searchParams.set('page', String(page));
-    url.searchParams.set('per_page', '5');
+    url.searchParams.set('per_page', String(SPORTMONKS_PAGE_SIZE));
     for (const [key, value] of Object.entries(params)) {
       url.searchParams.set(key, value);
     }
@@ -972,16 +984,29 @@ async function fetchAllPages(base, endpoint, params, maxPages = 4) {
     if (data.length === 0) {
       hasMore = false;
     } else {
-      allData.push(...data);
-      hasMore = data.length >= 5 && payload?.pagination?.has_more;
+      await onPage(data);
+      hasMore = data.length >= SPORTMONKS_PAGE_SIZE && payload?.pagination?.has_more;
       page++;
     }
   }
-  
-  return allData;
 }
 
-export async function fetchSportmonks() {
+function sportmonksLeaguePriority(event, configuredLeagues) {
+  const league = clean(event?.league, 120).toLowerCase();
+  const index = configuredLeagues.findIndex(name => league === name || league.includes(name));
+  return index < 0 ? configuredLeagues.length : index;
+}
+
+function compareSportmonksEvents(a, b) {
+  if (a.event.live !== b.event.live) return Number(b.event.live) - Number(a.event.live);
+  if (a.leaguePriority !== b.leaguePriority) return a.leaguePriority - b.leaguePriority;
+  return a.startTime - b.startTime || a.event.id.localeCompare(b.event.id);
+}
+
+export async function fetchSportmonks({
+  maxEvents = config.sportmonksMaxTotalEvents,
+  maxPages = SPORTMONKS_MAX_PAGES_PER_REFRESH
+} = {}) {
   if (!config.sportmonksEnabled || !config.sportmonksKey) {
     logger.warn('Sportmonks disabled or missing API key');
     return { provider: 'sportmonks', enabled: false, events: [] };
@@ -989,8 +1014,14 @@ export async function fetchSportmonks() {
   
   const base = config.sportmonksBaseUrl.replace(/\/$/, '');
   const now = Date.now();
-  const maxEvents = config.sportmonksMaxTotalEvents;
-  const cacheKey = `sportmonks:all-events:${utcDate(0)}:${config.sportmonksDaysAhead}:${maxEvents}`;
+  if (!Number.isInteger(maxEvents) || maxEvents < 0 || maxEvents > MAX_PROVIDER_EVENTS) {
+    throw new Error(`Sportmonks maxEvents must be an integer between 0 and ${MAX_PROVIDER_EVENTS}.`);
+  }
+  if (!Number.isInteger(maxPages) || maxPages < 1 || maxPages > SPORTMONKS_MAX_PAGES_PER_WORKER_REFRESH) {
+    throw new Error(`Sportmonks maxPages must be an integer between 1 and ${SPORTMONKS_MAX_PAGES_PER_WORKER_REFRESH}.`);
+  }
+  if (maxEvents === 0) return { provider: 'sportmonks', enabled: true, events: [], errors: [] };
+  const cacheKey = `sportmonks:all-events:${utcDate(0)}:${config.sportmonksDaysAhead}:${maxEvents}:${maxPages}`;
 
   // Cek cache terlebih dahulu
   const cached = sportmonksCache.get(cacheKey);
@@ -1004,56 +1035,69 @@ export async function fetchSportmonks() {
   for (let offset = 0; offset <= daysAhead; offset += 1) dates.push(utcDate(offset));
   
   const errors = [];
-  const allFixtures = [];
+  const priorityLeagues = String(config.sportmonksPriorityLeagues || '')
+    .split(',')
+    .map(name => clean(name, 120).toLowerCase())
+    .filter(Boolean);
+  const configuredPriorityLeagues = priorityLeagues.length ? priorityLeagues : DEFAULT_SPORTMONKS_PRIORITY_LEAGUES;
+  const candidateLimit = Math.min(
+    Math.ceil(maxEvents * SPORTMONKS_CANDIDATE_MULTIPLIER),
+    maxPages * SPORTMONKS_PAGE_SIZE
+  );
+  const totalPages = Math.min(
+    maxPages,
+    Math.ceil(candidateLimit / SPORTMONKS_PAGE_SIZE)
+  );
+  const basePagesPerDate = Math.floor(totalPages / dates.length);
+  let extraPages = totalPages % dates.length;
+  const rankedEvents = [];
   const seen = new Set();
   
   for (const date of dates) {
-    if (allFixtures.length >= maxEvents) break;
+    const pagesForDate = basePagesPerDate + (extraPages > 0 ? 1 : 0);
+    if (extraPages > 0) extraPages -= 1;
+    if (pagesForDate === 0) continue;
     try {
-      const fixtures = await fetchAllPages(base, `/football/fixtures/date/${date}`, {
+      await fetchAllPages(base, `/football/fixtures/date/${date}`, {
         include: 'state;participants;league.country;odds;scores'
-      }, Math.max(1, Math.min(2, Math.ceil((maxEvents - allFixtures.length) / 5))));
+      }, pagesForDate, fixtures => {
+        for (const fixture of fixtures) {
+          const id = String(fixture?.id ?? '');
+          if (!id || seen.has(id)) continue;
+          seen.add(id);
 
-      for (const fixture of fixtures) {
-        const id = String(fixture?.id ?? '');
-        if (!id || seen.has(id)) continue;
-        seen.add(id);
+          const state = sportmonksState(fixture.state);
+          if (state !== 'SCHEDULED' && state !== 'LIVE') continue;
+          if (fixture.has_odds === false) continue;
 
-        const state = sportmonksState(fixture.state);
-        if (state !== 'SCHEDULED' && state !== 'LIVE') continue;
-        if (fixture.has_odds === false) continue;
-
-        if (allFixtures.length < maxEvents) allFixtures.push(fixture);
-        if (allFixtures.length >= maxEvents) break;
-      }
+          const start = Number(fixture.starting_at_timestamp) * 1000 || Date.parse(fixture.starting_at || '') || 0;
+          if (start && start < now - 3 * 60 * 60 * 1000) continue;
+          try {
+            const event = normalizeSportmonksFixture(fixture, fixture.odds || []);
+            if (!event || !event.markets.length) continue;
+            const candidate = {
+              event,
+              leaguePriority: sportmonksLeaguePriority(event, configuredPriorityLeagues),
+              startTime: start || Number.MAX_SAFE_INTEGER
+            };
+            rankedEvents.push(candidate);
+            rankedEvents.sort(compareSportmonksEvents);
+            if (rankedEvents.length > maxEvents) rankedEvents.pop();
+          } catch (error) {
+            errors.push(`Fixture ${fixture.id}: ${error.message}`);
+          }
+        }
+      });
     } catch (error) {
       errors.push(`Date ${date}: ${error.message}`);
     }
   }
-  
-  // Filter dan urutkan fixtures
-  const selected = allFixtures
-    .filter(f => {
-      const start = Number(f.starting_at_timestamp) * 1000 || Date.parse(f.starting_at || '') || 0;
-      return !start || start >= now - 3 * 60 * 60 * 1000;
-    })
-    .sort((a, b) => {
-      const aStart = Number(a.starting_at_timestamp) * 1000 || Date.parse(a.starting_at || '') || 0;
-      const bStart = Number(b.starting_at_timestamp) * 1000 || Date.parse(b.starting_at || '') || 0;
-      return aStart - bStart;
-    })
-    .slice(0, maxEvents);
-  
-  // Normalize fixtures menjadi events
-  const events = [];
-  for (const fixture of selected) {
-    try {
-      const event = normalizeSportmonksFixture(fixture, fixture.odds || []);
-      if (event && event.markets.length) {
-        events.push(event);
-      }
-    } catch (error) {
-      errors.push(`Fixture ${fixture.id}: ${error.message}`);
+  const events = rankedEvents.map(candidate => candidate.event);
+  const fetchedAtStamp = new Date(now).toISOString();
+  for (const event of events) {
+    for (const market of event.markets) {
+      market.updatedAt ||= fetchedAtStamp;
+      for (const selection of market.selections) selection.updatedAt ||= market.updatedAt;
     }
   }
   
@@ -1218,6 +1262,21 @@ export async function fetchApiSports() {
       if (!event.live) continue;
       for (const market of event.markets || []) {
         if (!market.updatedAt) market.updatedAt = stamp;
+      }
+    }
+  }
+  const prematchOddsFetchedAt = [...providerRequestCache.entries()]
+    .filter(([key, entry]) => key.startsWith('api-sports:odds:') && key !== 'api-sports:odds/live:[]' && entry?.value !== undefined)
+    .reduce((latest, [, entry]) => Math.max(latest, Number(entry.fetchedAt) || 0), 0);
+  if (prematchOddsFetchedAt > 0) {
+    const stamp = new Date(prematchOddsFetchedAt).toISOString();
+    for (const event of events) {
+      if (event.live) continue;
+      for (const market of event.markets || []) {
+        if (!market.updatedAt) market.updatedAt = stamp;
+        for (const selection of market.selections || []) {
+          if (!selection.updatedAt) selection.updatedAt = market.updatedAt;
+        }
       }
     }
   }
