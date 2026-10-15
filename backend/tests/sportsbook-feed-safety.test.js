@@ -160,8 +160,35 @@ test('production sportsbook only uses Sportmonks and honors its production key a
   assert.ok(result.stdout.split(/\r?\n/).includes('{"provider":[{"name":"Sportmonks","code":"sportmonks","enabled":true}],"enabled":true,"keyConfigured":true,"daysAhead":7,"maxEvents":20,"liveAcceptanceDelay":3000}'));
 });
 
+test('legacy Sportmonks event limits are capped instead of preventing production startup', () => {
+  const script = `
+    const { config } = await import('./src/config.js');
+    console.log(JSON.stringify({ maxEvents: config.sportmonksMaxTotalEvents }));
+  `;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    cwd: new URL('..', import.meta.url),
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      NODE_ENV: 'production',
+      DATABASE_URL: '******example.com/db',
+      REDIS_URL: 'redis://example.com:6379',
+      MEMBER_PROXY_SECRET: 'm'.repeat(48),
+      ADMIN_PROXY_SECRET: 'a'.repeat(48),
+      OPS_INTERNAL_SECRET: 'o'.repeat(48),
+      SESSION_HMAC_KEY: 's'.repeat(48),
+      API_KEY_PEPPER: 'p'.repeat(48),
+      MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
+      SPORTMONKS_MAX_TOTAL_EVENTS: '250'
+    }
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(result.stdout.split(/\r?\n/).includes('{"maxEvents":20}'));
+  assert.match(result.stderr, /SPORTMONKS_MAX_TOTAL_EVENTS is outside the supported range; using 20/);
+});
+
 test('Sportmonks responses, page sizes, and retained caches stay bounded', () => {
-  assert.match(config, /sportmonksMaxTotalEvents: int\('SPORTMONKS_MAX_TOTAL_EVENTS', 20, 0, 20\)/);
+  assert.match(config, /sportmonksMaxTotalEvents: boundedInt\('SPORTMONKS_MAX_TOTAL_EVENTS', 20, 0, 20\)/);
   assert.match(providers, /maxBytes: config\.sportsFeedMaxCacheBytes/);
   assert.match(providers, /url\.searchParams\.set\('per_page', '5'\)/);
   assert.match(providers, /if \(sportmonksCache\.size > 1\)/);
