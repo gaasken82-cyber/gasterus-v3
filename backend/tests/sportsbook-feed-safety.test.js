@@ -23,7 +23,7 @@ test('sportsbook feed defaults stay inside Railway free-tier event and cache bud
 });
 
 test('Sportmonks feed increases event coverage with a bounded page budget and configurable league priority', () => {
-  assert.match(config, /sportmonksDaysAhead: int\('SPORTMONKS_DAYS_AHEAD', 7, 0, 7\)/);
+  assert.match(config, /sportmonksDaysAhead: int\('SPORTMONKS_DAYS_AHEAD', 30, 0, 30\)/);
   assert.match(config, /sportmonksMaxTotalEvents: boundedInt\('SPORTMONKS_MAX_TOTAL_EVENTS', 500, 0, 500\)/);
   assert.match(config, /sportmonksPriorityLeagues: text\('SPORTMONKS_PRIORITY_LEAGUES'/);
   assert.match(config, /sportsbookRenderMaxEvents: int\('SPORTSBOOK_RENDER_MAX_EVENTS', 500, 1, 500\)/);
