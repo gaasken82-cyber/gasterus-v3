@@ -109,7 +109,7 @@ export const config = Object.freeze({
   // Background feed/collector process is separate from settlement (feed-worker.js).
   sportsSourceBackgroundPollEnabled: bool('SPORTS_SOURCE_BACKGROUND_POLL_ENABLED', true),
   feedWorkerEnabled: bool('FEED_WORKER_ENABLED', true),
-  sportsFeedMaxEvents: int('SPORTS_FEED_MAX_EVENTS', 400, 20, 500),
+  sportsFeedMaxEvents: int('SPORTS_FEED_MAX_EVENTS', 700, 20, 800),
   sportsFeedMaxCacheBytes: int('SPORTS_FEED_MAX_CACHE_BYTES', 12_000_000, 262_144, 15_000_000),
   sportsProviderCacheMaxEntries: int('SPORTS_PROVIDER_CACHE_MAX_ENTRIES', 120, 1, 10000),
   sportsProviderCacheMaxEntryBytes: int('SPORTS_PROVIDER_CACHE_MAX_ENTRY_BYTES', 3_145_728, 1024, 100_000_000),
@@ -154,7 +154,7 @@ export const config = Object.freeze({
   theOddsApiEventMaxTotalEvents: int('THE_ODDS_API_EVENT_MAX_TOTAL_EVENTS', 120, 0, 120),
   // Keep the configured provider catalog intact; the feed-level event and Redis byte
   // limits remain the final resource guards for the consolidated snapshot.
-  theOddsApiMaxTotalEvents: int('THE_ODDS_API_MAX_TOTAL_EVENTS', 500, 0, 500),
+  theOddsApiMaxTotalEvents: int('THE_ODDS_API_MAX_TOTAL_EVENTS', 700, 0, 800),
   theOddsApiRefreshSeconds: int('THE_ODDS_API_REFRESH_SECONDS', 300, 60, 1800),
   theOddsApiEventRefreshSeconds: int('THE_ODDS_API_EVENT_REFRESH_SECONDS', 300, 60, 1800),
   theOddsApiBookmakers: text('THE_ODDS_API_BOOKMAKERS'),
@@ -203,15 +203,29 @@ export const config = Object.freeze({
   // Upcoming fixtures + bookmaker anchor prices are collected from Football-Data's downloadable public CSV,
   // then normalized and expanded by Gasterus's own probability/market engine.
   publicMarketEnabled: bool('PUBLIC_MARKET_ENABLED', true),
-  publicMarketOpenFootballEnabled: isProduction ? false : bool('PUBLIC_MARKET_OPENFOOTBALL_ENABLED', true),
+  // OpenFootball CC0 fixtures + Gasterus Poisson model are the default volume
+  // engine. Enabled in ALL environments (incl. production) so the board shows a
+  // professional-sized slate; operators can still opt out via env override.
+  publicMarketOpenFootballEnabled: bool('PUBLIC_MARKET_OPENFOOTBALL_ENABLED', true),
   publicMarketFixturesUrl: text('PUBLIC_MARKET_FIXTURES_URL', 'https://www.football-data.co.uk/fixtures.csv'),
   publicMarketExtraFixturesPageUrl: text('PUBLIC_MARKET_EXTRA_FIXTURES_PAGE_URL', 'https://www.football-data.co.uk/matches_new_leagues.php'),
   publicMarketLatestResultsUrl: text('PUBLIC_MARKET_LATEST_RESULTS_URL', 'https://www.football-data.co.uk/new/Latest_Results.csv'),
   publicMarketRefreshSeconds: int('PUBLIC_MARKET_REFRESH_SECONDS', 900, 300, 21600),
   publicMarketMaxStaleSeconds: int('PUBLIC_MARKET_MAX_STALE_SECONDS', 172800, 1800, 604800),
   publicMarketRequestTimeoutMs: int('PUBLIC_MARKET_REQUEST_TIMEOUT_MS', 12000, 2000, 30000),
-  publicMarketMaxEvents: int('PUBLIC_MARKET_MAX_EVENTS', 500, 10, 500),
-  publicMarketDerivedMarketsEnabled: bool('PUBLIC_MARKET_DERIVED_MARKETS_ENABLED', !isProduction),
+  publicMarketMaxEvents: int('PUBLIC_MARKET_MAX_EVENTS', 600, 10, 800),
+  // Derived markets (O/U, Asian Handicap, BTTS, Correct Score, HT/FT, ...) turn a
+  // thin 1X2 fixture into a professional multi-market board. Enabled in ALL
+  // environments; the Poisson model is deterministic and settlement is operator-
+  // controlled, so there is no sharp-price risk. Cost is bounded by the horizon
+  // filter + byte caps below (OOM-safe).
+  publicMarketDerivedMarketsEnabled: bool('PUBLIC_MARKET_DERIVED_MARKETS_ENABLED', true),
+  // OOM guard: only fixtures kicking off within this many days get the full
+  // derived-market treatment. OpenFootball season files carry ~380 matches/league;
+  // building ~30 markets each for 5000 stale/future fixtures would blow the heap.
+  // Filtering to a forward window BEFORE market construction keeps volume high but
+  // memory bounded. Raise only with a matching heap bump.
+  publicMarketOpenFootballHorizonDays: int('PUBLIC_MARKET_OPENFOOTBALL_HORIZON_DAYS', 21, 1, 60),
   publicMarketDerivedMarginBps: int('PUBLIC_MARKET_DERIVED_MARGIN_BPS', 450, 100, 1200),
   publicMarketPriceMaxAgeSeconds: int('PUBLIC_MARKET_PRICE_MAX_AGE_SECONDS', 604800, 900, 604800),
   sportsbookRiskRepricingEnabled: bool('SPORTSBOOK_RISK_REPRICING_ENABLED', true),
@@ -219,8 +233,8 @@ export const config = Object.freeze({
   sportsFeedRefreshSeconds: int('SPORTS_FEED_REFRESH_SECONDS', 30, 5, 300),
   sportsFeedStaleSeconds: int('SPORTS_FEED_STALE_SECONDS', 180, 30, 3600),
   sportsbookFinishedEventRetentionSeconds: int('SPORTSBOOK_FINISHED_EVENT_RETENTION_SECONDS', 21600, 3600, 86400),
-  sportsbookMemberHorizonDays: int('SPORTSBOOK_MEMBER_HORIZON_DAYS', 30, 1, 60),
-  sportsbookMemberMaxEvents: int('SPORTSBOOK_MEMBER_MAX_EVENTS', 400, 20, 500),
+  sportsbookMemberHorizonDays: int('SPORTSBOOK_MEMBER_HORIZON_DAYS', 45, 1, 60),
+  sportsbookMemberMaxEvents: int('SPORTSBOOK_MEMBER_MAX_EVENTS', 700, 20, 800),
   sportsFeedRequestTimeoutMs: int('SPORTS_FEED_REQUEST_TIMEOUT_MS', 12000, 2000, 30000),
   sportsbookProviderFailureThreshold: int('SPORTSBOOK_PROVIDER_FAILURE_THRESHOLD', 3, 1, 20),
   sportsbookProviderRecoverySuccesses: int('SPORTSBOOK_PROVIDER_RECOVERY_SUCCESSES', 2, 1, 20),

@@ -57,7 +57,8 @@ test('derived public fixture retains complete FT coverage and at least 25 safe m
   assert.ok(event.markets.length >= 25, `validated markets=${event.markets.length}`);
 });
 
-test('provider aggregation caps stored events at the 500-event Railway memory budget', () => {
+test('provider aggregation caps stored events at the configured sportsFeedMaxEvents memory budget', async () => {
+  const { config } = await import('../src/config.js');
   const events = Array.from({ length: 1300 }, (_, index) => ({
     id: `event-${index}`,
     sport: 'Football',
@@ -90,7 +91,7 @@ test('provider aggregation caps stored events at the 500-event Railway memory bu
   const merged = __sportsbookProviders.mergeProviderEvents([
     { provider: 'api-sports', enabled: true, events }
   ]);
-  assert.equal(merged.length, 500);
+  assert.equal(merged.length, config.sportsFeedMaxEvents);
   assert.equal(merged.find(event => event.home.name === 'Home 0').markets.length, 180, 'the event cap does not prune market arrays');
 });
 

@@ -19,6 +19,13 @@ import { chooseCombinations, systemBetMetrics } from './sportsbook-slip-calculat
 const STREAM_URL = '/api/member/sportsbook/stream';
 const SNAPSHOT_URL = '/api/member/sportsbook/events';
 const FEED_DETAIL_URL = (id) => `/api/member/sportsbook/events/${encodeURIComponent(id)}`;
+// Events per page for the REST snapshot / SSE broadcast. Kept deliberately
+// BOUNDED (not "load everything"): each request/stream frame carries only this
+// many events, and the member snapshot ships SUMMARY markets (1X2/HANDICAP/TOTALS)
+// only — full market trees load lazily per event via /events/:id. This is what
+// keeps load-more incremental and OOM-safe even with a 500-event slate. Raising
+// this number increases per-frame payload linearly; do so only with a matching
+// heap/cache budget.
 const EVENTS_PAGE_SIZE = 30;
 const pageSize = EVENTS_PAGE_SIZE;
 const BETSLIP_MOBILE_BREAKPOINT = 860;

@@ -8,9 +8,17 @@ const fileCache = new Map();
 const BASE_COMPETITIONS = Object.freeze([
   { code:'ENG-PL', league:'Premier League', country:'England', repo:'england', file:'1-premierleague.txt' },
   { code:'ENG-CS', league:'Championship', country:'England', repo:'england', file:'2-championship.txt' },
+  { code:'ENG-L1', league:'League One', country:'England', repo:'england', file:'3-league1.txt' },
+  { code:'ENG-L2', league:'League Two', country:'England', repo:'england', file:'4-league2.txt' },
+  { code:'ENG-NL', league:'National League', country:'England', repo:'england', file:'5-nationalleague.txt' },
   { code:'GER-BL', league:'Bundesliga', country:'Germany', repo:'deutschland', file:'1-bundesliga.txt' },
+  { code:'GER-B2', league:'2. Bundesliga', country:'Germany', repo:'deutschland', file:'2-bundesliga2.txt' },
   { code:'ITA-SA', league:'Serie A', country:'Italy', repo:'italy', file:'1-seriea.txt' },
+  { code:'ITA-SB', league:'Serie B', country:'Italy', repo:'italy', file:'2-serieb.txt' },
   { code:'ESP-LL', league:'La Liga', country:'Spain', repo:'espana', file:'1-liga.txt' },
+  { code:'ESP-L2', league:'Segunda Division', country:'Spain', repo:'espana', file:'2-liga2.txt' },
+  { code:'AUT-BL', league:'Bundesliga', country:'Austria', repo:'austria', file:'1-bundesliga.txt' },
+  { code:'BEL-D1', league:'First Division A', country:'Belgium', repo:'belgium', file:'be1.txt' },
 ]);
 
 // Musim dihitung dari tanggal sekarang (bukan di-hardcode). Eropa: musim X-(X+1)
@@ -195,14 +203,31 @@ export async function fetchOpenFootballFixtures() {
     return {comp,current,model,updatedAt};
   }));
   const events=[],warnings=[],sources=[];
+  // OOM GUARD: OpenFootball season files carry the WHOLE season (~380 matches/
+  // league). With 13 competitions that is ~5000 fixtures, and each one triggers a
+  // Poisson score-grid + ~30 derived markets during normalization. Building all of
+  // them every refresh would spike the heap and trip the memory guard. Instead we
+  // keep only matches inside a FORWARD window (upcoming + a short grace for just-
+  // kicked-off games) BEFORE any anchor/market is constructed. This preserves a
+  // large, professional-looking slate while keeping per-refresh work bounded.
+  const now = Date.now();
+  const horizonMs = Math.max(1, Number(config.publicMarketOpenFootballHorizonDays || 21)) * 86400000;
+  const windowStart = now - 3 * 3600000;        // 3h grace so just-started matches stay
+  const windowEnd = now + horizonMs;
+  let droppedByHorizon = 0;
   for (let i=0;i<results.length;i++) {
     const item=results[i],comp=competitions[i];
     if(item.status!=='fulfilled'){warnings.push(`${comp.code} unavailable: ${item.reason?.message||item.reason}`);continue;}
     const {current,model,updatedAt}=item.value; sources.push(comp.code);
     for(const m of current){
+      const kickoff = Date.parse(m.startTime||'');
+      if (!Number.isFinite(kickoff) || kickoff < windowStart || kickoff > windowEnd) { droppedByHorizon += 1; continue; }
       const anchor=buildOpenFootballModelAnchor(m.home,m.away,model,{marginBps:config.publicMarketDerivedMarginBps});
       events.push({competition:comp,match:m,anchor,updatedAt});
     }
+  }
+  if (droppedByHorizon) {
+    warnings.push(`OpenFootball: ${droppedByHorizon} fixture di luar horizon ${Math.round(horizonMs/86400000)} hari dilewati (hemat memori).`);
   }
   return {events,warnings,sources};
 }

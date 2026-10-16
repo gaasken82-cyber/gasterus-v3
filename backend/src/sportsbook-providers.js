@@ -4,7 +4,7 @@ import { logger } from './logger.js';
 import { ensureBoundedCacheCapacity, pruneExpiredCacheEntries, setBoundedCacheEntry } from './bounded-cache.js';
 import { readBoundedResponseText } from './bounded-response.js';
 
-const MAX_PROVIDER_EVENTS = 500;
+const MAX_PROVIDER_EVENTS = config.sportsFeedMaxEvents;
 const MAX_ODDS_API_DETAIL_CACHE_ENTRIES = 100;
 const ODDS_API_DETAIL_CACHE_TTL_MULTIPLIER = 2;
 const ODDS_API_DETAIL_FETCH_CONCURRENCY = 4;

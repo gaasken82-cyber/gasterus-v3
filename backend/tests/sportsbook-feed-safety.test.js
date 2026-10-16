@@ -9,16 +9,19 @@ const worker = readFileSync(new URL('../src/worker.js', import.meta.url), 'utf8'
 const config = readFileSync(new URL('../src/config.js', import.meta.url), 'utf8');
 
 test('sportsbook feed defaults stay inside Railway free-tier event and cache budgets', () => {
-  assert.match(config, /sportsFeedMaxEvents: int\('SPORTS_FEED_MAX_EVENTS', 400, 20, 500\)/);
+  assert.match(config, /sportsFeedMaxEvents: int\('SPORTS_FEED_MAX_EVENTS', 700, 20, 800\)/);
   assert.match(config, /sportsFeedMaxCacheBytes: int\('SPORTS_FEED_MAX_CACHE_BYTES', 12_000_000, 262_144, 15_000_000\)/);
   assert.match(config, /sportsProviderCacheMaxTotalBytes: int\('SPORTS_PROVIDER_CACHE_MAX_TOTAL_BYTES', 10_000_000/);
-  assert.match(config, /sportsbookMemberMaxEvents: int\('SPORTSBOOK_MEMBER_MAX_EVENTS', 400, 20, 500\)/);
-  assert.match(config, /theOddsApiMaxTotalEvents: int\('THE_ODDS_API_MAX_TOTAL_EVENTS', 500, 0, 500\)/);
-  assert.match(config, /publicMarketMaxEvents: int\('PUBLIC_MARKET_MAX_EVENTS', 500, 10, 500\)/);
+  assert.match(config, /sportsbookMemberMaxEvents: int\('SPORTSBOOK_MEMBER_MAX_EVENTS', 700, 20, 800\)/);
+  assert.match(config, /theOddsApiMaxTotalEvents: int\('THE_ODDS_API_MAX_TOTAL_EVENTS', 700, 0, 800\)/);
+  assert.match(config, /publicMarketMaxEvents: int\('PUBLIC_MARKET_MAX_EVENTS', 600, 10, 800\)/);
   assert.match(config, /sportsbookFinishedEventRetentionSeconds: int\('SPORTSBOOK_FINISHED_EVENT_RETENTION_SECONDS', 21600/);
   assert.match(config, /theOddsApiEventMaxEventsPerSport: int\('THE_ODDS_API_EVENT_MAX_EVENTS_PER_SPORT', 25, 0, 50\)/);
   assert.match(config, /theOddsApiEventMaxTotalEvents: int\('THE_ODDS_API_EVENT_MAX_TOTAL_EVENTS', 120, 0, 120\)/);
   assert.match(config, /sharpApiMaxPages: int\('SHARP_API_MAX_PAGES', isProduction \? 5 : 3/);
+  // OOM guard: OpenFootball horizon filter must exist so the enlarged league set
+  // (13 competitions, ~5000 season fixtures) never builds markets for all of them.
+  assert.match(config, /publicMarketOpenFootballHorizonDays: int\('PUBLIC_MARKET_OPENFOOTBALL_HORIZON_DAYS', 21, 1, 60\)/);
 });
 
 test('The Odds API default catalog contains soccer leagues only', () => {
@@ -59,7 +62,40 @@ test('sportsbook feed worker and background polling default to enabled in produc
   assert.ok(result.stdout.split(/\r?\n/).includes('{"feedWorker":true,"backgroundPoll":true}'));
 });
 
-test('production keeps model-generated events and derived markets disabled by default', () => {
+test('production enables model-generated events and derived markets by default (professional volume)', () => {
+  const script = `
+    const { config } = await import('./src/config.js');
+    console.log(JSON.stringify({
+      openFootball: config.publicMarketOpenFootballEnabled,
+      derivedMarkets: config.publicMarketDerivedMarketsEnabled,
+      horizonDays: config.publicMarketOpenFootballHorizonDays
+    }));
+  `;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    cwd: new URL('..', import.meta.url),
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      NODE_ENV: 'production',
+      DATABASE_URL: 'postgres://user:password@example.com/db',
+      REDIS_URL: 'redis://example.com:6379',
+      MEMBER_PROXY_SECRET: 'm'.repeat(48),
+      ADMIN_PROXY_SECRET: 'a'.repeat(48),
+      OPS_INTERNAL_SECRET: 'o'.repeat(48),
+      SESSION_HMAC_KEY: 's'.repeat(48),
+      API_KEY_PEPPER: 'p'.repeat(48),
+      MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
+      PUBLIC_MARKET_OPENFOOTBALL_ENABLED: undefined,
+      PUBLIC_MARKET_DERIVED_MARKETS_ENABLED: undefined
+    }
+  });
+  assert.equal(result.status, 0, result.stderr);
+  // Professional-volume default: OpenFootball fixtures + full derived market board
+  // are ON in production. The horizon guard keeps this OOM-safe.
+  assert.ok(result.stdout.split(/\r?\n/).includes('{"openFootball":true,"derivedMarkets":true,"horizonDays":21}'));
+});
+
+test('operators can still opt out of OpenFootball / derived markets via env override', () => {
   const script = `
     const { config } = await import('./src/config.js');
     console.log(JSON.stringify({
@@ -81,8 +117,8 @@ test('production keeps model-generated events and derived markets disabled by de
       SESSION_HMAC_KEY: 's'.repeat(48),
       API_KEY_PEPPER: 'p'.repeat(48),
       MFA_ENCRYPTION_KEY_BASE64: Buffer.alloc(32, 7).toString('base64'),
-      PUBLIC_MARKET_OPENFOOTBALL_ENABLED: 'true',
-      PUBLIC_MARKET_DERIVED_MARKETS_ENABLED: undefined
+      PUBLIC_MARKET_OPENFOOTBALL_ENABLED: 'false',
+      PUBLIC_MARKET_DERIVED_MARKETS_ENABLED: 'false'
     }
   });
   assert.equal(result.status, 0, result.stderr);

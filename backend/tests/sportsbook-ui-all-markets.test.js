@@ -76,6 +76,10 @@ test('sportsbook does not fabricate live scores and clears suspended or unpriced
 });
 
 test('sportsbook event list renders bounded pages and accessible league accordions', () => {
+  // Page size is intentionally bounded (not "load everything") so load-more stays
+  // incremental and OOM-safe. 30 per request matches the professional sportsbook
+  // pattern (Bet365/PIN default ~20-30) while keeping each REST/SSE frame lean
+  // (snapshot ships summary markets only; full tree loads lazily via /events/:id).
   assert.match(frontend, /const EVENTS_PAGE_SIZE = 30/);
   assert.match(frontend, /data-load-more-events/);
   assert.match(frontend, /aria-expanded="true" aria-controls="sb-league-list-/);
