@@ -294,7 +294,7 @@ test('Sportmonks prioritizes configured top leagues while normalizing paginated 
   assert.deepEqual(output.pageSizes, ['5']);
 });
 
-test('Render worker fetches 500 events with a bounded Sportmonks provider cap', () => {
+test('Sportmonks adapter remains bounded at 500 events and 120 pages', () => {
   const script = `
     const originalFetch = globalThis.fetch;
     const calls = [];

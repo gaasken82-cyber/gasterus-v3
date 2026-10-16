@@ -8,6 +8,7 @@ const MAX_PROVIDER_EVENTS = 500;
 const MAX_ODDS_API_DETAIL_CACHE_ENTRIES = 100;
 const ODDS_API_DETAIL_CACHE_TTL_MULTIPLIER = 2;
 const ODDS_API_DETAIL_FETCH_CONCURRENCY = 4;
+const ODDS_API_SPORT_FETCH_CONCURRENCY = 4;
 const MARKET_TYPES = Object.freeze({
   h2h: '1X2',
   moneyline: '1X2',
@@ -315,6 +316,22 @@ function utcDate(offsetDays = 0) {
 }
 function commaList(value) {
   return clean(value, 4000).split(',').map(item => item.trim()).filter(Boolean);
+}
+async function allSettledWithConcurrency(items, concurrency, mapper) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const workers = Math.min(Math.max(1, concurrency), items.length);
+  await Promise.all(Array.from({ length: workers }, async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      try {
+        results[index] = { status: 'fulfilled', value: await mapper(items[index], index) };
+      } catch (reason) {
+        results[index] = { status: 'rejected', reason };
+      }
+    }
+  }));
+  return results;
 }
 
 function sharpSelectionLabel(row, type) {
@@ -756,12 +773,77 @@ function normalizeOddsApiEvent(raw) {
   event.markets = [...sourceMarkets.values()].map(item => item.market);
   return event;
 }
-export async function fetchTheOddsApi() {
+// --- The Odds API daily quota guard ---
+// Kuota harian dihitung per kredit (sports x siklus x markets x regions).
+// Saat provider membalas 429 feed TIDAK boleh mati: payload terakhir per
+// sport disajikan kembali, guard floor menahan retry supaya tidak membanjiri
+// provider, dan normalisasi tetap berjalan sehingga snapshot ke Railway tetap
+// hidup. Harga yang menua tetap ditutup fail-closed oleh jendela
+// SPORTSBOOK_MAX_PREMATCH_PRICE_AGE_SECONDS / LIVE di feed — ini murni
+// ketersediaan feed, bukan perpanjangan usia harga.
+const ODDS_API_QUOTA_BACKOFF_SECONDS = 1800;
+const oddsApiStalePayloads = new Map();
+const theOddsApiQuotaGuard = {
+  floorUntil: 0,
+  backoffSeconds: ODDS_API_QUOTA_BACKOFF_SECONDS,
+  stalePayloads: oddsApiStalePayloads,
+  reset() {
+    theOddsApiQuotaGuard.floorUntil = 0;
+    oddsApiStalePayloads.clear();
+  }
+};
+
+function rememberOddsApiStalePayload(sportKey, payload) {
+  if (!Array.isArray(payload)) return;
+  ensureBoundedCacheCapacity(oddsApiStalePayloads, sportKey, config.sportsProviderCacheMaxEntries);
+  setBoundedCacheEntry(oddsApiStalePayloads, sportKey, payload, {
+    fetchedAt: Date.now(),
+    expiresAt: Date.now() + 24 * 3600 * 1000,
+    maxEntryBytes: config.sportsProviderCacheMaxEntryBytes,
+    maxTotalBytes: config.sportsProviderCacheMaxTotalBytes,
+    maxEntries: config.sportsProviderCacheMaxEntries
+  });
+}
+
+// setBoundedCacheEntry menyimpan entri berbentuk { value, fetchedAt, ... };
+// payload mentah yang dibutuhkan normalisasi ada di .value.
+function oddsApiStalePayload(sportKey) {
+  const entry = oddsApiStalePayloads.get(sportKey);
+  if (Array.isArray(entry)) return entry;
+  return Array.isArray(entry?.value) ? entry.value : [];
+}
+
+async function cachedOddsApiRequest(sportKey, cacheKey, url) {
+  if (Date.now() < theOddsApiQuotaGuard.floorUntil) {
+    // Kuota harian habis: sajikan payload terakhir tanpa menyentuh provider.
+    return oddsApiStalePayload(sportKey);
+  }
+  try {
+    const payload = await cachedRequest(cacheKey, config.theOddsApiRefreshSeconds * 1000, () => requestJson(url, { label: 'The Odds API' }));
+    rememberOddsApiStalePayload(sportKey, payload);
+    return payload;
+  } catch (error) {
+    if (!String(error?.message || '').includes('HTTP 429')) throw error;
+    theOddsApiQuotaGuard.floorUntil = Date.now() + ODDS_API_QUOTA_BACKOFF_SECONDS * 1000;
+    logger.warn('The Odds API daily quota reached; serving cached payload', {
+      sportKey,
+      backoffSeconds: ODDS_API_QUOTA_BACKOFF_SECONDS,
+      stale: oddsApiStalePayloads.has(sportKey)
+    });
+    return oddsApiStalePayload(sportKey);
+  }
+}
+
+export async function fetchTheOddsApi({ maxEvents = config.theOddsApiMaxTotalEvents } = {}) {
   if (!config.theOddsApiEnabled || !config.theOddsApiKey) return { provider: 'the-odds-api', enabled: false, events: [] };
+  if (!Number.isInteger(maxEvents) || maxEvents < 0 || maxEvents > MAX_PROVIDER_EVENTS) {
+    throw new Error(`The Odds API maxEvents must be an integer between 0 and ${MAX_PROVIDER_EVENTS}.`);
+  }
+  if (maxEvents === 0) return { provider: 'the-odds-api', enabled: true, events: [], errors: [] };
   const sports = commaList(config.theOddsApiSportKeys);
   const eventMarketAllocations = allocateOddsApiEventMarkets(sports);
   const eventMarketErrors = [];
-  const settled = await Promise.allSettled(sports.map(async sportKey => {
+  const settled = await allSettledWithConcurrency(sports, ODDS_API_SPORT_FETCH_CONCURRENCY, async sportKey => {
     const url = new URL(`${config.theOddsApiBaseUrl.replace(/\/$/, '')}/sports/${encodeURIComponent(sportKey)}/odds`);
     url.searchParams.set('apiKey', config.theOddsApiKey);
     url.searchParams.set('regions', config.theOddsApiRegions);
@@ -770,12 +852,12 @@ export async function fetchTheOddsApi() {
     url.searchParams.set('dateFormat', 'iso');
     if (config.theOddsApiBookmakers) url.searchParams.set('bookmakers', config.theOddsApiBookmakers);
     const cacheKey = `the-odds-api:${sportKey}:${config.theOddsApiRegions}:${config.theOddsApiMarkets}:${config.theOddsApiBookmakers || ''}`;
-    const payload = await cachedRequest(cacheKey, config.theOddsApiRefreshSeconds * 1000, () => requestJson(url, { label: 'The Odds API' }));
+    const payload = await cachedOddsApiRequest(sportKey, cacheKey, url);
     const rawEvents = Array.isArray(payload) ? payload : [];
     const enriched = await fetchOddsApiEventMarkets(sportKey, rawEvents, eventMarketAllocations.get(sportKey) || 0, eventMarketErrors);
     return enriched.map(normalizeOddsApiEvent);
-  }));
-  const events = settled.flatMap(result => result.status === 'fulfilled' ? result.value : []).slice(0, Math.min(MAX_PROVIDER_EVENTS, Math.max(0, Number(config.theOddsApiMaxTotalEvents) || MAX_PROVIDER_EVENTS)));
+  });
+  const events = settled.flatMap(result => result.status === 'fulfilled' ? result.value : []).slice(0, Math.min(MAX_PROVIDER_EVENTS, maxEvents));
   const errors = [
     ...settled.filter(result => result.status === 'rejected').map(result => clean(result.reason?.message || 'request failed')),
     ...eventMarketErrors
@@ -1580,7 +1662,8 @@ export const __sportsbookProviders = {
   isTopOddsApiEvent,
   selectOddsApiEnrichmentEvents,
   pruneOddsApiEventDetailCache,
-  oddsApiEventDetailCache
+  oddsApiEventDetailCache,
+  theOddsApiQuotaGuard
 };
 
 // Builder helpers shared by provider adapters so every provider emits the exact

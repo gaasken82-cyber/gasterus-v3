@@ -21,7 +21,7 @@ configureProviderOnlyRuntime();
 
 const [
   { config },
-  { fetchSportmonks, fetchApiSports, teamKey },
+  { fetchTheOddsApi, teamKey },
   { postSportsbookSnapshot },
   { buildSportsbookRenderSnapshot }
 ] = await Promise.all([
@@ -39,7 +39,7 @@ if (config.sportsbookIngestHmacSecret.length < 32) {
 
 const snapshotIntervalSeconds = Math.max(
   15,
-  Math.min(config.sportmonksRefreshSeconds, Math.floor(config.sportsbookIngestMaxAgeSeconds / 2))
+  Math.min(config.theOddsApiRefreshSeconds, Math.floor(config.sportsbookIngestMaxAgeSeconds / 2))
 );
 const intervalMs = snapshotIntervalSeconds * 1000;
 const shutdown = new AbortController();
@@ -49,11 +49,8 @@ process.once('SIGTERM', () => shutdown.abort());
 while (!shutdown.signal.aborted) {
   try {
     const snapshot = await buildSportsbookRenderSnapshot({
-      fetchSportmonks,
-      fetchApiSports,
+      fetchOddsApi: fetchTheOddsApi,
       maxEvents: config.sportsbookRenderMaxEvents,
-      maxPages: config.sportsbookRenderMaxPages,
-      priorityLeagues: config.sportmonksPriorityLeagues,
       teamKey
     });
     const accepted = await postSportsbookSnapshot(endpoint, snapshot, {

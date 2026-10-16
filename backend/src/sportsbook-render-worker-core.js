@@ -91,25 +91,18 @@ export function combineSportsbookProviderResults(providerResults, {
 }
 
 export async function buildSportsbookRenderSnapshot({
-  fetchSportmonks,
-  fetchApiSports,
+  fetchOddsApi,
   maxEvents = 500,
-  maxPages = 120,
-  priorityLeagues = [],
   teamKey,
   now
 }) {
   const providerResults = [];
-  if (typeof fetchSportmonks === 'function') {
-    providerResults.push(await fetchSportmonks({ maxEvents, maxPages }));
-  }
-  if (typeof fetchApiSports === 'function') {
-    providerResults.push(await fetchApiSports());
+  if (typeof fetchOddsApi === 'function') {
+    providerResults.push(await fetchOddsApi({ maxEvents }));
   }
 
   const combined = combineSportsbookProviderResults(providerResults, {
     maxEvents,
-    priorityLeagues: String(priorityLeagues).split(',').map(value => value.trim().toLowerCase()).filter(Boolean),
     teamKey
   });
   if (!combined.eventCount) {

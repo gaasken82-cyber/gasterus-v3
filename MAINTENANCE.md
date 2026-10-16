@@ -265,6 +265,40 @@ tertentu, berguna saat menelusuri masalah memori.
 
 ---
 
+## ⚽ SCRAPER SPORTSBOOK DI RENDER (Odds Real)
+
+Scrape odds dijalankan **terpisah dari Railway** supaya Railway tidak OOM:
+
+- **Render** (`render.yaml` + `deploy/Dockerfile.sportsbook-render-worker`):
+  `backend/src/sportsbook-render-worker.js` mengambil odds asli dari
+  **The Odds API** (bukan data dummy) lalu mengirim snapshot HMAC-signed ke
+  Railway setiap 90 detik (`SPORTSBOOK_INGEST_MAX_AGE_SECONDS=180`).
+- **Railway** (`web`) hanya menerima snapshot di
+  `/api/internal/sportsbook/ingest`, menyimpannya ke Redis, lalu feed memakai
+  snapshot ini lebih dulu. Fallback lokal tetap Sportmonks terbatas
+  (12 halaman) bila snapshot absen — tidak ada lagi worker scrape di Railway.
+- **Setup wajib di dashboard Render** (`sync: false` di `render.yaml`):
+  1. `SPORTSBOOK_INGEST_HMAC_SECRET` = nilai env yang sama persis di Railway.
+  2. `THE_ODDS_API_KEY` = kunci The Odds API (https://the-odds-api.com).
+  3. `SPORTSBOOK_INGEST_URL` menunjuk ke URL web Railway (sudah hardcoded).
+- **Anggaran kuota** (biaya = jumlah sport × (86400/refresh) × markets ×
+  regions kredit/hari): konfigurasi bawaan 5 liga × 12 menit × `h2h` × `eu`
+  = **600 kredit/hari**, muat di paket Professional (667/hari). Menambah
+  sport/market menuntut paket Business (6.667/hari) — batas ini dijaga test
+  `backend/tests/sportsbook-render-deployment.test.js`.
+- **Kesegaran harga**: cadence refresh (720 s) harus di bawah
+  `SPORTSBOOK_MAX_PREMATCH_PRICE_AGE_SECONDS` (900 s) supaya taruhan prematch
+  tidak pernah ditolak `SPORTS_PRICE_STALE`. Market live yang harganya lebih
+  tua dari `SPORTSBOOK_MAX_LIVE_PRICE_AGE_SECONDS` (90 s) otomatis di-suspend
+  fail-closed oleh feed.
+- **Guard kuota harian (429)**: saat The Odds API membalas 429, worker
+  menyajikan payload terakhir per sport (stale) dan menahan retry 30 menit
+  (`ODDS_API_QUOTA_BACKOFF_SECONDS`) — feed ke Railway tetap hidup tanpa
+  membanjiri provider. Harga menua tetap ditutup jendela freshness di atas;
+  ini murni ketersediaan feed. Dijaga test `sportsbook-odds-api-quota.test.js`.
+
+---
+
 ## 📝 LOG PERUBAHAN
 
 | Tanggal | File | Perubahan | Oleh |
@@ -273,6 +307,7 @@ tertentu, berguna saat menelusuri masalah memori.
 | 09 Sep 2026 | MAINTENANCE.md | Dibuat pertama kali | Claude/Antigravity |
 | 10 Okt 2026 | MAINTENANCE.md | Tambah bagian "ENV RUNTIME, MEMORI & ANTI-OOM" (`TREE_RSS_LIMIT_MB`, `SPORTS_SOURCE_BROWSER_EXECUTABLE`, kontrol spawn Chromium, state Redis TOTO) | Cline |
 | 10 Okt 2026 | memory-guard.js | Batas tree RSS otomatis dari cgroup (75% limit container) — env jadi opsional | Cline |
+| 16 Okt 2026 | render.yaml + deploy/Dockerfile.sportsbook-render-worker + .railway/railway.ts + sportsbook-render-worker* | Scraper odds The Odds API dipindah ke Render; worker dihapus dari Railway, batas `--maxmemory` Redis dipulihkan, test topologi deploy ditambahkan | Cline |
 
 ---
 Update dokumen ini setiap kali ada perubahan signifikan pada CSS/HTML structure.
