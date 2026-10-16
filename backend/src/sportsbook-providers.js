@@ -889,6 +889,18 @@ const DEFAULT_SPORTMONKS_PRIORITY_LEAGUES = [
   'primeira liga',
   'major league soccer'
 ];
+
+// Core football betting markets only — keeps the render-worker heap bounded by
+// dropping high-cardinality families (player props, bet builders, cards, corners,
+// correct score, odd/even, team totals…) while retaining the highest-volume odds.
+const CORE_SPORTMONKS_MARKET_TYPES = new Set([
+  '1X2',
+  'HANDICAP',
+  'TOTALS',
+  'BTTS',
+  'DOUBLE_CHANCE',
+  'DRAW_NO_BET'
+]);
 function sportmonksState(raw) {
   const short = clean(raw?.short_name || raw?.name || raw?.state || '', 40).toUpperCase();
   if (SPORTMONKS_LIVE_STATES.has(short) || /HALF|LIVE/.test(short)) return 'LIVE';
@@ -978,8 +990,9 @@ function normalizeSportmonksFixture(raw, oddsRows = []) {
     venue: raw?.venue?.name || null,
     periodScores: sportmonksPeriodScores(raw?.scores)
   });
-  // Unsupported market families (shots, winning margin, specials, player props…)
-  // classify as OTHER and are dropped; the per-event market cap keeps memory bounded.
+  // Only core football betting markets are retained — non-core families
+  // (player props, bet builders, cards, corners, correct score, odd/even…)
+  // are dropped by sportmonksMarket(); the per-event market cap keeps memory bounded.
   event.markets = [...byMarket.values()].map(rows => sportmonksMarket(event, rows)).filter(Boolean).slice(0, 120);
   return event;
 }
@@ -987,7 +1000,7 @@ function sportmonksMarket(event, rows) {
   const sample = rows[0] || {};
   const description = clean(sample.market_description || sample.name || `Market ${sample.market_id ?? ''}`, 120);
   const type = sportmonksMarketType(description);
-  if (type === 'OTHER') return null;
+  if (!CORE_SPORTMONKS_MARKET_TYPES.has(type)) return null;
   const period = periodFromName(description, `m${sample.market_id ?? ''}`);
   const grouped = new Map();
   for (const row of rows) {
