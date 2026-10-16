@@ -869,8 +869,8 @@ export async function fetchTheOddsApi({ maxEvents = config.theOddsApiMaxTotalEve
 // Fixture includes contain full odds payloads, so keep pages small and cap the
 // total page count while retaining only the best normalized events in memory.
 let sportmonksNextRequestAt = 0;
-const SPORTMONKS_PAGE_SIZE = 5;
-const SPORTMONKS_MAX_PAGES_PER_REFRESH = 12;
+const SPORTMONKS_PAGE_SIZE = 20;
+const SPORTMONKS_MAX_PAGES_PER_REFRESH = 120;
 const SPORTMONKS_MAX_PAGES_PER_WORKER_REFRESH = 120;
 const SPORTMONKS_CANDIDATE_MULTIPLIER = 1.2;
 const SPORTMONKS_LIVE_STATES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE', 'INT', 'INPLAY']);

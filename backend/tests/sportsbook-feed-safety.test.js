@@ -28,9 +28,9 @@ test('Sportmonks feed increases event coverage with a bounded page budget and co
   assert.match(config, /sportmonksPriorityLeagues: text\('SPORTMONKS_PRIORITY_LEAGUES'/);
   assert.match(config, /sportsbookRenderMaxEvents: int\('SPORTSBOOK_RENDER_MAX_EVENTS', 500, 1, 500\)/);
   assert.match(config, /sportsbookRenderMaxPages: int\('SPORTSBOOK_RENDER_MAX_PAGES', 120, 12, 120\)/);
-  assert.match(providers, /SPORTMONKS_MAX_PAGES_PER_REFRESH = 12/);
+  assert.match(providers, /SPORTMONKS_MAX_PAGES_PER_REFRESH = 120/);
   assert.match(providers, /SPORTMONKS_CANDIDATE_MULTIPLIER = 1\.2/);
-  assert.match(providers, /SPORTMONKS_PAGE_SIZE = 5/);
+  assert.match(providers, /SPORTMONKS_PAGE_SIZE = 20/);
 });
 
 test('The Odds API default catalog contains soccer leagues only', () => {
@@ -207,7 +207,7 @@ test('Sportmonks event cap accepts 500 and falls back safely above its bound', (
 test('Sportmonks responses, page sizes, and retained caches stay bounded', () => {
   assert.match(providers, /maxBytes: config\.sportsFeedMaxCacheBytes/);
   assert.match(providers, /url\.searchParams\.set\('per_page', String\(SPORTMONKS_PAGE_SIZE\)\)/);
-  assert.match(providers, /SPORTMONKS_MAX_PAGES_PER_REFRESH = 12/);
+  assert.match(providers, /SPORTMONKS_MAX_PAGES_PER_REFRESH = 120/);
   assert.match(providers, /if \(sportmonksCache\.size > 1\)/);
 });
 
