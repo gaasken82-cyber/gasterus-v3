@@ -525,7 +525,7 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
     fetchLocalProviders: async () => {
       const configured = enabledProviders();
       if (!configured.some(provider => provider.enabled)) {
-        throw new AppError(503, 'Tidak ada snapshot Render valid atau provider sportsbook lokal terkonfigurasi.', 'SPORTS_PROVIDERS_NOT_CONFIGURED');
+        throw new AppError(503, 'Tidak ada snapshot worker valid atau provider sportsbook lokal terkonfigurasi.', 'SPORTS_PROVIDERS_NOT_CONFIGURED');
       }
       const descriptors = [
         { code: 'sportmonks', enabled: true, fetcher: fetchSportmonks }
@@ -550,7 +550,7 @@ async function performRefresh({ reason = 'scheduled' } = {}) {
     }
   });
   if (renderSnapshot) {
-    logger.info('Using verified Render sportsbook snapshot', {
+    logger.info('Using verified worker sportsbook snapshot', {
       revision: renderSnapshot.revision,
       generatedAt: renderSnapshot.generatedAt,
       receivedAt: renderSnapshot.receivedAt,

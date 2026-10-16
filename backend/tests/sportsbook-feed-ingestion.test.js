@@ -157,8 +157,8 @@ test('Railway provider merge deduplicates the same cross-provider fixture before
     { secret: SECRET, now }
   );
   const safeEvent = sanitized.providerResults[0].events[0];
-  assert.equal('_settlementReadySources' in safeEvent, false, 'Render cannot grant settlement authority');
-  assert.equal('_settlementMode' in safeEvent, false, 'Render cannot choose settlement mode');
+  assert.equal('_settlementReadySources' in safeEvent, false, 'Worker cannot grant settlement authority');
+  assert.equal('_settlementMode' in safeEvent, false, 'Worker cannot choose settlement mode');
   assert.equal('lifecycleState' in safeEvent.markets[0], false, 'Railway retains market lifecycle ownership');
   assert.equal('priceVersion' in safeEvent.markets[0].selections[0], false, 'Railway derives feed price versions');
 

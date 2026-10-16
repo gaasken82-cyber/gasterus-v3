@@ -49,7 +49,7 @@ export async function loadRenderProviderSnapshot(redisClient, {
   maxAgeSeconds = config.sportsbookIngestMaxAgeSeconds
 } = {}) {
   if (!redisClient?.isOpen) {
-    logger?.warn('Sportsbook Render snapshot unavailable; Redis is not connected, using local provider fetch');
+    logger?.warn('Sportsbook worker snapshot unavailable; Redis is not connected, using local provider fetch');
     return null;
   }
 
@@ -57,7 +57,7 @@ export async function loadRenderProviderSnapshot(redisClient, {
   try {
     raw = await redisClient.get(SPORTSBOOK_INGEST_REDIS_KEY);
   } catch (error) {
-    logger?.warn('Sportsbook Render snapshot read failed; using local provider fetch', { error: error.message });
+    logger?.warn('Sportsbook worker snapshot read failed; using local provider fetch', { error: error.message });
     return null;
   }
   if (!raw) return null;
@@ -74,7 +74,7 @@ export async function loadRenderProviderSnapshot(redisClient, {
       revision: verified.revision
     };
   } catch (error) {
-    logger?.warn('Sportsbook Render snapshot rejected; using local provider fetch', {
+    logger?.warn('Sportsbook worker snapshot rejected; using local provider fetch', {
       code: error.code || 'SPORTSBOOK_INGEST_STAGING_INVALID',
       error: error.message
     });

@@ -47,7 +47,7 @@ export function combineSportsbookProviderResults(providerResults, {
   teamKey
 } = {}) {
   if (!Number.isInteger(maxEvents) || maxEvents < 1 || maxEvents > MAX_EVENTS) {
-    throw new Error(`Render sportsbook maxEvents must be an integer between 1 and ${MAX_EVENTS}.`);
+    throw new Error(`Worker sportsbook maxEvents must be an integer between 1 and ${MAX_EVENTS}.`);
   }
   if (typeof teamKey !== 'function') throw new Error('A normalized team-key helper is required.');
 

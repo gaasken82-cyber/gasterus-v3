@@ -60,7 +60,7 @@ function event(provider, {
   };
 }
 
-test('Render worker requests up to 500 fixtures from the licensed odds adapter', async () => {
+test('Worker requests up to 500 fixtures from the licensed odds adapter', async () => {
   const oddsApi = {
     provider: 'the-odds-api',
     enabled: true,
@@ -92,7 +92,7 @@ test('Render worker requests up to 500 fixtures from the licensed odds adapter',
   assert.deepEqual(validateSportsbookSnapshot(snapshot, { now: NOW }).providers, ['the-odds-api']);
 });
 
-test('Render snapshot signs and validates as a bounded ingestion payload', async () => {
+test('Worker snapshot signs and validates as a bounded ingestion payload', async () => {
   const snapshot = await buildSportsbookRenderSnapshot({
     fetchOddsApi: async () => ({ provider: 'the-odds-api', enabled: true, events: [event('the-odds-api', { id: 'odds-only' })] }),
     maxEvents: 300,
@@ -116,7 +116,7 @@ test('Render snapshot signs and validates as a bounded ingestion payload', async
   assert.ok(signed.body.length < 6_291_456);
 });
 
-test('Render worker signs and delivers a full 500-fixture snapshot within the payload budget', async () => {
+test('Worker signs and delivers a full 500-fixture snapshot within the payload budget', async () => {
   const bulk = Array.from({ length: 500 }, (_, index) => event('the-odds-api', {
     id: `bulk-${index}`,
     league: index % 2 ? 'Premier League' : 'Regional League',
@@ -158,7 +158,7 @@ test('Render worker signs and delivers a full 500-fixture snapshot within the pa
   assert.equal(stored.providerResults[0].events.length, 500);
 });
 
-test('Render worker fails closed if neither provider returns priced fixtures', async () => {
+test('Worker fails closed if neither provider returns priced fixtures', async () => {
   await assert.rejects(
     buildSportsbookRenderSnapshot({
       fetchOddsApi: async () => ({ provider: 'the-odds-api', enabled: false, events: [] }),
@@ -168,7 +168,7 @@ test('Render worker fails closed if neither provider returns priced fixtures', a
   );
 });
 
-test('Render worker republishes cached snapshots before their ingestion freshness window expires', async () => {
+test('Worker republishes cached snapshots before their ingestion freshness window expires', async () => {
   const workerSource = await import('node:fs/promises').then(fs =>
     fs.readFile(new URL('../src/sportsbook-render-worker.js', import.meta.url), 'utf8')
   );
@@ -177,7 +177,7 @@ test('Render worker republishes cached snapshots before their ingestion freshnes
   assert.doesNotMatch(workerSource, /fetchSportmonks|fetchApiSports/);
 });
 
-test('Render snapshot freshness starts after provider fetches finish', async () => {
+test('Worker snapshot freshness starts after provider fetches finish', async () => {
   const startedAt = Date.now();
   const snapshot = await buildSportsbookRenderSnapshot({
     fetchOddsApi: async () => {
