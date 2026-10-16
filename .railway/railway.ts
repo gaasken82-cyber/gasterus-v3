@@ -95,10 +95,41 @@ export default defineRailway(() => {
       WORKER_HEAP_MB: preserve()
     }
   });
-  // Catatan: render worker sportsbook (scraper odds The Odds API) TIDAK dijalankan
-  // di Railway agar tidak menambah beban memori; worker dideploy lewat render.yaml.
-  // Railway hanya menerima snapshot hasil scrape melalui /api/internal/sportsbook/ingest.
+  // Scraper odds (The Odds API) berjalan sebagai service TERPISAH agar beban
+  // scrape tidak pernah menyentuh memori service web (anti-OOM). Pengaman:
+  //   - heap V8 dikunci 224MB lewat NODE_OPTIONS (container ~512MB)
+  //   - hanya 5 liga andalan; h2h x eu = 1 kredit/request; refresh 720 dtk
+  //     (di bawah jendela harga prematch 900 dtk)
+  //   - market per-event dimatikan (tanpa fetch tambahan), cache provider
+  //     berbatas byte, snapshot berbatas 500 event / 6MB
+  const sportsbookRenderWorker = service("sportsbook-render-worker", {
+    source: github("rajawali50121-cpu/gasterus-v3", { branch: "master", checkSuites: true }),
+    build: { builder: "DOCKERFILE", dockerfilePath: "deploy/Dockerfile.sportsbook-render-worker" },
+    deploy: {
+      restartPolicyType: "ON_FAILURE",
+      restartPolicyMaxRetries: 10
+    },
+    replicas: { "sfo": 1 },
+    env: {
+      NODE_ENV: "production",
+      NODE_OPTIONS: "--max-old-space-size=224",
+      SPORTSBOOK_INGEST_URL: "${{web.SPORTSBOOK_INGEST_URL}}",
+      SPORTSBOOK_INGEST_HMAC_SECRET: "${{web.SPORTSBOOK_INGEST_HMAC_SECRET}}",
+      SPORTSBOOK_RENDER_MAX_EVENTS: "500",
+      THE_ODDS_API_ENABLED: "true",
+      THE_ODDS_API_KEY: "${{web.THE_ODDS_API_KEY}}",
+      THE_ODDS_API_REGIONS: "eu",
+      THE_ODDS_API_MARKETS: "h2h",
+      THE_ODDS_API_REFRESH_SECONDS: "720",
+      THE_ODDS_API_MAX_TOTAL_EVENTS: "500",
+      THE_ODDS_API_EVENT_MARKETS_ENABLED: "false",
+      THE_ODDS_API_EVENT_MAX_EVENTS_PER_SPORT: "0",
+      THE_ODDS_API_EVENT_MAX_TOTAL_EVENTS: "0",
+      THE_ODDS_API_SPORT_KEYS: "soccer_epl,soccer_spain_la_liga,soccer_italy_serie_a,soccer_germany_bundesliga,soccer_uefa_champs_league"
+    }
+  });
+
   return project("gasterus-v3", {
-    resources: [Postgres, web, Redis, postgresVolume, redisVolume],
+    resources: [Postgres, web, sportsbookRenderWorker, Redis, postgresVolume, redisVolume],
   });
 });
