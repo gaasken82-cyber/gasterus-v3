@@ -211,9 +211,11 @@ export async function fetchOpenFootballFixtures() {
   // kicked-off games) BEFORE any anchor/market is constructed. This preserves a
   // large, professional-looking slate while keeping per-refresh work bounded.
   const now = Date.now();
-  const horizonMs = Math.max(1, Number(config.publicMarketOpenFootballHorizonDays || 21)) * 86400000;
-  const windowStart = now - 3 * 3600000;        // 3h grace so just-started matches stay
-  const windowEnd = now + horizonMs;
+  const horizonMs = Math.max(1, Number(config.publicMarketOpenFootballHorizonDays || 60)) * 86400000;
+  const windowStart = now - 4 * 3600000;        // 4h grace so just-started matches stay
+  const todayMs = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate(), 0, 0, 0, 0);
+  const todayStart = todayMs + Number(config.sportsbookMemberHorizonDays || 45) * 86400000;
+  const windowEnd = todayStart + horizonMs;
   let droppedByHorizon = 0;
   for (let i=0;i<results.length;i++) {
     const item=results[i],comp=competitions[i];

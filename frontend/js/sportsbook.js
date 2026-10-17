@@ -15,6 +15,7 @@ import auth from './auth.js';
 import { formatRupiah, showToast, escapeHtml } from './utils.js';
 import { primaryMarketColumns } from './sportsbook-markets.js';
 import { chooseCombinations, systemBetMetrics } from './sportsbook-slip-calculation.js';
+import { formatOdds, oddsColorClass } from './sportsbook-odds.js';
 
 const STREAM_URL = '/api/member/sportsbook/stream';
 const SNAPSHOT_URL = '/api/member/sportsbook/events';
@@ -53,6 +54,16 @@ let feedViewGeneration = 0;
 const FAV_KEY = 'gasterus_sb_fav_leagues';
 let favLeagues = new Set();
 try { favLeagues = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch { favLeagues = new Set(); }
+// Favorite individual matches (by event id) — persisted. Distinct from favorite leagues.
+const FAV_MATCH_KEY = 'gasterus_sb_fav_matches';
+let favMatches = new Set();
+try { favMatches = new Set(JSON.parse(localStorage.getItem(FAV_MATCH_KEY) || '[]')); } catch { favMatches = new Set(); }
+function toggleFavMatch(eventId) {
+  const id = String(eventId || '');
+  if (!id) return;
+  if (favMatches.has(id)) favMatches.delete(id); else favMatches.add(id);
+  try { localStorage.setItem(FAV_MATCH_KEY, JSON.stringify([...favMatches])); } catch { /* ignore */ }
+}
 let lastRenderRevision = '';
 let lastStructureRevision = '';
 let bettingConfig = { minStake: 1000, maxStake: 50000000, maxLegs: 12, maxSystemCombinations: 120, quoteRequired: true, types: ['SINGLE', 'PARLAY', 'SYSTEM'] };
@@ -64,6 +75,21 @@ let quote = null; // last successful server quote
 let quoteGeneration = 0;
 let placing = false;
 let lastStake = 0; // fallback stake saat input tidak ada di DOM (mobile sheet tertutup)
+let oddsChangePolicy = 'REJECT';
+const ODDS_FORMAT_KEY = 'gasterus_sportsbook_odds_format';
+const SUPPORTED_ODDS_FORMATS = new Set(['DECIMAL', 'INDONESIAN', 'HONG_KONG', 'MALAY']);
+let oddsFormat = 'DECIMAL';
+try { oddsFormat = localStorage.getItem(ODDS_FORMAT_KEY) || 'DECIMAL'; } catch { /* Use the session default when storage is unavailable. */ }
+if (!SUPPORTED_ODDS_FORMATS.has(oddsFormat)) oddsFormat = 'DECIMAL';
+// Wrap active search-query matches in <mark> after escaping user input.
+function highlightMatch(text) {
+  const safe = escapeHtml(text == null ? '' : String(text));
+  const query = String(searchQuery || '').trim();
+  if (!query) return safe;
+  const escapedQuery = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (!escapedQuery) return safe;
+  return safe.replace(new RegExp(`(${escapedQuery})`, 'gi'), '<mark class="sb-search-mark">$1</mark>');
+}
 
 const el = (id) => document.getElementById(id);
 const selKey = (ev, mk, sk) => `${ev}|${mk}|${sk}`;
@@ -77,7 +103,7 @@ let isInitialSnapshot = true;
 function updateOddsInDOM(key, direction, curOdds, sk) {
   const elements = document.querySelectorAll(`[data-sel="${key}"]`);
   if (!elements.length) return;
-  const oddsText = formatDecimalOdds(curOdds);
+  const oddsText = formatOdds(curOdds, oddsFormat);
   const arrowHtml = direction === 'up'
     ? '<span class="sb-odd-movement-arrow up" aria-label="Odds naik">↑</span>'
     : '<span class="sb-odd-movement-arrow down" aria-label="Odds turun">↓</span>';
@@ -89,7 +115,7 @@ function updateOddsInDOM(key, direction, curOdds, sk) {
 
     const oddsSpan = btn.querySelector('.sb-cell-odds');
     if (oddsSpan) {
-      oddsSpan.className = `sb-cell-odds ${oddsColorClass(direction)}`;
+      oddsSpan.className = `sb-cell-odds ${oddsColorClass(direction, null, curOdds, oddsFormat)}`;
       oddsSpan.innerHTML = `${escapeHtml(oddsText)}${arrowHtml}`;
     }
 
@@ -103,14 +129,17 @@ function trackOddsMovement(events) {
   if (!Array.isArray(events)) return false;
   const now = Date.now();
   let anyMoved = false;
+  const activeKeys = new Set();
 
   for (const ev of events) {
     if (!ev || !Array.isArray(ev.markets)) continue;
     for (const mk of ev.markets) {
       if (!mk || !Array.isArray(mk.selections)) continue;
       for (const sk of mk.selections) {
-        if (!sk || sk.suspended) continue;
+        if (!sk) continue;
         const key = selKey(ev.id, mk.id, sk.key);
+        activeKeys.add(key);
+        if (sk.suspended) continue;
         const curOdds = Number(sk.odds);
         if (!Number.isFinite(curOdds) || curOdds <= 1) continue;
 
@@ -138,6 +167,15 @@ function trackOddsMovement(events) {
     }
   }
 
+  for (const key of previousOddsMap.keys()) {
+    if (activeKeys.has(key)) continue;
+    previousOddsMap.delete(key);
+    oddsMovementMap.delete(key);
+    const timer = oddsCleanupTimers.get(key);
+    if (timer) clearTimeout(timer);
+    oddsCleanupTimers.delete(key);
+  }
+
   if (isInitialSnapshot && events.length > 0) {
     isInitialSnapshot = false;
   }
@@ -156,8 +194,8 @@ function scheduleOddsMovementCleanup(key, delayMs = 1000) {
       btn.classList.remove('sb-odd-movement-up', 'sb-odd-movement-down');
       const oddsSpan = btn.querySelector('.sb-cell-odds');
       if (oddsSpan) {
-        oddsSpan.classList.remove('odds-red', 'odds-blue');
-        oddsSpan.classList.add(oddsColorClass(null, btn.dataset.marketType));
+        oddsSpan.classList.remove('odds-red', 'odds-blue', 'odds-green', 'odds-black');
+        oddsSpan.classList.add(oddsColorClass(null, btn.dataset.marketType, Number(btn.dataset.odds), oddsFormat));
       }
       const arrows = btn.querySelectorAll('.sb-odd-movement-arrow');
       arrows.forEach(a => a.remove());
@@ -309,6 +347,15 @@ export async function initSportsbook() {
   setupSearch();
   setupSlipSheet();
   bindEventHandlers();
+  const oddsFormatSelect = el('sb-odds-format');
+  if (oddsFormatSelect) {
+    oddsFormatSelect.value = oddsFormat;
+    oddsFormatSelect.addEventListener('change', () => {
+      oddsFormat = SUPPORTED_ODDS_FORMATS.has(oddsFormatSelect.value) ? oddsFormatSelect.value : 'DECIMAL';
+      try { localStorage.setItem(ODDS_FORMAT_KEY, oddsFormat); } catch { /* The selection remains active for this page. */ }
+      renderAll();
+    });
+  }
   document.addEventListener('visibilitychange', () => { if (!document.hidden && auth.isLoggedIn()) refreshBalance(); });
 
   if (auth.isLoggedIn()) {
@@ -685,19 +732,6 @@ function formatWibDateTime(stamp) {
       minute: '2-digit'
     }).format(date);
 }
-function formatDecimalOdds(value) {
-  const odds = Number(value);
-  return Number.isFinite(odds) && odds > 1 ? odds.toFixed(2) : '—';
-}
-
-function oddsColorClass(direction, marketType) {
-  if (direction === 'down') return 'odds-red';
-  if (direction === 'up') return 'odds-blue';
-  return ['HANDICAP', 'TOTALS', '1X2'].includes(String(marketType || '').toUpperCase())
-    ? 'odds-black'
-    : 'odds-blue';
-}
-
 // Timezone-aware "today" check (WIB = UTC+7).
 // Juga memberi window +26 jam ke depan & -3 jam ke belakang agar event
 // yang baru saja mulai atau berakhir tidak tiba-tiba hilang dari tab Hari Ini.
@@ -747,6 +781,12 @@ function setupFilterTabs() {
       setMatchFilter(nextFilter);
       showToast(currentFilter === 'fav' ? 'Menampilkan liga favorit' : 'Menampilkan semua liga', 'info');
     });
+  }
+
+  const oddsFormatSelect = el('sb-odds-format');
+  if (oddsFormatSelect) {
+    oddsFormatSelect.value = oddsFormat;
+    oddsFormatSelect.addEventListener('change', () => setOddsFormat(oddsFormatSelect.value));
   }
 
   setupMixParlay();
@@ -1083,6 +1123,23 @@ function bindEventHandlers() {
       handleOddClick(odd);
       return;
     }
+    const refreshBtn = e.target.closest('[data-refresh-feed]');
+    if (refreshBtn) {
+      softRefreshFeed();
+      return;
+    }
+    const favMatchBtn = e.target.closest('[data-fav-match]');
+    if (favMatchBtn) {
+      const id = favMatchBtn.getAttribute('data-fav-match');
+      toggleFavMatch(id);
+      const nowFav = favMatches.has(String(id));
+      favMatchBtn.classList.toggle('is-fav', nowFav);
+      favMatchBtn.setAttribute('aria-pressed', String(nowFav));
+      favMatchBtn.textContent = nowFav ? '★' : '☆';
+      favMatchBtn.title = nowFav ? 'Hapus dari favorit' : 'Tambahkan ke favorit';
+      showToast(nowFav ? 'Ditambahkan ke Pertandingan Favorit.' : 'Dihapus dari favorit.', 'info');
+      return;
+    }
     const marketButton = e.target.closest('[data-toggle-event-markets]');
     if (marketButton) {
       void toggleEventMarkets(marketButton.getAttribute('data-toggle-event-markets'));
@@ -1141,7 +1198,7 @@ function visibleEvents() {
   if (currentFilter === 'live') list = list.filter((e) => isLiveEvent(e));
   else if (currentFilter === 'today') list = list.filter((e) => isTodayEvent(e) || isLiveEvent(e));
   else if (currentFilter === 'early') list = list.filter((e) => isFutureEvent(e));
-  else if (currentFilter === 'fav') list = list.filter((e) => favLeagues.has(String(e.league || 'Liga Internasional')));
+  else if (currentFilter === 'fav') list = list.filter((e) => favLeagues.has(String(e.league || 'Liga Internasional')) || favMatches.has(String(e.id)));
   
   if (searchQuery) {
     list = list.filter((e) =>
@@ -1200,6 +1257,17 @@ async function loadMoreEvents() {
     isLoadingMore = false;
     renderPagination();
   }
+}
+
+// Soft refresh: re-pull the current page + reconnect the realtime stream WITHOUT
+// a full page reload, so betslip selections, scroll position and filters survive.
+function softRefreshFeed() {
+  if (auth.isLoggedIn()) {
+    restartStreamAtCurrentPage();
+  } else {
+    void loadRestSnapshot();
+  }
+  showToast('Odds disegarkan.', 'success');
 }
 
 function setEmpty(msg) {
@@ -1278,14 +1346,16 @@ function formatLeagueLabel(event, fallback = 'Match') {
 
 function renderQuickOddBtn(e, m, s, label) {
   if (!m || !s) return '';
+  const suspended = Boolean(m.suspended || s.suspended);
   const key = selKey(e.id, m.id, s.key);
   const line = s.line ?? m.line;
   const lineStr = line != null ? (Number(line) > 0 ? `+${Number(line).toFixed(2)}` : Number(line).toFixed(2)) : '';
+  const lineClass = Number(line) < 0 ? 'kei-negative' : 'kei-positive';
 
   let movementClass = '';
   let movementArrow = '';
   const move = oddsMovementMap.get(key);
-  const oddsClass = oddsColorClass(move?.direction, m.type);
+  const oddsClass = oddsColorClass(move?.direction, m.type, s.odds, oddsFormat);
   if (move && (Date.now() - move.timestamp) < 1100) {
     if (move.direction === 'up') {
       movementClass = ' sb-odd-movement-up';
@@ -1297,14 +1367,14 @@ function renderQuickOddBtn(e, m, s, label) {
   }
 
   return `
-    <button type="button" class="sb-quick-odd-btn sb-odd-cell${movementClass}"
+    <button type="button" class="sb-quick-odd-btn sb-odd-cell${movementClass}${suspended ? ' disabled' : ''}"${suspended ? ' disabled aria-disabled="true"' : ''}
       data-sel="${escapeHtml(key)}" data-evid="${escapeHtml(e.id)}" data-mk="${escapeHtml(m.id)}" data-sk="${escapeHtml(s.key)}" 
       data-odds="${escapeHtml(String(s.odds))}" data-pv="${escapeHtml(s.priceVersion || '')}"
       data-market-type="${escapeHtml(m.type || '')}">
       <span>${label}</span>
       <div style="text-align:right;">
-        ${lineStr ? `<div style="font-size:9px; color:#0284c7; font-weight:700;">${lineStr}</div>` : ''}
-        <span class="sb-cell-odds ${oddsClass}">${formatDecimalOdds(s.odds)}${movementArrow}</span>
+        ${lineStr ? `<div class="sb-cell-line ${lineClass}">${lineStr}</div>` : ''}
+        <span class="sb-cell-odds ${oddsClass}">${formatOdds(s.odds, oddsFormat)}${movementArrow}</span>
       </div>
     </button>
   `;
@@ -1405,13 +1475,14 @@ function renderOddCell(e, m, s, lineOverride) {
         ? (Number(lineVal) > 0 ? `+${Number(lineVal).toFixed(2)}` : Number(lineVal).toFixed(2))
         : Number(lineVal).toFixed(2))
     : '';
-  const oddsText = formatDecimalOdds(decOdds);
+  const lineClass = Number(lineVal) < 0 ? 'kei-negative' : 'kei-positive';
+  const oddsText = formatOdds(decOdds, oddsFormat);
 
   // Visual Odds Movement
   let movementClass = '';
   let movementArrow = '';
   const move = oddsMovementMap.get(key);
-  const oddsClass = oddsColorClass(move?.direction, m.type);
+  const oddsClass = oddsColorClass(move?.direction, m.type, decOdds, oddsFormat);
   if (move && (Date.now() - move.timestamp) < 1100) {
     if (move.direction === 'up') {
       movementClass = ' sb-odd-movement-up';
@@ -1433,7 +1504,7 @@ function renderOddCell(e, m, s, lineOverride) {
       data-market-type="${escapeHtml(m.type || '')}"
       aria-pressed="${isChosen ? 'true' : 'false'}"
       title="${escapeHtml(s.label || s.key)} @ ${decOdds.toFixed(2)}">
-      ${lineFormatted ? `<span class="sb-cell-line">${escapeHtml(lineFormatted)}</span>` : ''}
+      ${lineFormatted ? `<span class="sb-cell-line ${lineClass}">${escapeHtml(lineFormatted)}</span>` : ''}
       <span class="sb-cell-odds ${oddsClass}">${oddsText}${movementArrow}</span>
     </button>
   `;
@@ -1497,6 +1568,8 @@ function renderMatch(e) {
   const marketsCount = Math.max(Number(e.availableMarketCount || 0), e.markets?.length || 0);
   const providerSummary = eventProviderBadges(e);
   const marketSummaryText = marketsCount ? `${marketsCount} pasar aktif` : 'Pasar live';
+  const isMatchFav = favMatches.has(String(e.id));
+  const favBtn = `<button type="button" class="sb-fav-match-btn${isMatchFav ? ' is-fav' : ''}" data-fav-match="${escapeHtml(e.id)}" aria-pressed="${isMatchFav ? 'true' : 'false'}" title="${isMatchFav ? 'Hapus dari favorit' : 'Tambahkan ke favorit'}">${isMatchFav ? '★' : '☆'}</button>`;
 
   return `
     <article class="sb-match-card" data-evid="${escapeHtml(e.id)}">
@@ -1505,7 +1578,8 @@ function renderMatch(e) {
           ${isLive
             ? '<span class="sb-match-status is-live"><span></span> LANGSUNG</span>'
             : `<span class="sb-match-status">${formatKickoffDate(e.startTime)}</span>`}
-        <button type="button" class="sb-banner-refresh" onclick="window.location.reload()" title="Muat ulang odds">↻</button>
+        <button type="button" class="sb-banner-refresh" data-refresh-feed title="Segarkan odds">↻</button>
+        ${favBtn}
         </div>
         <div class="sb-match-meta-row">
           <span class="sb-match-league">${escapeHtml(formatLeagueLabel(e))}</span>
@@ -1514,12 +1588,12 @@ function renderMatch(e) {
         <div class="sb-teams-row">
           <div class="sb-team-col ${isHomeFav ? 'is-fav' : ''}">
             ${home.logo ? `<img class="sb-team-logo" src="${escapeHtml(home.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}
-            <span class="sb-team-name">${escapeHtml(home.name || 'TBA')}</span>
+            <span class="sb-team-name">${highlightMatch(home.name || 'TBA')}</span>
             ${isLive ? `<span class="sb-team-score">${escapeHtml(scoreText(home.score))}</span>` : ''}
           </div>
           <div class="sb-team-col away ${isAwayFav ? 'is-fav' : ''}">
             ${away.logo ? `<img class="sb-team-logo" src="${escapeHtml(away.logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.remove()">` : ''}
-            <span class="sb-team-name">${escapeHtml(away.name || 'TBA')}</span>
+            <span class="sb-team-name">${highlightMatch(away.name || 'TBA')}</span>
             ${isLive ? `<span class="sb-team-score">${escapeHtml(scoreText(away.score))}</span>` : ''}
           </div>
         </div>
@@ -1949,7 +2023,7 @@ function handleOddClick(btn) {
   quoteGeneration += 1;
   renderBetslip();
   renderAll();
-  showToast(`${selection.label} @ ${odds.toFixed(2)} ditambahkan`, 'success');
+  showToast(`${selection.label} @ ${formatOdds(odds, oddsFormat)} ditambahkan`, 'success');
   // Auto-open betslip sheet on mobile when first selection is made
   if (window.innerWidth <= BETSLIP_MOBILE_BREAKPOINT && !slipSheetOpen) {
     setTimeout(() => openSlipSheet(), 250);
@@ -2071,6 +2145,13 @@ function renderBetslip() {
         ).join('')}
       </select>
     </label>` : '';
+  const oddsPolicySelector = `<label class="sb-odds-policy">Perubahan odds
+    <select id="sb-odds-policy" aria-label="Kebijakan perubahan odds">
+      <option value="REJECT"${oddsChangePolicy === 'REJECT' ? ' selected' : ''}>Tolak jika berubah</option>
+      <option value="ACCEPT_BETTER"${oddsChangePolicy === 'ACCEPT_BETTER' ? ' selected' : ''}>Terima odds lebih baik</option>
+      <option value="ACCEPT_ANY"${oddsChangePolicy === 'ACCEPT_ANY' ? ' selected' : ''}>Terima semua perubahan</option>
+    </select>
+  </label>`;
   const betButtonLabel = placing ? 'Memproses…' : detailsPending ? 'Memperbarui odds…' : !ready ? (isSystemMode ? 'Pilih minimal 3 pertandingan' : isParlay ? 'Pilih minimal 2 pertandingan' : 'Pilih 1 pertandingan') : 'Pasang Taruhan';
   const betButtonIcon = placing || detailsPending ? '<svg class="ui-icon" aria-hidden="true"><use href="/assets/icons/ui-icons.svg#clock"></use></svg> ' : '';
 
@@ -2078,6 +2159,7 @@ function renderBetslip() {
     ${isSystemMode ? systemInfo : isParlay ? parlayInfo : singleInfo}
     <div class="sb-slip-legs">${legs.map(slipLegHtml).join('')}</div>
     ${systemSelector}
+    ${oddsPolicySelector}
     <div class="sb-slip-summary">
       <div class="sb-slip-row"><span>Jumlah pilihan</span><b>${legs.length}</b></div>
       ${isSystemMode ? `<div class="sb-slip-row"><span>Kombinasi</span><b>${metrics.combinationCount}</b></div>` : `<div class="sb-slip-row"><span>Total odds</span><b>${odds.toFixed(2)}</b></div>`}
@@ -2088,8 +2170,10 @@ function renderBetslip() {
     <div class="sb-slip-stake">
       <label class="sb-label" for="sb-stake">Nominal taruhan (Rp)</label>
       <input type="number" id="sb-stake" inputmode="numeric" min="${bettingConfig.minStake}" max="${bettingConfig.maxStake}" step="1000" value="${stake}">
-      <div class="sb-quick" role="group">
-        ${[10000, 25000, 50000, 100000].map((v) => `<button type="button" class="sb-quick-btn" data-quick="${v}">${fmt(v)}</button>`).join('')}
+      <div class="sb-quick" role="group" aria-label="Pilihan cepat nominal">
+        ${[10000, 25000, 50000, 100000, 250000, 500000].map((v) => `<button type="button" class="sb-quick-btn" data-quick="${v}">${fmt(v)}</button>`).join('')}
+        <button type="button" class="sb-quick-btn sb-quick-max" data-quick-max="1">Max</button>
+        <button type="button" class="sb-quick-btn sb-quick-clear" data-quick-clear="1">Clear</button>
       </div>
       <div class="sb-slip-row" style="margin-top:6px"><span>${isSystemMode ? 'Stake per kombinasi' : 'Stake'}</span><b>${formatRupiah(stake)}</b></div>
       ${isSystemMode ? `<div class="sb-slip-row"><span>Total stake</span><b id="slip-total-stake">${formatRupiah(metrics.totalStake)}</b></div>` : ''}
@@ -2119,7 +2203,7 @@ function slipLegHtml(s) {
   return `<div class="sb-slip-leg" data-key="${escapeHtml(key)}">
     <div class="sb-slip-leg-main">
       <span class="sb-slip-event">${escapeHtml(s.eventName)}</span>
-      <span class="sb-slip-pick">${escapeHtml(s.selectionLabel)} <b>@ ${Number(s.odds).toFixed(2)}</b></span>
+      <span class="sb-slip-pick">${escapeHtml(s.selectionLabel)} <b>@ ${formatOdds(s.odds, oddsFormat)}</b></span>
       <span class="sb-slip-market">${escapeHtml(s.marketLabel)}${s.marketPeriod === '1H' ? ' · HT' : ''}${s.marketLine !== null && s.marketLine !== undefined ? ` (${escapeHtml(String(s.marketLine))})` : ''}</span>
     </div>
     <button type="button" class="sb-slip-remove" data-remove="${escapeHtml(key)}" aria-label="Hapus pilihan">×</button>
@@ -2146,7 +2230,7 @@ async function requestQuote() {
       betType: type,
       stake,
       ...(type === 'SYSTEM' ? { systemSize: activeSystemSize } : {}),
-      oddsChangePolicy: 'REJECT',
+      oddsChangePolicy,
       selections: [...selected.values()].map((s) => ({
         eventId: s.eventId,
         marketId: s.marketId,
@@ -2194,6 +2278,13 @@ function showQuoteError(message) {
   if (host) host.innerHTML = '';
 }
 function bindBetslipEvents(root) {
+  root.querySelector('#sb-odds-policy')?.addEventListener('change', event => {
+    const policy = event.currentTarget.value;
+    oddsChangePolicy = ['REJECT', 'ACCEPT_BETTER', 'ACCEPT_ANY'].includes(policy) ? policy : 'REJECT';
+    quote = null;
+    quoteGeneration += 1;
+    renderBetslip();
+  });
   root.querySelectorAll('[data-remove]').forEach((b) => b.addEventListener('click', () => {
     selected.delete(b.getAttribute('data-remove'));
     quote = null;
@@ -2204,6 +2295,19 @@ function bindBetslipEvents(root) {
   root.querySelectorAll('[data-quick]').forEach((b) => b.addEventListener('click', () => {
     const input = el('sb-stake');
     if (input) { input.value = b.getAttribute('data-quick'); onStakeChange(); }
+  }));
+  root.querySelectorAll('[data-quick-max]').forEach((b) => b.addEventListener('click', () => {
+    const input = el('sb-stake');
+    if (!input) return;
+    const cap = Math.min(Number(bettingConfig.maxStake) || Infinity, Number(betslipBalance()) || Infinity);
+    const perLeg = Math.floor(cap / Math.max(1, selected.size || 1));
+    const value = Math.max(Number(bettingConfig.minStake) || 0, perLeg);
+    input.value = String(value);
+    onStakeChange();
+  }));
+  root.querySelectorAll('[data-quick-clear]').forEach((b) => b.addEventListener('click', () => {
+    const input = el('sb-stake');
+    if (input) { input.value = ''; onStakeChange(); }
   }));
   const stakeInput = el('sb-stake');
   if (stakeInput) stakeInput.addEventListener('input', onStakeChange);

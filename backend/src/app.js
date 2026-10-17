@@ -33,6 +33,7 @@ import { totoMarketsHealth, totoMarketsDetail, simpleHealth } from './health-che
 import { requestMemberPasswordReset, resetMemberPasswordByToken } from './password-reset.js';
 import { casinoProviders, casinoGames, casinoPassthrough, casinoRapidApiStatus, diagnoseCasinoUpstream, launchCasinoGame } from './casino-rapidapi.js';
 import { processBetnexCallback } from './casino-wallet.js';
+import { acceptSportsbookSnapshot, createStoredSportsbookSnapshot, SPORTSBOOK_INGEST_REDIS_KEY } from './sportsbook-ingestion.js';
 
 const startedAt=Date.now();const metrics={requests:0,errors:0,rateLimited:0,latencyTotal:0};
 const route=(method,pattern,handler,options={})=>({method,pattern,handler,...options});
@@ -53,6 +54,21 @@ add('GET',new RegExp('^/api/health/toto-markets$'),totoMarketsHealth);
 add('GET',new RegExp('^/api/health/toto-markets/detail$'),totoMarketsDetail);
 add('GET',new RegExp('^/api/health/simple$'),simpleHealth);
 add('GET',/^\/healthz$/,async({res})=>{let healthy=false;try{const raw=await redis.get(config.workerHeartbeatKey);healthy=isWorkerHeartbeatFresh(raw,{staleAfterSeconds:Math.max(config.workerHeartbeatMaxAgeSeconds*2,120)});}catch{healthy=false;}ok(res,{status:healthy?'ok':'degraded'},healthy?200:503);});
+add('POST',/^\/api\/internal\/sportsbook\/ingest$/,async({req,res})=>{
+  const result=await acceptSportsbookSnapshot(req,{
+    storeSnapshot:(_snapshot,serialized,signature)=>redis.set(
+      SPORTSBOOK_INGEST_REDIS_KEY,
+      createStoredSportsbookSnapshot({
+        serializedSnapshot:serialized,
+        timestamp:signature.timestamp,
+        signature:signature.signature,
+        receivedAt:signature.receivedAt
+      }),
+      {EX:1800}
+    )
+  });
+  ok(res,result,202);
+});
 
 add('GET',/^\/health$/,async({res})=>ok(res,{status:'ok',service:'core',uptimeSeconds:Math.floor((Date.now()-startedAt)/1000)}));
 add('GET',/^\/ready$/,async({res})=>{

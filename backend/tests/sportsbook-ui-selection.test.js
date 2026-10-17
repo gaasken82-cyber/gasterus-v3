@@ -53,3 +53,12 @@ test('market selection does not reuse a known outcome as a missing outcome', () 
   assert.equal(findMarketSelection({ selections }, ['draw', 'x'], 1), null);
   assert.equal(findMarketSelection({ selections }, ['away', '2'], 2), selections[1]);
 });
+
+test('odds UI locks suspended quick selections and exposes signed odds acceptance policies', () => {
+  assert.match(source, /const suspended = Boolean\(m\.suspended \|\| s\.suspended\)/);
+  assert.match(source, /suspended \? ' disabled aria-disabled="true"'/);
+  assert.match(source, /value="ACCEPT_BETTER"/);
+  assert.match(source, /value="ACCEPT_ANY"/);
+  assert.match(source, /oddsChangePolicy,\s*selections:/);
+  assert.match(source, /const lineClass = Number\(lineVal\) < 0 \? 'kei-negative' : 'kei-positive'/);
+});

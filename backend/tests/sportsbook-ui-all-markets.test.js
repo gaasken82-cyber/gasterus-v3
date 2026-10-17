@@ -169,6 +169,6 @@ test('market explorer labels HT and FT periods clearly and does not confuse odd/
 test('odds movement indicators remain readable long enough to identify direction', () => {
   const styles = readFileSync(new URL('../../frontend/css/pages/sportsbook-v3.css', import.meta.url), 'utf8');
   assert.match(frontend, /scheduleOddsMovementCleanup\(key, 1800\)/);
-  assert.match(styles, /\.sb-odd-cell\.sb-odd-movement-up\s*\{\s*animation: sbOddFlashBlue 1800ms/);
+  assert.match(styles, /\.sb-odd-cell\.sb-odd-movement-up\s*\{\s*animation: sbOddFlashGreen 1800ms/);
   assert.match(styles, /\.sb-odd-cell\.sb-odd-movement-down\s*\{\s*animation: sbOddFlashRed 1800ms/);
 });

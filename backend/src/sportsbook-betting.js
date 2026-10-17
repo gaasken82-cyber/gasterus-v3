@@ -22,6 +22,9 @@ function integer(value, name, min, max) {
   assert(Number.isSafeInteger(parsed) && parsed >= min && parsed <= max, 400, `${name} tidak valid.`, 'SPORTSBOOK_INPUT_INVALID');
   return parsed;
 }
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 function odds(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 1 && parsed <= 10000 ? Math.round(parsed * 10000) / 10000 : null;
@@ -123,6 +126,9 @@ async function revalidateResolvedLegs(legs) {
   const fresh = [];
   for (const leg of legs) {
     const latest = await sportsbookSelectionSnapshot({ eventId: leg.event.id, marketId: leg.market.id, selectionId: leg.selection.key });
+    if (latest.event.live && !leg.event.live) {
+      throw new AppError(409, 'Pertandingan baru dimulai. Tinjau quote live sebelum memasang taruhan.', 'SPORTSBOOK_EVENT_BECAME_LIVE');
+    }
     if (latest.selection.priceVersion !== leg.selection.priceVersion) {
       throw new AppError(409, 'Odds berubah saat tiket diproses. Tinjau kembali harga terbaru.', 'SPORTSBOOK_ODDS_VERSION_CHANGED', {
         eventId: leg.event.id,
@@ -411,6 +417,10 @@ export async function createSportsbookBet(session, input, { ip = '' } = {}) {
   if (verifiedQuote) {
     assert(Number(verifiedQuote.totalStake) === calculation.totalStake, 409, 'Quote taruhan tidak lagi sesuai dengan kalkulasi server.', 'SPORTSBOOK_QUOTE_MISMATCH');
     if (!repricedLegs.length) assert(Number(verifiedQuote.potentialPayout) === calculation.potentialPayout, 409, 'Quote payout tidak lagi sesuai dengan harga server.', 'SPORTSBOOK_QUOTE_MISMATCH');
+  }
+
+  if (legs.some(leg => leg.event.live)) {
+    await wait(config.sportsbookLiveAcceptanceDelayMs);
   }
 
   return tx(async client => {
